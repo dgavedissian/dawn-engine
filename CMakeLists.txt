@@ -252,12 +252,9 @@ if(WIN32)
     
     # Mirror the directory structure in visual studio
     set(ALL_FILES ${SOURCE_FILES} ${TP_SOURCE_FILES} ${HEADER_FILES})
-    foreach(FILE ${ALL_FILES}) 
+    foreach(FILE ${ALL_FILES})
         get_filename_component(PARENT_DIR "${FILE}" PATH)
-
-        # skip source dir and changes /'s to \\'s
-        string(REGEX REPLACE "(\\./)?(Source)/?" "" GROUP "${PARENT_DIR}")
-        string(REPLACE "/" "\\" GROUP "${GROUP}")
+        string(REPLACE "/" "\\" GROUP "${PARENT_DIR}")
         source_group("${GROUP}" FILES "${FILE}")
     endforeach()
 endif()
