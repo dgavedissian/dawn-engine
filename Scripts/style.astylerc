@@ -1,0 +1,13 @@
+--indent-switches
+--indent-cases
+--break-blocks
+--pad-oper
+--pad-header
+--unpad-paren
+--add-brackets
+--keep-one-line-blocks
+--convert-tabs
+--indent=spaces=2
+-A1
+--align-pointer=type
+--align-reference=type
