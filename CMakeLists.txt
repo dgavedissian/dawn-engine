@@ -13,38 +13,21 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 
 ###############################################
+# Utilities
+###############################################
+
+include(Utilities)
+enable_cpp11()
+enable_maximum_warnings()
+
+
+###############################################
 # Platform specific stuff
 ###############################################
 
 # Enable SSE4.1
 if(UNIX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
-endif()
-
-# Enable C++11
-if(UNIX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
-    # If on OS X, use the libc++ standard library which is much more c++11 complete
-    if(APPLE)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-        if(XCODE)
-            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
-            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-        endif()
-    endif()
-endif()
-
-# Enable lots of warnings
-if(MSVC)
-    add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-elseif(UNIX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic -Wuninitialized \
-        -Woverloaded-virtual -Wno-deprecated-declarations -Wno-unused-parameter")
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nested-anon-types -Wno-gnu-anonymous-struct")
-    endif()
 endif()
 
 # Fix for "error C3859: virtual memory range for PCH exceeded" with MSVC
@@ -247,16 +230,9 @@ set_target_properties(Dawn PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
 set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD")
 set_target_properties(Dawn PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "Source/Dawn/Prerequisites.h")
 
+mirror_physical_directories(${SOURCE_FILES} ${TP_SOURCE_FILES} ${HEADER_FILES})
 if(WIN32)
     set_target_properties(Dawn PROPERTIES DEBUG_POSTFIX _d)
-    
-    # Mirror the directory structure in visual studio
-    set(ALL_FILES ${SOURCE_FILES} ${TP_SOURCE_FILES} ${HEADER_FILES})
-    foreach(FILE ${ALL_FILES})
-        get_filename_component(PARENT_DIR "${FILE}" PATH)
-        string(REPLACE "/" "\\" GROUP "${PARENT_DIR}")
-        source_group("${GROUP}" FILES "${FILE}")
-    endforeach()
 endif()
 
 # Add include dirs and libraries
@@ -268,6 +244,7 @@ target_link_libraries(Dawn ${LIBS})
 # Add the sandbox
 add_executable(Sandbox Source/Sandbox/Main.cpp)
 target_link_libraries(Sandbox Dawn)
+mirror_physical_directories(Source/Sandbox/Main.cpp)
 
 # Run cotire
 include(cotire)
