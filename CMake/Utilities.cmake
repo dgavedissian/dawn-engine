@@ -41,6 +41,19 @@ function(mirror_physical_directories)
     endforeach()
 endfunction()
 
+# Set the output location explicitly
+macro(set_output_dir OUTDIR)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTDIR})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTDIR})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTDIR})
+    foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+        string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${OUTDIR})
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${OUTDIR})
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${OUTDIR})
+    endforeach()
+endmacro()
+
 # Macro to enable C++11 and on OS X enable libc++
 macro(enable_cpp11)
     if(UNIX)

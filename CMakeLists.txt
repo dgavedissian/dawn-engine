@@ -241,14 +241,41 @@ include_directories(
     ${INCLUDE_DIRS})
 target_link_libraries(Dawn ${LIBS})
 
-# Add the sandbox
+# Run cotire
+include(cotire)
+cotire(Dawn)
+
+
+###############################################
+# Helpful functions
+###############################################
+
+function(add_game GAME_NAME)
+    # Executable type
+    if(WIN32)
+        set(TYPE WIN32)
+    elseif(APPLE)
+        set(TYPE MACOSX_BUNDLE)
+    endif()
+
+    # Necessary linker flags on 64-bit OS X for LuaJIT
+    if(APPLE)
+        set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
+    endif()
+
+    # Add executable
+    add_executable(${GAME_NAME} ${TYPE} ${ARGN})
+endfunction()
+
+
+###############################################
+# Sandbox
+###############################################
+
 add_executable(Sandbox Source/Sandbox/Main.cpp)
 target_link_libraries(Sandbox Dawn)
 mirror_physical_directories(Source/Sandbox/Main.cpp)
 
-# Run cotire
-include(cotire)
-cotire(Dawn)
 
 ###############################################
 # Installation

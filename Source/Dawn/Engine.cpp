@@ -43,7 +43,7 @@ Engine::Engine(const string& game, const string& version)
 
     // Change the working directory
 #if DW_PLATFORM == DW_WIN32
-    SetCurrentDirectoryA(mBasePath.c_str());
+    //SetCurrentDirectoryA(mBasePath.c_str());
 #else
     chdir(mBasePath.c_str());
 #endif
