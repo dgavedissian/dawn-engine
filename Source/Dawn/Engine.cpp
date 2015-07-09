@@ -29,6 +29,11 @@ Engine::Engine(const string& game, const string& version)
     char* basePath = SDL_GetBasePath();
     mBasePath = basePath;
     SDL_free(basePath);
+#if DW_PLATFORM == DW_WIN32
+	mBasePath += "..\\";
+#else
+	mBasePath += "../";
+#endif
 
     // Get the preferences path
     // Having an empty org will leave a double slash in the path so replace with a single slash.
@@ -43,7 +48,7 @@ Engine::Engine(const string& game, const string& version)
 
     // Change the working directory
 #if DW_PLATFORM == DW_WIN32
-    //SetCurrentDirectoryA(mBasePath.c_str());
+    SetCurrentDirectoryA(mBasePath.c_str());
 #else
     chdir(mBasePath.c_str());
 #endif
