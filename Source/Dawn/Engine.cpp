@@ -72,7 +72,6 @@ void Engine::Setup()
     SDL_Init(SDL_INIT_VIDEO);
 
     // Create EventSystem
-    // TODO: DEPRECATED
     mEventSystem = new EventSystem;
 
     // Load configuration
@@ -131,7 +130,12 @@ void Engine::Shutdown()
     SAFE_DELETE(mInputMgr);
     SAFE_DELETE(mRenderSystem);
     SAFE_DELETE(mLuaState);
-    SAFE_DELETE(mEventSystem);
+	
+	// Shut down the event system
+	mEventSystem = nullptr;
+	EventSystem::release();
+
+	// Close the log
     Log::release();
 
     // Shut down SDL

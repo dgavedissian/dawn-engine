@@ -60,7 +60,7 @@ private:
 
     void DeallocateBlock()
     {
-        delete mBlock;
+        operator delete (mBlock);
         mFreeList.clear();
     }
 
