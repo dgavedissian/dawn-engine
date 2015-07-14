@@ -6,7 +6,7 @@
 
 NAMESPACE_BEGIN
 
-class InterfaceManager;
+class UI;
 
 enum ShowType
 {
@@ -24,7 +24,7 @@ enum UIEvent
 class DW_API Layout
 {
 public:
-    Layout(InterfaceManager* im, Rocket::Core::ElementDocument* document);
+    Layout(UI* im, Rocket::Core::ElementDocument* document);
     ~Layout();
 
     /// Focus on an element in this layout
@@ -52,7 +52,7 @@ public:
     DEPRECATED Rocket::Core::ElementDocument* GetDocument();
 
 private:
-    InterfaceManager* mInterfaceMgr;
+    UI* mInterfaceMgr;
 
     Rocket::Core::ElementDocument* mDocument;
     std::list<std::tuple<string, string, Rocket::Core::EventListener*>> mListeners;

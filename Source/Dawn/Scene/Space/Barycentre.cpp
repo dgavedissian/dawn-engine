@@ -7,7 +7,7 @@
 
 NAMESPACE_BEGIN
 
-Barycentre::Barycentre(RenderSystem* rs) : SystemBody(rs)
+Barycentre::Barycentre(Renderer* rs) : SystemBody(rs)
 {
 }
 

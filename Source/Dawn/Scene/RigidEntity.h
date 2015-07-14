@@ -85,7 +85,7 @@ private:
     };
 
     // Give PhysicsManager access to the private methods
-    friend class PhysicsManager;
+    friend class PhysicsWorld;
 
 };
 

@@ -8,13 +8,13 @@ NAMESPACE_BEGIN
 
 class Entity;
 class Camera;
-class PhysicsManager;
+class PhysicsWorld;
 
 /// Class used to keep track of entities being updated
 class DW_API SceneManager
 {
 public:
-    SceneManager(PhysicsManager* physicsMgr, Ogre::SceneManager* ogreSceneMgr);
+    SceneManager(PhysicsWorld* physicsMgr, Ogre::SceneManager* ogreSceneMgr);
     ~SceneManager();
 
     template <class T, class... Args>
@@ -54,10 +54,10 @@ public:
     void PreRender(Camera* camera);
 
     /// Gets the physics manager associated with this scene manager
-    PhysicsManager* GetPhysicsMgr() { return mPhysicsManager; }
+    PhysicsWorld* GetPhysicsWorld() { return mPhysicsWorld; }
 
 private:
-    PhysicsManager* mPhysicsManager;
+    PhysicsWorld* mPhysicsWorld;
     Ogre::SceneManager* mSceneMgr;
 
     // Owned entities

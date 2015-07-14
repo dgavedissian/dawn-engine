@@ -4,25 +4,25 @@
  */
 #include "Common.h"
 #include "Scene/Camera.h"
-#include "SoundManager.h"
+#include "Audio.h"
 
 NAMESPACE_BEGIN
 
-SoundManager::SoundManager() : mSoundEngine(nullptr), mCurrentTrack(nullptr), mLastCameraPosition()
+Audio::Audio() : mSoundEngine(nullptr), mCurrentTrack(nullptr), mLastCameraPosition()
 {
     mSoundEngine = irrklang::createIrrKlangDevice(
         irrklang::ESOD_AUTO_DETECT, irrklang::ESEO_MULTI_THREADED | irrklang::ESEO_LOAD_PLUGINS |
                                         irrklang::ESEO_USE_3D_BUFFERS);
 }
 
-SoundManager::~SoundManager()
+Audio::~Audio()
 {
     mSounds.clear();
     mTracks.clear();
     mSoundEngine->drop();
 }
 
-void SoundManager::PlayTrack(const string& filename)
+void Audio::PlayTrack(const string& filename)
 {
     if (mCurrentTrack)
     {
@@ -43,14 +43,14 @@ void SoundManager::PlayTrack(const string& filename)
     }
 }
 
-void SoundManager::PlaySound(const string& filename)
+void Audio::PlaySound(const string& filename)
 {
     Sound* sound = CreateSound(filename);
     sound->Play();
     mImmediateSounds.push_back(sound);
 }
 
-void SoundManager::PlaySound(const string& filename, const Position& position, float minDistance,
+void Audio::PlaySound(const string& filename, const Position& position, float minDistance,
                              float attenuation /*= 0.5f*/)
 {
     Sound* sound = CreateSound(filename, position);
@@ -59,7 +59,7 @@ void SoundManager::PlaySound(const string& filename, const Position& position, f
     mImmediateSounds.push_back(sound);
 }
 
-void SoundManager::Update(float dt, Camera* listener)
+void Audio::Update(float dt, Camera* listener)
 {
     // Calculate velocity
     Vec3 velocity = dt > math::eps
@@ -92,19 +92,19 @@ void SoundManager::Update(float dt, Camera* listener)
         snd->Update(listener, dt);
 }
 
-irrklang::ISoundEngine* SoundManager::GetSoundEngine()
+irrklang::ISoundEngine* Audio::GetSoundEngine()
 {
     return mSoundEngine;
 }
 
-Track* SoundManager::CreateTrack(const string& filename)
+Track* Audio::CreateTrack(const string& filename)
 {
     shared_ptr<Track> track = make_shared<Track>("Media/sounds/" + filename, mSoundEngine);
     mTracks.push_back(track);
     return track.get();
 }
 
-void SoundManager::DestroyTrack(Track* track)
+void Audio::DestroyTrack(Track* track)
 {
     // Swap and pop
     auto i = mTracks.begin();
@@ -121,14 +121,14 @@ void SoundManager::DestroyTrack(Track* track)
     }
 }
 
-Sound* SoundManager::CreateSound(const string& filename, bool looped /*= false*/)
+Sound* Audio::CreateSound(const string& filename, bool looped /*= false*/)
 {
     shared_ptr<Sound> sound = make_shared<Sound>("Media/sounds/" + filename, looped, mSoundEngine);
     mSounds.push_back(sound);
     return sound.get();
 }
 
-Sound* SoundManager::CreateSound(const string& filename, const Position& position,
+Sound* Audio::CreateSound(const string& filename, const Position& position,
                                  bool looped /*= false*/)
 {
     shared_ptr<Sound> sound =
@@ -137,7 +137,7 @@ Sound* SoundManager::CreateSound(const string& filename, const Position& positio
     return sound.get();
 }
 
-void SoundManager::DestroySound(Sound* sound)
+void Audio::DestroySound(Sound* sound)
 {
     // Swap and pop
     auto i = mSounds.begin();

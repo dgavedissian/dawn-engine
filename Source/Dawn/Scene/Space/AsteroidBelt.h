@@ -6,14 +6,14 @@
 
 NAMESPACE_BEGIN
 
-class RenderSystem;
+class Renderer;
 class SystemBody;
 
 // Attached to a SystemBody - if the camera is located inside the belt then render asteroids
 class DW_API AsteroidBelt
 {
 public:
-    AsteroidBelt(RenderSystem* rs, float minRadius, float maxRadius, float height);
+    AsteroidBelt(Renderer* rs, float minRadius, float maxRadius, float height);
     ~AsteroidBelt();
 
     // Update this asteroid belt

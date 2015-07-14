@@ -12,11 +12,11 @@ NAMESPACE_BEGIN
 class Camera;
 
 // Manages IrrKlang and provides some helper functions
-class DW_API SoundManager
+class DW_API Audio
 {
 public:
-    SoundManager();
-    ~SoundManager();
+    Audio();
+    ~Audio();
 
     // ---------------------------------------------------
     // Immediate mode interface

@@ -4,12 +4,12 @@
  */
 #include "Common.h"
 #include "Script/LuaState.h"
-#include "InterfaceManager.h"
+#include "UI.h"
 #include "Console.h"
 
 NAMESPACE_BEGIN
 
-Console::Console(InterfaceManager* im, LuaState* ls)
+Console::Console(UI* im, LuaState* ls)
     : mInterfaceMgr(im),
       mLuaState(ls),
       mLayout(nullptr),

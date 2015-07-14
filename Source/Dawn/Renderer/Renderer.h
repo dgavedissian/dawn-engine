@@ -15,7 +15,7 @@ enum QueryMasks
 
 class Camera;
 class DeferredShadingManager;
-class InputManager;
+class Input;
 
 struct DW_API RendererRaycastResult
 {
@@ -26,12 +26,12 @@ struct DW_API RendererRaycastResult
 };
 
 // Manages the Ogre rendering library and provides some helper functions
-class DW_API RenderSystem
+class DW_API Renderer
 {
 public:
-    RenderSystem(const string& basePath, const string& prefPath, InputManager* inputMgr,
+    Renderer(const string& basePath, const string& prefPath, Input* inputMgr,
                  const string& windowTitle);
-    ~RenderSystem();
+    ~Renderer();
 
     // Render one frame
     void RenderFrame(Camera* camera);
@@ -104,7 +104,7 @@ public:
     DEPRECATED Ogre::RenderSystem* GetOgreRenderSystem() const { return mRoot->getRenderSystem(); }
 
 private:
-    InputManager* mInputMgr;
+    Input* mInputMgr;
 
     // Window
     SDL_Window* mWindow;

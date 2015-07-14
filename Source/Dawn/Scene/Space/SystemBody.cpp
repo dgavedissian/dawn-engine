@@ -10,7 +10,7 @@
 
 NAMESPACE_BEGIN
 
-SystemBody::SystemBody(RenderSystem* rs)
+SystemBody::SystemBody(Renderer* rs)
     : mRenderSystem(rs),
       mOrbit(nullptr),
       mParent(nullptr),

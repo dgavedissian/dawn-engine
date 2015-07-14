@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Renderer/RenderSystem.h"
+#include "Renderer/Renderer.h"
 #include "AsteroidBelt.h"
 #include "SystemBody.h"
 
@@ -16,7 +16,7 @@
 
 NAMESPACE_BEGIN
 
-AsteroidBelt::AsteroidBelt(RenderSystem* rs, float minRadius, float maxRadius, float height)
+AsteroidBelt::AsteroidBelt(Renderer* rs, float minRadius, float maxRadius, float height)
     : mMinRadius(minRadius), mMaxRadius(maxRadius), mHeight(height)
 {
     assert(mMinRadius < mMaxRadius);

@@ -6,7 +6,7 @@
 
 NAMESPACE_BEGIN
 
-class InterfaceManager;
+class UI;
 class LuaState;
 class EvtData_KeyDown;
 
@@ -14,7 +14,7 @@ class EvtData_KeyDown;
 class DW_API Console : public LogListener, public Rocket::Core::EventListener
 {
 public:
-    Console(InterfaceManager* im, LuaState* ls);
+    Console(UI* im, LuaState* ls);
     virtual ~Console();
 
     // Set the visibility of the console
@@ -36,7 +36,7 @@ public:
     virtual void ProcessEvent(Rocket::Core::Event& event) override;
 
 private:
-    InterfaceManager* mInterfaceMgr;
+    UI* mInterfaceMgr;
     LuaState* mLuaState;
 
     Layout* mLayout;

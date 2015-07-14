@@ -6,13 +6,13 @@
 
 NAMESPACE_BEGIN
 
-class RenderSystem;
-class InputManager;
+class Renderer;
+class Input;
 
 class ImGuiInterface
 {
 public:
-    ImGuiInterface(RenderSystem* rs, InputManager* im);
+    ImGuiInterface(Renderer* rs, Input* im);
     ~ImGuiInterface();
 
     void BeginFrame();
@@ -24,7 +24,7 @@ public:
     void OnTextInput(char c);
 
 private:
-    InputManager* mInputMgr;
+    Input* mInputMgr;
 
     ImGuiIO& mIO;
 

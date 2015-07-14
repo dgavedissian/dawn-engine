@@ -3,12 +3,12 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "InterfaceManager.h"
+#include "UI.h"
 #include "Layout.h"
 
 NAMESPACE_BEGIN
 
-Layout::Layout(InterfaceManager* im, Rocket::Core::ElementDocument* document)
+Layout::Layout(UI* im, Rocket::Core::ElementDocument* document)
     : mInterfaceMgr(im),
       mDocument(document)
 {

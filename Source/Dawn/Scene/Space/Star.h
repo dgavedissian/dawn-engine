@@ -8,9 +8,9 @@
 
 NAMESPACE_BEGIN
 
-class RenderSystem;
+class Renderer;
 class StarSystem;
-class PhysicsManager;
+class PhysicsWorld;
 
 enum SpectralClass
 {
@@ -34,9 +34,9 @@ struct DW_API StarDesc
 class DW_API Star : public SystemBody
 {
 public:
-    Star(RenderSystem* renderSystem,
+    Star(Renderer* renderSystem,
          StarSystem* starSystem,
-         PhysicsManager* physicsMgr,
+         PhysicsWorld* physicsMgr,
          StarDesc& desc);
     virtual ~Star();
 
@@ -47,7 +47,7 @@ public:
     void PreRender(Camera* camera) override;
 
 private:
-    PhysicsManager* mPhysicsMgr;
+    PhysicsWorld* mPhysicsMgr;
     StarDesc mDesc;
 
     // Flare

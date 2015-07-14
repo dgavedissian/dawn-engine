@@ -12,7 +12,7 @@ NAMESPACE_BEGIN
 class DW_API Barycentre : public SystemBody
 {
 public:
-    Barycentre(RenderSystem* rs);
+    Barycentre(Renderer* rs);
     virtual ~Barycentre();
 };
 

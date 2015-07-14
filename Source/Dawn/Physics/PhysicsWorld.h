@@ -6,11 +6,11 @@
 
 NAMESPACE_BEGIN
 
-class RenderSystem;
+class Renderer;
 class RigidEntity;
 class Camera;
 
-// structure to hold the result of a raycast
+// Structure to hold the result of a raycast
 // TODO: merge this with RendererRaycastResult
 struct DW_API PhysicsRaycastResult
 {
@@ -20,12 +20,12 @@ struct DW_API PhysicsRaycastResult
     bool hit;
 };
 
-// Manages the Projectile physics library and provides some helper functions.
-class DW_API PhysicsManager
+// Manages the Bullet physics library and provides some helper functions.
+class DW_API PhysicsWorld
 {
 public:
-    PhysicsManager(RenderSystem* rs);
-    ~PhysicsManager();
+    PhysicsWorld(Renderer* rs);
+    ~PhysicsWorld();
 
     // Takes a step of dt seconds in the simulation
     void Update(float dt, Camera* camera);

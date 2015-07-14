@@ -3,8 +3,8 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Renderer/RenderSystem.h"
-#include "Input/InputManager.h"
+#include "Renderer/Renderer.h"
+#include "Input/Input.h"
 #include "DefaultCamera.h"
 
 #define PARTICLE_COUNT 500
@@ -12,7 +12,7 @@
 
 NAMESPACE_BEGIN
 
-DefaultCamera::DefaultCamera(RenderSystem* renderSystem, InputManager* inputMgr, SceneManager* sceneMgr)
+DefaultCamera::DefaultCamera(Renderer* renderSystem, Input* inputMgr, SceneManager* sceneMgr)
     : Camera(sceneMgr),
       mInputMgr(inputMgr),
       mTargetPosition(Vec3::zero),

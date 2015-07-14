@@ -8,8 +8,8 @@
 
 NAMESPACE_BEGIN
 
-SceneManager::SceneManager(PhysicsManager* physicsMgr, Ogre::SceneManager* ogreSceneMgr)
-    : mPhysicsManager(physicsMgr),
+SceneManager::SceneManager(PhysicsWorld* physicsMgr, Ogre::SceneManager* ogreSceneMgr)
+    : mPhysicsWorld(physicsMgr),
       mSceneMgr(ogreSceneMgr)
 {
 }

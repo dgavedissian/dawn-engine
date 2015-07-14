@@ -10,7 +10,7 @@
 
 NAMESPACE_BEGIN
 
-class RenderSystem;
+class Renderer;
 class StarSystem;
 
 // Contains all the information needed to construct a planetary object
@@ -43,7 +43,7 @@ struct DW_API PlanetDesc
 class DW_API Planet : public SystemBody
 {
 public:
-    Planet(RenderSystem* renderSystem, StarSystem* starSystem, PlanetDesc& desc);
+    Planet(Renderer* renderSystem, StarSystem* starSystem, PlanetDesc& desc);
     virtual ~Planet();
 
     // Accessors

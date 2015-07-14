@@ -3,8 +3,8 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Renderer/RenderSystem.h"
-#include "Physics/PhysicsManager.h"
+#include "Renderer/Renderer.h"
+#include "Physics/PhysicsWorld.h"
 #include "Scene/Camera.h"
 #include "StarSystem.h"
 #include "Star.h"
@@ -18,9 +18,9 @@ StarDesc::StarDesc() : radius(0.0f), spectralClass(SC_G)
 {
 }
 
-Star::Star(RenderSystem* renderSystem,
+Star::Star(Renderer* renderSystem,
            StarSystem* starSystem,
-           PhysicsManager* physicsMgr,
+           PhysicsWorld* physicsMgr,
            StarDesc& desc)
     : SystemBody(renderSystem),
       mPhysicsMgr(physicsMgr),

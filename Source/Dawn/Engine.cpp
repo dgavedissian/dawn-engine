@@ -82,18 +82,18 @@ void Engine::Setup()
     BindToLua();
 
     // Create the engine systems
-    mInputMgr = new InputManager;
-    mRenderSystem = new RenderSystem(mBasePath, mPrefPath, mInputMgr, mGameName + " " + mGameVersion);
-    mInterfaceMgr = new InterfaceManager(mRenderSystem, mInputMgr, mLuaState);
-    mInputMgr->SetViewportSize(mRenderSystem->GetViewportSize());
-    mSoundMgr = new SoundManager;
-    mPhysicsMgr = new PhysicsManager(mRenderSystem);
-    mSceneMgr = new SceneManager(mPhysicsMgr, mRenderSystem->GetSceneMgr());
-    mStarSystem = new StarSystem(mRenderSystem, mPhysicsMgr);
+    mInput = new Input;
+    mRenderer = new Renderer(mBasePath, mPrefPath, mInput, mGameName + " " + mGameVersion);
+    mUI = new UI(mRenderer, mInput, mLuaState);
+    mInput->SetViewportSize(mRenderer->GetViewportSize());
+    mAudio = new Audio;
+    mPhysicsWorld = new PhysicsWorld(mRenderer);
+    mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->GetSceneMgr());
+    mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
     mStateMgr = new StateManager;
 
     // Enumerate available video modes
-    vector<SDL_DisplayMode> displayModes = mRenderSystem->EnumerateDisplayModes();
+    vector<SDL_DisplayMode> displayModes = mRenderer->EnumerateDisplayModes();
     LOG << "Available video modes:";
     for (auto i = displayModes.begin(); i != displayModes.end(); i++)
     {
@@ -122,13 +122,13 @@ void Engine::Shutdown()
 
     // Shutdown the engine
     SAFE_DELETE(mStateMgr);
-    SAFE_DELETE(mInterfaceMgr);
+    SAFE_DELETE(mUI);
     SAFE_DELETE(mStarSystem);
     SAFE_DELETE(mSceneMgr);
-    SAFE_DELETE(mPhysicsMgr);
-    SAFE_DELETE(mSoundMgr);
-    SAFE_DELETE(mInputMgr);
-    SAFE_DELETE(mRenderSystem);
+    SAFE_DELETE(mPhysicsWorld);
+    SAFE_DELETE(mAudio);
+    SAFE_DELETE(mInput);
+    SAFE_DELETE(mRenderer);
     SAFE_DELETE(mLuaState);
 	
 	// Shut down the event system
@@ -153,7 +153,7 @@ void Engine::Run(EngineTickCallback tickFunc)
     double accumulator = 0.0;
     while (mRunning)
     {
-        mInterfaceMgr->BeginFrame();
+        mUI->BeginFrame();
 
         // Update game logic
         while (accumulator >= dt)
@@ -165,7 +165,7 @@ void Engine::Run(EngineTickCallback tickFunc)
 
         // Render a frame
         PreRender(mMainCamera);
-        mRenderSystem->RenderFrame(mMainCamera);
+        mRenderer->RenderFrame(mMainCamera);
 
         // Calculate frameTime
         double currentTime = time::Now();
@@ -193,12 +193,12 @@ void Engine::PrintSystemInfo()
 
 void Engine::Update(float dt, Camera* camera)
 {
-    mPhysicsMgr->Update(dt, camera);
+    mPhysicsWorld->Update(dt, camera);
     mStarSystem->Update(dt);
     mEventSystem->Update((uint64_t)20);
-    mSoundMgr->Update(dt, camera);
+    mAudio->Update(dt, camera);
     mStateMgr->Update(dt);
-    mInterfaceMgr->Update(dt);
+    mUI->Update(dt);
     mSceneMgr->Update(dt);
 }
 
@@ -207,7 +207,7 @@ void Engine::PreRender(Camera* camera)
     mStarSystem->PreRender(camera);
     mSceneMgr->PreRender(camera);
     mStateMgr->PreRender();
-    mInterfaceMgr->PreRender();
+    mUI->PreRender();
 }
 
 void Engine::HandleEvent(EventDataPtr eventData)

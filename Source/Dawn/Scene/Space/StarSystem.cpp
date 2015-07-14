@@ -3,14 +3,14 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Renderer/RenderSystem.h"
+#include "Renderer/Renderer.h"
 #include "Renderer/Deferred/DeferredShadingManager.h"
 #include "Script/LuaState.h"
 #include "StarSystem.h"
 
 NAMESPACE_BEGIN
 
-StarSystem::StarSystem(RenderSystem* rs, PhysicsManager* pm)
+StarSystem::StarSystem(Renderer* rs, PhysicsWorld* pm)
     : mRenderSystem(rs),
       mPhysicsManager(pm),
       mBackgroundSceneNode(nullptr)

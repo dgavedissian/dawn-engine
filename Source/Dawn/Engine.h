@@ -8,11 +8,11 @@ NAMESPACE_BEGIN
 
 class EventSystem;
 class LuaState;
-class InputManager;
-class RenderSystem;
-class InterfaceManager;
-class SoundManager;
-class PhysicsManager;
+class Input;
+class Renderer;
+class UI;
+class Audio;
+class PhysicsWorld;
 class SceneManager;
 class StarSystem;
 class StateManager;
@@ -55,14 +55,14 @@ public:
     // TODO: Remove this
     DEPRECATED void SetStarSystem(StarSystem* ss) { mStarSystem = ss; }
 
-    // Engine accessors
+	// Engine accessors
+	Audio* GetAudio() { return mAudio; }
     EventSystem* GetEventSystem() { return mEventSystem; }
     LuaState* GetLuaState() { return mLuaState; }
-    InputManager* GetInputMgr() { return mInputMgr; }
-    RenderSystem* GetRenderSystem() { return mRenderSystem; }
-    InterfaceManager* GetInterfaceMgr() { return mInterfaceMgr; }
-    SoundManager* GetSoundMgr() { return mSoundMgr; }
-    PhysicsManager* GetPhysicsMgr() { return mPhysicsMgr; }
+    Input* GetInput() { return mInput; }
+    Renderer* GetRenderer() { return mRenderer; }
+    UI* GetUI() { return mUI; }
+    PhysicsWorld* GetPhysicsWorld() { return mPhysicsWorld; }
     SceneManager* GetSceneMgr() { return mSceneMgr; }
     StarSystem* GetStarSystem() { return mStarSystem; }
     StateManager* GetStateMgr() { return mStateMgr; }
@@ -86,14 +86,14 @@ private:
     // Current main camera
     Camera* mMainCamera;
 
-    // Engine Classes
+	// Engine Classes
+	Audio* mAudio;
     EventSystem* mEventSystem;
     LuaState* mLuaState;
-    InputManager* mInputMgr;
-    RenderSystem* mRenderSystem;
-    InterfaceManager* mInterfaceMgr;
-    SoundManager* mSoundMgr;
-    PhysicsManager* mPhysicsMgr;
+    Input* mInput;
+    Renderer* mRenderer;
+    UI* mUI;
+    PhysicsWorld* mPhysicsWorld;
     SceneManager* mSceneMgr;
     StarSystem* mStarSystem;
     StateManager* mStateMgr;
@@ -104,6 +104,7 @@ private:
     void PreRender(Camera* camera);
     void HandleEvent(EventDataPtr eventData);
     void BindToLua();
+
 };
 
 NAMESPACE_END

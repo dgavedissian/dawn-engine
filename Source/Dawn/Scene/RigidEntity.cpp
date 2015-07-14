@@ -4,7 +4,7 @@
  */
 #include "Common.h"
 #include "SceneManager.h"
-#include "Physics/PhysicsManager.h"
+#include "Physics/PhysicsWorld.h"
 #include "RigidEntity.h"
 
 NAMESPACE_BEGIN
@@ -23,7 +23,7 @@ RigidEntity::RigidEntity(SceneManager* sceneMgr, shared_ptr<btCollisionShape> sh
 RigidEntity::~RigidEntity()
 {
     if (mRigidBody)
-        mSceneMgr->GetPhysicsMgr()->RemoveFromWorld(mRigidBody.get());
+        mSceneMgr->GetPhysicsWorld()->RemoveFromWorld(mRigidBody.get());
 }
 
 void RigidEntity::Init(shared_ptr<btCollisionShape> shape, float mass, bool disableDeactivation,
@@ -52,7 +52,7 @@ void RigidEntity::Init(shared_ptr<btCollisionShape> shape, Vec3 localInertia, fl
 
     mRigidBody->setUserPointer((void*)this);
     mRigidBody->setDamping(0.0f, 0.0f);
-    mSceneMgr->GetPhysicsMgr()->AddToWorld(mRigidBody.get());
+    mSceneMgr->GetPhysicsWorld()->AddToWorld(mRigidBody.get());
 }
 
 void RigidEntity::SetPosition(const Position& position)

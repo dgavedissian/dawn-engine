@@ -8,14 +8,14 @@
 #include "AsteroidBelt.h"
 
 NAMESPACE_BEGIN
-class RenderSystem;
+class Renderer;
 
 
 // Base class for any bodies inside a planetary system
 class DW_API SystemBody : public enable_shared_from_this<SystemBody>
 {
 public:
-    SystemBody(RenderSystem* rs);
+    SystemBody(Renderer* rs);
     virtual ~SystemBody();
 
     // Set the orbit of this body
@@ -53,7 +53,7 @@ public:
     virtual void CalculatePosition(double time);
 
 protected:
-    RenderSystem* mRenderSystem;
+    Renderer* mRenderSystem;
 
     shared_ptr<Orbit> mOrbit;
 

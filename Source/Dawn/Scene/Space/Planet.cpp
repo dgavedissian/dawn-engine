@@ -3,8 +3,8 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Renderer/RenderSystem.h"
-#include "Physics/PhysicsManager.h"
+#include "Renderer/Renderer.h"
+#include "Physics/PhysicsWorld.h"
 #include "StarSystem.h"
 #include "Planet.h"
 #include "Star.h"
@@ -26,7 +26,7 @@ PlanetDesc::PlanetDesc()
     rings.texture = "";
 }
 
-Planet::Planet(RenderSystem* renderSystem, StarSystem* starSystem, PlanetDesc& desc)
+Planet::Planet(Renderer* renderSystem, StarSystem* starSystem, PlanetDesc& desc)
     : SystemBody(renderSystem),
       mStarSystem(starSystem),
       mDesc(desc),

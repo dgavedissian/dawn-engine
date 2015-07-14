@@ -6,11 +6,11 @@
 
 NAMESPACE_BEGIN
 
-class DW_API InputManager
+class DW_API Input
 {
 public:
-    InputManager();
-    ~InputManager();
+    Input();
+    ~Input();
 
     /// Set the viewport size
     /// @param viewportSize Size of the viewport in pixels
@@ -42,8 +42,6 @@ private:
     Vec2i mViewportSize;
 
 };
-
-
 
 class DW_API EvtData_KeyDown : public EventData
 {

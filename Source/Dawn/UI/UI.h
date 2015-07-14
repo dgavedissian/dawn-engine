@@ -9,18 +9,17 @@
 
 NAMESPACE_BEGIN
 
-class RenderSystem;
-class InputManager;
+class Renderer;
+class Input;
 class RocketInterface;
 class ImGuiInterface;
 
 // Handles the graphical user interface
-class DW_API InterfaceManager : public Rocket::Core::EventListener,
-                                public Ogre::RenderQueueListener
+class DW_API UI : public Rocket::Core::EventListener, public Ogre::RenderQueueListener
 {
 public:
-    InterfaceManager(RenderSystem* rs, InputManager* im, LuaState* ls);
-    ~InterfaceManager();
+    UI(Renderer* rs, Input* im, LuaState* ls);
+    ~UI();
 
     /// Called at the beginning of a frame
     void BeginFrame();
@@ -45,7 +44,7 @@ public:
     RocketInterface* getRocketInterface() { return mRocketInterface.get(); }
 
 private:
-    RenderSystem* mRenderSystem;
+    Renderer* mRenderSystem;
 
     Rocket::Core::Context* mContext;
 

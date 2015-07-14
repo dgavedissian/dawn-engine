@@ -10,14 +10,14 @@
 
 NAMESPACE_BEGIN
 
-class RenderSystem;
+class Renderer;
 
 class RocketInterface : public Rocket::Core::RenderInterface,
                         public Rocket::Core::FileInterface,
                         public Rocket::Core::SystemInterface
 {
 public:
-    RocketInterface(RenderSystem* rs);
+    RocketInterface(Renderer* rs);
     virtual ~RocketInterface();
     
     /// Maps an SDL keycode to libRocket

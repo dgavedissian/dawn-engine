@@ -3,14 +3,14 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Renderer/RenderSystem.h"
-#include "Input/InputManager.h"
+#include "Renderer/Renderer.h"
+#include "Input/Input.h"
 #include "Scene/RigidEntity.h"
-#include "PhysicsManager.h"
+#include "PhysicsWorld.h"
 
 NAMESPACE_BEGIN
 
-PhysicsManager::PhysicsManager(RenderSystem* rs)
+PhysicsWorld::PhysicsWorld(Renderer* rs)
 {
     LOG << "Bullet Version " << (btGetVersion() / 100) << "." << (btGetVersion() % 100);
 
@@ -29,17 +29,17 @@ PhysicsManager::PhysicsManager(RenderSystem* rs)
     mDebugDrawer->setDebugMode(false);
 
     // Register event delegates
-    ADD_LISTENER(PhysicsManager, EvtData_KeyDown);
+    ADD_LISTENER(PhysicsWorld, EvtData_KeyDown);
 }
 
-PhysicsManager::~PhysicsManager()
+PhysicsWorld::~PhysicsWorld()
 {
-    REMOVE_LISTENER(PhysicsManager, EvtData_KeyDown);
+    REMOVE_LISTENER(PhysicsWorld, EvtData_KeyDown);
 
     LOG << "Bullet cleaned up";
 }
 
-void PhysicsManager::Update(float dt, Camera* camera)
+void PhysicsWorld::Update(float dt, Camera* camera)
 {
     // Call PreSimulationStep on each rigid body
     for (auto body : mRigidBodyList)
@@ -50,7 +50,7 @@ void PhysicsManager::Update(float dt, Camera* camera)
     mDebugDrawer->step();
 }
 
-void PhysicsManager::HandleEvent(EventDataPtr eventData)
+void PhysicsWorld::HandleEvent(EventDataPtr eventData)
 {
     if (EventIs<EvtData_KeyDown>(eventData))
     {
@@ -60,19 +60,19 @@ void PhysicsManager::HandleEvent(EventDataPtr eventData)
     }
 }
 
-void PhysicsManager::AddToWorld(btRigidBody* body)
+void PhysicsWorld::AddToWorld(btRigidBody* body)
 {
     mWorld->addRigidBody(body);
     mRigidBodyList.push_back(body);
 }
 
-void PhysicsManager::RemoveFromWorld(btRigidBody* body)
+void PhysicsWorld::RemoveFromWorld(btRigidBody* body)
 {
     mRigidBodyList.remove(body);
     mWorld->removeRigidBody(body);
 }
 
-bool PhysicsManager::RaycastQuery(const Position& start, const Position& end, Camera* camera,
+bool PhysicsWorld::RaycastQuery(const Position& start, const Position& end, Camera* camera,
                                   PhysicsRaycastResult& result)
 {
     // Make sure this is done in camera-space
@@ -109,7 +109,7 @@ bool PhysicsManager::RaycastQuery(const Position& start, const Position& end, Ca
     return result.hit;
 }
 
-void PhysicsManager::BulletTickCallback(btDynamicsWorld* world, btScalar timestep)
+void PhysicsWorld::BulletTickCallback(btDynamicsWorld* world, btScalar timestep)
 {
 }
 

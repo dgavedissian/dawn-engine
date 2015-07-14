@@ -18,8 +18,8 @@
 
 NAMESPACE_BEGIN
 
-class RenderSystem;
-class PhysicsManager;
+class Renderer;
+class PhysicsWorld;
 
 // TODO: Merge this into Galaxy?
 
@@ -27,7 +27,7 @@ class PhysicsManager;
 class DW_API StarSystem
 {
 public:
-    StarSystem(RenderSystem* rs, PhysicsManager* pm);
+    StarSystem(Renderer* rs, PhysicsWorld* pm);
     ~StarSystem();
 
     // Create an asteroid belt
@@ -64,8 +64,8 @@ public:
     DEPRECATED Ogre::SceneNode* GetRootSceneNode();
 
 private:
-    RenderSystem* mRenderSystem;
-    PhysicsManager* mPhysicsManager;
+    Renderer* mRenderSystem;
+    PhysicsWorld* mPhysicsManager;
 
     shared_ptr<SystemBody> mRootBody;
     vector<shared_ptr<SystemBody>> mBodies;

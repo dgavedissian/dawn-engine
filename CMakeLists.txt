@@ -100,8 +100,8 @@ set(LIBS "${LIBS}" PARENT_SCOPE)
 ###############################################
 
 set(HEADER_FILES
+    Source/Dawn/Audio/Audio.h
     Source/Dawn/Audio/Sound.h
-    Source/Dawn/Audio/SoundManager.h
     Source/Dawn/Audio/Source.h
     Source/Dawn/Audio/Track.h
     Source/Dawn/Core/Config.h
@@ -111,12 +111,12 @@ set(HEADER_FILES
     Source/Dawn/Core/Log.h
     Source/Dawn/Core/Singleton.h
     Source/Dawn/Core/Utils.h
-    Source/Dawn/Input/InputManager.h
+    Source/Dawn/Input/Input.h
     Source/Dawn/Math/Rect.h
     Source/Dawn/Math/Vec2i.h
     Source/Dawn/Math/Vec3i.h
     Source/Dawn/Math/Vec4i.h
-    Source/Dawn/Physics/PhysicsManager.h
+    Source/Dawn/Physics/PhysicsWorld.h
     Source/Dawn/Renderer/Deferred/AmbientLight.h
     Source/Dawn/Renderer/Deferred/DeferredLight.h
     Source/Dawn/Renderer/Deferred/DeferredLightCompPass.h
@@ -126,7 +126,7 @@ set(HEADER_FILES
     Source/Dawn/Renderer/Deferred/LightMaterialGenerator.h
     Source/Dawn/Renderer/Deferred/ListenerFactoryLogic.h
     Source/Dawn/Renderer/Deferred/MaterialGenerator.h
-    Source/Dawn/Renderer/RenderSystem.h
+    Source/Dawn/Renderer/Renderer.h
     Source/Dawn/Renderer/SpriteManager.h
     Source/Dawn/Scene/Space/AsteroidBelt.h
     Source/Dawn/Scene/Space/Barycentre.h
@@ -145,9 +145,9 @@ set(HEADER_FILES
     Source/Dawn/Script/LuaState.h
     Source/Dawn/UI/Console.h
     Source/Dawn/UI/ImGuiInterface.h
-    Source/Dawn/UI/InterfaceManager.h
     Source/Dawn/UI/Layout.h
     Source/Dawn/UI/RocketInterface.h
+    Source/Dawn/UI/UI.h
     Source/Dawn/StateManager.h
     Source/Dawn/Common.h
     Source/Dawn/DawnEngine.h
@@ -157,20 +157,20 @@ set(HEADER_FILES
     Source/Dawn/Prerequisites.h)
 
 set(SOURCE_FILES
+    Source/Dawn/Audio/Audio.cpp
     Source/Dawn/Audio/Sound.cpp
-    Source/Dawn/Audio/SoundManager.cpp
     Source/Dawn/Audio/Source.cpp
     Source/Dawn/Audio/Track.cpp
     Source/Dawn/Core/Config.cpp
     Source/Dawn/Core/ConfigNode.cpp
     Source/Dawn/Core/Log.cpp
     Source/Dawn/Core/Utils.cpp
-    Source/Dawn/Input/InputManager.cpp
+    Source/Dawn/Input/Input.cpp
     Source/Dawn/Math/Rect.cpp
     Source/Dawn/Math/Vec2i.cpp
     Source/Dawn/Math/Vec3i.cpp
     Source/Dawn/Math/Vec4i.cpp
-    Source/Dawn/Physics/PhysicsManager.cpp
+    Source/Dawn/Physics/PhysicsWorld.cpp
     Source/Dawn/Renderer/Deferred/AmbientLight.cpp
     Source/Dawn/Renderer/Deferred/DeferredLight.cpp
     Source/Dawn/Renderer/Deferred/DeferredLightCompPass.cpp
@@ -179,7 +179,7 @@ set(SOURCE_FILES
     Source/Dawn/Renderer/Deferred/GBufferSchemeHandler.cpp
     Source/Dawn/Renderer/Deferred/LightMaterialGenerator.cpp
     Source/Dawn/Renderer/Deferred/MaterialGenerator.cpp
-    Source/Dawn/Renderer/RenderSystem.cpp
+    Source/Dawn/Renderer/Renderer.cpp
     Source/Dawn/Renderer/SpriteManager.cpp
     Source/Dawn/Scene/Space/AsteroidBelt.cpp
     Source/Dawn/Scene/Space/Barycentre.cpp
@@ -198,9 +198,9 @@ set(SOURCE_FILES
     Source/Dawn/Script/LuaState.cpp
     Source/Dawn/UI/Console.cpp
     Source/Dawn/UI/ImGuiInterface.cpp
-    Source/Dawn/UI/InterfaceManager.cpp
     Source/Dawn/UI/Layout.cpp
     Source/Dawn/UI/RocketInterface.cpp
+    Source/Dawn/UI/UI.cpp
     Source/Dawn/StateManager.cpp
     Source/Dawn/Engine.cpp
     Source/Dawn/EventSystem.cpp)

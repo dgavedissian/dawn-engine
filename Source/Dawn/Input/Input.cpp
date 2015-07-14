@@ -4,9 +4,10 @@
     Author: David Avedissian
 */
 #include "Common.h"
-#include "InputManager.h"
+#include "Input.h"
 
 NAMESPACE_BEGIN
+
 const EventType EvtData_KeyDown::eventType(0xe135f7e7);
 const EventType EvtData_KeyUp::eventType(0x3d00cddc);
 const EventType EvtData_TextInput::eventType(0x4d82f23e);
@@ -15,41 +16,41 @@ const EventType EvtData_MouseUp::eventType(0x2c080377);
 const EventType EvtData_MouseMove::eventType(0xcfcf6020);
 const EventType EvtData_MouseWheel::eventType(0xabc23f35);
 
-InputManager::InputManager() : mInputBlock(0)
+Input::Input() : mInputBlock(0)
 {
 }
 
-InputManager::~InputManager()
+Input::~Input()
 {
 }
 
-void InputManager::SetViewportSize(const Vec2i& viewportSize)
+void Input::SetViewportSize(const Vec2i& viewportSize)
 {
     mViewportSize = viewportSize;
 }
 
-void InputManager::LockCursor(bool relative)
+void Input::LockCursor(bool relative)
 {
     SDL_SetRelativeMouseMode((SDL_bool)relative);
 }
 
-void InputManager::PushInputBlock()
+void Input::PushInputBlock()
 {
     mInputBlock++;
 }
 
-void InputManager::PopInputBlock()
+void Input::PopInputBlock()
 {
     if (mInputBlock > 0)
         mInputBlock--;
 }
 
-bool InputManager::IsInputBlocked() const
+bool Input::IsInputBlocked() const
 {
     return mInputBlock > 0;
 }
 
-void InputManager::HandleSDLEvent(SDL_Event& e)
+void Input::HandleSDLEvent(SDL_Event& e)
 {
     switch (e.type)
     {
@@ -94,31 +95,31 @@ void InputManager::HandleSDLEvent(SDL_Event& e)
     }
 }
 
-bool InputManager::IsKeyDown(SDL_Keycode key) const
+bool Input::IsKeyDown(SDL_Keycode key) const
 {
     const Uint8* state = SDL_GetKeyboardState(nullptr);
     return (bool)state[SDL_GetScancodeFromKey(key)];
 }
 
-bool InputManager::IsMouseButtonDown(uint button) const
+bool Input::IsMouseButtonDown(uint button) const
 {
     return (bool)(SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON(button));
 }
 
-Vec2i InputManager::GetMousePosition() const
+Vec2i Input::GetMousePosition() const
 {
     Vec2i pos;
     SDL_GetMouseState(&pos.x, &pos.y);
     return pos;
 }
 
-Vec2 InputManager::GetMousePositionRelative() const
+Vec2 Input::GetMousePositionRelative() const
 {
     Vec2i mousePosition = GetMousePosition();
     return Vec2((float)mousePosition.x / mViewportSize.x, (float)mousePosition.y / mViewportSize.y);
 }
 
-Vec3i InputManager::GetMouseMove() const
+Vec3i Input::GetMouseMove() const
 {
     return Vec3i();
 }

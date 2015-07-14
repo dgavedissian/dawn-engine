@@ -8,7 +8,7 @@
 
 NAMESPACE_BEGIN
 
-class RenderSystem;
+class Renderer;
 class InputSystem;
 class SceneManager;
 
@@ -35,7 +35,7 @@ enum CameraDragEventState
 class DefaultCamera : public Camera
 {
 public:
-    DefaultCamera(RenderSystem* renderSystem, InputManager* inputMgr, SceneManager* sceneMgr);
+    DefaultCamera(Renderer* renderSystem, Input* inputMgr, SceneManager* sceneMgr);
     virtual ~DefaultCamera();
 
     /// Control State
@@ -126,7 +126,7 @@ public:
     virtual bool Update(float dt) override;
 
 protected:
-    InputManager* mInputMgr;
+    Input* mInputMgr;
 
     Position mTargetPosition;
     Quat mTargetOrientation;

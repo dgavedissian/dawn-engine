@@ -3,9 +3,9 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Input/InputManager.h"
-#include "Renderer/RenderSystem.h"
-#include "InterfaceManager.h"
+#include "Input/Input.h"
+#include "Renderer/Renderer.h"
+#include "UI.h"
 
 #include "RocketInterface.h"
 #include "ImGuiInterface.h"
@@ -17,7 +17,7 @@ NAMESPACE_BEGIN
 const EventType EvtData_UIClick::eventType(0xe135dd7);
 const EventType EvtData_UISubmit::eventType(0x3d02cddc);
 
-InterfaceManager::InterfaceManager(RenderSystem* rs, InputManager* im, LuaState* ls) : mRenderSystem(rs)
+UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
 {
     // Force the interface render queue to be created
     rs->GetSceneMgr()->getRenderQueue()->getQueueGroup(INTERFACE_RENDER_QUEUE);
@@ -50,24 +50,24 @@ InterfaceManager::InterfaceManager(RenderSystem* rs, InputManager* im, LuaState*
     mConsole = make_shared<Console>(this, ls);
 
     // Event Delegates
-    ADD_LISTENER(InterfaceManager, EvtData_TextInput);
-    ADD_LISTENER(InterfaceManager, EvtData_KeyDown);
-    ADD_LISTENER(InterfaceManager, EvtData_KeyUp);
-    ADD_LISTENER(InterfaceManager, EvtData_MouseDown);
-    ADD_LISTENER(InterfaceManager, EvtData_MouseUp);
-    ADD_LISTENER(InterfaceManager, EvtData_MouseMove);
-    ADD_LISTENER(InterfaceManager, EvtData_MouseWheel);
+    ADD_LISTENER(UI, EvtData_TextInput);
+    ADD_LISTENER(UI, EvtData_KeyDown);
+    ADD_LISTENER(UI, EvtData_KeyUp);
+    ADD_LISTENER(UI, EvtData_MouseDown);
+    ADD_LISTENER(UI, EvtData_MouseUp);
+    ADD_LISTENER(UI, EvtData_MouseMove);
+    ADD_LISTENER(UI, EvtData_MouseWheel);
 }
 
-InterfaceManager::~InterfaceManager()
+UI::~UI()
 {
-    REMOVE_LISTENER(InterfaceManager, EvtData_TextInput);
-    REMOVE_LISTENER(InterfaceManager, EvtData_KeyDown);
-    REMOVE_LISTENER(InterfaceManager, EvtData_KeyUp);
-    REMOVE_LISTENER(InterfaceManager, EvtData_MouseDown);
-    REMOVE_LISTENER(InterfaceManager, EvtData_MouseUp);
-    REMOVE_LISTENER(InterfaceManager, EvtData_MouseMove);
-    REMOVE_LISTENER(InterfaceManager, EvtData_MouseWheel);
+    REMOVE_LISTENER(UI, EvtData_TextInput);
+    REMOVE_LISTENER(UI, EvtData_KeyDown);
+    REMOVE_LISTENER(UI, EvtData_KeyUp);
+    REMOVE_LISTENER(UI, EvtData_MouseDown);
+    REMOVE_LISTENER(UI, EvtData_MouseUp);
+    REMOVE_LISTENER(UI, EvtData_MouseMove);
+    REMOVE_LISTENER(UI, EvtData_MouseWheel);
 
     mConsole.reset();
 
@@ -82,20 +82,20 @@ InterfaceManager::~InterfaceManager()
     mRenderSystem->GetSceneMgr()->removeRenderQueueListener(this);
 }
 
-void InterfaceManager::BeginFrame()
+void UI::BeginFrame()
 {
     mImGuiInterface->BeginFrame();
 }
 
-void InterfaceManager::Update(float dt)
+void UI::Update(float dt)
 {
 }
 
-void InterfaceManager::PreRender()
+void UI::PreRender()
 {
 }
 
-Layout* InterfaceManager::LoadLayout(const string& filename)
+Layout* UI::LoadLayout(const string& filename)
 {
     // TODO: What if this fails?
     auto fn = Rocket::Core::String(filename.c_str());
@@ -109,12 +109,12 @@ Layout* InterfaceManager::LoadLayout(const string& filename)
     return new Layout(this, document);
 }
 
-void InterfaceManager::UnloadLayout(Layout* layout)
+void UI::UnloadLayout(Layout* layout)
 {
     delete layout;
 }
 
-void InterfaceManager::HandleEvent(EventDataPtr eventData)
+void UI::HandleEvent(EventDataPtr eventData)
 {
     using Rocket::Core::Input::KeyIdentifier;
 
@@ -196,7 +196,7 @@ void InterfaceManager::HandleEvent(EventDataPtr eventData)
     }
 }
 
-void InterfaceManager::ProcessEvent(Rocket::Core::Event& event)
+void UI::ProcessEvent(Rocket::Core::Event& event)
 {
     string type = event.GetType().CString();
     string id = event.GetCurrentElement()->GetId().CString();
@@ -236,7 +236,7 @@ void InterfaceManager::ProcessEvent(Rocket::Core::Event& event)
         EventSystem::inst().QueueEvent(make_shared<EvtData_UISubmit>(id, parameters));
 }
 
-void InterfaceManager::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String&, bool&)
+void UI::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String&, bool&)
 {
     if (queueGroupId == INTERFACE_RENDER_QUEUE &&
         Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
@@ -248,7 +248,7 @@ void InterfaceManager::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::
     }
 }
 
-void InterfaceManager::ConfigureRenderSystem()
+void UI::ConfigureRenderSystem()
 {
     Ogre::RenderSystem* renderSystem = mRenderSystem->GetOgreRenderSystem();
 
@@ -310,7 +310,7 @@ void InterfaceManager::ConfigureRenderSystem()
     renderSystem->_setDepthBias(0, 0);
 }
 
-void InterfaceManager::BuildProjectionMatrix(Ogre::Matrix4& projectionMatrix)
+void UI::BuildProjectionMatrix(Ogre::Matrix4& projectionMatrix)
 {
     float zNear = -1.0f;
     float zFar = 1.0f;
