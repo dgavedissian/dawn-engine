@@ -246,11 +246,15 @@ bool DefaultCamera::IsParticlesEnabled() const
 void DefaultCamera::SetPosition(const Position& position)
 {
     mTargetPosition = position;
+    if (!ShouldInterpolate())
+        Camera::SetPosition(mTargetPosition);
 }
 
 void DefaultCamera::SetOrientation(const Quat& orientation)
 {
     mTargetOrientation = orientation;
+    if (!ShouldInterpolate())
+        Camera::SetOrientation(mTargetOrientation);
 }
 
 bool DefaultCamera::Update(float dt)
@@ -289,20 +293,11 @@ bool DefaultCamera::Update(float dt)
         mShakeTimer += 1.0f * dt;
     }
 
-    // Should we interpolate position?
-    if (CustomControlStateShouldInterpolate(mControlState) &&
-        GetPosition().GetRelativeToPoint(mTargetPosition).Length() < 1000.0f)
-    {
-        float percentage = 0.95f;
-        float scaledDt = dt * 4.0f;
-        Camera::SetPosition(Lerp(GetPosition(), mTargetPosition, percentage, scaledDt * 4.0f));
-        Camera::SetOrientation(Lerp(GetOrientation(), mTargetOrientation, percentage, scaledDt));
-    }
-    else
-    {
-        Camera::SetPosition(mTargetPosition);
-        Camera::SetOrientation(mTargetOrientation * shake);
-    }
+    // Interpolate position
+    float percentage = 0.95f;
+    float scaledDt = dt * 4.0f;
+    Camera::SetPosition(Lerp(GetPosition(), mTargetPosition, percentage, scaledDt * 4.0f));
+    Camera::SetOrientation(Lerp(GetOrientation(), mTargetOrientation, percentage, scaledDt));
 
     // Update particles
     if (mParticlesEnabled)
@@ -445,6 +440,12 @@ void DefaultCamera::TrackFree(const Position& position, const Quat& orientation,
 {
     SetOrientation(orientationOffset);
     SetPosition(position + GetOrientation() * offset);
+}
+
+bool DefaultCamera::ShouldInterpolate() const
+{
+    return CustomControlStateShouldInterpolate(mControlState) &&
+        GetPosition().GetRelativeToPoint(mTargetPosition).Length() < 1000.0f;
 }
 
 NAMESPACE_END

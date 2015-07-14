@@ -118,7 +118,7 @@ public:
 
     /// Custom control state handler
     virtual void CustomControlStateHandler(float dt) {}
-    virtual bool CustomControlStateShouldInterpolate(int controlState) { return false; }
+    virtual bool CustomControlStateShouldInterpolate(int controlState) const { return false; }
 
     // Inherited from Camera
     virtual void SetPosition(const Position& position) override;
@@ -170,6 +170,7 @@ protected:
     void TrackFixed(const Position& position, const Quat& orientation, const Vec3& offset);
     void TrackFree(const Position& position, const Quat& orientation, const Vec3& offset,
                    const Quat& orientationOffset);
+    bool ShouldInterpolate() const;
 };
 
 NAMESPACE_END
