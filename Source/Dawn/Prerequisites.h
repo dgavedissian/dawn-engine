@@ -98,7 +98,7 @@
 #include "BtOgrePG.h"
 
 // Lua C++ interface
-#include "LuaBridge/LuaBridge.h"
+#include "LuaBridge.h"
 
 // imgui debugging UI
 #include "imgui.h"
