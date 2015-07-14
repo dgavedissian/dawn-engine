@@ -111,23 +111,23 @@ set(HEADER_FILES
     Source/Dawn/Core/Log.h
     Source/Dawn/Core/Singleton.h
     Source/Dawn/Core/Utils.h
-    Source/Dawn/Graphics/Deferred/AmbientLight.h
-    Source/Dawn/Graphics/Deferred/DeferredLight.h
-    Source/Dawn/Graphics/Deferred/DeferredLightCompPass.h
-    Source/Dawn/Graphics/Deferred/DeferredShadingManager.h
-    Source/Dawn/Graphics/Deferred/GBufferMaterialGenerator.h
-    Source/Dawn/Graphics/Deferred/GBufferSchemeHandler.h
-    Source/Dawn/Graphics/Deferred/LightMaterialGenerator.h
-    Source/Dawn/Graphics/Deferred/ListenerFactoryLogic.h
-    Source/Dawn/Graphics/Deferred/MaterialGenerator.h
-    Source/Dawn/Graphics/RenderSystem.h
-    Source/Dawn/Graphics/SpriteManager.h
     Source/Dawn/Input/InputManager.h
     Source/Dawn/Math/Rect.h
     Source/Dawn/Math/Vec2i.h
     Source/Dawn/Math/Vec3i.h
     Source/Dawn/Math/Vec4i.h
     Source/Dawn/Physics/PhysicsManager.h
+    Source/Dawn/Renderer/Deferred/AmbientLight.h
+    Source/Dawn/Renderer/Deferred/DeferredLight.h
+    Source/Dawn/Renderer/Deferred/DeferredLightCompPass.h
+    Source/Dawn/Renderer/Deferred/DeferredShadingManager.h
+    Source/Dawn/Renderer/Deferred/GBufferMaterialGenerator.h
+    Source/Dawn/Renderer/Deferred/GBufferSchemeHandler.h
+    Source/Dawn/Renderer/Deferred/LightMaterialGenerator.h
+    Source/Dawn/Renderer/Deferred/ListenerFactoryLogic.h
+    Source/Dawn/Renderer/Deferred/MaterialGenerator.h
+    Source/Dawn/Renderer/RenderSystem.h
+    Source/Dawn/Renderer/SpriteManager.h
     Source/Dawn/Scene/Space/AsteroidBelt.h
     Source/Dawn/Scene/Space/Barycentre.h
     Source/Dawn/Scene/Space/Galaxy.h
@@ -165,22 +165,22 @@ set(SOURCE_FILES
     Source/Dawn/Core/ConfigNode.cpp
     Source/Dawn/Core/Log.cpp
     Source/Dawn/Core/Utils.cpp
-    Source/Dawn/Graphics/Deferred/AmbientLight.cpp
-    Source/Dawn/Graphics/Deferred/DeferredLight.cpp
-    Source/Dawn/Graphics/Deferred/DeferredLightCompPass.cpp
-    Source/Dawn/Graphics/Deferred/DeferredShadingManager.cpp
-    Source/Dawn/Graphics/Deferred/GBufferMaterialGenerator.cpp
-    Source/Dawn/Graphics/Deferred/GBufferSchemeHandler.cpp
-    Source/Dawn/Graphics/Deferred/LightMaterialGenerator.cpp
-    Source/Dawn/Graphics/Deferred/MaterialGenerator.cpp
-    Source/Dawn/Graphics/RenderSystem.cpp
-    Source/Dawn/Graphics/SpriteManager.cpp
     Source/Dawn/Input/InputManager.cpp
     Source/Dawn/Math/Rect.cpp
     Source/Dawn/Math/Vec2i.cpp
     Source/Dawn/Math/Vec3i.cpp
     Source/Dawn/Math/Vec4i.cpp
     Source/Dawn/Physics/PhysicsManager.cpp
+    Source/Dawn/Renderer/Deferred/AmbientLight.cpp
+    Source/Dawn/Renderer/Deferred/DeferredLight.cpp
+    Source/Dawn/Renderer/Deferred/DeferredLightCompPass.cpp
+    Source/Dawn/Renderer/Deferred/DeferredShadingManager.cpp
+    Source/Dawn/Renderer/Deferred/GBufferMaterialGenerator.cpp
+    Source/Dawn/Renderer/Deferred/GBufferSchemeHandler.cpp
+    Source/Dawn/Renderer/Deferred/LightMaterialGenerator.cpp
+    Source/Dawn/Renderer/Deferred/MaterialGenerator.cpp
+    Source/Dawn/Renderer/RenderSystem.cpp
+    Source/Dawn/Renderer/SpriteManager.cpp
     Source/Dawn/Scene/Space/AsteroidBelt.cpp
     Source/Dawn/Scene/Space/Barycentre.cpp
     Source/Dawn/Scene/Space/Galaxy.cpp
@@ -206,8 +206,8 @@ set(SOURCE_FILES
     Source/Dawn/EventSystem.cpp)
 
 if(APPLE)
-    set(HEADER_FILES ${HEADER_FILES} Source/Dawn/Graphics/OSXGetNSView.h)
-    set(SOURCE_FILES ${SOURCE_FILES} Source/Dawn/Graphics/OSXGetNSView.mm)
+    set(HEADER_FILES ${HEADER_FILES} Source/Dawn/Renderer/OSXGetNSView.h)
+    set(SOURCE_FILES ${SOURCE_FILES} Source/Dawn/Renderer/OSXGetNSView.mm)
 endif()
 
 # BtOgre

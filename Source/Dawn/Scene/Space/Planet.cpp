@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Graphics/RenderSystem.h"
+#include "Renderer/RenderSystem.h"
 #include "Physics/PhysicsManager.h"
 #include "StarSystem.h"
 #include "Planet.h"

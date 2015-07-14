@@ -4,7 +4,7 @@
  */
 #include "Common.h"
 #include "Input/InputManager.h"
-#include "Graphics/RenderSystem.h"
+#include "Renderer/RenderSystem.h"
 #include "InterfaceManager.h"
 
 #include "RocketInterface.h"

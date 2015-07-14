@@ -3,8 +3,8 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Graphics/RenderSystem.h"
-#include "Graphics/Deferred/DeferredShadingManager.h"
+#include "Renderer/RenderSystem.h"
+#include "Renderer/Deferred/DeferredShadingManager.h"
 #include "Script/LuaState.h"
 #include "StarSystem.h"
 
