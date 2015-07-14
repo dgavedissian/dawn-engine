@@ -25,11 +25,6 @@ enable_maximum_warnings()
 # Platform specific stuff
 ###############################################
 
-# Enable SSE4.1
-if(UNIX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
-endif()
-
 # Fix for "error C3859: virtual memory range for PCH exceeded" with MSVC
 if(MSVC)
     string(REGEX REPLACE "/Zm[0-9]+ " "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
@@ -87,8 +82,11 @@ set(LIBS
 # Add bundled external libraries
 set(INCLUDE_DIRS
     ${INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/yaml-cpp/include)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/BtOgre
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/FastDelegate
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/ImGui
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/LuaBridge
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/YamlCpp/include)
 
 # Push dependencies to the parent scope
 set(INCLUDE_DIRS "${INCLUDE_DIRS}" PARENT_SCOPE)
@@ -212,11 +210,14 @@ endif()
 
 # BtOgre
 set(TP_SOURCE_FILES
-    Source/ThirdParty/BtOgre.cpp
-    Source/ThirdParty/imgui.cpp)
+    Source/ThirdParty/BtOgre/BtOgre.cpp)
 
-# yaml-cpp
-file(GLOB YAML_CPP_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} Source/ThirdParty/yaml-cpp/src/*.cpp)
+# ImGui
+set(TP_SOURCE_FILES ${TP_SOURCE_FILES}
+    Source/ThirdParty/ImGui/imgui.cpp)
+
+# YamlCpp
+file(GLOB YAML_CPP_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} Source/ThirdParty/YamlCpp/src/*.cpp)
 set(TP_SOURCE_FILES ${TP_SOURCE_FILES} ${YAML_CPP_SRC})
 
 
