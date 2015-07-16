@@ -97,6 +97,7 @@ NAMESPACE_END
 #include "Math/Vec3i.h"
 #include "Math/Vec4i.h"
 #include "Math/Rect.h"
+#include "Math/MathDefs.h"
 // Random number generators
 
 // Data structures

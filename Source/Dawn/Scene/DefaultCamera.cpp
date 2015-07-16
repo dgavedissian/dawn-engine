@@ -218,9 +218,9 @@ void DefaultCamera::UpdateParticles(float dt)
     {
         Ogre::Vector3& position = (*i)->mPosition;
         position -= velocity;
-        position.x = Wrap(position.x, -mParticlesSize.x, mParticlesSize.x);
-        position.y = Wrap(position.y, -mParticlesSize.y, mParticlesSize.y);
-        position.z = Wrap(position.z, -mParticlesSize.z, mParticlesSize.z);
+        position.x = Wrap<float>(position.x, -mParticlesSize.x, mParticlesSize.x);
+		position.y = Wrap<float>(position.y, -mParticlesSize.y, mParticlesSize.y);
+		position.z = Wrap<float>(position.z, -mParticlesSize.z, mParticlesSize.z);
 
         // Set length
         (*i)->setDimensions(math::Min(length * 0.5f, mParticleSet->getDefaultWidth()),

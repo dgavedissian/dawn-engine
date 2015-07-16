@@ -110,6 +110,7 @@ set(HEADER_FILES
     Source/Dawn/Core/Singleton.h
     Source/Dawn/Core/Utils.h
     Source/Dawn/Input/Input.h
+    Source/Dawn/Math/MathDefs.h
     Source/Dawn/Math/Rect.h
     Source/Dawn/Math/Vec2i.h
     Source/Dawn/Math/Vec3i.h

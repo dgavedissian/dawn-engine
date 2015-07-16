@@ -40,12 +40,6 @@ private:
     bool mStart;
 };
 
-template <class T>
-bool FloatEq(T a, T b, T epsilon = std::numeric_limits<T>::epsilon())
-{
-    return math::Abs(a - b) <= epsilon;
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Command Line
@@ -190,88 +184,6 @@ T ConvUnit(T input, MassUnits outUnit, MassUnits inUnit = UNIT_KG)
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Math
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Lerp taking into account the rate of time - in 1 second, value will be x between a and b.
-template <class T> T Lerp(const T& a, const T& b, float x, float dt)
-{
-    return math::Lerp(a, b, 1.0f - pow(1.0f - x, dt));
-}
-
-// Implementation of Lerp for Position objects
-template <> Position Lerp(const Position& a, const Position& b, float x, float dt);
-
-// Implementation of Lerp for Quaternion objects (uses Slerp)
-template <> Quat Lerp(const Quat& a, const Quat& b, float x, float dt);
-
-// Takes one step towards a value by a certain amount
-template <class T> T Step(const T& x, const T& step, const T& target)
-{
-    if (target > x)
-        return math::Min(target, x + step);
-    if (target < x)
-        return math::Max(target, x - step);
-    return x;
-}
-
-// Floating-point modulo
-// The result (the remainder) has same sign as the divisor
-// Similar to matlab's mod(); Not similar to fmod() - mod(-3,4) = 1
-// fmod(-3,4)
-// = -3
-template <typename T> T Mod(T x, T y)
-{
-    if (y == 0.0f)
-        return x;
-
-    double m = x - y * floor(x / y);
-
-    if (y > 0)    // modulo range: [0..y)
-    {
-        if (m >= y)    // mod(-1e-16, 360.0): m = 360.0
-            return 0;
-
-        if (m < 0)
-        {
-            if (FloatEq<T>(y + m, y))
-                return 0;
-            else
-                return y + m;    // mod(106.81415022205296, _TWO_PI ): m = -1.421e-14
-        }
-    }
-    else    // modulo range: (y..0]
-    {
-        if (m <= y)    // mod(1e-16, -360.0): m = -360.0
-            return 0;
-
-        if (m > 0)
-        {
-            if (FloatEq<T>(y + m, y))
-                return 0;
-            else
-                return y + m;    // mod(-106.81415022205296, -_TWO_PI): m = 1.421e-14
-        }
-    }
-
-    return m;
-}
-
-// Limits a value to a certain range by "wrapping" the point back to the beginning much like the
-// modulus operation
-template <class T>
-T Wrap(const T& x, const T& a, const T& b)
-{
-    return Mod(x - a, b - a) + a;
-}
-
-// Estimate the position to fire at to hit a moving target given a position, speed, target position
-// and target velocity
-DW_API Position EstimateHitPosition(const Position& position, float speed,
-                                      const Position& targetPosition, const Vec3& targetVelocity);
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 // String
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -292,14 +204,14 @@ DW_API string Concat(const vector<string>& vec, const string& delim);
 // Random Number Generator
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DW_API int randomInt(int min = 0, int max = INT_MAX);
-DW_API uint randomUnsigned(uint min = 0, uint max = UINT_MAX);
-DW_API float randomFloat(float min = 0.0f, float max = 1.0f);
-DW_API double randomDouble(double min = 0.0f, double max = 1.0f);
-DW_API Vec2 randomVec2(const Vec2& min = Vec2(-1.0f, -1.0f), const Vec2& max = Vec2(1.0f, 1.0f));
-DW_API Vec3 randomVec3(const Vec3& min = Vec3(-1.0f, -1.0f, -1.0f),
+DW_API DEPRECATED int randomInt(int min = 0, int max = INT_MAX);
+DW_API DEPRECATED uint randomUnsigned(uint min = 0, uint max = UINT_MAX);
+DW_API DEPRECATED float randomFloat(float min = 0.0f, float max = 1.0f);
+DW_API DEPRECATED double randomDouble(double min = 0.0f, double max = 1.0f);
+DW_API DEPRECATED Vec2 randomVec2(const Vec2& min = Vec2(-1.0f, -1.0f), const Vec2& max = Vec2(1.0f, 1.0f));
+DW_API DEPRECATED Vec3 randomVec3(const Vec3& min = Vec3(-1.0f, -1.0f, -1.0f),
                        const Vec3& max = Vec3(1.0f, 1.0f, 1.0f));
-DW_API Vec4 randomVec4(const Vec4& min = Vec4(-1.0f, -1.0f, -1.0f, -1.0f),
+DW_API DEPRECATED Vec4 randomVec4(const Vec4& min = Vec4(-1.0f, -1.0f, -1.0f, -1.0f),
                        const Vec4& max = Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 
