@@ -38,14 +38,14 @@ public:
                       PhysicsRaycastResult& result);
 
 private:
-    shared_ptr<btBroadphaseInterface> mBroadphase;
-    shared_ptr<btCollisionConfiguration> mCollisionConfig;
-    shared_ptr<btCollisionDispatcher> mDispatcher;
-    shared_ptr<btConstraintSolver> mSolver;
-    shared_ptr<btDynamicsWorld> mWorld;
-    shared_ptr<BtOgre::DebugDrawer> mDebugDrawer;
+    SharedPtr<btBroadphaseInterface> mBroadphase;
+    SharedPtr<btCollisionConfiguration> mCollisionConfig;
+    SharedPtr<btCollisionDispatcher> mDispatcher;
+    SharedPtr<btConstraintSolver> mSolver;
+    SharedPtr<btDynamicsWorld> mWorld;
+    SharedPtr<BtOgre::DebugDrawer> mDebugDrawer;
 
-    std::list<btRigidBody*> mRigidBodyList;
+    List<btRigidBody*> mRigidBodyList;
 
     // Adds a btRigidBody to the btDynamicsWorld
     void AddToWorld(btRigidBody* body);

@@ -27,14 +27,14 @@ public:
     virtual ~LightMaterialGenerator();
 
 private:
-    string mBaseName;
-    string mMasterSource;
-    
+    String mBaseName;
+    String mMasterSource;
+
     virtual Ogre::GpuProgramPtr GenerateVertexShader(Perm permutation) override;
     virtual Ogre::GpuProgramPtr GenerateFragmentShader(Perm permutation) override;
     virtual Ogre::MaterialPtr GenerateTemplateMaterial(Perm permutation) override;
 
-    string GetPPDefines(Perm permutation);
+    String GetPPDefines(Perm permutation);
     void SetupBaseParameters(const Ogre::GpuProgramParametersSharedPtr& params);
 
 };

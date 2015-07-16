@@ -54,7 +54,7 @@ void PhysicsWorld::HandleEvent(EventDataPtr eventData)
 {
     if (EventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_KeyDown>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_KeyDown>(eventData);
         if (castedEventData->keycode == SDLK_F2)
             mDebugDrawer->setDebugMode(!mDebugDrawer->getDebugMode());
     }

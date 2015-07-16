@@ -42,43 +42,43 @@ StarSystem::~StarSystem()
     mRenderSystem->GetSceneMgr()->destroyEntity(mGalacticPlane);
 }
 
-shared_ptr<AsteroidBelt> StarSystem::CreateAsteroidBelt(float minRadius, float maxRadius,
+SharedPtr<AsteroidBelt> StarSystem::CreateAsteroidBelt(float minRadius, float maxRadius,
                                                         float height)
 {
-    shared_ptr<AsteroidBelt> asteroidBelt = make_shared<AsteroidBelt>(
+    SharedPtr<AsteroidBelt> asteroidBelt = MakeShared<AsteroidBelt>(
         mRenderSystem, minRadius, maxRadius, height);
     mAsteroidBelts.push_back(asteroidBelt);
     return asteroidBelt;
 }
 
-shared_ptr<Barycentre> StarSystem::CreateBarycentre()
+SharedPtr<Barycentre> StarSystem::CreateBarycentre()
 {
-    shared_ptr<Barycentre> barycentre = make_shared<Barycentre>(mRenderSystem);
+    SharedPtr<Barycentre> barycentre = MakeShared<Barycentre>(mRenderSystem);
     mBodies.push_back(barycentre);
     return barycentre;
 }
 
-shared_ptr<Planet> StarSystem::CreatePlanet(PlanetDesc& desc)
+SharedPtr<Planet> StarSystem::CreatePlanet(PlanetDesc& desc)
 {
-    shared_ptr<Planet> planet = make_shared<Planet>(mRenderSystem, this, desc);
+    SharedPtr<Planet> planet = MakeShared<Planet>(mRenderSystem, this, desc);
     mBodies.push_back(planet);
     return planet;
 }
 
-shared_ptr<Star> StarSystem::CreateStar(StarDesc& desc)
+SharedPtr<Star> StarSystem::CreateStar(StarDesc& desc)
 {
-    shared_ptr<Star> star = make_shared<Star>(mRenderSystem, this, mPhysicsManager, desc);
+    SharedPtr<Star> star = MakeShared<Star>(mRenderSystem, this, mPhysicsManager, desc);
     mBodies.push_back(star);
     mStars.push_back(star);
     return star;
 }
 
-void StarSystem::SetRoot(shared_ptr<SystemBody> body)
+void StarSystem::SetRoot(SharedPtr<SystemBody> body)
 {
     mRootBody = body;
 }
 
-void StarSystem::CreateNebulaCloud(const string& texture, const Colour& fogColour)
+void StarSystem::CreateNebulaCloud(const String& texture, const Colour& fogColour)
 {
     // Nebula Clouds
     mNebulaSceneNode = mBackgroundSceneNode->createChildSceneNode();
@@ -116,17 +116,17 @@ void StarSystem::CalculatePosition(double time)
         mRootBody->CalculatePosition(time);
 }
 
-shared_ptr<SystemBody> StarSystem::GetRootBody()
+SharedPtr<SystemBody> StarSystem::GetRootBody()
 {
     return mRootBody;
 }
 
-const vector<shared_ptr<SystemBody>>& StarSystem::GetBodies() const
+const Vector<SharedPtr<SystemBody>>& StarSystem::GetBodies() const
 {
     return mBodies;
 }
 
-const vector<shared_ptr<Star>>& StarSystem::GetStars() const
+const Vector<SharedPtr<Star>>& StarSystem::GetStars() const
 {
     return mStars;
 }

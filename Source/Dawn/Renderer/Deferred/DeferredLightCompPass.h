@@ -36,7 +36,7 @@ private:
     MaterialGenerator* mLightMaterialGenerator;
 
     // The map of deferred light geometries already Constructed
-    typedef std::map<Ogre::Light*, DeferredLight*> LightsMap;
+    typedef Map<Ogre::Light*, DeferredLight*> LightsMap;
     LightsMap mLights;
 
     // The ambient light used to render the scene

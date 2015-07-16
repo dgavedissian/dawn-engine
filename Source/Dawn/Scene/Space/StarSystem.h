@@ -31,22 +31,22 @@ public:
     ~StarSystem();
 
     // Create an asteroid belt
-    shared_ptr<AsteroidBelt> CreateAsteroidBelt(float minRadius, float maxRadius, float height);
+    SharedPtr<AsteroidBelt> CreateAsteroidBelt(float minRadius, float maxRadius, float height);
 
     // Create a bary centre
-    shared_ptr<Barycentre> CreateBarycentre();
+    SharedPtr<Barycentre> CreateBarycentre();
 
     // Create a planet
-    shared_ptr<Planet> CreatePlanet(PlanetDesc& desc);
+    SharedPtr<Planet> CreatePlanet(PlanetDesc& desc);
 
     // Create a star
-    shared_ptr<Star> CreateStar(StarDesc& desc);
+    SharedPtr<Star> CreateStar(StarDesc& desc);
 
     // Set root object
-    void SetRoot(shared_ptr<SystemBody> body);
+    void SetRoot(SharedPtr<SystemBody> body);
 
     // Nebula Cloud
-    void CreateNebulaCloud(const string& texture, const Colour& fogColour);
+    void CreateNebulaCloud(const String& texture, const Colour& fogColour);
 
     // Updating
     void Update(float dt);
@@ -58,19 +58,19 @@ public:
     void CalculatePosition(double time);
 
     // Accessors
-    shared_ptr<SystemBody> GetRootBody();
-    const vector<shared_ptr<SystemBody>>& GetBodies() const;
-    const vector<shared_ptr<Star>>& GetStars() const;
+    SharedPtr<SystemBody> GetRootBody();
+    const Vector<SharedPtr<SystemBody>>& GetBodies() const;
+    const Vector<SharedPtr<Star>>& GetStars() const;
     DEPRECATED Ogre::SceneNode* GetRootSceneNode();
 
 private:
     Renderer* mRenderSystem;
     PhysicsWorld* mPhysicsManager;
 
-    shared_ptr<SystemBody> mRootBody;
-    vector<shared_ptr<SystemBody>> mBodies;
-    vector<shared_ptr<Star>> mStars;
-    vector<shared_ptr<AsteroidBelt>> mAsteroidBelts;
+    SharedPtr<SystemBody> mRootBody;
+    Vector<SharedPtr<SystemBody>> mBodies;
+    Vector<SharedPtr<Star>> mStars;
+    Vector<SharedPtr<AsteroidBelt>> mAsteroidBelts;
 
     // Root
     Ogre::SceneNode* mBackgroundSceneNode;

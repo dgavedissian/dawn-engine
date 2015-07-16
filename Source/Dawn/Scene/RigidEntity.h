@@ -13,23 +13,23 @@ class DW_API RigidEntity : public Entity
 {
 public:
     RigidEntity(SceneManager* sceneMgr);
-    RigidEntity(SceneManager* sceneMgr,shared_ptr<btCollisionShape> shape, float mass,
+    RigidEntity(SceneManager* sceneMgr,SharedPtr<btCollisionShape> shape, float mass,
                 bool disableDeactivation, const Position& position = Position::origin,
                 const Quat& rotation = Quat::identity);
     virtual ~RigidEntity();
 
     // Construct the object - I'm not really a fan of two-stage init but this is enforced if we want
     // to cache entities or use RakNet::Replica3
-    void Init(shared_ptr<btCollisionShape> shape, float mass, bool disableDeactivation,
+    void Init(SharedPtr<btCollisionShape> shape, float mass, bool disableDeactivation,
               const Position& position = Position::origin, const Quat& rotation = Quat::identity);
-    void Init(shared_ptr<btCollisionShape> shape, Vec3 localInertia, float mass,
+    void Init(SharedPtr<btCollisionShape> shape, Vec3 localInertia, float mass,
               bool disableDeactivation, const Position& position = Position::origin,
               const Quat& rotation = Quat::identity);
 
     // Accessors
-    shared_ptr<btCollisionShape> GetBulletCollisionShape() { return mCollisionShape; }
-    shared_ptr<btRigidBody> GetBulletRigidBody() { return mRigidBody; }
-    shared_ptr<btMotionState> GetBulletMotionState() { return mMotionState; }
+    SharedPtr<btCollisionShape> GetBulletCollisionShape() { return mCollisionShape; }
+    SharedPtr<btRigidBody> GetBulletRigidBody() { return mRigidBody; }
+    SharedPtr<btMotionState> GetBulletMotionState() { return mMotionState; }
     Vec3 GetLinearVelocity() const
     {
         return mRigidBody ? Vec3(mRigidBody->getLinearVelocity()) : Vec3::zero;
@@ -44,9 +44,9 @@ public:
     virtual void SetOrientation(const Quat& orient) override;
 
 protected:
-    shared_ptr<btCollisionShape> mCollisionShape;
-    shared_ptr<btRigidBody> mRigidBody;
-    shared_ptr<btMotionState> mMotionState;
+    SharedPtr<btCollisionShape> mCollisionShape;
+    SharedPtr<btRigidBody> mRigidBody;
+    SharedPtr<btMotionState> mMotionState;
     btVector3 mLastPosition;
 
     // Called by PhysicsManager before the simulation step

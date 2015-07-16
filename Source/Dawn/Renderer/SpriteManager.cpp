@@ -56,10 +56,10 @@ void SpriteManager::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::Strin
         Render();
 }
 
-void SpriteManager::LoadSprite(const string& textureName)
+void SpriteManager::LoadSprite(const String& textureName)
 {
     // Set up the material
-    string materialName = "Sprite/" + textureName;
+    String materialName = "Sprite/" + textureName;
     Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().getByName(materialName);
     if (material.isNull())
     {
@@ -82,7 +82,7 @@ void SpriteManager::LoadSprite(const string& textureName)
     }
 }
 
-void SpriteManager::DrawSprite(const string& textureName, const Vec2& position,
+void SpriteManager::DrawSprite(const String& textureName, const Vec2& position,
                                SpriteOrigin origin /*= SO_TOP_LEFT*/, float angle /*= 0.0f*/)
 {
     // Ensure that the material exists
@@ -132,7 +132,7 @@ void SpriteManager::DrawSprite(const string& textureName, const Vec2& position,
     DrawSprite(s);
 }
 
-void SpriteManager::DrawSprite(const string& textureName, const Vec2& position, const Vec2& origin,
+void SpriteManager::DrawSprite(const String& textureName, const Vec2& position, const Vec2& origin,
                                float angle /*= 0.0f*/)
 {
     // Ensure that the material exists
@@ -154,7 +154,7 @@ void SpriteManager::DrawSprite(const string& textureName, const Vec2& position, 
     DrawSprite(s);
 }
 
-void SpriteManager::DrawSprite(const string& textureName, const Vec2& position, const Vec2& size,
+void SpriteManager::DrawSprite(const String& textureName, const Vec2& position, const Vec2& size,
                                const Vec2& origin, float angle /*= 0.0f*/)
 {
     // Ensure that the material exists
@@ -202,7 +202,7 @@ void SpriteManager::DrawSprite(const SpriteDesc& s)
         spr.vertex[i] = c[i];
     }
 
-    // Add to sprites list
+    // Add to sprites List
     mChunks[s.textureName].push_back(spr);
     mSpriteCount++;
 }
@@ -230,7 +230,7 @@ void SpriteManager::Render()
     float* buffer = (float*)mHwBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD);
 
     // Write quads to the hardware buffer
-    std::vector<VertexChunk> chunks;
+    Vector<VertexChunk> chunks;
     for (auto p = mChunks.begin(); p != mChunks.end(); ++p)
     {
         VertexChunk thisChunk;
@@ -270,7 +270,7 @@ void SpriteManager::Render()
         mRenderOp.vertexData->vertexStart += c->vertexCount;
     }
 
-    // Clear sprites list
+    // Clear sprites List
     mChunks.clear();
     mSpriteCount = 0;
 }

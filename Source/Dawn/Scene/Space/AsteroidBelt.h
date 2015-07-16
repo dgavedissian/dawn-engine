@@ -36,7 +36,7 @@ private:
         Position position;
     };
 
-    vector<vector<Asteroid>> mAsteroidLevels;
+    Vector<Vector<Asteroid>> mAsteroidLevels;
 
     SystemBody* mParent;
 };

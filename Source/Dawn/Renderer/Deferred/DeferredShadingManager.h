@@ -45,8 +45,8 @@ protected:
     Ogre::CompositorInstance* mLightingNoFogInstance;
     Ogre::CompositorInstance* mDebugInstance;
 
-    shared_ptr<GBufferSchemeHandler> mGBufferSchemeHandler;
-    shared_ptr<NoGBufferSchemeHandler> mNoGBufferSchemeHandler;
+    SharedPtr<GBufferSchemeHandler> mGBufferSchemeHandler;
+    SharedPtr<NoGBufferSchemeHandler> mNoGBufferSchemeHandler;
 
     bool mActive;
     bool mFogEnabled;

@@ -19,7 +19,7 @@ class RocketInterface : public Rocket::Core::RenderInterface,
 public:
     RocketInterface(Renderer* rs);
     virtual ~RocketInterface();
-    
+
     /// Maps an SDL keycode to libRocket
     /// @param  key SDL keycode
     /// @return The equivalent libRocket keycode
@@ -74,7 +74,7 @@ private:
     Ogre::LayerBlendModeEx mColourBlendMode;
     Ogre::LayerBlendModeEx mAlphaBlendMode;
 
-    std::map<SDL_Keycode, int> mKeyMap;
+    Map<SDL_Keycode, int> mKeyMap;
 
     bool mScissorEnable;
     int mScissorLeft;

@@ -11,7 +11,7 @@ NAMESPACE_BEGIN
 Engine* gEngine = nullptr;
 
 // Application entry point
-Engine::Engine(const string& game, const string& version)
+Engine::Engine(const String& game, const String& version)
     : mInitialised(false),
       mRunning(true),
       mSaveConfigOnExit(true),
@@ -93,7 +93,7 @@ void Engine::Setup()
     mStateMgr = new StateManager;
 
     // Enumerate available video modes
-    vector<SDL_DisplayMode> displayModes = mRenderer->EnumerateDisplayModes();
+    Vector<SDL_DisplayMode> displayModes = mRenderer->EnumerateDisplayModes();
     LOG << "Available video modes:";
     for (auto i = displayModes.begin(); i != displayModes.end(); i++)
     {
@@ -130,7 +130,7 @@ void Engine::Shutdown()
     SAFE_DELETE(mInput);
     SAFE_DELETE(mRenderer);
     SAFE_DELETE(mLuaState);
-	
+
 	// Shut down the event system
 	mEventSystem = nullptr;
 	EventSystem::release();

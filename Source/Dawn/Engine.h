@@ -24,7 +24,7 @@ typedef std::function<void(float)> EngineTickCallback;
 class DW_API Engine
 {
 public:
-    Engine(const string& game, const string& version);
+    Engine(const String& game, const String& version);
     ~Engine();
 
     /// Sets up the engine
@@ -46,11 +46,11 @@ public:
 
     /// Get the base path of the application
     /// @returns The base path
-    const string& GetBasePath() const { return mBasePath; }
+    const String& GetBasePath() const { return mBasePath; }
 
     /// Get the preferences path of the application
     /// @returns The pref path
-    const string& GetPrefPath() const { return mPrefPath; }
+    const String& GetPrefPath() const { return mPrefPath; }
 
     // TODO: Remove this
     DEPRECATED void SetStarSystem(StarSystem* ss) { mStarSystem = ss; }
@@ -72,16 +72,16 @@ private:
     bool mRunning;
     bool mSaveConfigOnExit;
 
-    string mGameName;
-    string mGameVersion;
+    String mGameName;
+    String mGameVersion;
 
     // File paths
-    string mBasePath;
-    string mPrefPath;
+    String mBasePath;
+    String mPrefPath;
 
     // Filenames
-    string mLogFile;
-    string mConfigFile;
+    String mLogFile;
+    String mConfigFile;
 
     // Current main camera
     Camera* mMainCamera;

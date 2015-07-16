@@ -79,11 +79,11 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateVertexShader(
 
     ss << "}" << std::endl;
 
-    string programSource = ss.str();
-    string programName = mBaseName + "VP_" + Ogre::StringConverter::toString(permutation);
+    String programSource = ss.str();
+    String programName = mBaseName + "VP_" + Ogre::StringConverter::toString(permutation);
 
 #if OGRE_DEBUG_MODE
-    Ogre::LogManager::getSingleton().getDefaultLog()->logMessage(programName + string("\n") +
+    Ogre::LogManager::getSingleton().getDefaultLog()->logMessage(programName + String("\n") +
                                                            programSource);
 #endif
 
@@ -192,8 +192,8 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateFragmentShader(
 
     ss << "}" << std::endl;
 
-    string programSource = ss.str();
-    string programName = mBaseName + "FP_" + Ogre::StringConverter::toString(permutation);
+    String programSource = ss.str();
+    String programName = mBaseName + "FP_" + Ogre::StringConverter::toString(permutation);
 
 #if OGRE_DEBUG_MODE
     Ogre::LogManager::getSingleton().getDefaultLog()->logMessage(programSource);
@@ -235,7 +235,7 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateFragmentShader(
 Ogre::MaterialPtr GBufferMaterialGenerator::GenerateTemplateMaterial(
     MaterialGenerator::Perm permutation)
 {
-    string matName = mBaseName + "Mat_" + Ogre::StringConverter::toString(permutation);
+    String matName = mBaseName + "Mat_" + Ogre::StringConverter::toString(permutation);
 
     Ogre::MaterialPtr matPtr = Ogre::MaterialManager::getSingleton().create(
         matName, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);

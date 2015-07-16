@@ -8,23 +8,23 @@ NAMESPACE_BEGIN
 
 //// Command Line
 
-typedef std::map<string, string> CommandLineArgs;
+typedef Map<String, String> CommandLineArgs;
 DW_API CommandLineArgs ParseCommandArgs(int argc, char** argv);
 
 
 //// String
 
 // Generates a unique name with a prefix - prefixes are grouped
-DW_API string GenerateName(const string& prefix = "Unnamed");
+DW_API String GenerateName(const String& prefix = "Unnamed");
 
 // Pad a string to the right with spaces
-DW_API string PadString(const string& str, uint length);
+DW_API String PadString(const String& str, uint length);
 
 // Split a string
-DW_API std::vector<string>& Split(const string& s, char delim, std::vector<string>& elems);
+DW_API Vector<String>& Split(const String& s, char delim, Vector<String>& elems);
 
 // Join a vector of strings
-DW_API string Concat(const vector<string>& vec, const string& delim);
+DW_API String Concat(const Vector<String>& vec, const String& delim);
 
 
 //// Random Number Generator
@@ -55,7 +55,7 @@ namespace time
     DW_API Duration GetElapsed(TimePoint tp);
 
     // Format time
-    DW_API string Format(time_t time, const string& formatString);
+    DW_API String Format(time_t time, const String& formatString);
 }
 
 NAMESPACE_END

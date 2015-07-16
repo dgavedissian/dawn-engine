@@ -32,7 +32,7 @@ protected:
         PassProperties() : isDeferred(true), normalMap(nullptr), isSkinned(false), hasDiffuseColour(false) {}
 
         bool isDeferred;
-        Ogre::vector<Ogre::TextureUnitState*>::type regularTextures;
+        Vector<Ogre::TextureUnitState*> regularTextures;
         Ogre::TextureUnitState* normalMap;
         bool isSkinned;
         bool hasDiffuseColour;

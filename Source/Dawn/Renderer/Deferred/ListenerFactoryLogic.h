@@ -6,16 +6,16 @@
 
 NAMESPACE_BEGIN
 
-// The simple types of compositor logics will all do the same thing - Attach a listener to the
+// The simple types of compositor logics will all do the same thing - Attach a Listener to the
 // created compositor
 class DW_API ListenerFactoryLogic : public Ogre::CompositorLogic
 {
 public:
     virtual void compositorInstanceCreated(Ogre::CompositorInstance* newInstance)
     {
-        Ogre::CompositorInstance::Listener* listener = CreateListener(newInstance);
-        newInstance->addListener(listener);
-        mListeners[newInstance] = listener;
+        Ogre::CompositorInstance::Listener* Listener = CreateListener(newInstance);
+        newInstance->addListener(Listener);
+        mListeners[newInstance] = Listener;
     }
 
     virtual void compositorInstanceDestroyed(Ogre::CompositorInstance* destroyedInstance)
@@ -30,7 +30,7 @@ protected:
         Ogre::CompositorInstance* instance) = 0;
 
 private:
-    typedef std::map<Ogre::CompositorInstance*, Ogre::CompositorInstance::Listener*> ListenerMap;
+    typedef Map<Ogre::CompositorInstance*, Ogre::CompositorInstance::Listener*> ListenerMap;
     ListenerMap mListeners;
 };
 

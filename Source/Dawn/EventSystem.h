@@ -4,7 +4,7 @@
  */
 #pragma once
 
-// Macros to make adding/removing event listeners more sane
+// Macros to make adding/removing event Listeners more sane
 #define ADD_LISTENER(LISTENER, EVENT) \
     EventSystem::inst().AddListener(fastdelegate::MakeDelegate(this, &LISTENER::HandleEvent), \
                                     EVENT::eventType);
@@ -23,15 +23,15 @@ class DW_API EventData
 public:
     virtual ~EventData() {}
     virtual const EventType& GetEventType() const = 0;
-    virtual const string GetName() const = 0;
+    virtual const String GetName() const = 0;
 
     // Serialisation for network input/output
     virtual void Serialise(std::ostream& out) const {}
     virtual void Deserialise(std::istream& in) {}
 };
 
-typedef shared_ptr<EventData> EventDataPtr;
-typedef fastdelegate::FastDelegate1<shared_ptr<EventData>> EventListenerDelegate;
+typedef SharedPtr<EventData> EventDataPtr;
+typedef fastdelegate::FastDelegate1<SharedPtr<EventData>> EventListenerDelegate;
 
 #define EVENTSYSTEM_NUM_QUEUES 2
 
@@ -81,17 +81,17 @@ public:
     bool Update(uint64_t maxMs = std::numeric_limits<uint64_t>::max());
 
 private:
-    std::map<EventType, std::list<EventListenerDelegate>> mEventListeners;
-    std::list<EventDataPtr> mQueues[EVENTSYSTEM_NUM_QUEUES];
+    Map<EventType, List<EventListenerDelegate>> mEventListeners;
+    List<EventDataPtr> mQueues[EVENTSYSTEM_NUM_QUEUES];
 
     // Index of actively processing queue; events enque to the opposing queue
     int mActiveQueue;
 
-    // This flag is used to prevent add/removeListener from changing the eventListener list whilst
+    // This flag is used to prevent add/removeListener from changing the eventListener List whilst
     // events are being processed as this causes a crash
     bool mProcessingEvents;
-    std::map<EventType, std::list<EventListenerDelegate>> mAddedEventListeners;
-    std::map<EventType, std::list<EventListenerDelegate>> mRemovedEventListeners;
+    Map<EventType, List<EventListenerDelegate>> mAddedEventListeners;
+    Map<EventType, List<EventListenerDelegate>> mRemovedEventListeners;
 };
 
 // Some bog-standard events
@@ -102,7 +102,7 @@ public:
 
     EvtData_Exit() { }
     virtual const EventType& GetEventType() const override { return eventType; }
-    virtual const string GetName() const override { return "EvtData_ExitEvent"; }
+    virtual const String GetName() const override { return "EvtData_ExitEvent"; }
 };
 
 class DW_API EvtData_SendMessage : public EventData
@@ -110,12 +110,12 @@ class DW_API EvtData_SendMessage : public EventData
 public:
     static const EventType eventType;
 
-    EvtData_SendMessage(const string& s, const string& m) : sender(s), message(m) {}
+    EvtData_SendMessage(const String& s, const String& m) : sender(s), message(m) {}
     virtual const EventType& GetEventType() const override { return eventType; }
-    virtual const string GetName() const override { return "EvtData_SendMessage"; }
+    virtual const String GetName() const override { return "EvtData_SendMessage"; }
 
-    string sender;
-    string message;
+    String sender;
+    String message;
 };
 
 class DW_API EvtData_Message : public EventData
@@ -123,12 +123,12 @@ class DW_API EvtData_Message : public EventData
 public:
     static const EventType eventType;
 
-    EvtData_Message(const string& s, const string& m) : sender(s), message(m) {}
+    EvtData_Message(const String& s, const String& m) : sender(s), message(m) {}
     virtual const EventType& GetEventType() const override { return eventType; }
-    virtual const string GetName() const override { return "EvtData_Message"; }
+    virtual const String GetName() const override { return "EvtData_Message"; }
 
-    string sender;
-    string message;
+    String sender;
+    String message;
 };
 
 NAMESPACE_END

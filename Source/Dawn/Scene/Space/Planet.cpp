@@ -219,11 +219,11 @@ void Planet::CalculatePosition(double time)
                                  Quat(Vec3::unitY, time / mDesc.rotationPeriod * 2.0f * math::pi));
     SystemBody::CalculatePosition(time);
 }
-    
+
 Planet::Rings::Rings(PlanetDesc& desc, Planet* parent)
     : mMinRadius(desc.rings.minRadius), mMaxRadius(desc.rings.maxRadius), mParent(parent)
 {
-    string ringMeshName = GenerateName("ringsMesh");
+    String ringMeshName = GenerateName("ringsMesh");
 
     // Generate the LOD look up table
     mLodDistanceTable[0] = pow(mMaxRadius * 2.0f, 2);
@@ -232,9 +232,9 @@ Planet::Rings::Rings(PlanetDesc& desc, Planet* parent)
         mLodDistanceTable[i] = mLodDistanceTable[i - 1] * 0.25f;
     }
 
-    // Generate a list of points used by the ring mesh
+    // Generate a List of points used by the ring mesh
     uint detail = 16;
-    std::vector<Vec2> vertices;
+    Vector<Vec2> vertices;
     float offset = math::Cos(math::pi / static_cast<float>(detail));
     float maxRadius = desc.rings.maxRadius / offset;
     float minRadius = desc.rings.minRadius * offset;

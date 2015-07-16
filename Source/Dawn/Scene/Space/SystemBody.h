@@ -12,23 +12,23 @@ class Renderer;
 
 
 // Base class for any bodies inside a planetary system
-class DW_API SystemBody : public enable_shared_from_this<SystemBody>
+class DW_API SystemBody : public EnableSharedFromThis<SystemBody>
 {
 public:
     SystemBody(Renderer* rs);
     virtual ~SystemBody();
 
     // Set the orbit of this body
-    void SetOrbit(shared_ptr<Orbit> orbit);
+    void SetOrbit(SharedPtr<Orbit> orbit);
 
     // Add a satellite
-    void AddSatellite(shared_ptr<SystemBody> satellite, shared_ptr<Orbit> orbit);
+    void AddSatellite(SharedPtr<SystemBody> satellite, SharedPtr<Orbit> orbit);
 
     // Remove all satellites
     void RemoveAllSatellites();
 
     // Add an asteroid belt
-    void AddAsteroidBelt(shared_ptr<AsteroidBelt> belt);
+    void AddAsteroidBelt(SharedPtr<AsteroidBelt> belt);
 
     // Remove all asteroid belts
     void RemoveAllAsteroidBelts();
@@ -42,7 +42,7 @@ public:
     // Accessors
     const Orbit* GetOrbit() const;
     const SystemBody* GetSatellite(uint index) const;
-    const vector<shared_ptr<SystemBody>>& GetAllSatellites() const;
+    const Vector<SharedPtr<SystemBody>>& GetAllSatellites() const;
     const Position& GetPosition() const;
 
     // Internal: Set the parent of this SystemBody
@@ -55,10 +55,10 @@ public:
 protected:
     Renderer* mRenderSystem;
 
-    shared_ptr<Orbit> mOrbit;
+    SharedPtr<Orbit> mOrbit;
 
-    vector<shared_ptr<SystemBody>> mSatellites;
-    vector<shared_ptr<AsteroidBelt>> mAsteroidBelts;
+    Vector<SharedPtr<SystemBody>> mSatellites;
+    Vector<SharedPtr<AsteroidBelt>> mAsteroidBelts;
     SystemBody* mParent;
 
     Position mPosition;

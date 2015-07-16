@@ -26,62 +26,83 @@ NAMESPACE_BEGIN
 using namespace luabridge;
 
 // Primitive types
-typedef unsigned int uint;
-typedef int8_t int8;
-typedef uint8_t uint8;
-typedef int16_t int16;
-typedef uint16_t uint16;
-typedef int32_t int32;
-typedef uint32_t uint32;
-typedef int64_t int64;
-typedef uint64_t uint64;
+using uint = unsigned int;
+using int8 = int8_t;
+using uint8 = uint8_t;
+using int16 = int16_t;
+using uint16 = uint16_t;
+using int32 = int32_t;
+using uint32 = uint32_t;
+using int64 = int64_t;
+using uint64 = uint64_t;
 
 // String
-typedef std::string string;
+using String = std::string;
 
 // Smart pointers
-using std::shared_ptr;
-using std::weak_ptr;
-using std::unique_ptr;
-using std::make_shared;
-using std::enable_shared_from_this;
-using std::dynamic_pointer_cast;
-using std::static_pointer_cast;
+template <class T> using SharedPtr = std::shared_ptr<T>;
+template <class T> using WeakPtr = std::weak_ptr<T>;
+template <class T> using UniquePtr = std::unique_ptr<T>;
+template <class T> using EnableSharedFromThis = std::enable_shared_from_this<T>;
+template <class T, class... Args> inline SharedPtr<T> MakeShared(Args&&... args)
+{
+    return std::make_shared<T>(std::forward<Args>(args)...);
+}
+template <class T, class... Args> inline UniquePtr<T> MakeUnique(Args&&... args)
+{
+    return std::make_unique<T>(std::forward<Args>(args)...);
+}
+template <class T1, class T2> inline SharedPtr<T1> StaticPointerCast(const SharedPtr<T2>& other)
+{
+    return std::static_pointer_cast<T1, T2>(other);
+}
+template <class T1, class T2> inline SharedPtr<T1> DynamicPointerCast(const SharedPtr<T2>& other)
+{
+    return std::dynamic_pointer_cast<T1, T2>(other);
+}
 
 // Pair and tuples
-using std::pair;
-using std::tuple;
-using std::make_pair;
-using std::make_tuple;
-
-// Container types
-using std::map;
-using std::vector;
+template <class T1, class T2> using Pair = std::pair<T1, T2>;
+template <class... T> using Tuple = std::tuple<T...>;
+template <class T1, class T2> inline Pair<T1, T2> MakePair(T1&& a, T2&& b)
+{
+    return std::pair<T1, T2>(std::forward<T1>(a), std::forward<T2>(b));
+}
+template <class... T> inline Tuple<T...> MakeTuple(T&&... args)
+{
+    return std::tuple<T...>(std::forward<T>(args)...);
+}
 
 // Files
+// TODO: Deprecated, use file class
 using std::ifstream;
 using std::ofstream;
 using std::fstream;
 
 // Colour Value
-// TODO: Write this class instead of stealing Ogre's one
-typedef Ogre::ColourValue Colour;
+// TODO: Implement this ourselves instead of using ogres
+using Colour = Ogre::ColourValue;
 
 // Vectors
-typedef math::float2 Vec2;
-typedef math::float3 Vec3;
-typedef math::float4 Vec4;
+using Vec2 = math::float2;
+using Vec3 = math::float3;
+using Vec4 = math::float4;
 
 // Matrices
-typedef math::float2x2 Mat2;
-typedef math::float3x3 Mat3;
-typedef math::float4x4 Mat4;
+using Mat2 = math::float2x2;
+using Mat3 = math::float3x3;
+using Mat4 = math::float4x4;
 
 // Quaternion
-typedef math::Quat Quat;
+using Quat = math::Quat;
 
 // Plane
-typedef math::Plane Plane;
+using Plane = math::Plane;
+
+// Containers
+template <class T> using Vector = std::vector<T>;
+template <class T> using List = std::list<T>;
+template <class K, class T> using Map = std::map<K, T>;
 
 NAMESPACE_END
 
@@ -93,18 +114,15 @@ NAMESPACE_END
 #define ERROR_FATAL(x) { LOGERR << (x); throw std::runtime_error(x); }
 
 // Math library
+#include "Math/MathDefs.h"
+#include "Math/Noise.h"
 #include "Math/Vec2i.h"
 #include "Math/Vec3i.h"
 #include "Math/Vec4i.h"
 #include "Math/Rect.h"
-#include "Math/MathDefs.h"
-// Random number generators
+// TODO: Random number generators
 
 // Data structures
-// List
-// Vector
-// Map
-// String
 #include "Core/FixedMemoryPool.h"
 
 // Platform library
@@ -114,7 +132,7 @@ NAMESPACE_END
 // Position
 #include "Scene/Position.h"
 
-// Core Headers
+// Core
 #include "Core/Singleton.h"
 #include "Core/Log.h"
 #include "Core/Config.h"

@@ -13,7 +13,7 @@ NAMESPACE_BEGIN
 struct DW_API Config
 {
     // Load a configuration from a file
-    static void Load(const string& filename);
+    static void Load(const String& filename);
 
     // Save a configuration to a file
     static void Save();
@@ -22,13 +22,13 @@ struct DW_API Config
     static void Dump();
 
     // Set a config value
-    template <class T> static void Set(const string& key, T value)
+    template <class T> static void Set(const String& key, T value)
     {
         root[key] = value;
     }
 
     // Get a config value or create it if it doesn't exist
-    template <class T> static T Get(const string& key, T def = T())
+    template <class T> static T Get(const String& key, T def = T())
     {
         if (root.Contains(key))
         {
@@ -42,7 +42,7 @@ struct DW_API Config
     }
 
     // Root node
-    static string filename;
+    static String filename;
     static ConfigNode root;
 };
 

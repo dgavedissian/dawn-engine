@@ -8,13 +8,13 @@
 
 NAMESPACE_BEGIN
 
-Sound::Sound(const string& filename, bool looped, irrklang::ISoundEngine* engine)
+Sound::Sound(const String& filename, bool looped, irrklang::ISoundEngine* engine)
     : mIs3D(false), mPosition(Position::origin), mOldPosition(Position::origin)
 {
     mSound = engine->play2D(filename.c_str(), looped, true, true);
 }
 
-Sound::Sound(const string& filename, const Position& position, bool looped,
+Sound::Sound(const String& filename, const Position& position, bool looped,
              irrklang::ISoundEngine* engine)
     : mIs3D(true), mPosition(position), mOldPosition(Position::origin)
 {

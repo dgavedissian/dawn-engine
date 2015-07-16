@@ -35,7 +35,7 @@ void SceneManager::RemoveEntity(Entity* entity)
     // Free memory
     DeleteEntity(entity);
 
-    // Search for the location of this entity and remove it from the list
+    // Search for the location of this entity and remove it from the List
     auto i = std::find(mEntities.begin(), mEntities.end(), entity);
     if (i != mEntities.end())
     {

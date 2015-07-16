@@ -31,7 +31,7 @@ const Ogre::MaterialPtr& MaterialGenerator::GetMaterial(Perm permutation)
         Ogre::GpuProgramPtr fs = GetFragmentShader(permutation & mFsMask);
 
         // Create material name
-        string name = mMaterialBaseName + Ogre::StringConverter::toString(permutation);
+        String name = mMaterialBaseName + Ogre::StringConverter::toString(permutation);
 
         // Create material from template, and set shaders
         Ogre::MaterialPtr mat = templ->clone(name);

@@ -162,7 +162,7 @@ protected:
     Vec3 mParticlesSize;
     Ogre::SceneNode* mParticlesRoot;
     Ogre::BillboardSet* mParticleSet;
-    std::vector<Ogre::Billboard*> mParticles;
+    Vector<Ogre::Billboard*> mParticles;
     Position mLastParticlePosition;
 
     // Internal direct control methods used by update

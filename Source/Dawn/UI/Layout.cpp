@@ -31,7 +31,7 @@ Layout::~Layout()
     mDocument->Close();
 }
 
-void Layout::FocusOn(const string& id)
+void Layout::FocusOn(const String& id)
 {
     if (!mDocument->GetElementById(id.c_str())->Focus())
     {
@@ -62,10 +62,10 @@ bool Layout::IsVisible() const
     return mDocument->IsVisible();
 }
 
-void Layout::BindEvent(const string& id, UIEvent event)
+void Layout::BindEvent(const String& id, UIEvent event)
 {
     // Map event ID to string
-    string eventID;
+    String eventID;
     switch (event)
     {
     case UI_CLICK:
@@ -79,12 +79,12 @@ void Layout::BindEvent(const string& id, UIEvent event)
     default:
         break;
     }
-    
+
     // Look up the element
     Rocket::Core::Element* elem = mDocument->GetElementById(id.c_str());
     assert(elem);
-    
-    // Add the listener
+
+    // Add the Listener
     elem->AddEventListener(eventID.c_str(), mInterfaceMgr);
     mListeners.push_back(make_tuple(id, eventID, mInterfaceMgr));
 }

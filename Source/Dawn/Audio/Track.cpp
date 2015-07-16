@@ -7,7 +7,7 @@
 
 NAMESPACE_BEGIN
 
-Track::Track(const string& filename, irrklang::ISoundEngine* engine)
+Track::Track(const String& filename, irrklang::ISoundEngine* engine)
 {
     // Load the track
     mTrack = engine->play2D(filename.c_str(), true, true, true);

@@ -48,10 +48,10 @@ public:
 
     // The mask of the flags that matter for generating the material
     static const Ogre::uint32 MAT_MASK = 0xFF00FFFF;
-    
+
 private:
-    string mBaseName;
-    
+    String mBaseName;
+
     virtual Ogre::GpuProgramPtr GenerateVertexShader(MaterialGenerator::Perm permutation) override;
     virtual Ogre::GpuProgramPtr GenerateFragmentShader(MaterialGenerator::Perm permutation) override;
     virtual Ogre::MaterialPtr GenerateTemplateMaterial(MaterialGenerator::Perm permutation) override;

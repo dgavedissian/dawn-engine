@@ -16,8 +16,8 @@
 
 NAMESPACE_BEGIN
 
-Renderer::Renderer(const string& basePath, const string& prefPath,
-                           Input* inputMgr, const string& windowTitle)
+Renderer::Renderer(const String& basePath, const String& prefPath,
+                           Input* inputMgr, const String& windowTitle)
     : mInputMgr(inputMgr),
       mWindow(nullptr),
       mSceneManager(nullptr),
@@ -34,11 +34,11 @@ Renderer::Renderer(const string& basePath, const string& prefPath,
     bool vsync = Config::Get<bool>("vsync", true);
 
     // Set up Ogre's log manager
-    mLogManager = make_shared<Ogre::LogManager>();
+    mLogManager = MakeShared<Ogre::LogManager>();
     mLog = mLogManager->createLog(prefPath + "ogre.log", true, false, false);
 
     // Create the Ogre root
-    mRoot = make_shared<Ogre::Root>("", "");
+    mRoot = MakeShared<Ogre::Root>("", "");
     LOG << "Created Ogre Root";
     LOG << "\tVersion: " << OGRE_VERSION_MAJOR << "." << OGRE_VERSION_MINOR << "."
                 << OGRE_VERSION_PATCH << " " << OGRE_VERSION_NAME;
@@ -78,10 +78,10 @@ Renderer::Renderer(const string& basePath, const string& prefPath,
     mRaySceneQuery->setQueryMask(UNIVERSE_OBJECT);
 
     // Set up the deferred shading system
-    mDeferredShadingMgr = make_shared<DeferredShadingManager>(mViewport, mSceneManager);
+    mDeferredShadingMgr = MakeShared<DeferredShadingManager>(mViewport, mSceneManager);
 
     // Set up the sprite manager
-    mSpriteManager = make_shared<SpriteManager>(mViewport, mSceneManager);
+    mSpriteManager = MakeShared<SpriteManager>(mViewport, mSceneManager);
 
     // Set up the root scene nodes
     mRootNode = mSceneManager->getRootSceneNode();
@@ -124,7 +124,7 @@ void Renderer::RenderFrame(Camera* camera)
         switch (e.type)
         {
         case SDL_QUIT:
-            EventSystem::inst().QueueEvent(make_shared<EvtData_Exit>());
+            EventSystem::inst().QueueEvent(MakeShared<EvtData_Exit>());
             break;
 
         default:
@@ -146,7 +146,7 @@ void Renderer::HandleEvent(EventDataPtr eventData)
 {
     if (EventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_KeyDown>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_KeyDown>(eventData);
         switch (castedEventData->keycode)
         {
         case SDLK_F4:
@@ -204,12 +204,12 @@ Ogre::AxisAlignedBox Renderer::CalculateBounds(Ogre::SceneNode* node)
     return aabb;
 }
 
-Ogre::MaterialPtr Renderer::GetMaterial(const string& name)
+Ogre::MaterialPtr Renderer::GetMaterial(const String& name)
 {
     return Ogre::MaterialManager::getSingleton().getByName(name);
 }
 
-Ogre::MaterialPtr Renderer::GetMaterialCopy(const string& originalName, const string& newName)
+Ogre::MaterialPtr Renderer::GetMaterialCopy(const String& originalName, const String& newName)
 {
     Ogre::MaterialPtr material = GetMaterial(originalName);
     if (material.isNull())
@@ -355,7 +355,7 @@ bool Renderer::RaycastQueryGeometry(const Vec3& start, const Vec3& end, Camera* 
     return false;
 }
 
-void Renderer::TogglePostEffect(const string& name, bool enabled)
+void Renderer::TogglePostEffect(const String& name, bool enabled)
 {
     Ogre::CompositorManager::getSingleton().setCompositorEnabled(mViewport, name, enabled);
 }
@@ -370,10 +370,10 @@ Ogre::SceneNode* Renderer::GetRibbonTrailRoot()
     return mRTRoot;
 }
 
-vector<SDL_DisplayMode> Renderer::EnumerateDisplayModes() const
+Vector<SDL_DisplayMode> Renderer::EnumerateDisplayModes() const
 {
     // Enumerate available video modes
-    vector<SDL_DisplayMode> displayModes;
+    Vector<SDL_DisplayMode> displayModes;
     int count = SDL_GetNumDisplayModes(0);
     for (int i = 0; i < count; ++i)
     {
@@ -386,7 +386,7 @@ vector<SDL_DisplayMode> Renderer::EnumerateDisplayModes() const
 
 void Renderer::LoadPlugins()
 {
-    std::vector<string> plugins;
+    Vector<String> plugins;
     plugins.push_back("RenderSystem_GL");
 #if DW_PLATFORM == DW_WIN32
     plugins.push_back("Plugin_ParticleUniverse");
@@ -403,12 +403,12 @@ void Renderer::LoadPlugins()
 
     // Work around the missing msSingleton assert for ParticleUniverse
 #if DW_PLATFORM != DW_WIN32
-    mParticleUniversePlugin = make_shared<ParticleUniverse::ParticleUniversePlugin>();
-    mRoot->installPlugin(mParticleUniversePlugin.get());    
+    mParticleUniversePlugin = MakeShared<ParticleUniverse::ParticleUniversePlugin>();
+    mRoot->installPlugin(mParticleUniversePlugin.get());
 #endif
 }
 
-void Renderer::CreateSDLWindow(const string& windowTitle, const Vec2i& displayMode,
+void Renderer::CreateSDLWindow(const String& windowTitle, const Vec2i& displayMode,
                                    bool fullscreen, Ogre::NameValuePairList& options)
 {
     // Create the window
@@ -445,11 +445,11 @@ void Renderer::CreateSDLWindow(const string& windowTitle, const Vec2i& displayMo
 #endif
 }
 
-void Renderer::InitResources(const string& basePath)
+void Renderer::InitResources(const String& basePath)
 {
     // Add all resource locations to the resource group manager
     // TODO move resource manager to global class
-    std::vector<string> rl;
+    Vector<String> rl;
     rl.push_back("Media/fonts/");
     rl.push_back("Media/materials/deferred/");
     rl.push_back("Media/materials/explosions/pu/");
@@ -527,7 +527,7 @@ void Renderer::FindClosestPolygon(Ogre::Entity* entity, float& closestDistance,
     {
         Ogre::SubMesh* subMesh = mesh->getSubMesh(i);
 
-        // Ignore anything that isn't a triangle list
+        // Ignore anything that isn't a triangle List
         if (subMesh->operationType != Ogre::RenderOperation::OT_TRIANGLE_LIST)
             continue;
 
@@ -632,7 +632,7 @@ void Renderer::RayToTriangleCheck(Ogre::Vector3& corner1, Ogre::Vector3& corner2
                                        Ogre::Vector3& position, Ogre::Vector3& normal)
 {
     // Check for a hit against this triangle
-    std::pair<bool, float> hit =
+    Pair<bool, float> hit =
         Ogre::Math::intersects(mRaySceneQuery->getRay(), corner1, corner2, corner3, true, false);
 
     // Check if closest distance

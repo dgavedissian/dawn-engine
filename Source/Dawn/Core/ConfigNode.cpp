@@ -14,7 +14,7 @@ ConfigNode ConvertFromYaml(const YAML::Node& node)
     switch (node.Type())
     {
     case YAML::NodeType::Scalar:
-        return ConfigNode(node.to<string>());
+        return ConfigNode(node.to<String>());
 
     case YAML::NodeType::Sequence:
         {
@@ -31,7 +31,7 @@ ConfigNode ConvertFromYaml(const YAML::Node& node)
         {
             ConfigNode m;
             for (auto i = node.begin(); i != node.end(); i++)
-                m.Insert(make_pair(i.first().to<string>(), ConvertFromYaml(i.second())));
+                m.Insert(make_pair(i.first().to<String>(), ConvertFromYaml(i.second())));
             return m;
         }
 
@@ -45,7 +45,7 @@ void EmitYaml(YAML::Emitter& out, const ConfigNode& node)
     switch (node.GetType())
     {
     case NT_SCALAR:
-        out << node.As<string>();
+        out << node.As<String>();
         break;
 
     case NT_SEQUENCE:
@@ -97,7 +97,7 @@ std::ostream& operator<<(std::ostream& stream, const ConfigNode& node)
     EmitYaml(out, node);
     return stream << out.c_str();
 }
-   
+
 ConfigNode::ConfigNode() : mType(NT_NULL)
 {
 }
@@ -113,7 +113,7 @@ ConfigNode::~ConfigNode()
 {
 }
 
-void ConfigNode::Load(const string& s)
+void ConfigNode::Load(const String& s)
 {
     std::istringstream(s) >> *this;
 }
@@ -172,39 +172,39 @@ const ConfigNode& ConfigNode::operator[](uint i) const
     return mData.sequence[i];
 }
 
-vector<ConfigNode>::iterator ConfigNode::seq_begin()
+Vector<ConfigNode>::iterator ConfigNode::seq_begin()
 {
     return mData.sequence.begin();
 }
 
-vector<ConfigNode>::const_iterator ConfigNode::seq_begin() const
+Vector<ConfigNode>::const_iterator ConfigNode::seq_begin() const
 {
     return mData.sequence.begin();
 }
 
-vector<ConfigNode>::iterator ConfigNode::seq_end()
+Vector<ConfigNode>::iterator ConfigNode::seq_end()
 {
     return mData.sequence.end();
 }
 
-vector<ConfigNode>::const_iterator ConfigNode::seq_end() const
+Vector<ConfigNode>::const_iterator ConfigNode::seq_end() const
 {
     return mData.sequence.end();
 }
 
-void ConfigNode::Insert(const pair<string, ConfigNode>& p)
+void ConfigNode::Insert(const Pair<String, ConfigNode>& p)
 {
     if (mType == NT_NULL)
         mType = NT_MAP;
     mData.keymap.insert(p);
 }
 
-bool ConfigNode::Contains(const string& key) const
+bool ConfigNode::Contains(const String& key) const
 {
     return mData.keymap.count(key) > 0;
 }
 
-ConfigNode& ConfigNode::operator[](const string& key)
+ConfigNode& ConfigNode::operator[](const String& key)
 {
     if (mType == NT_NULL)
         mType = NT_MAP;
@@ -212,28 +212,28 @@ ConfigNode& ConfigNode::operator[](const string& key)
     return mData.keymap[key];
 }
 
-const ConfigNode& ConfigNode::operator[](const string& key) const
+const ConfigNode& ConfigNode::operator[](const String& key) const
 {
     assert(mType == NT_MAP);
     return mData.keymap.at(key);
 }
 
-map<string, ConfigNode>::iterator ConfigNode::map_begin()
+Map<String, ConfigNode>::iterator ConfigNode::map_begin()
 {
     return mData.keymap.begin();
 }
 
-map<string, ConfigNode>::const_iterator ConfigNode::map_begin() const
+Map<String, ConfigNode>::const_iterator ConfigNode::map_begin() const
 {
     return mData.keymap.begin();
 }
 
-map<string, ConfigNode>::iterator ConfigNode::map_end()
+Map<String, ConfigNode>::iterator ConfigNode::map_end()
 {
     return mData.keymap.end();
 }
 
-map<string, ConfigNode>::const_iterator ConfigNode::map_end() const
+Map<String, ConfigNode>::const_iterator ConfigNode::map_end() const
 {
     return mData.keymap.end();
 }

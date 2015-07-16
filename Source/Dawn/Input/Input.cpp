@@ -55,39 +55,39 @@ void Input::HandleSDLEvent(SDL_Event& e)
     switch (e.type)
     {
     case SDL_KEYDOWN:
-        EventSystem::inst().QueueEvent(make_shared<EvtData_KeyDown>(
+        EventSystem::inst().QueueEvent(MakeShared<EvtData_KeyDown>(
             e.key.keysym.sym, e.key.keysym.scancode, e.key.keysym.mod));
         break;
 
     case SDL_KEYUP:
         EventSystem::inst().QueueEvent(
-            make_shared<EvtData_KeyUp>(e.key.keysym.sym, e.key.keysym.scancode, e.key.keysym.mod));
+            MakeShared<EvtData_KeyUp>(e.key.keysym.sym, e.key.keysym.scancode, e.key.keysym.mod));
         break;
 
     case SDL_TEXTINPUT:
-        EventSystem::inst().QueueEvent(make_shared<EvtData_TextInput>(string(e.text.text)));
+        EventSystem::inst().QueueEvent(MakeShared<EvtData_TextInput>(String(e.text.text)));
         break;
 
     case SDL_MOUSEBUTTONDOWN:
-        EventSystem::inst().QueueEvent(make_shared<EvtData_MouseDown>(e.button.button));
+        EventSystem::inst().QueueEvent(MakeShared<EvtData_MouseDown>(e.button.button));
         break;
 
     case SDL_MOUSEBUTTONUP:
-        EventSystem::inst().QueueEvent(make_shared<EvtData_MouseUp>(e.button.button));
+        EventSystem::inst().QueueEvent(MakeShared<EvtData_MouseUp>(e.button.button));
         break;
 
     case SDL_MOUSEMOTION:
         {
             Vec2i pos(e.motion.x, e.motion.y);
             Vec2 posRel(pos.x / (float)mViewportSize.x, pos.y / (float)mViewportSize.y);
-            EventSystem::inst().QueueEvent(make_shared<EvtData_MouseMove>(
+            EventSystem::inst().QueueEvent(MakeShared<EvtData_MouseMove>(
                 pos, posRel, Vec2i(e.motion.xrel, e.motion.yrel)));
         }
         break;
 
     case SDL_MOUSEWHEEL:
         EventSystem::inst().QueueEvent(
-            make_shared<EvtData_MouseWheel>(Vec2i(e.wheel.x, e.wheel.y)));
+            MakeShared<EvtData_MouseWheel>(Vec2i(e.wheel.x, e.wheel.y)));
         break;
 
     default:

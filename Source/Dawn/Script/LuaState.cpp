@@ -7,7 +7,7 @@
 
 NAMESPACE_BEGIN
 
-void l_logWrite(const string& s)
+void l_logWrite(const String& s)
 {
     LOG << s;
 }
@@ -41,7 +41,7 @@ LuaState::~LuaState()
     lua_close(mL);
 }
 
-void LuaState::ExecuteString(const string& str)
+void LuaState::ExecuteString(const String& str)
 {
     luaL_loadstring(mL, str.c_str());
     int result = lua_pcall(mL, 0, 0, 0);
@@ -51,9 +51,9 @@ void LuaState::ExecuteString(const string& str)
     }
 }
 
-void LuaState::ExecuteFile(const string& filename)
+void LuaState::ExecuteFile(const String& filename)
 {
-    string fullFilename = "Media/" + filename;
+    String fullFilename = "Media/" + filename;
     luaL_loadfile(mL, fullFilename.c_str());
     int result = lua_pcall(mL, 0, 0, 0);
     if (result != 0)
@@ -62,7 +62,7 @@ void LuaState::ExecuteFile(const string& filename)
     }
 }
 
-luabridge::LuaRef LuaState::GetGlobal(const string& name)
+luabridge::LuaRef LuaState::GetGlobal(const String& name)
 {
     return luabridge::getGlobal(mL, name.c_str());
 }

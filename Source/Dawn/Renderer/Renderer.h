@@ -30,8 +30,8 @@ struct DW_API RendererRaycastResult
 class DW_API Renderer
 {
 public:
-    Renderer(const string& basePath, const string& prefPath, Input* inputMgr,
-                 const string& windowTitle);
+    Renderer(const String& basePath, const String& prefPath, Input* inputMgr,
+                 const String& windowTitle);
     ~Renderer();
 
     // Render one frame
@@ -44,10 +44,10 @@ public:
     Ogre::AxisAlignedBox CalculateBounds(Ogre::SceneNode* node);
 
     // Get the MaterialPtr to a material
-    Ogre::MaterialPtr GetMaterial(const string& name);
+    Ogre::MaterialPtr GetMaterial(const String& name);
 
     // Get a new MaterialPtr which is a copy of another material
-    Ogre::MaterialPtr GetMaterialCopy(const string& originalName, const string& newName);
+    Ogre::MaterialPtr GetMaterialCopy(const String& originalName, const String& newName);
 
     // Convert from scene coordinates to screen coordinates
     Vec2 ProjectPoint(const Position& point, Camera* camera);
@@ -79,7 +79,7 @@ public:
     bool RaycastQueryGeometry(const Vec3& start, const Vec3& end, Camera* camera, RendererRaycastResult& result);
 
     /// Post process effects
-    void TogglePostEffect(const string& name, bool enabled);
+    void TogglePostEffect(const String& name, bool enabled);
 
     /// Internal: Sets the position of the ribbon trail root
     /// @param position The new root position
@@ -88,8 +88,8 @@ public:
     /// Creates a new ribbon trail object
     Ogre::SceneNode* GetRibbonTrailRoot();
 
-    /// Query the graphics card for a list of resolutions supported
-    vector<SDL_DisplayMode> EnumerateDisplayModes() const;
+    /// Query the graphics card for a List of resolutions supported
+    Vector<SDL_DisplayMode> EnumerateDisplayModes() const;
 
     // Accessors
     uint GetWidth() const { return mViewport->getActualWidth(); }
@@ -111,11 +111,11 @@ private:
     SDL_Window* mWindow;
 
     // Ogre Log
-    shared_ptr<Ogre::LogManager> mLogManager;
+    SharedPtr<Ogre::LogManager> mLogManager;
     Ogre::Log* mLog;
 
     // Ogre
-    shared_ptr<Ogre::Root> mRoot;
+    SharedPtr<Ogre::Root> mRoot;
     Ogre::SceneManager* mSceneManager;
     Ogre::SceneNode* mRootNode;
     Ogre::RenderWindow* mRenderWindow;
@@ -126,10 +126,10 @@ private:
     Ogre::RaySceneQuery* mRaySceneQuery;
 
     // Deferred Shading Pipeline
-    shared_ptr<DeferredShadingManager> mDeferredShadingMgr;
+    SharedPtr<DeferredShadingManager> mDeferredShadingMgr;
 
     // Sprite Manager
-    shared_ptr<SpriteManager> mSpriteManager;
+    SharedPtr<SpriteManager> mSpriteManager;
 
     // Ribbon-trail root node
     // This is automatically set to the scene origin
@@ -137,14 +137,14 @@ private:
     Position mRTRootPosition;
 
 #if DW_PLATFORM != DW_WIN32
-    shared_ptr<ParticleUniverse::ParticleUniversePlugin> mParticleUniversePlugin;
+    SharedPtr<ParticleUniverse::ParticleUniversePlugin> mParticleUniversePlugin;
 #endif
-    
+
     // Set up
     void LoadPlugins();
-    void CreateSDLWindow(const string& windowTitle, const Vec2i& displayMode, bool fullscreen,
+    void CreateSDLWindow(const String& windowTitle, const Vec2i& displayMode, bool fullscreen,
                          Ogre::NameValuePairList& options);
-    void InitResources(const string& basePath);
+    void InitResources(const String& basePath);
     void InitScene();
 
     // Needed for raycasting

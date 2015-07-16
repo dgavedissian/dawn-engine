@@ -30,7 +30,7 @@ AsteroidBelt::AsteroidBelt(Renderer* rs, float minRadius, float maxRadius, float
     {
         float posScaleFactor = math::PowInt(SCALE_FACTOR, l * 2);
         float sizeScaleFactor = math::PowInt(SCALE_FACTOR, l * 2);
-        std::vector<Asteroid> level;
+        Vector<Asteroid> level;
         for (int i = 0; i < ASTEROID_COUNT; ++i)
         {
             Asteroid a;

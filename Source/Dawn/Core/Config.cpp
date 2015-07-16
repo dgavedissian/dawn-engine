@@ -4,12 +4,12 @@
  */
 #include "Common.h"
 
-dw::string dw::Config::filename;
+dw::String dw::Config::filename;
 dw::ConfigNode dw::Config::root;
 
 NAMESPACE_BEGIN
 
-void Config::Load(const string& filename)
+void Config::Load(const String& filename)
 {
     Config::filename = filename;
     ifstream file(filename);

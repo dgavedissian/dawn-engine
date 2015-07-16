@@ -59,12 +59,12 @@ bool EventSystem::RemoveListener(const EventListenerDelegate& eventDelegate, con
         auto findIt = mEventListeners.find(type);
         if (findIt != mEventListeners.end())
         {
-            auto& listeners = findIt->second;
-            for (auto it = listeners.begin(); it != listeners.end(); ++it)
+            auto& Listeners = findIt->second;
+            for (auto it = Listeners.begin(); it != Listeners.end(); ++it)
             {
                 if (eventDelegate == (*it))
                 {
-                    listeners.erase(it);
+                    Listeners.erase(it);
                     success = true;
                     break;
                 }
@@ -177,7 +177,7 @@ bool EventSystem::Update(uint64_t maxMs /*= std::numeric_limits<uint64_t>::max()
         auto findIt = mEventListeners.find(eventType);
         if (findIt != mEventListeners.end())
         {
-            // Call each listener
+            // Call each Listener
             auto& eventListeners = (*findIt).second;
             for (auto delegateFunction : eventListeners)
                 delegateFunction(eventData);
@@ -205,18 +205,18 @@ bool EventSystem::Update(uint64_t maxMs /*= std::numeric_limits<uint64_t>::max()
         }
     }
 
-    // If any listeners were queued for addition or removal whilst processing events, add them now
-    for (auto listener : mAddedEventListeners)
+    // If any Listeners were queued for addition or removal whilst processing events, add them now
+    for (auto Listener : mAddedEventListeners)
     {
-        for (auto delegateFunc : listener.second)
-            AddListener(delegateFunc, listener.first);
+        for (auto delegateFunc : Listener.second)
+            AddListener(delegateFunc, Listener.first);
     }
     mAddedEventListeners.clear();
 
-    for (auto listener : mRemovedEventListeners)
+    for (auto Listener : mRemovedEventListeners)
     {
-        for (auto delegateFunc : listener.second)
-            RemoveListener(delegateFunc, listener.first);
+        for (auto delegateFunc : Listener.second)
+            RemoveListener(delegateFunc, Listener.first);
     }
     mRemovedEventListeners.clear();
 

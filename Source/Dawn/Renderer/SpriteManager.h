@@ -33,7 +33,7 @@ struct VertexChunk
 
 struct SpriteDesc
 {
-    string textureName;
+    String textureName;
     Vec2 position, size, origin;
     Rect uv;
     Colour colour;
@@ -48,14 +48,14 @@ public:
     virtual ~SpriteManager();
 
     // Caches a material
-    void LoadSprite(const string& textureName);
+    void LoadSprite(const String& textureName);
 
     // Buffers a sprite to be sent to the screen at render time
-    void DrawSprite(const string& textureName, const Vec2& position,
+    void DrawSprite(const String& textureName, const Vec2& position,
                     SpriteOrigin origin = SO_TOP_LEFT, float angle = 0.0f);
-    void DrawSprite(const string& textureName, const Vec2& position, const Vec2& origin,
+    void DrawSprite(const String& textureName, const Vec2& position, const Vec2& origin,
                     float angle = 0.0f);
-    void DrawSprite(const string& textureName, const Vec2& position, const Vec2& size,
+    void DrawSprite(const String& textureName, const Vec2& position, const Vec2& size,
                     const Vec2& origin, float angle = 0.0f);
     void DrawSprite(const SpriteDesc& s);
 
@@ -88,7 +88,7 @@ private:
 
     // Sprites - organised by Texture Name
     uint mSpriteCount;
-    std::map<string, std::vector<SpriteChunk>> mChunks;
+    Map<String, Vector<SpriteChunk>> mChunks;
 };
 
 NAMESPACE_END

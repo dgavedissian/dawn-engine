@@ -16,19 +16,19 @@ LogListener::~LogListener()
     Log::inst().RemoveListener(this);
 }
 
-void PlatformLog::LogWrite(const string& message)
+void PlatformLog::LogWrite(const String& message)
 {
     // Output to stdout
     std::cout << message << std::endl;
 
     // Output to VS debug screen
 #if DW_PLATFORM == DW_WIN32 && defined(DW_DEBUG)
-    string debugLine = message + "\n";
+    String debugLine = message + "\n";
     OutputDebugStringA(debugLine.c_str());
 #endif
 }
 
-Log::Stream::Stream(Log* log, LogLevel level, const string& message)
+Log::Stream::Stream(Log* log, LogLevel level, const String& message)
     : mLogger(log),
       mLevel(level),
       mMessage(message)
@@ -40,7 +40,7 @@ Log::Stream::~Stream()
     mLogger->Write(mMessage, mLevel);
 }
 
-Log::Log(const string& filename) : mLogFile(filename)
+Log::Log(const String& filename) : mLogFile(filename)
 {
     mLogFile << "Dawn Engine " << DW_VERSION_STR << std::endl;
     mLogFile << "-------------------------------------" << std::endl;
@@ -51,7 +51,7 @@ Log::~Log()
     mLogFile.close();
 }
 
-void Log::Write(const string& message, LogLevel level)
+void Log::Write(const String& message, LogLevel level)
 {
     // Get the time of day
     time_t t = ::time(nullptr);
@@ -60,15 +60,15 @@ void Log::Write(const string& message, LogLevel level)
     ss << "[" << (now->tm_hour < 10 ? "0" : "") << now->tm_hour << ":"
        << (now->tm_min < 10 ? "0" : "") << now->tm_min << ":" << (now->tm_sec < 10 ? "0" : "")
        << now->tm_sec << "]";
-    string timeStr = ss.str();
+    String timeStr = ss.str();
 
-    std::vector<string> lines;
+    Vector<String> lines;
     Split(message, '\n', lines);
 
     // TODO: threading - add lock here
     for (uint i = 0; i < lines.size(); ++i)
     {
-        string levelStr = "";
+        String levelStr = "";
         switch (level)
         {
         case LOG_WARN:
@@ -83,7 +83,7 @@ void Log::Write(const string& message, LogLevel level)
             break;
         }
 
-        string line = timeStr + " " + levelStr + " " + lines[i];
+        String line = timeStr + " " + levelStr + " " + lines[i];
 
         // Convert tab characters into spaces
         const int tabSize = 4;
@@ -91,7 +91,7 @@ void Log::Write(const string& message, LogLevel level)
         {
             int noSpaces = tabSize - (i % tabSize);
             if (line[i] == '\t')
-                line.replace(i, 1, string(noSpaces, ' '));
+                line.replace(i, 1, String(noSpaces, ' '));
         }
 
         // Output to file
@@ -100,7 +100,7 @@ void Log::Write(const string& message, LogLevel level)
         // Be sure that the log file is up to date in case of a crash
         mLogFile.flush();
 
-        // Output to listeners
+        // Output to Listeners
         for (auto i = mListeners.begin(); i != mListeners.end(); ++i)
             (*i)->LogWrite(line);
 
@@ -114,17 +114,17 @@ Log::Stream Log::GetStream(LogLevel level)
     return Stream(this, level, "");
 }
 
-void Log::AddListener(LogListener* listener)
+void Log::AddListener(LogListener* Listener)
 {
-    mListeners.push_back(listener);
+    mListeners.push_back(Listener);
 }
 
-void Log::RemoveListener(LogListener* listener)
+void Log::RemoveListener(LogListener* Listener)
 {
-    mListeners.erase(std::find(mListeners.begin(), mListeners.end(), listener));
+    mListeners.erase(std::find(mListeners.begin(), mListeners.end(), Listener));
 }
 
-const vector<string>& Log::GetLogBuffer() const
+const Vector<String>& Log::GetLogBuffer() const
 {
     return mLogBuffer;
 }

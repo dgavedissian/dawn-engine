@@ -22,11 +22,11 @@ UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
     // Force the interface render queue to be created
     rs->GetSceneMgr()->getRenderQueue()->getQueueGroup(INTERFACE_RENDER_QUEUE);
 
-    // Add render queue listener
+    // Add render queue Listener
     rs->GetSceneMgr()->addRenderQueueListener(this);
 
     // Set up interfaces
-    mRocketInterface = make_shared<RocketInterface>(rs);
+    mRocketInterface = MakeShared<RocketInterface>(rs);
     Rocket::Core::SetRenderInterface(mRocketInterface.get());
     Rocket::Core::SetSystemInterface(mRocketInterface.get());
     Rocket::Core::SetFileInterface(mRocketInterface.get());
@@ -44,10 +44,10 @@ UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
             Rocket::Core::Font::WEIGHT_NORMAL);
 
     // Initialise ImGui
-    mImGuiInterface = make_shared<ImGuiInterface>(rs, im);
+    mImGuiInterface = MakeShared<ImGuiInterface>(rs, im);
 
     // Set up the console
-    mConsole = make_shared<Console>(this, ls);
+    mConsole = MakeShared<Console>(this, ls);
 
     // Event Delegates
     ADD_LISTENER(UI, EvtData_TextInput);
@@ -95,7 +95,7 @@ void UI::PreRender()
 {
 }
 
-Layout* UI::LoadLayout(const string& filename)
+Layout* UI::LoadLayout(const String& filename)
 {
     // TODO: What if this fails?
     auto fn = Rocket::Core::String(filename.c_str());
@@ -120,7 +120,7 @@ void UI::HandleEvent(EventDataPtr eventData)
 
     if (EventIs<EvtData_TextInput>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_TextInput>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_TextInput>(eventData);
 
         for (auto c : castedEventData->text)
             mImGuiInterface->OnTextInput(c);
@@ -132,7 +132,7 @@ void UI::HandleEvent(EventDataPtr eventData)
 
     if (EventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_KeyDown>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_KeyDown>(eventData);
 
         // Toggle the console
         if (castedEventData->keycode == SDLK_BACKQUOTE || castedEventData->keycode == SDLK_F12)
@@ -158,7 +158,7 @@ void UI::HandleEvent(EventDataPtr eventData)
 
     if (EventIs<EvtData_KeyUp>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_KeyUp>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_KeyUp>(eventData);
         mImGuiInterface->OnKey(castedEventData->keycode, false, castedEventData->mod);
         int key = mRocketInterface->MapSDLKeyCode(castedEventData->keycode);
         mContext->ProcessKeyUp(KeyIdentifier(key),
@@ -167,7 +167,7 @@ void UI::HandleEvent(EventDataPtr eventData)
 
     if (EventIs<EvtData_MouseDown>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_MouseDown>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_MouseDown>(eventData);
         mImGuiInterface->OnMouseButton(castedEventData->button);
         mContext->ProcessMouseButtonDown(mRocketInterface->MapSDLMouseButton(castedEventData->button),
                                          mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
@@ -175,21 +175,21 @@ void UI::HandleEvent(EventDataPtr eventData)
 
     if (EventIs<EvtData_MouseUp>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_MouseUp>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_MouseUp>(eventData);
         mContext->ProcessMouseButtonUp(mRocketInterface->MapSDLMouseButton(castedEventData->button),
                                        mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
     }
 
     if (EventIs<EvtData_MouseMove>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_MouseMove>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_MouseMove>(eventData);
         mContext->ProcessMouseMove(castedEventData->pos.x, castedEventData->pos.y,
                                    mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
     }
 
     if (EventIs<EvtData_MouseWheel>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_MouseWheel>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_MouseWheel>(eventData);
         mImGuiInterface->OnMouseScroll(castedEventData->motion.y);
         mContext->ProcessMouseWheel(-castedEventData->motion.y,
                                     mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
@@ -198,11 +198,11 @@ void UI::HandleEvent(EventDataPtr eventData)
 
 void UI::ProcessEvent(Rocket::Core::Event& event)
 {
-    string type = event.GetType().CString();
-    string id = event.GetCurrentElement()->GetId().CString();
+    String type = event.GetType().CString();
+    String id = event.GetCurrentElement()->GetId().CString();
 
-    std::map<string, string> parameters;
-    
+    Map<String, String> parameters;
+
     // Log event details
     std::stringstream out;
     out << "[librocket event] type: " << type << ", id: " << id << ", params: (";
@@ -225,15 +225,15 @@ void UI::ProcessEvent(Rocket::Core::Event& event)
 
         // Print parameters
         out << key.CString() << "=" << value.CString() << ",";
-        parameters.insert(make_pair<string, string>(key.CString(), value.CString()));
+        parameters.insert(MakePair<String, String>(key.CString(), value.CString()));
     }
     out << ")";
     LOG << out.str();
-    
+
     if (type == "click")
-        EventSystem::inst().QueueEvent(make_shared<EvtData_UIClick>(id, parameters));
+        EventSystem::inst().QueueEvent(MakeShared<EvtData_UIClick>(id, parameters));
     if (type == "submit")
-        EventSystem::inst().QueueEvent(make_shared<EvtData_UISubmit>(id, parameters));
+        EventSystem::inst().QueueEvent(MakeShared<EvtData_UISubmit>(id, parameters));
 }
 
 void UI::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String&, bool&)

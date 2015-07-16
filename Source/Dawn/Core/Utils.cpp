@@ -11,7 +11,7 @@ CommandLineArgs ParseCommandArgs(int argc, char** argv)
     CommandLineArgs args;
 
     // Parse arguments
-    auto dispatchArgument = [&args](const string& name, const string& param)
+    auto dispatchArgument = [&args](const String& name, const String& param)
     {
         if (name.length() > 0)
         {
@@ -22,13 +22,13 @@ CommandLineArgs ParseCommandArgs(int argc, char** argv)
 
     // Walk through argc/argv
     LOG << "Program Arguments:";
-    string name, param;
+    String name, param;
     for (int i = 1; i < argc; ++i)
     {
         if (argv[i][0] == '-')
         {
             dispatchArgument(name, param);
-            name = string(argv[i]).substr(1);
+            name = String(argv[i]).substr(1);
             param.clear();
         }
         else
@@ -36,7 +36,7 @@ CommandLineArgs ParseCommandArgs(int argc, char** argv)
             if (!param.empty())
                 LOG << "Extra argument specified, ignoring";
             else
-                param = string(argv[i]);
+                param = String(argv[i]);
         }
     }
 
@@ -46,34 +46,34 @@ CommandLineArgs ParseCommandArgs(int argc, char** argv)
     return args;
 }
 
-string GenerateName(const string& prefix /*= "Unnamed"*/)
+String GenerateName(const String& prefix /*= "Unnamed"*/)
 {
-    static std::map<string, int> countMap;
+    static Map<String, int> countMap;
     if (countMap.find(prefix) == countMap.end())
         countMap[prefix] = 0;
     return prefix + std::to_string(++countMap[prefix]);
 }
 
-string PadString(const string& str, uint length)
+String PadString(const String& str, uint length)
 {
-    string out = str;
+    String out = str;
     if (length > out.size())
         out.insert(out.size(), length - out.size(), ' ');
     return out;
 }
 
-std::vector<string>& Split(const string& s, char delim, std::vector<string>& elems)
+Vector<String>& Split(const String& s, char delim, Vector<String>& elems)
 {
     std::stringstream ss(s);
-    string item;
+    String item;
     while (std::getline(ss, item, delim))
         elems.push_back(item);
     return elems;
 }
 
-string Concat(const vector<string>& vec, const string& delim)
+String Concat(const Vector<String>& vec, const String& delim)
 {
-    string out;
+    String out;
     for (uint i = 0; i < vec.size() - 1; ++i)
         out += vec[i];
     if (!vec.empty())
@@ -137,7 +137,7 @@ namespace time
         return Now() - tp;
     }
 
-    string Format(time_t time, const string& formatString)
+    String Format(time_t time, const String& formatString)
     {
 #if DW_PLATFORM == DW_WIN32
         std::stringstream out;

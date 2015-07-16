@@ -49,8 +49,8 @@ protected:
     // Mask of permutation bits that influence template material choice
     Perm mMatMask;
 
-    typedef Ogre::map<Perm, Ogre::GpuProgramPtr>::type ProgramMap;
-    typedef Ogre::map<Perm, Ogre::MaterialPtr>::type MaterialMap;
+    typedef Map<Perm, Ogre::GpuProgramPtr> ProgramMap;
+    typedef Map<Perm, Ogre::MaterialPtr> MaterialMap;
 
     ProgramMap mVsMap, mFsMap;
     MaterialMap mTemplateMatMap, mMaterials;

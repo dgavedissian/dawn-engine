@@ -21,28 +21,28 @@ public:
     // ---------------------------------------------------
     // Immediate mode interface
 
-    // TODO: replace with Playlist
+    // TODO: replace with PlayList
     /// Plays a new track immediately
     /// @param filename The filename of the track to be played
-    DEPRECATED void PlayTrack(const string& filename);
+    DEPRECATED void PlayTrack(const String& filename);
 
     /// Shortcut function to play a 2D sound immediately
     /// @param filename The filename of the sound to be played
-    DEPRECATED void PlaySound(const string& filename);
+    DEPRECATED void PlaySound(const String& filename);
 
     /// Shortcut function to play a 3D sound immediately
     /// @param filename The filename of the sound to be played
     /// @param position The position for the sound to appear from
     /// @param filename The filename of the sound to be played
     /// @param filename The filename of the sound to be played
-    DEPRECATED void PlaySound(const string& filename, const Position& position, float minDistance,
+    DEPRECATED void PlaySound(const String& filename, const Position& position, float minDistance,
                    float attenuation = 0.5f);
 
     // ---------------------------------------------------
 
     /// Creates a track
     /// @param filename The filename of the track to be played
-    Track* CreateTrack(const string& filename);
+    Track* CreateTrack(const String& filename);
 
     /// Destroys a track
     /// @param track Track to destroy
@@ -51,22 +51,22 @@ public:
     /// Creates a new 2D sound
     /// @param filename The filename of the sound
     /// @param loop     True if the sound should be looped
-    Sound* CreateSound(const string& filename, bool looped = false);
+    Sound* CreateSound(const String& filename, bool looped = false);
 
     /// Creates a new 3D sound
     /// @param filename The filename of the sound
     /// @param position Position of the sound
     /// @param loop     True if the sound should be looped
-    Sound* CreateSound(const string& filename, const Position& position, bool looped = false);
+    Sound* CreateSound(const String& filename, const Position& position, bool looped = false);
 
     /// Destroys a sound
     /// @param sound The sound to destroy
     void DestroySound(Sound* sound);
 
-    /// Updates the listeners position
+    /// Updates the Listeners position
     /// @param dt          Delta-time
-    /// @param listener    Listener
-    void Update(float dt, Camera* listener);
+    /// @param Listener    Listener
+    void Update(float dt, Camera* Listener);
 
     /// Returns the current irrKlang sound engine
     /// @return The pointer to the irrKlang sound engine
@@ -76,12 +76,12 @@ private:
 private:
     irrklang::ISoundEngine* mSoundEngine;
 
-    std::vector<shared_ptr<Sound>> mSounds;
-    std::vector<shared_ptr<Track>> mTracks;
+    Vector<SharedPtr<Sound>> mSounds;
+    Vector<SharedPtr<Track>> mTracks;
 
     // Immediate mode stuff
     Track* mCurrentTrack;
-    std::vector<Sound*> mImmediateSounds;
+    Vector<Sound*> mImmediateSounds;
 
     // Camera velocity
     Position mLastCameraPosition;

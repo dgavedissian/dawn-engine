@@ -65,7 +65,7 @@ private:
     }
 
     T* mBlock;
-    std::list<T*> mFreeList;
+    List<T*> mFreeList;
 };
 
 NAMESPACE_END

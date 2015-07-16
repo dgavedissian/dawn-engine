@@ -18,7 +18,7 @@ Console::Console(UI* im, LuaState* ls)
 {
     mLayout = mInterfaceMgr->LoadLayout("console.rml");
     mLayout->Hide();
-    
+
     // Bit of a hack, bypass event system and hook this class directly
     mLayout->GetElementById("cmd")->AddEventListener("keydown", this);
     mConsole = mLayout->GetElementById("console");
@@ -53,7 +53,7 @@ bool Console::IsVisible() const
     return mLayout->IsVisible();
 }
 
-void Console::Write(const string& str)
+void Console::Write(const String& str)
 {
     // Add a new line if not empty
     if (!mOutput.empty())
@@ -69,20 +69,20 @@ void Console::Write(const string& str)
     mConsole->SetScrollTop(mConsole->GetScrollHeight());
 }
 
-void Console::Execute(const string& statement)
+void Console::Execute(const String& statement)
 {
     Write("> " + statement);
     mLuaState->ExecuteString(statement);
 }
 
-void Console::LogWrite(const string& msg)
+void Console::LogWrite(const String& msg)
 {
     Write(msg);
 }
 
 void Console::ProcessEvent(Rocket::Core::Event& event)
 {
-    string controlId(event.GetCurrentElement()->GetId().CString());
+    String controlId(event.GetCurrentElement()->GetId().CString());
     if (controlId == "cmd")
     {
         int key = event.GetParameters()->Get<int>("key_identifier", 0);
@@ -90,7 +90,7 @@ void Console::ProcessEvent(Rocket::Core::Event& event)
             static_cast<Rocket::Controls::ElementFormControl*>(event.GetCurrentElement());
         if (key == Rocket::Core::Input::KI_RETURN)
         {
-            string command = inputBox->GetValue().CString();
+            String command = inputBox->GetValue().CString();
             inputBox->SetValue("");
             Execute(command);
         }

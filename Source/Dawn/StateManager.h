@@ -38,7 +38,7 @@ public:
     virtual uint GetID() const = 0;
 
     // Returns the name of this state for debugging purposes
-    virtual string GetName() const = 0;
+    virtual String GetName() const = 0;
 };
 
 // State modality - does it own the screen or is it a pop-up?
@@ -56,7 +56,7 @@ public:
     ~StateManager();
 
     // Registers a new state
-    void RegisterState(shared_ptr<State> state);
+    void RegisterState(SharedPtr<State> state);
 
     // Switches the game to a new state. This will clear all current active pop-up states
     void Change(int id);
@@ -84,12 +84,12 @@ public:
 
     // Accessors
     int GetTop() const;
-    shared_ptr<State> GetStateByID(uint id);
+    SharedPtr<State> GetStateByID(uint id);
     uint GetDepth() const;
 
 private:
-    map<int, shared_ptr<State>> mStateMap;
-    vector<shared_ptr<State>> mStateStack;
+    Map<int, SharedPtr<State>> mStateMap;
+    Vector<SharedPtr<State>> mStateStack;
 };
 
 NAMESPACE_END

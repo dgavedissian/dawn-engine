@@ -97,7 +97,7 @@ void ImGuiInterface::BeginFrame()
     {
     	mIO.MousePos = ImVec2(-1,-1);
     }
-  
+
     // Copy mouse state
     for (int i = 0; i < 3; i++)
     {
@@ -164,7 +164,7 @@ void ImGuiInterface::AllocateVertexBuffer(uint size)
 {
     Ogre::HardwareVertexBufferSharedPtr vb =
         Ogre::HardwareBufferManager::getSingleton().createVertexBuffer(
-            mRenderOp.vertexData->vertexDeclaration->getVertexSize(0), mSize, 
+            mRenderOp.vertexData->vertexDeclaration->getVertexSize(0), mSize,
             Ogre::HardwareBuffer::HBU_DYNAMIC_WRITE_ONLY_DISCARDABLE);
     mRenderOp.vertexData->vertexBufferBinding->setBinding(0, vb);
 }
@@ -173,8 +173,8 @@ void ImGuiInterface::RenderDrawLists(ImDrawList** const cmdLists, int cmdListsCo
 {
     // Assume render system is configured according to InterfaceManager::_configureRenderSystem
     mRenderSystem->_setWorldMatrix(Ogre::Matrix4::IDENTITY);
-    
-    // For each command list
+
+    // For each command List
     for (int i = 0; i < cmdListsCount; i++)
     {
         ImVector<ImDrawCmd>& commands = cmdLists[i]->commands;

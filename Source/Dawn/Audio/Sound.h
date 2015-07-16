@@ -12,8 +12,8 @@ class Camera;
 class DW_API Sound
 {
 public:
-    Sound(const string& filename, bool looped, irrklang::ISoundEngine* engine);
-    Sound(const string& filename, const Position& position, bool looped,
+    Sound(const String& filename, bool looped, irrklang::ISoundEngine* engine);
+    Sound(const String& filename, const Position& position, bool looped,
           irrklang::ISoundEngine* engine);
     ~Sound();
 

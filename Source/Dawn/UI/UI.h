@@ -29,7 +29,7 @@ public:
     void PreRender();
 
     // Load a layout
-    Layout* LoadLayout(const string& filename);
+    Layout* LoadLayout(const String& filename);
     void UnloadLayout(Layout* layout);
 
     // Event Delegate
@@ -48,11 +48,11 @@ private:
 
     Rocket::Core::Context* mContext;
 
-    shared_ptr<RocketInterface> mRocketInterface;
-    shared_ptr<ImGuiInterface> mImGuiInterface;
+    SharedPtr<RocketInterface> mRocketInterface;
+    SharedPtr<ImGuiInterface> mImGuiInterface;
 
     // Console
-    shared_ptr<Console> mConsole;
+    SharedPtr<Console> mConsole;
 
     // Internal: Configure the render system to draw libRocket controls
     void ConfigureRenderSystem();
@@ -62,26 +62,26 @@ private:
 class EvtData_UIClick : public EventData
 {
 public:
-    typedef std::map<string, string> Parameters;
+    typedef Map<String, String> Parameters;
     static const EventType eventType;
-    EvtData_UIClick(const string& _id, const Parameters& p) : id(_id), parameters(p) {}
+    EvtData_UIClick(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
     const EventType& GetEventType() const override { return eventType; }
-    const string GetName() const override { return "EvtData_UIClick"; }
+    const String GetName() const override { return "EvtData_UIClick"; }
 
-    string id;
+    String id;
     Parameters parameters;
 };
 
 class EvtData_UISubmit : public EventData
 {
 public:
-    typedef std::map<string, string> Parameters;
+    typedef Map<String, String> Parameters;
     static const EventType eventType;
-    EvtData_UISubmit(const string& _id, const Parameters& p) : id(_id), parameters(p) {}
+    EvtData_UISubmit(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
     const EventType& GetEventType() const override { return eventType; }
-    const string GetName() const override { return "EvtData_UISubmit"; }
+    const String GetName() const override { return "EvtData_UISubmit"; }
 
-    string id;
+    String id;
     Parameters parameters;
 };
 

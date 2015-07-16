@@ -22,7 +22,7 @@ Audio::~Audio()
     mSoundEngine->drop();
 }
 
-void Audio::PlayTrack(const string& filename)
+void Audio::PlayTrack(const String& filename)
 {
     if (mCurrentTrack)
     {
@@ -43,14 +43,14 @@ void Audio::PlayTrack(const string& filename)
     }
 }
 
-void Audio::PlaySound(const string& filename)
+void Audio::PlaySound(const String& filename)
 {
     Sound* sound = CreateSound(filename);
     sound->Play();
     mImmediateSounds.push_back(sound);
 }
 
-void Audio::PlaySound(const string& filename, const Position& position, float minDistance,
+void Audio::PlaySound(const String& filename, const Position& position, float minDistance,
                              float attenuation /*= 0.5f*/)
 {
     Sound* sound = CreateSound(filename, position);
@@ -59,17 +59,17 @@ void Audio::PlaySound(const string& filename, const Position& position, float mi
     mImmediateSounds.push_back(sound);
 }
 
-void Audio::Update(float dt, Camera* listener)
+void Audio::Update(float dt, Camera* Listener)
 {
     // Calculate velocity
     Vec3 velocity = dt > math::eps
-                        ? listener->GetPosition().GetRelativeToPoint(mLastCameraPosition) / dt
+                        ? Listener->GetPosition().GetRelativeToPoint(mLastCameraPosition) / dt
                         : Vec3(0.0f, 0.0f, 0.0f);
-    mLastCameraPosition = listener->GetPosition();
+    mLastCameraPosition = Listener->GetPosition();
 
-    // Update listener orientation
-    irrklang::vec3df lookDir = listener->GetOrientation() * Vec3(0.0f, 0.0f, -1.0f);
-    irrklang::vec3df upDir = listener->GetOrientation() * Vec3(0.0f, 1.0f, 0.0f);
+    // Update Listener orientation
+    irrklang::vec3df lookDir = Listener->GetOrientation() * Vec3(0.0f, 0.0f, -1.0f);
+    irrklang::vec3df upDir = Listener->GetOrientation() * Vec3(0.0f, 1.0f, 0.0f);
     mSoundEngine->setListenerPosition(irrklang::vec3df(0.0f, 0.0f, 0.0f), lookDir, velocity, upDir);
 
     // Clear immediate sounds
@@ -89,7 +89,7 @@ void Audio::Update(float dt, Camera* listener)
 
     // Update sounds
     for (auto snd : mSounds)
-        snd->Update(listener, dt);
+        snd->Update(Listener, dt);
 }
 
 irrklang::ISoundEngine* Audio::GetSoundEngine()
@@ -97,9 +97,9 @@ irrklang::ISoundEngine* Audio::GetSoundEngine()
     return mSoundEngine;
 }
 
-Track* Audio::CreateTrack(const string& filename)
+Track* Audio::CreateTrack(const String& filename)
 {
-    shared_ptr<Track> track = make_shared<Track>("Media/sounds/" + filename, mSoundEngine);
+    SharedPtr<Track> track = MakeShared<Track>("Media/sounds/" + filename, mSoundEngine);
     mTracks.push_back(track);
     return track.get();
 }
@@ -121,18 +121,18 @@ void Audio::DestroyTrack(Track* track)
     }
 }
 
-Sound* Audio::CreateSound(const string& filename, bool looped /*= false*/)
+Sound* Audio::CreateSound(const String& filename, bool looped /*= false*/)
 {
-    shared_ptr<Sound> sound = make_shared<Sound>("Media/sounds/" + filename, looped, mSoundEngine);
+    SharedPtr<Sound> sound = MakeShared<Sound>("Media/sounds/" + filename, looped, mSoundEngine);
     mSounds.push_back(sound);
     return sound.get();
 }
 
-Sound* Audio::CreateSound(const string& filename, const Position& position,
+Sound* Audio::CreateSound(const String& filename, const Position& position,
                                  bool looped /*= false*/)
 {
-    shared_ptr<Sound> sound =
-        make_shared<Sound>("Media/sounds/" + filename, position, looped, mSoundEngine);
+    SharedPtr<Sound> sound =
+        MakeShared<Sound>("Media/sounds/" + filename, position, looped, mSoundEngine);
     mSounds.push_back(sound);
     return sound.get();
 }

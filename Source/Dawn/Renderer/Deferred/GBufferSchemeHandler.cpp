@@ -7,16 +7,16 @@
 
 NAMESPACE_BEGIN
 
-const string GBufferSchemeHandler::NORMAL_MAP_PATTERN = "normal";
+const String GBufferSchemeHandler::NORMAL_MAP_PATTERN = "normal";
 
 Ogre::Technique* GBufferSchemeHandler::handleSchemeNotFound(unsigned short schemeIndex,
-                                                      const string& schemeName,
+                                                      const String& schemeName,
                                                       Ogre::Material* originalMaterial,
                                                       unsigned short lodIndex,
                                                       const Ogre::Renderable* rend)
 {
     Ogre::MaterialManager& matMgr = Ogre::MaterialManager::getSingleton();
-    string curSchemeName = matMgr.getActiveScheme();
+    String curSchemeName = matMgr.getActiveScheme();
     matMgr.setActiveScheme(Ogre::MaterialManager::DEFAULT_SCHEME_NAME);
     Ogre::Technique* originalTechnique = originalMaterial->getBestTechnique(lodIndex, rend);
     matMgr.setActiveScheme(curSchemeName);

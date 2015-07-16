@@ -18,9 +18,9 @@ class ConfigNode;
 
 struct ConfigNodeData
 {
-    string scalar;
-    vector<ConfigNode> sequence;
-    map<string, ConfigNode> keymap;
+    String scalar;
+    Vector<ConfigNode> sequence;
+    Map<String, ConfigNode> keymap;
 };
 
 template <class T>
@@ -34,7 +34,7 @@ class DW_API ConfigNode
 {
 public:
     template <class T> friend struct Converter;
-    
+
     ConfigNode();
     ConfigNode(const ConfigNode& rhs);
     template <class T>
@@ -43,7 +43,7 @@ public:
 
     /// Load a configuration from a string
     /// @param s String to parse
-    void Load(const string& s);
+    void Load(const String& s);
 
     // Stream operators
     friend std::istream& operator>>(std::istream& stream, ConfigNode &node);
@@ -60,7 +60,7 @@ public:
     template <class T>
     T As(const T& defaultValue) const
     {
-        T out; 
+        T out;
         if (Converter<T>::Decode(*this, out))
             return out;
         else
@@ -78,21 +78,21 @@ public:
     ConfigNode& operator[](uint i);
     const ConfigNode& operator[](uint i) const;
 
-    vector<ConfigNode>::iterator seq_begin();
-    vector<ConfigNode>::const_iterator seq_begin() const;
-    vector<ConfigNode>::iterator seq_end();
-    vector<ConfigNode>::const_iterator seq_end() const;
-    
-    // Map operations
-    void Insert(const pair<string, ConfigNode>& p);
-    bool Contains(const string& key) const;
-    ConfigNode& operator[](const string& key);
-    const ConfigNode& operator[](const string& key) const;
+    Vector<ConfigNode>::iterator seq_begin();
+    Vector<ConfigNode>::const_iterator seq_begin() const;
+    Vector<ConfigNode>::iterator seq_end();
+    Vector<ConfigNode>::const_iterator seq_end() const;
 
-    map<string, ConfigNode>::iterator map_begin();
-    map<string, ConfigNode>::const_iterator map_begin() const;
-    map<string, ConfigNode>::iterator map_end();
-    map<string, ConfigNode>::const_iterator map_end() const;
+    // Map operations
+    void Insert(const Pair<String, ConfigNode>& p);
+    bool Contains(const String& key) const;
+    ConfigNode& operator[](const String& key);
+    const ConfigNode& operator[](const String& key) const;
+
+    Map<String, ConfigNode>::iterator map_begin();
+    Map<String, ConfigNode>::const_iterator map_begin() const;
+    Map<String, ConfigNode>::iterator map_end();
+    Map<String, ConfigNode>::const_iterator map_end() const;
 
 private:
     ConfigNodeType mType;

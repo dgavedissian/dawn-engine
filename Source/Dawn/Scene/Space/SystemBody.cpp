@@ -24,12 +24,12 @@ SystemBody::~SystemBody()
     RemoveAllSatellites();
 }
 
-void SystemBody::SetOrbit(shared_ptr<Orbit> orbit)
+void SystemBody::SetOrbit(SharedPtr<Orbit> orbit)
 {
     mOrbit = orbit;
 }
 
-void SystemBody::AddSatellite(shared_ptr<SystemBody> satellite, shared_ptr<Orbit> orbit)
+void SystemBody::AddSatellite(SharedPtr<SystemBody> satellite, SharedPtr<Orbit> orbit)
 {
     mSatellites.push_back(satellite);
     satellite->SetOrbit(orbit);
@@ -41,7 +41,7 @@ void SystemBody::RemoveAllSatellites()
     mSatellites.clear();
 }
 
-void SystemBody::AddAsteroidBelt(shared_ptr<AsteroidBelt> belt)
+void SystemBody::AddAsteroidBelt(SharedPtr<AsteroidBelt> belt)
 {
     mAsteroidBelts.push_back(belt);
     belt->SetParent(this);
@@ -85,7 +85,7 @@ const SystemBody* SystemBody::GetSatellite(uint index) const
     return mSatellites[index].get();
 }
 
-const vector<shared_ptr<SystemBody>>& SystemBody::GetAllSatellites() const
+const Vector<SharedPtr<SystemBody>>& SystemBody::GetAllSatellites() const
 {
     return mSatellites;
 }

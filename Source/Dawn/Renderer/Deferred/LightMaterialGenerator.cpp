@@ -24,7 +24,7 @@ LightMaterialGenerator::~LightMaterialGenerator()
 
 Ogre::GpuProgramPtr LightMaterialGenerator::GenerateVertexShader(Perm permutation)
 {
-    string programName = "DeferredShading/Post/";
+    String programName = "DeferredShading/Post/";
     if (permutation & LightMaterialGenerator::MI_DIRECTIONAL)
         programName += "Quad/VS";
     else
@@ -53,7 +53,7 @@ Ogre::GpuProgramPtr LightMaterialGenerator::GenerateFragmentShader(Perm permutat
     assert(!mMasterSource.empty());
 
     // Create name
-    string name = mBaseName + Ogre::StringConverter::toString(permutation) + "/FS";
+    String name = mBaseName + Ogre::StringConverter::toString(permutation) + "/FS";
 
     // Create shader object
     Ogre::HighLevelGpuProgramPtr ptrProgram =
@@ -84,7 +84,7 @@ Ogre::GpuProgramPtr LightMaterialGenerator::GenerateFragmentShader(Perm permutat
 
 Ogre::MaterialPtr LightMaterialGenerator::GenerateTemplateMaterial(Perm permutation)
 {
-    string materialName = mBaseName;
+    String materialName = mBaseName;
 
     if (permutation & LightMaterialGenerator::MI_DIRECTIONAL)
         materialName += "Quad";
@@ -97,9 +97,9 @@ Ogre::MaterialPtr LightMaterialGenerator::GenerateTemplateMaterial(Perm permutat
     return Ogre::MaterialManager::getSingleton().getByName(materialName);
 }
 
-string LightMaterialGenerator::GetPPDefines(Perm permutation)
+String LightMaterialGenerator::GetPPDefines(Perm permutation)
 {
-    string strPPD;
+    String strPPD;
 
     // Get the type of light
     Ogre::uint lightType = 0;
@@ -133,11 +133,11 @@ void LightMaterialGenerator::SetupBaseParameters(const Ogre::GpuProgramParameter
 
     struct AutoParamPair
     {
-        string name;
+        String name;
         Ogre::GpuProgramParameters::AutoConstantType type;
     };
 
-    // A list of auto params that might be present in the shaders generated
+    // A List of auto params that might be present in the shaders generated
     static const AutoParamPair AUTO_PARAMS[] = {
         {"vpWidth", Ogre::GpuProgramParameters::ACT_VIEWPORT_WIDTH},
         {"vpHeight", Ogre::GpuProgramParameters::ACT_VIEWPORT_HEIGHT},

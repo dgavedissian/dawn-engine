@@ -19,8 +19,8 @@ public:
 
     /// Load a star system from a config file
     /// @param config Config filename
-    StarSystem* LoadStarSystem(const string& config);
-    
+    StarSystem* LoadStarSystem(const String& config);
+
 };
 
 NAMESPACE_END

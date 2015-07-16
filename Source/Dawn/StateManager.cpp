@@ -22,7 +22,7 @@ StateManager::~StateManager()
     mStateMap.clear();
 }
 
-void StateManager::RegisterState(shared_ptr<State> state)
+void StateManager::RegisterState(SharedPtr<State> state)
 {
     mStateMap[state->GetID()] = state;
 }
@@ -40,7 +40,7 @@ void StateManager::Push(int id)
         return;
 
     // TODO: We need some kind of way to "pause" the frame timer
-    shared_ptr<State> newState = GetStateByID(id);
+    SharedPtr<State> newState = GetStateByID(id);
     mStateStack.push_back(newState);
     newState->Enter();
     LOG << "Pushed " << newState->GetName();
@@ -50,7 +50,7 @@ void StateManager::Pop()
 {
     if (mStateStack.size() > 0)
     {
-        shared_ptr<State> back = mStateStack.back();
+        SharedPtr<State> back = mStateStack.back();
         back->Exit();
         mStateStack.pop_back();
         LOG << "Popped " << back->GetName();
@@ -100,13 +100,13 @@ void StateManager::HandleEvent(EventDataPtr eventData)
     // Handle state reloading
     if (EventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_KeyDown>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_KeyDown>(eventData);
         if (castedEventData->keycode == SDLK_F8)
             Reload();
     }
 }
 
-shared_ptr<State> StateManager::GetStateByID(uint id)
+SharedPtr<State> StateManager::GetStateByID(uint id)
 {
     auto it = mStateMap.find(id);
     assert(it != mStateMap.end());

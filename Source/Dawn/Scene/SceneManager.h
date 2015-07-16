@@ -37,13 +37,13 @@ public:
     template <class T>
     void Reserve(uint slots)
     {
-        mEntityTypePoolMap[&typeid(T)] = unique_ptr<MemoryPool>(new FixedMemoryPool<T>(slots));
+        mEntityTypePoolMap[&typeid(T)] = UniquePtr<MemoryPool>(new FixedMemoryPool<T>(slots));
     }
 
     void ClearEntities();
 
     /// Remove an entity by value. This is quite slow with O(n) complexity.
-    /// @param entity The entity to find and remove from the entity list
+    /// @param entity The entity to find and remove from the entity List
     DEPRECATED void RemoveEntity(Entity* entity);
 
     /// Calls update on each entity
@@ -61,10 +61,10 @@ private:
     Ogre::SceneManager* mSceneMgr;
 
     // Owned entities
-    std::vector<Entity*> mEntities;
+    Vector<Entity*> mEntities;
 
     // Memory pools
-    std::map<const std::type_info*, unique_ptr<MemoryPool>> mEntityTypePoolMap;
+    Map<const std::type_info*, UniquePtr<MemoryPool>> mEntityTypePoolMap;
 
 #ifdef DW_DEBUG
     bool mIterating;

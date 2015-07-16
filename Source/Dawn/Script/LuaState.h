@@ -14,13 +14,13 @@ public:
     virtual ~LuaState();
 
     // Execute a string
-    void ExecuteString(const string& str);
+    void ExecuteString(const String& str);
 
     // Execute a file
-    void ExecuteFile(const string& filename);
+    void ExecuteFile(const String& filename);
 
     // Get an object from the global namespace
-    LuaRef GetGlobal(const string& name);
+    LuaRef GetGlobal(const String& name);
 
     // Get the global namespace and begin binding
     Namespace Bind();

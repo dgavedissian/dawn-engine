@@ -55,7 +55,7 @@ public:
     {
         return eventType;
     }
-    const string GetName() const override
+    const String GetName() const override
     {
         return "EvtData_KeyDown";
     }
@@ -77,7 +77,7 @@ public:
     {
         return eventType;
     }
-    const string GetName() const override
+    const String GetName() const override
     {
         return "EvtData_KeyUp";
     }
@@ -92,19 +92,19 @@ class DW_API EvtData_TextInput : public EventData
 public:
     static const EventType eventType;
 
-    EvtData_TextInput(string t) : text(t)
+    EvtData_TextInput(String t) : text(t)
     {
     }
     const EventType& GetEventType() const override
     {
         return eventType;
     }
-    const string GetName() const override
+    const String GetName() const override
     {
         return "EvtData_TextInput";
     }
 
-    string text;
+    String text;
 };
 
 class DW_API EvtData_MouseDown : public EventData
@@ -119,7 +119,7 @@ public:
     {
         return eventType;
     }
-    const string GetName() const override
+    const String GetName() const override
     {
         return "EvtData_MouseDown";
     }
@@ -139,7 +139,7 @@ public:
     {
         return eventType;
     }
-    const string GetName() const override
+    const String GetName() const override
     {
         return "EvtData_MouseUp";
     }
@@ -154,7 +154,7 @@ public:
 
     EvtData_MouseMove(const Vec2i& p, const Vec2& pr, const Vec2i& m) : pos(p), posRel(pr), motion(m) {}
     const EventType& GetEventType() const override { return eventType; }
-    const string GetName() const override { return "EvtData_MouseMove"; }
+    const String GetName() const override { return "EvtData_MouseMove"; }
 
     Vec2i pos;
     Vec2 posRel;
@@ -173,7 +173,7 @@ public:
     {
         return eventType;
     }
-    const string GetName() const override
+    const String GetName() const override
     {
         return "EvtData_MouseWheel";
     }

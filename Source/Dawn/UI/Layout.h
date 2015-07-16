@@ -28,7 +28,7 @@ public:
     ~Layout();
 
     /// Focus on an element in this layout
-    void FocusOn(const string& id);
+    void FocusOn(const String& id);
 
     /// Show the layout
     void Show(int showType = Focus);
@@ -40,10 +40,10 @@ public:
     /// @return true if the layout is visible, false otherwise
     bool IsVisible() const;
 
-    /// Add a new event listener
+    /// Add a new event Listener
     /// id    ID of the element to bind to
     /// event Event identifier
-    void BindEvent(const string& id, UIEvent event);
+    void BindEvent(const String& id, UIEvent event);
 
     // Internal: Get element by Id
     Rocket::Core::Element* GetElementById(Rocket::Core::String id);
@@ -55,7 +55,7 @@ private:
     UI* mInterfaceMgr;
 
     Rocket::Core::ElementDocument* mDocument;
-    std::list<std::tuple<string, string, Rocket::Core::EventListener*>> mListeners;
+    List<std::tuple<String, String, Rocket::Core::EventListener*>> mListeners;
 };
 
 NAMESPACE_END

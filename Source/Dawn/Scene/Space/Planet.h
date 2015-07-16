@@ -19,8 +19,8 @@ struct DW_API PlanetDesc
     float radius;
     float rotationPeriod;    // in seconds
     float axialTilt;         // in radians
-    string surfaceTexture;
-    string nightTexture;
+    String surfaceTexture;
+    String nightTexture;
 
     bool hasAtmosphere;
     struct
@@ -33,7 +33,7 @@ struct DW_API PlanetDesc
     {
         float minRadius;
         float maxRadius;
-        string texture;
+        String texture;
     } rings;
 
     PlanetDesc();
@@ -129,8 +129,8 @@ private:
         RingNode* mChildren[4];
 
         // Asteroids
-        std::vector<RingAsteroid> mAsteroidList;
-        std::vector<Ogre::Billboard*> mDustList;
+        Vector<RingAsteroid> mAsteroidList;
+        Vector<Ogre::Billboard*> mDustList;
 
         // Internal methods
         void Cache();
@@ -162,7 +162,7 @@ private:
     Ogre::SceneNode* mAtmosphereNode;
 
     // Ring System
-    shared_ptr<Rings> mRingSystem;
+    SharedPtr<Rings> mRingSystem;
 };
 
 NAMESPACE_END

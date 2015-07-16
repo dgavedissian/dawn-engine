@@ -13,9 +13,9 @@ template <> struct Converter<bool>
         ConfigNode out;
         out.mType = NT_SCALAR;
         out.mData.scalar = value ? "true" : "false";
-        return out;        
+        return out;
     }
-    
+
     static bool Decode(const ConfigNode& node, bool& rhs)
     {
         if (node.mType != NT_SCALAR)
@@ -33,9 +33,9 @@ template <> struct Converter<int>
         ConfigNode out;
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
-        return out;        
+        return out;
     }
-    
+
     static bool Decode(const ConfigNode& node, int& rhs)
     {
         if (node.mType != NT_SCALAR)
@@ -62,9 +62,9 @@ template <> struct Converter<uint>
         ConfigNode out;
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
-        return out;        
+        return out;
     }
-    
+
     static bool Decode(const ConfigNode& node, uint& rhs)
     {
         if (node.mType != NT_SCALAR)
@@ -91,9 +91,9 @@ template <> struct Converter<uint64_t>
         ConfigNode out;
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
-        return out;        
+        return out;
     }
-    
+
     static bool Decode(const ConfigNode& node, uint64_t& rhs)
     {
         if (node.mType != NT_SCALAR)
@@ -120,9 +120,9 @@ template <> struct Converter<float>
         ConfigNode out;
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
-        return out;        
+        return out;
     }
-    
+
     static bool Decode(const ConfigNode& node, float& rhs)
     {
         if (node.mType != NT_SCALAR)
@@ -140,9 +140,9 @@ template <> struct Converter<double>
         ConfigNode out;
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
-        return out;        
+        return out;
     }
-    
+
     static bool Decode(const ConfigNode& node, double& rhs)
     {
         if (node.mType != NT_SCALAR)
@@ -153,21 +153,21 @@ template <> struct Converter<double>
     }
 };
 
-template <> struct Converter<string>
+template <> struct Converter<String>
 {
-    static ConfigNode Encode(const string& value)
+    static ConfigNode Encode(const String& value)
     {
         ConfigNode out;
         out.mType = NT_SCALAR;
         out.mData.scalar = value;
-        return out;        
+        return out;
     }
-    
-    static bool Decode(const ConfigNode& node, string& rhs)
+
+    static bool Decode(const ConfigNode& node, String& rhs)
     {
         if (node.mType != NT_SCALAR)
             return false;
-            
+
         rhs = node.mData.scalar;
         return true;
     }
@@ -302,7 +302,7 @@ template <> struct Converter<Vec4i>
     {
         if (!node.IsSequence() || node.Size() != 4)
             return false;
-        
+
         rhs.x = node[0].As<int>();
         rhs.y = node[1].As<int>();
         rhs.z = node[2].As<int>();

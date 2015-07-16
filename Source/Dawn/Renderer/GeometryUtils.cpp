@@ -5,7 +5,9 @@
 #include "Common.h"
 #include "GeometryUtils.h"
 
-Ogre::MeshPtr CreateSphere(const string& name, float radius, int rings, int segments, bool normals,
+NAMESPACE_BEGIN
+
+Ogre::MeshPtr CreateSphere(const String& name, float radius, int rings, int segments, bool normals,
                            bool texCoords)
 {
     Ogre::MeshPtr sphere = Ogre::MeshManager::getSingleton().createManual(
@@ -124,7 +126,7 @@ void CreateSphere(Ogre::VertexData* vertexData, Ogre::IndexData* indexData, floa
     iBuf->unlock();
 }
 
-Ogre::MeshPtr CreateCone(const string& strName, float radius, float height, int verticesInBase)
+Ogre::MeshPtr CreateCone(const String& strName, float radius, float height, int verticesInBase)
 {
     Ogre::MeshPtr cone = Ogre::MeshManager::getSingleton().createManual(
         strName, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
@@ -240,3 +242,5 @@ void CreateQuad(Ogre::VertexData* vertexData)
 
     vbuf->writeData(0, sizeof(data), data, true);
 }
+
+NAMESPACE_END

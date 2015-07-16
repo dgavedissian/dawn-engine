@@ -24,13 +24,13 @@ public:
     bool IsVisible() const;
 
     // Internal: Write a line
-    void Write(const string& str);
+    void Write(const String& str);
 
     // Internal: Execute a lua statement
-    void Execute(const string& statement);
+    void Execute(const String& statement);
 
     // Inherited from LogListener
-    virtual void LogWrite(const string& msg) override;
+    virtual void LogWrite(const String& msg) override;
 
     // Inherited from Rocket::Core::EventListener
     virtual void ProcessEvent(Rocket::Core::Event& event) override;
@@ -43,7 +43,7 @@ private:
     Rocket::Core::Element* mConsole;
     Rocket::Core::Element* mText;
 
-    string mOutput;
+    String mOutput;
 };
 
 NAMESPACE_END

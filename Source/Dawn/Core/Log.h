@@ -20,14 +20,14 @@ public:
     virtual ~LogListener();
 
     // TODO: Override this
-    virtual void LogWrite(const string& message) = 0;
+    virtual void LogWrite(const String& message) = 0;
 };
 
 // Outputs to the platform specific log
 class PlatformLog : public LogListener
 {
 public:
-    virtual void LogWrite(const string& message) override;
+    virtual void LogWrite(const String& message) override;
 };
 
 class DW_API Log : public Singleton<Log>
@@ -36,7 +36,7 @@ private:
     class Stream
     {
     public:
-        Stream(Log* log, LogLevel level, const string& message);
+        Stream(Log* log, LogLevel level, const String& message);
         ~Stream();
 
         template <class T>
@@ -51,38 +51,38 @@ private:
     private:
         Log* mLogger;
         LogLevel mLevel;
-        string mMessage;
+        String mMessage;
     };
 
 public:
-    Log(const string& filename);
+    Log(const String& filename);
     ~Log();
 
     // Writes a new line to the output stream
-    void Write(const string& message, LogLevel level);
+    void Write(const String& message, LogLevel level);
 
     // Returns a new output stream object which writes a line when it gets out of scope
     Stream GetStream(LogLevel level);
 
-    // Add a listener
-    void AddListener(LogListener* listener);
+    // Add a Listener
+    void AddListener(LogListener* Listener);
 
-    // Remove a listener
-    void RemoveListener(LogListener* listener);
+    // Remove a Listener
+    void RemoveListener(LogListener* Listener);
 
     // Get the current log buffer
-    const vector<string>& GetLogBuffer() const;
+    const Vector<String>& GetLogBuffer() const;
 
 private:
     std::ofstream mLogFile;
-    vector<string> mLogBuffer;
+    Vector<String> mLogBuffer;
 
-    vector<LogListener*> mListeners;
+    Vector<LogListener*> mListeners;
 
     PlatformLog mPlatformLog;
 };
 
-template <> inline Log::Stream& Log::Stream::operator<<<string>(string val)
+template <> inline Log::Stream& Log::Stream::operator<<<String>(String val)
 {
     mMessage += val;
     return *this;

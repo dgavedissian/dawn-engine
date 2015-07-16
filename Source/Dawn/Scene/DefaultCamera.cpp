@@ -312,7 +312,7 @@ void DefaultCamera::HandleEvent(EventDataPtr eventData)
 
     if (EventIs<EvtData_MouseDown>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_MouseDown>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_MouseDown>(eventData);
         if (castedEventData->button == SDL_BUTTON_LEFT)
         {
             if (mDragEventState == CDES_LMB_DOWN)
@@ -342,7 +342,7 @@ void DefaultCamera::HandleEvent(EventDataPtr eventData)
 
     if (EventIs<EvtData_MouseUp>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_MouseUp>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_MouseUp>(eventData);
         if (castedEventData->button == SDL_BUTTON_LEFT)
         {
             if (mDragEventState == CDES_LMB_DOWN)
@@ -370,7 +370,7 @@ void DefaultCamera::HandleEvent(EventDataPtr eventData)
 
     if (EventIs<EvtData_MouseMove>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_MouseMove>(eventData);
+        auto castedEventData = StaticPointerCast<EvtData_MouseMove>(eventData);
 
         // Dragging
         if (mIsDragging)

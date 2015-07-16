@@ -13,7 +13,7 @@ RigidEntity::RigidEntity(SceneManager* sceneMgr) : Entity(sceneMgr)
 {
 }
 
-RigidEntity::RigidEntity(SceneManager* sceneMgr, shared_ptr<btCollisionShape> shape, float mass,
+RigidEntity::RigidEntity(SceneManager* sceneMgr, SharedPtr<btCollisionShape> shape, float mass,
                          bool disableDeactivation, const Position& position, const Quat& rotation)
     : Entity(sceneMgr)
 {
@@ -26,7 +26,7 @@ RigidEntity::~RigidEntity()
         mSceneMgr->GetPhysicsWorld()->RemoveFromWorld(mRigidBody.get());
 }
 
-void RigidEntity::Init(shared_ptr<btCollisionShape> shape, float mass, bool disableDeactivation,
+void RigidEntity::Init(SharedPtr<btCollisionShape> shape, float mass, bool disableDeactivation,
                        const Position& position, const Quat& rotation)
 {
     // Calculate local inertia
@@ -35,12 +35,12 @@ void RigidEntity::Init(shared_ptr<btCollisionShape> shape, float mass, bool disa
     Init(shape, localInertia, mass, disableDeactivation, position, rotation);
 }
 
-void RigidEntity::Init(shared_ptr<btCollisionShape> shape, Vec3 localInertia, float mass,
+void RigidEntity::Init(SharedPtr<btCollisionShape> shape, Vec3 localInertia, float mass,
                        bool disableDeactivation, const Position& position, const Quat& rotation)
 {
     // Create the starting motion state
     btTransform startTransform(rotation, btVector3());
-    mMotionState = make_shared<RigidEntityMotionState>(startTransform, this);
+    mMotionState = MakeShared<RigidEntityMotionState>(startTransform, this);
     mCollisionShape = shape;
 
     // Create the rigid body
