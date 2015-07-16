@@ -5,10 +5,10 @@
 #pragma once
 
 // Macros to make adding/removing event listeners more sane
-#define ADD_LISTENER(LISTENER, EVENT)                                                         \
+#define ADD_LISTENER(LISTENER, EVENT) \
     EventSystem::inst().AddListener(fastdelegate::MakeDelegate(this, &LISTENER::HandleEvent), \
                                     EVENT::eventType);
-#define REMOVE_LISTENER(LISTENER, EVENT)                                                         \
+#define REMOVE_LISTENER(LISTENER, EVENT) \
     EventSystem::inst().RemoveListener(fastdelegate::MakeDelegate(this, &LISTENER::HandleEvent), \
                                        EVENT::eventType);
 

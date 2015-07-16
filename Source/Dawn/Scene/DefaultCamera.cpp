@@ -287,8 +287,8 @@ bool DefaultCamera::Update(float dt)
     if (mShakeFactor > 0.0f)
     {
         float scale = mShakeFactor * 0.008f;
-        Vec2 shakeFactor(mNoiseFunction.noise(mShakeTimer, 0.0f) * scale,
-                         mNoiseFunction.noise(0.0f, mShakeTimer) * scale);
+        Vec2 shakeFactor(mNoiseFunction.Noise(mShakeTimer, 0.0f) * scale,
+                         mNoiseFunction.Noise(0.0f, mShakeTimer) * scale);
         shake = Quat::RotateX(shakeFactor.x) * Quat::RotateY(shakeFactor.y);
         mShakeTimer += 1.0f * dt;
     }

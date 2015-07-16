@@ -5,6 +5,7 @@
 #pragma once
 
 #include "SpriteManager.h"
+#include "GeometryUtils.h"
 
 NAMESPACE_BEGIN
 

@@ -111,6 +111,7 @@ set(HEADER_FILES
     Source/Dawn/Core/Utils.h
     Source/Dawn/Input/Input.h
     Source/Dawn/Math/MathDefs.h
+    Source/Dawn/Math/Noise.h
     Source/Dawn/Math/Rect.h
     Source/Dawn/Math/Vec2i.h
     Source/Dawn/Math/Vec3i.h
@@ -125,6 +126,7 @@ set(HEADER_FILES
     Source/Dawn/Renderer/Deferred/LightMaterialGenerator.h
     Source/Dawn/Renderer/Deferred/ListenerFactoryLogic.h
     Source/Dawn/Renderer/Deferred/MaterialGenerator.h
+    Source/Dawn/Renderer/GeometryUtils.h
     Source/Dawn/Renderer/Renderer.h
     Source/Dawn/Renderer/SpriteManager.h
     Source/Dawn/Scene/Space/AsteroidBelt.h
@@ -165,6 +167,7 @@ set(SOURCE_FILES
     Source/Dawn/Core/Log.cpp
     Source/Dawn/Core/Utils.cpp
     Source/Dawn/Input/Input.cpp
+    Source/Dawn/Math/Noise.cpp
     Source/Dawn/Math/Rect.cpp
     Source/Dawn/Math/Vec2i.cpp
     Source/Dawn/Math/Vec3i.cpp
@@ -178,6 +181,7 @@ set(SOURCE_FILES
     Source/Dawn/Renderer/Deferred/GBufferSchemeHandler.cpp
     Source/Dawn/Renderer/Deferred/LightMaterialGenerator.cpp
     Source/Dawn/Renderer/Deferred/MaterialGenerator.cpp
+    Source/Dawn/Renderer/GeometryUtils.cpp
     Source/Dawn/Renderer/Renderer.cpp
     Source/Dawn/Renderer/SpriteManager.cpp
     Source/Dawn/Scene/Space/AsteroidBelt.cpp

@@ -262,4 +262,112 @@ template <class T> T Step(const T& value, const T& step, const T& target)
 	return value;
 }
 
+
+/// Units
+
+enum DistUnits
+{
+    UNIT_M,
+    UNIT_KM,
+    UNIT_MI,
+    UNIT_AU,
+    UNIT_LY,
+    UNIT_PC
+};
+
+enum MassUnits
+{
+    UNIT_G,
+    UNIT_KG,
+    UNIT_T,
+    UNIT_SM    // Solar Mass
+};
+
+enum TimeUnits
+{
+    UNIT_SECOND,
+    UNIT_MINUTE,
+    UNIT_HOUR,
+    UNIT_DAY,
+    UNIT_YEAR,
+};
+
+template <class T>
+T ConvUnit(T input, DistUnits outUnit, DistUnits inUnit = UNIT_M)
+{
+    // Unit to value lookup function
+    auto lookup = [](DistUnits unit) -> T
+    {
+        switch (unit)
+        {
+        case UNIT_M:
+            return (T)1.0;
+
+        case UNIT_KM:
+            return (T)1e3;    // 1 km = 10^3 m
+
+        case UNIT_MI:
+            return (T)1609.344;    // 1 mile = 1609.344 m
+
+        case UNIT_AU:
+            return (T)149597870700.0;    // 1 astronomical unit = 1.5x10^11 m
+
+        case UNIT_LY:
+            return (T)9.46073047e15;    // 1 light-year = 9.46x10^15 m
+
+        case UNIT_PC:
+            return (T)3.08567758e16;    // 1 parsec = 3.057x10^16 m
+
+        default:
+            assert(false);
+            return (T)0.0;
+        }
+    };
+
+    // Special cases: light-years to parsecs; parsecs to light-years.
+    if (inUnit == UNIT_LY && outUnit == UNIT_PC)
+    {
+        return input * (T)0.306594845;    // 1 parsec = 0.307 light-years
+    }
+
+    if (inUnit == UNIT_PC && outUnit == UNIT_LY)
+    {
+        return input * (T)3.26163344332;    // 3.26 light years = 1 parsec
+    }
+
+    // Lookup the units and convert
+    return (input / lookup(inUnit)) * lookup(outUnit);
+}
+
+template <class T>
+T ConvUnit(T input, MassUnits outUnit, MassUnits inUnit = UNIT_KG)
+{
+    // Unit to value lookup function
+    auto lookup = [](MassUnits unit) -> T
+    {
+        switch (unit)
+        {
+        case UNIT_G:
+            return (T)0.001;    // 1 g = 0.001 kg
+
+        case UNIT_KG:
+            return (T)1.0;
+
+        case UNIT_T:
+            return (T)1000.0;    // 1 tonne = 1000 kg
+
+        case UNIT_SM:
+            return (T)1.9891e30;    // 1 solar mass = 1.99x10^30 kg
+
+        default:
+            assert(false);
+            return (T)0.0;
+        }
+    };
+
+    // Lookup the units and convert
+    return (input / lookup(inUnit)) * lookup(outUnit);
+}
+
+
 NAMESPACE_END

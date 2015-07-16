@@ -15,7 +15,7 @@ public:
     template <class T, class... Args>
     T* New(Args... args)
     {
-        return new (Alloc()) T(args...);
+        return new(Alloc()) T(args...);
     }
 
     template <class T>
@@ -60,7 +60,7 @@ private:
 
     void DeallocateBlock()
     {
-        operator delete (mBlock);
+        operator delete(mBlock);
         mFreeList.clear();
     }
 
