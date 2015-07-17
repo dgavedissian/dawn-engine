@@ -88,7 +88,8 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     mRTRoot = mRootNode->createChildSceneNode();
 
     // Set up post processing
-    Ogre::CompositorManager::getSingleton().addCompositor(mViewport, "DOF");
+    Ogre::CompositorManager::getSingleton().addCompositor(mViewport, "HDR");
+    Ogre::CompositorManager::getSingleton().setCompositorEnabled(mViewport, "HDR", true);
 
     // Add event delegates
     ADD_LISTENER(Renderer, EvtData_KeyDown);
