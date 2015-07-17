@@ -190,6 +190,7 @@ DeferredShadingManager::DeferredShadingManager(Ogre::Viewport* vp, Ogre::SceneMa
       mActive(false),
       mDebug(false)
 {
+    /*
     sm->setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
     sm->setShadowTextureCasterMaterial("DeferredShading/Shadows/Caster");
     sm->setShadowTextureCount(1);
@@ -197,6 +198,7 @@ DeferredShadingManager::DeferredShadingManager(Ogre::Viewport* vp, Ogre::SceneMa
     sm->setShadowTextureConfig(0, 2048, 2048, Ogre::PF_FLOAT32_R, 0, 2);
     sm->setShadowFarDistance(200.0f);
     sm->setShadowDirectionalLightExtrusionDistance(2000.0f);
+    */
 
     /*
     float height = 1.0f;
@@ -233,7 +235,7 @@ DeferredShadingManager::DeferredShadingManager(Ogre::Viewport* vp, Ogre::SceneMa
     mDebugInstance = cm.addCompositor(mViewport, "DeferredShading/ShowDebug");
 
     // Set as active
-    EnableFog(false);
+    //EnableFog(false);
     SetActive(true);
 }
 

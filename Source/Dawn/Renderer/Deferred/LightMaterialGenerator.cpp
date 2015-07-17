@@ -74,7 +74,6 @@ Ogre::GpuProgramPtr LightMaterialGenerator::GenerateFragmentShader(Perm permutat
     int numSamplers = 0;
     params->setNamedConstant("gb0", (int)numSamplers++);
     params->setNamedConstant("gb1", (int)numSamplers++);
-    params->setNamedConstant("gb2", (int)numSamplers++);
 
     if (permutation & LightMaterialGenerator::MI_SHADOW_CASTER)
         params->setNamedConstant("ShadowTex", (int)numSamplers++);
