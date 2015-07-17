@@ -89,7 +89,7 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
 
     // Set up post processing
     mHDRComp = Ogre::CompositorManager::getSingleton().addCompositor(mViewport, "HDR");
-    mHDRComp->setEnabled(true);
+    //mHDRComp->setEnabled(true);
 
     // Add event delegates
     ADD_LISTENER(Renderer, EvtData_KeyDown);
@@ -153,6 +153,7 @@ void Renderer::HandleEvent(EventDataPtr eventData)
         case SDLK_F4:
             // Toggle deferred shading debug mode
             mDeferredShadingMgr->SetDebugMode(!mDeferredShadingMgr->IsDebugMode());
+            mHDRComp->setEnabled(!mDeferredShadingMgr->IsDebugMode());
             break;
 
         case SDLK_p:
