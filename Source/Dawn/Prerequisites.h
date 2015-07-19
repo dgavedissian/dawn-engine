@@ -11,11 +11,6 @@
 #   pragma warning(push, 0)
 #endif
 
-// SSE intrinsics
-#if defined (__SSE4_2__) || defined(__SSE4_1__)
-#   include <smmintrin.h>
-#   define DW_USE_SSE
-#endif
 
 //
 // Standard library

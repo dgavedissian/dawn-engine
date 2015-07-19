@@ -17,7 +17,7 @@
 NAMESPACE_BEGIN
 
 Renderer::Renderer(const String& basePath, const String& prefPath,
-                           Input* inputMgr, const String& windowTitle)
+                   Input* inputMgr, const String& windowTitle)
     : mInputMgr(inputMgr),
       mWindow(nullptr),
       mSceneManager(nullptr),
@@ -80,16 +80,16 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     // Set up the deferred shading system
     mDeferredShadingMgr = MakeShared<DeferredShadingManager>(mViewport, mSceneManager);
 
+    // Set up post processing
+    mHDRComp = Ogre::CompositorManager::getSingleton().addCompositor(mViewport, "HDR");
+    mHDRComp->setEnabled(true);
+
     // Set up the sprite manager
     mSpriteManager = MakeShared<SpriteManager>(mViewport, mSceneManager);
 
     // Set up the root scene nodes
     mRootNode = mSceneManager->getRootSceneNode();
     mRTRoot = mRootNode->createChildSceneNode();
-
-    // Set up post processing
-    mHDRComp = Ogre::CompositorManager::getSingleton().addCompositor(mViewport, "HDR");
-    //mHDRComp->setEnabled(true);
 
     // Add event delegates
     ADD_LISTENER(Renderer, EvtData_KeyDown);

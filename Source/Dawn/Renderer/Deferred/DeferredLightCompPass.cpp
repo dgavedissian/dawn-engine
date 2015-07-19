@@ -22,7 +22,7 @@ DeferredLightRenderOperation::DeferredLightRenderOperation(Ogre::CompositorInsta
     const Ogre::MaterialPtr& mat = mAmbientLight->getMaterial();
     mat->load();
 
-    // Set up DefferedLight render operations
+    // Set up DeferredLight render operations
 
     // Directional Light
     mDirectionalLightOp.operationType = Ogre::RenderOperation::OT_TRIANGLE_STRIP;
