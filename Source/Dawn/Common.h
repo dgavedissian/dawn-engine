@@ -46,7 +46,12 @@ template <class T> using UniquePtr = std::unique_ptr<T>;
 template <class T> using EnableSharedFromThis = std::enable_shared_from_this<T>;
 template <class T, class... Args> inline SharedPtr<T> MakeShared(Args&&... args)
 {
+#ifdef DW_MSVC
+    // MSVC's implementation of make_shared seems to crash in seemingly random scenarios
+    return SharedPtr<T>(new T(std::forward<Args>(args)...));
+#else
     return std::make_shared<T>(std::forward<Args>(args)...);
+#endif
 }
 template <class T, class... Args> inline UniquePtr<T> MakeUnique(Args&&... args)
 {
