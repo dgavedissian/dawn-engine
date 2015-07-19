@@ -1,0 +1,18 @@
+# CTags
+.tags*
+
+# Bin
+Bin
+
+# CMake Output Directories
+Build*/
+
+# YouCompleteMe
+*.pyc
+
+# CLion
+.idea
+
+# OS junk files
+[Tt]humbs.db
+*.DS_Store
