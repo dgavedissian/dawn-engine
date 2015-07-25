@@ -89,168 +89,13 @@ set(INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/YamlCpp/include)
 
 # Push dependencies to the parent scope
-set(INCLUDE_DIRS "${INCLUDE_DIRS}" PARENT_SCOPE)
-set(LIBS "${LIBS}" PARENT_SCOPE)
-
-
-###############################################
-# Source files
-###############################################
-
-set(HEADER_FILES
-    Source/Dawn/Audio/Audio.h
-    Source/Dawn/Audio/Sound.h
-    Source/Dawn/Audio/Source.h
-    Source/Dawn/Audio/Track.h
-    Source/Dawn/Core/Config.h
-    Source/Dawn/Core/ConfigNode.h
-    Source/Dawn/Core/ConfigNode.inl
-    Source/Dawn/Core/FixedMemoryPool.h
-    Source/Dawn/Core/Log.h
-    Source/Dawn/Core/Singleton.h
-    Source/Dawn/Core/Utils.h
-    Source/Dawn/Input/Input.h
-    Source/Dawn/Math/MathDefs.h
-    Source/Dawn/Math/Noise.h
-    Source/Dawn/Math/Rect.h
-    Source/Dawn/Math/Vec2i.h
-    Source/Dawn/Math/Vec3i.h
-    Source/Dawn/Math/Vec4i.h
-    Source/Dawn/Physics/PhysicsWorld.h
-    Source/Dawn/Renderer/Deferred/AmbientLight.h
-    Source/Dawn/Renderer/Deferred/DeferredLight.h
-    Source/Dawn/Renderer/Deferred/DeferredLightCompPass.h
-    Source/Dawn/Renderer/Deferred/DeferredShadingManager.h
-    Source/Dawn/Renderer/Deferred/GBufferMaterialGenerator.h
-    Source/Dawn/Renderer/Deferred/GBufferSchemeHandler.h
-    Source/Dawn/Renderer/Deferred/LightMaterialGenerator.h
-    Source/Dawn/Renderer/Deferred/ListenerFactoryLogic.h
-    Source/Dawn/Renderer/Deferred/MaterialGenerator.h
-    Source/Dawn/Renderer/GeometryUtils.h
-    Source/Dawn/Renderer/Renderer.h
-    Source/Dawn/Renderer/SpriteManager.h
-    Source/Dawn/Scene/Space/AsteroidBelt.h
-    Source/Dawn/Scene/Space/Barycentre.h
-    Source/Dawn/Scene/Space/Galaxy.h
-    Source/Dawn/Scene/Space/Orbit.h
-    Source/Dawn/Scene/Space/Planet.h
-    Source/Dawn/Scene/Space/Star.h
-    Source/Dawn/Scene/Space/StarSystem.h
-    Source/Dawn/Scene/Space/SystemBody.h
-    Source/Dawn/Scene/Camera.h
-    Source/Dawn/Scene/DefaultCamera.h
-    Source/Dawn/Scene/Entity.h
-    Source/Dawn/Scene/Position.h
-    Source/Dawn/Scene/RigidEntity.h
-    Source/Dawn/Scene/SceneManager.h
-    Source/Dawn/Script/LuaState.h
-    Source/Dawn/UI/Console.h
-    Source/Dawn/UI/ImGuiInterface.h
-    Source/Dawn/UI/Layout.h
-    Source/Dawn/UI/RocketInterface.h
-    Source/Dawn/UI/UI.h
-    Source/Dawn/StateManager.h
-    Source/Dawn/Common.h
-    Source/Dawn/DawnEngine.h
-    Source/Dawn/Engine.h
-    Source/Dawn/EventSystem.h
-    Source/Dawn/Platform.h
-    Source/Dawn/Prerequisites.h)
-
-set(SOURCE_FILES
-    Source/Dawn/Audio/Audio.cpp
-    Source/Dawn/Audio/Sound.cpp
-    Source/Dawn/Audio/Source.cpp
-    Source/Dawn/Audio/Track.cpp
-    Source/Dawn/Core/Config.cpp
-    Source/Dawn/Core/ConfigNode.cpp
-    Source/Dawn/Core/Log.cpp
-    Source/Dawn/Core/Utils.cpp
-    Source/Dawn/Input/Input.cpp
-    Source/Dawn/Math/Noise.cpp
-    Source/Dawn/Math/Rect.cpp
-    Source/Dawn/Math/Vec2i.cpp
-    Source/Dawn/Math/Vec3i.cpp
-    Source/Dawn/Math/Vec4i.cpp
-    Source/Dawn/Physics/PhysicsWorld.cpp
-    Source/Dawn/Renderer/Deferred/AmbientLight.cpp
-    Source/Dawn/Renderer/Deferred/DeferredLight.cpp
-    Source/Dawn/Renderer/Deferred/DeferredLightCompPass.cpp
-    Source/Dawn/Renderer/Deferred/DeferredShadingManager.cpp
-    Source/Dawn/Renderer/Deferred/GBufferMaterialGenerator.cpp
-    Source/Dawn/Renderer/Deferred/GBufferSchemeHandler.cpp
-    Source/Dawn/Renderer/Deferred/LightMaterialGenerator.cpp
-    Source/Dawn/Renderer/Deferred/MaterialGenerator.cpp
-    Source/Dawn/Renderer/GeometryUtils.cpp
-    Source/Dawn/Renderer/Renderer.cpp
-    Source/Dawn/Renderer/SpriteManager.cpp
-    Source/Dawn/Scene/Space/AsteroidBelt.cpp
-    Source/Dawn/Scene/Space/Barycentre.cpp
-    Source/Dawn/Scene/Space/Galaxy.cpp
-    Source/Dawn/Scene/Space/Orbit.cpp
-    Source/Dawn/Scene/Space/Planet.cpp
-    Source/Dawn/Scene/Space/Star.cpp
-    Source/Dawn/Scene/Space/StarSystem.cpp
-    Source/Dawn/Scene/Space/SystemBody.cpp
-    Source/Dawn/Scene/Camera.cpp
-    Source/Dawn/Scene/DefaultCamera.cpp
-    Source/Dawn/Scene/Entity.cpp
-    Source/Dawn/Scene/Position.cpp
-    Source/Dawn/Scene/RigidEntity.cpp
-    Source/Dawn/Scene/SceneManager.cpp
-    Source/Dawn/Script/LuaState.cpp
-    Source/Dawn/UI/Console.cpp
-    Source/Dawn/UI/ImGuiInterface.cpp
-    Source/Dawn/UI/Layout.cpp
-    Source/Dawn/UI/RocketInterface.cpp
-    Source/Dawn/UI/UI.cpp
-    Source/Dawn/StateManager.cpp
-    Source/Dawn/Engine.cpp
-    Source/Dawn/EventSystem.cpp)
-
-if(APPLE)
-    set(HEADER_FILES ${HEADER_FILES} Source/Dawn/Renderer/OSXGetNSView.h)
-    set(SOURCE_FILES ${SOURCE_FILES} Source/Dawn/Renderer/OSXGetNSView.mm)
+if(NOT ${CMAKE_SOURCE_DIR} EQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+    set(INCLUDE_DIRS "${INCLUDE_DIRS}" PARENT_SCOPE)
+    set(LIBS "${LIBS}" PARENT_SCOPE)
 endif()
 
-# BtOgre
-set(TP_SOURCE_FILES
-    Source/ThirdParty/BtOgre/BtOgre.cpp)
-
-# ImGui
-set(TP_SOURCE_FILES ${TP_SOURCE_FILES}
-    Source/ThirdParty/ImGui/imgui.cpp)
-
-# YamlCpp
-file(GLOB YAML_CPP_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} Source/ThirdParty/YamlCpp/src/*.cpp)
-set(TP_SOURCE_FILES ${TP_SOURCE_FILES} ${YAML_CPP_SRC})
-
-
-###############################################
-# Project
-###############################################
-
-# Add the library
-add_library(Dawn ${SOURCE_FILES} ${TP_SOURCE_FILES} ${HEADER_FILES})
-set_target_properties(Dawn PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
-set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD")
-set_target_properties(Dawn PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "Source/Dawn/Prerequisites.h")
-
-mirror_physical_directories(${SOURCE_FILES} ${TP_SOURCE_FILES} ${HEADER_FILES})
-if(WIN32)
-    set_target_properties(Dawn PROPERTIES DEBUG_POSTFIX _d)
-endif()
-
-# Add include dirs and libraries
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source/Dawn
-    ${INCLUDE_DIRS})
-target_link_libraries(Dawn ${LIBS})
-
-# Run cotire
-include(cotire)
-cotire(Dawn)
-
+# Enter source directory
+add_subdirectory(Source)
 
 ###############################################
 # Helpful functions
@@ -281,6 +126,7 @@ endfunction()
 add_executable(Sandbox Source/Sandbox/Main.cpp)
 target_link_libraries(Sandbox Dawn)
 mirror_physical_directories(Source/Sandbox/Main.cpp)
+include_directories(../Dawn)
 
 
 ###############################################
