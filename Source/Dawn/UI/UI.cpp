@@ -14,24 +14,30 @@ NAMESPACE_BEGIN
 
 #define INTERFACE_RENDER_QUEUE (Ogre::RENDER_QUEUE_OVERLAY)
 
+const EventType EvtData_UIMouseEnter::eventType(0xe135de7);
+const EventType EvtData_UIMouseLeave::eventType(0xe135de8);
 const EventType EvtData_UIClick::eventType(0xe135dd7);
 const EventType EvtData_UISubmit::eventType(0x3d02cddc);
 
 UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
 {
-    // Force the interface render queue to be created
+    // WORKAROUND: Deal with an ogre bug by call 'getQueueGroup' to ensure it actually exists
     rs->GetSceneMgr()->getRenderQueue()->getQueueGroup(INTERFACE_RENDER_QUEUE);
-
-    // Add render queue Listener
     rs->GetSceneMgr()->addRenderQueueListener(this);
 
-    // Set up interfaces
-    mRocketInterface = MakeShared<RocketInterface>(rs);
+    // Build projection matrix
+    BuildProjectionMatrix(mProjection);
+
+    // Load UI material
+    mUIMaterial = Ogre::MaterialManager::getSingleton().getByName("UI");
+    if (!mUIMaterial->isLoaded())
+        mUIMaterial->load();
+
+    // Set up libRocket
+    mRocketInterface = MakeShared<RocketInterface>(rs, mUIMaterial, mProjection);
     Rocket::Core::SetRenderInterface(mRocketInterface.get());
     Rocket::Core::SetSystemInterface(mRocketInterface.get());
     Rocket::Core::SetFileInterface(mRocketInterface.get());
-
-    // Initialise libRocket
     Rocket::Core::Initialise();
     Rocket::Controls::Initialise();
     mContext = Rocket::Core::CreateContext("default",
@@ -44,7 +50,7 @@ UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
             Rocket::Core::Font::WEIGHT_NORMAL);
 
     // Initialise ImGui
-    mImGuiInterface = MakeShared<ImGuiInterface>(rs, im);
+    mImGuiInterface = MakeShared<ImGuiInterface>(rs, im, mUIMaterial, mProjection);
 
     // Set up the console
     mConsole = MakeShared<Console>(this, ls);
@@ -71,12 +77,12 @@ UI::~UI()
 
     mConsole.reset();
 
+    // Shut down ImGUI
+    mImGuiInterface.reset();
+
     // Shut down libRocket
     mContext->RemoveReference();
     Rocket::Core::Shutdown();
-
-    // Release interfaces
-    mImGuiInterface.reset();
     mRocketInterface.reset();
 
     mRenderSystem->GetSceneMgr()->removeRenderQueueListener(this);
@@ -97,7 +103,7 @@ void UI::PreRender()
 
 Layout* UI::LoadLayout(const String& filename)
 {
-    // TODO: What if this fails?
+    // TODO: Deal with failure correctly
     auto fn = Rocket::Core::String(filename.c_str());
     Rocket::Core::ElementDocument* document = mContext->LoadDocument(fn);
 
@@ -116,23 +122,19 @@ void UI::UnloadLayout(Layout* layout)
 
 void UI::HandleEvent(EventDataPtr eventData)
 {
-    using Rocket::Core::Input::KeyIdentifier;
-
     if (EventIs<EvtData_TextInput>(eventData))
     {
-        auto castedEventData = StaticPointerCast<EvtData_TextInput>(eventData);
+        auto castedEventData = CastEvent<EvtData_TextInput>(eventData);
 
-        for (auto c : castedEventData->text)
-            mImGuiInterface->OnTextInput(c);
+        mImGuiInterface->OnTextInput(castedEventData->text);
 
-        // Send the input to libRocket
         if (castedEventData->text != "`")
             mContext->ProcessTextInput(Rocket::Core::String(castedEventData->text.c_str()));
     }
 
     if (EventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = StaticPointerCast<EvtData_KeyDown>(eventData);
+        auto castedEventData = CastEvent<EvtData_KeyDown>(eventData);
 
         // Toggle the console
         if (castedEventData->keycode == SDLK_BACKQUOTE || castedEventData->keycode == SDLK_F12)
@@ -148,26 +150,24 @@ void UI::HandleEvent(EventDataPtr eventData)
             return;
         }
 
-        mImGuiInterface->OnKey(castedEventData->keycode, true, castedEventData->mod);
-
-        // Send the key to libRocket
+        mImGuiInterface->OnKey(castedEventData->keycode, castedEventData->mod, true);
         int key = mRocketInterface->MapSDLKeyCode(castedEventData->keycode);
-        mContext->ProcessKeyDown(KeyIdentifier(key),
+        mContext->ProcessKeyDown(Rocket::Core::Input::KeyIdentifier(key),
                                  mRocketInterface->MapSDLKeyMod(castedEventData->mod));
     }
 
     if (EventIs<EvtData_KeyUp>(eventData))
     {
-        auto castedEventData = StaticPointerCast<EvtData_KeyUp>(eventData);
-        mImGuiInterface->OnKey(castedEventData->keycode, false, castedEventData->mod);
+        auto castedEventData = CastEvent<EvtData_KeyUp>(eventData);
+        mImGuiInterface->OnKey(castedEventData->keycode, castedEventData->mod, false);
         int key = mRocketInterface->MapSDLKeyCode(castedEventData->keycode);
-        mContext->ProcessKeyUp(KeyIdentifier(key),
+        mContext->ProcessKeyUp(Rocket::Core::Input::KeyIdentifier(key),
                                mRocketInterface->MapSDLKeyMod(castedEventData->mod));
     }
 
     if (EventIs<EvtData_MouseDown>(eventData))
     {
-        auto castedEventData = StaticPointerCast<EvtData_MouseDown>(eventData);
+        auto castedEventData = CastEvent<EvtData_MouseDown>(eventData);
         mImGuiInterface->OnMouseButton(castedEventData->button);
         mContext->ProcessMouseButtonDown(mRocketInterface->MapSDLMouseButton(castedEventData->button),
                                          mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
@@ -175,21 +175,21 @@ void UI::HandleEvent(EventDataPtr eventData)
 
     if (EventIs<EvtData_MouseUp>(eventData))
     {
-        auto castedEventData = StaticPointerCast<EvtData_MouseUp>(eventData);
+        auto castedEventData = CastEvent<EvtData_MouseUp>(eventData);
         mContext->ProcessMouseButtonUp(mRocketInterface->MapSDLMouseButton(castedEventData->button),
                                        mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
     }
 
     if (EventIs<EvtData_MouseMove>(eventData))
     {
-        auto castedEventData = StaticPointerCast<EvtData_MouseMove>(eventData);
+        auto castedEventData = CastEvent<EvtData_MouseMove>(eventData);
         mContext->ProcessMouseMove(castedEventData->pos.x, castedEventData->pos.y,
                                    mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
     }
 
     if (EventIs<EvtData_MouseWheel>(eventData))
     {
-        auto castedEventData = StaticPointerCast<EvtData_MouseWheel>(eventData);
+        auto castedEventData = CastEvent<EvtData_MouseWheel>(eventData);
         mImGuiInterface->OnMouseScroll(castedEventData->motion.y);
         mContext->ProcessMouseWheel(-castedEventData->motion.y,
                                     mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
@@ -230,6 +230,10 @@ void UI::ProcessEvent(Rocket::Core::Event& event)
     out << ")";
     LOG << out.str();
 
+    if (type == "mouseover")
+        EventSystem::inst().QueueEvent(MakeShared<EvtData_UIMouseEnter>(id, parameters));
+    if (type == "mouseout")
+        EventSystem::inst().QueueEvent(MakeShared<EvtData_UIMouseLeave>(id, parameters));
     if (type == "click")
         EventSystem::inst().QueueEvent(MakeShared<EvtData_UIClick>(id, parameters));
     if (type == "submit")
@@ -242,72 +246,9 @@ void UI::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String&, bool&
         Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
     {
         mContext->Update();
-        ConfigureRenderSystem();
         mContext->Render();
         ImGui::Render();
     }
-}
-
-void UI::ConfigureRenderSystem()
-{
-    Ogre::RenderSystem* renderSystem = mRenderSystem->GetOgreRenderSystem();
-
-    // Set up the projection and view matrices
-    Ogre::Matrix4 projectionMatrix;
-    BuildProjectionMatrix(projectionMatrix);
-    renderSystem->_setProjectionMatrix(projectionMatrix);
-    renderSystem->_setViewMatrix(Ogre::Matrix4::IDENTITY);
-
-    // Disable lighting, as all of Rocket's geometry is unlit
-    renderSystem->setLightingEnabled(false);
-
-    // Disable depth-buffering; all of the geometry is already depth-sorted
-    renderSystem->_setDepthBufferParams(false, false);
-
-    // Disable culling
-    renderSystem->_setCullingMode(Ogre::CULL_NONE);
-
-    // Disable fogging
-    renderSystem->_setFog(Ogre::FOG_NONE);
-
-    // Enable writing to all four channels
-    renderSystem->_setColourBufferWriteEnabled(true, true, true, true);
-
-    // Unbind any vertex or fragment programs bound previously by the application
-    renderSystem->unbindGpuProgram(Ogre::GPT_FRAGMENT_PROGRAM);
-    renderSystem->unbindGpuProgram(Ogre::GPT_VERTEX_PROGRAM);
-
-    // Set texture settings to clamp along both axes
-    Ogre::TextureUnitState::UVWAddressingMode addressingMode;
-    addressingMode.u = Ogre::TextureUnitState::TAM_CLAMP;
-    addressingMode.v = Ogre::TextureUnitState::TAM_CLAMP;
-    addressingMode.w = Ogre::TextureUnitState::TAM_CLAMP;
-    renderSystem->_setTextureAddressingMode(0, addressingMode);
-
-    // Set the texture coordinates for unit 0 to be read from unit 0
-    renderSystem->_setTextureCoordSet(0, 0);
-
-    // Disable texture coordinate calculation
-    renderSystem->_setTextureCoordCalculation(0, Ogre::TEXCALC_NONE);
-
-    // Enable linear filtering; images should be rendering 1 texel == 1 pixel, so point filtering
-    // could be used except in the case of scaling tiled decorators
-    renderSystem->_setTextureUnitFiltering(0, Ogre::FO_LINEAR, Ogre::FO_LINEAR, Ogre::FO_POINT);
-
-    // Disable texture coordinate transforms
-    renderSystem->_setTextureMatrix(0, Ogre::Matrix4::IDENTITY);
-
-    // Reject pixels with an alpha of 0
-    renderSystem->_setAlphaRejectSettings(Ogre::CMPF_GREATER, 0, false);
-
-    // Disable all texture units but the first
-    renderSystem->_disableTextureUnitsFrom(1);
-
-    // Enable simple alpha blending
-    renderSystem->_setSceneBlending(Ogre::SBF_SOURCE_ALPHA, Ogre::SBF_ONE_MINUS_SOURCE_ALPHA);
-
-    // Disable depth bias
-    renderSystem->_setDepthBias(0, 0);
 }
 
 void UI::BuildProjectionMatrix(Ogre::Matrix4& projectionMatrix)

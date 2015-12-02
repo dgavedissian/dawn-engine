@@ -59,7 +59,7 @@ public:
     void RegisterState(SharedPtr<State> state);
 
     // Switches the game to a new state. This will clear all current active pop-up states
-    void Change(int id);
+    void Switch(int id);
 
     // Pushes a new pop-up state to the top of the state stack
     void Push(int id);

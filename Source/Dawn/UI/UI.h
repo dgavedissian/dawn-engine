@@ -45,6 +45,8 @@ public:
 
 private:
     Renderer* mRenderSystem;
+    Ogre::MaterialPtr mUIMaterial;
+    Ogre::Matrix4 mProjection;
 
     Rocket::Core::Context* mContext;
 
@@ -54,9 +56,35 @@ private:
     // Console
     SharedPtr<Console> mConsole;
 
-    // Internal: Configure the render system to draw libRocket controls
-    void ConfigureRenderSystem();
+private:
     void BuildProjectionMatrix(Ogre::Matrix4& projectionMatrix);
+
+};
+
+class EvtData_UIMouseEnter : public EventData
+{
+public:
+    typedef Map<String, String> Parameters;
+    static const EventType eventType;
+    EvtData_UIMouseEnter(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
+    const EventType& GetEventType() const override { return eventType; }
+    const String GetName() const override { return "EvtData_UIMouseOver"; }
+
+    String id;
+    Parameters parameters;
+};
+
+class EvtData_UIMouseLeave : public EventData
+{
+public:
+    typedef Map<String, String> Parameters;
+    static const EventType eventType;
+    EvtData_UIMouseLeave(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
+    const EventType& GetEventType() const override { return eventType; }
+    const String GetName() const override { return "EvtData_UIMouseLeave"; }
+
+    String id;
+    Parameters parameters;
 };
 
 class EvtData_UIClick : public EventData

@@ -26,6 +26,8 @@ DW_API Vector<String>& Split(const String& s, char delim, Vector<String>& elems)
 // Join a vector of strings
 DW_API String Concat(const Vector<String>& vec, const String& delim);
 
+DW_API String Replace(String subject, const String& search, const String& replace);
+
 
 //// Random Number Generator
 

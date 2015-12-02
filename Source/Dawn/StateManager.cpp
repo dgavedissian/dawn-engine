@@ -27,7 +27,7 @@ void StateManager::RegisterState(SharedPtr<State> state)
     mStateMap[state->GetID()] = state;
 }
 
-void StateManager::Change(int id)
+void StateManager::Switch(int id)
 {
     if (mStateStack.size() > 0)
         Pop();
@@ -100,7 +100,7 @@ void StateManager::HandleEvent(EventDataPtr eventData)
     // Handle state reloading
     if (EventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = StaticPointerCast<EvtData_KeyDown>(eventData);
+        auto castedEventData = CastEvent<EvtData_KeyDown>(eventData);
         if (castedEventData->keycode == SDLK_F8)
             Reload();
     }

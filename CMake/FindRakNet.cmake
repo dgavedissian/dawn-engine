@@ -23,7 +23,7 @@ find_path(RAKNET_INCLUDE_DIR
 
 # Find the debug library
 find_library(RAKNET_LIBRARY_DEBUG
-    NAMES RakNetLibStaticDebug
+    NAMES RakNetLibStaticDebug RakNetLibStatic_d
     PATHS
     ${RAKNET_DIR}/lib
     ENV LD_LIBRARY_PATH

@@ -14,7 +14,7 @@ LightMaterialGenerator::LightMaterialGenerator()
     mFsMask = 0x0000003F;
     mMatMask = LightMaterialGenerator::MI_DIRECTIONAL | LightMaterialGenerator::MI_SHADOW_CASTER;
 
-    mMaterialBaseName = "DeferredShading/LightMaterial/";
+    mMaterialBaseName = "DeferredShading/Light/";
     mBaseName = mMaterialBaseName;
 }
 
@@ -24,11 +24,11 @@ LightMaterialGenerator::~LightMaterialGenerator()
 
 Ogre::GpuProgramPtr LightMaterialGenerator::GenerateVertexShader(Perm permutation)
 {
-    String programName = "DeferredShading/Post/";
+    String programName;
     if (permutation & LightMaterialGenerator::MI_DIRECTIONAL)
-        programName += "Quad/VS";
+        programName = "Post/QuadRay/VS";
     else
-        programName += "LightMaterial/VS";
+        programName = "DeferredShading/Light/VS";
 
     Ogre::GpuProgramPtr ptr =
         Ogre::HighLevelGpuProgramManager::getSingleton().getByName(programName);
@@ -53,7 +53,7 @@ Ogre::GpuProgramPtr LightMaterialGenerator::GenerateFragmentShader(Perm permutat
     assert(!mMasterSource.empty());
 
     // Create name
-    String name = mBaseName + Ogre::StringConverter::toString(permutation) + "/FS";
+    String name = mBaseName + "Perm" + Ogre::StringConverter::toString(permutation) + "/FS";
 
     // Create shader object
     Ogre::HighLevelGpuProgramPtr ptrProgram =

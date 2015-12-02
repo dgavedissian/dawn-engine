@@ -17,10 +17,16 @@ struct ImguiTextureHandle
     Ogre::TexturePtr texturePtr;
 };
 
-ImGuiInterface::ImGuiInterface(Renderer* rs, Input* im)
+ImGuiInterface::ImGuiInterface(Renderer* rs, Input* im, Ogre::MaterialPtr uiMaterial,
+                               const Ogre::Matrix4& projection)
     : mInputMgr(im),
       mIO(ImGui::GetIO()),
       mRenderSystem(rs->GetOgreRenderSystem()),
+      mSceneMgr(rs->GetSceneMgr()),
+      mUIMaterial(uiMaterial),
+      mProjection(projection),
+      mVbSize(1000),
+      mIbSize(1000),
       mWidth(rs->GetWidth()),
       mHeight(rs->GetHeight())
 {
@@ -29,6 +35,8 @@ ImGuiInterface::ImGuiInterface(Renderer* rs, Input* im)
 
     mIO.DisplaySize.x = (float)mWidth;
     mIO.DisplaySize.y = (float)mHeight;
+    mIO.IniFilename = NULL;
+    mIO.LogFilename = NULL;
     mIO.RenderDrawListsFn = ImGuiInterface::RenderDrawListsCallback;
 
     // Set up font
@@ -37,12 +45,14 @@ ImGuiInterface::ImGuiInterface(Renderer* rs, Input* im)
 
     // Set up key bindings
     mIO.KeyMap[ImGuiKey_Tab] = SDLK_TAB;
-    mIO.KeyMap[ImGuiKey_LeftArrow] = SDLK_LEFT;
-    mIO.KeyMap[ImGuiKey_RightArrow] = SDLK_RIGHT;
-    mIO.KeyMap[ImGuiKey_UpArrow] = SDLK_UP;
-    mIO.KeyMap[ImGuiKey_DownArrow] = SDLK_DOWN;
-    mIO.KeyMap[ImGuiKey_Home] = SDLK_HOME;
-    mIO.KeyMap[ImGuiKey_End] = SDLK_END;
+    mIO.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
+    mIO.KeyMap[ImGuiKey_RightArrow] = SDL_SCANCODE_RIGHT;
+    mIO.KeyMap[ImGuiKey_UpArrow] = SDL_SCANCODE_UP;
+    mIO.KeyMap[ImGuiKey_DownArrow] = SDL_SCANCODE_DOWN;
+    mIO.KeyMap[ImGuiKey_PageUp] = SDL_SCANCODE_PAGEUP;
+    mIO.KeyMap[ImGuiKey_PageDown] = SDL_SCANCODE_PAGEDOWN;
+    mIO.KeyMap[ImGuiKey_Home] = SDL_SCANCODE_HOME;
+    mIO.KeyMap[ImGuiKey_End] = SDL_SCANCODE_END;
     mIO.KeyMap[ImGuiKey_Delete] = SDLK_DELETE;
     mIO.KeyMap[ImGuiKey_Backspace] = SDLK_BACKSPACE;
     mIO.KeyMap[ImGuiKey_Enter] = SDLK_RETURN;
@@ -56,8 +66,11 @@ ImGuiInterface::ImGuiInterface(Renderer* rs, Input* im)
 
     // Set up vertex data
     mRenderOp.vertexData = new Ogre::VertexData();
+    mRenderOp.vertexData->vertexStart = 0;
+    mRenderOp.vertexData->vertexCount = mVbSize;
+    mRenderOp.indexData = new Ogre::IndexData();
     mRenderOp.operationType = Ogre::RenderOperation::OT_TRIANGLE_LIST;
-    mRenderOp.useIndexes = false;
+    mRenderOp.useIndexes = true;
 
     // Set up vertex declaration
     Ogre::VertexDeclaration* vd = mRenderOp.vertexData->vertexDeclaration;
@@ -68,15 +81,9 @@ ImGuiInterface::ImGuiInterface(Renderer* rs, Input* im)
     offset += Ogre::VertexElement::getTypeSize(Ogre::VET_FLOAT2);
     vd->addElement(0, offset, Ogre::VET_COLOUR, Ogre::VES_DIFFUSE);
 
-    // Create initial vertex buffer
-    mSize = 1000;
-    AllocateVertexBuffer(mSize);
-
-    // Configure the alpha blending mode
-    mAlphaBlendMode.blendType = Ogre::LBT_ALPHA;
-    mAlphaBlendMode.source1 = Ogre::LBS_DIFFUSE;
-    mAlphaBlendMode.source2 = Ogre::LBS_TEXTURE;
-    mAlphaBlendMode.operation = Ogre::LBX_MODULATE;
+    // Create initial buffers
+    AllocateVertexBuffer(mVbSize);
+    AllocateIndexBuffer(mIbSize);
 }
 
 ImGuiInterface::~ImGuiInterface()
@@ -131,15 +138,15 @@ void ImGuiInterface::OnKey(SDL_Keycode key, Uint16 mod, bool down)
     if (key < 0x0 || key > 0x200)
         return;
 
-    mIO.KeysDown[key] = down;
+    mIO.KeysDown[key & ~SDLK_SCANCODE_MASK] = down;
     mIO.KeyCtrl = mod & KMOD_CTRL;
     mIO.KeyShift = mod & KMOD_SHIFT;
     mIO.KeyAlt = mod & KMOD_ALT;
 }
 
-void ImGuiInterface::OnTextInput(char c)
+void ImGuiInterface::OnTextInput(const String& s)
 {
-    mIO.AddInputCharacter((unsigned short)c);
+    mIO.AddInputCharactersUTF8(s.c_str());
 }
 
 void ImGuiInterface::CreateFontsTexture()
@@ -164,67 +171,87 @@ void ImGuiInterface::AllocateVertexBuffer(uint size)
 {
     Ogre::HardwareVertexBufferSharedPtr vb =
         Ogre::HardwareBufferManager::getSingleton().createVertexBuffer(
-            mRenderOp.vertexData->vertexDeclaration->getVertexSize(0), mSize,
+            mRenderOp.vertexData->vertexDeclaration->getVertexSize(0), mVbSize,
             Ogre::HardwareBuffer::HBU_DYNAMIC_WRITE_ONLY_DISCARDABLE);
     mRenderOp.vertexData->vertexBufferBinding->setBinding(0, vb);
+    mRenderOp.vertexData->vertexCount = mVbSize;
 }
 
-void ImGuiInterface::RenderDrawLists(ImDrawList** const cmdLists, int cmdListsCount)
+void ImGuiInterface::AllocateIndexBuffer(uint size)
 {
-    // Assume render system is configured according to InterfaceManager::_configureRenderSystem
-    mRenderSystem->_setWorldMatrix(Ogre::Matrix4::IDENTITY);
+    Ogre::HardwareIndexBufferSharedPtr ib =
+        Ogre::HardwareBufferManager::getSingleton().createIndexBuffer(
+            Ogre::HardwareIndexBuffer::IT_16BIT, size,
+            Ogre::HardwareBuffer::HBU_DYNAMIC_WRITE_ONLY_DISCARDABLE);
+    mRenderOp.indexData->indexBuffer = ib;
+}
 
+void ImGuiInterface::RenderDrawLists(ImDrawData* drawData)
+{
     // For each command List
-    for (int i = 0; i < cmdListsCount; i++)
+    for (int i = 0; i < drawData->CmdListsCount; i++)
     {
-        ImVector<ImDrawCmd>& commands = cmdLists[i]->commands;
+        auto cmdList = drawData->CmdLists[i];
+        ImVector<ImDrawCmd>& commands = cmdList->CmdBuffer;
 
-        // Allocate more space if needed
-        if (mSize < cmdLists[i]->vtx_buffer.size())
+        // Expand the vertex buffer
+        if (mVbSize < cmdList->VtxBuffer.size())
         {
-            mSize = cmdLists[i]->vtx_buffer.size();
-            AllocateVertexBuffer(mSize);
+            mVbSize = cmdList->VtxBuffer.size();
+            AllocateVertexBuffer(mVbSize);
         }
 
-        // Copy vertices into VB
-        Ogre::HardwareVertexBufferSharedPtr vb =
-            mRenderOp.vertexData->vertexBufferBinding->getBuffer(0);
-        ImDrawVert* vertices = static_cast<ImDrawVert*>(
-            vb->lock(0, vb->getSizeInBytes(), Ogre::HardwareBuffer::HBL_DISCARD));
-        memcpy(vertices, &cmdLists[i]->vtx_buffer[0], cmdLists[i]->vtx_buffer.size() * sizeof(ImDrawVert));
+        // Fill the vertex buffer
+        Ogre::HardwareVertexBufferSharedPtr vb = mRenderOp.vertexData->vertexBufferBinding->getBuffer(0);
+        void* vertexData = vb->lock(0, vb->getSizeInBytes(), Ogre::HardwareBuffer::HBL_DISCARD);
+        memcpy(vertexData, &cmdList->VtxBuffer.front(), cmdList->VtxBuffer.size() * sizeof(ImDrawVert));
         vb->unlock();
+
+        // Expand the index buffer
+        if (mIbSize < cmdList->IdxBuffer.size())
+        {
+            mIbSize = cmdList->IdxBuffer.size();
+            AllocateIndexBuffer(mIbSize);
+        }
+
+        // Fill the index buffer
+        Ogre::HardwareIndexBufferSharedPtr ib = mRenderOp.indexData->indexBuffer;
+        void* indexData = ib->lock(0, ib->getSizeInBytes(), Ogre::HardwareBuffer::HBL_DISCARD);
+        memcpy(indexData, &cmdList->IdxBuffer.front(), cmdList->IdxBuffer.size() * sizeof(ImDrawIdx));
+        ib->unlock();
 
         // Execute draw calls
         int offset = 0;
         for (auto c : commands)
         {
-            mRenderSystem->setScissorTest(true, c.clip_rect.x, c.clip_rect.y, c.clip_rect.z, c.clip_rect.w);
-
-            // Set texture
-            if (c.texture_id)
+            // Set up pass
+            Ogre::Pass* pass;
+            ImguiTextureHandle* handle = reinterpret_cast<ImguiTextureHandle*>(c.TextureId);
+            if (handle)
             {
-                ImguiTextureHandle* handle = reinterpret_cast<ImguiTextureHandle*>(c.texture_id);
-                mRenderSystem->_setTexture(0, true, handle->texturePtr);
-                mRenderSystem->_setTextureBlendMode(0, mAlphaBlendMode);
+                pass = mUIMaterial->getTechnique("Texture")->getPass(0);
+                pass->getTextureUnitState(0)->setTexture(handle->texturePtr);
             }
             else
             {
-                mRenderSystem->_disableTextureUnit(0);
+                pass = mUIMaterial->getTechnique("NoTexture")->getPass(0);
             }
 
             // Draw vertices
-            mRenderOp.vertexData->vertexStart = offset;
-            mRenderOp.vertexData->vertexCount = c.vtx_count;
-            mRenderSystem->_render(mRenderOp);
-            offset += c.vtx_count;
+            mRenderSystem->setScissorTest(true, c.ClipRect.x, c.ClipRect.y, c.ClipRect.z, c.ClipRect.w);
+            mRenderOp.indexData->indexStart = offset;
+            mRenderOp.indexData->indexCount = c.ElemCount;
+            mSceneMgr->manualRender(&mRenderOp, pass, nullptr,
+                                    Ogre::Matrix4::IDENTITY, Ogre::Matrix4::IDENTITY, mProjection);
+            offset += c.ElemCount;
         }
     }
     mRenderSystem->setScissorTest(false);
 }
 
-void ImGuiInterface::RenderDrawListsCallback(ImDrawList** const cmdLists, int cmdListsCount)
+void ImGuiInterface::RenderDrawListsCallback(ImDrawData* drawData)
 {
-    gCurrentImGuiInterface->RenderDrawLists(cmdLists, cmdListsCount);
+    gCurrentImGuiInterface->RenderDrawLists(drawData);
 }
 
 NAMESPACE_END

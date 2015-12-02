@@ -38,6 +38,7 @@ using uint64 = uint64_t;
 
 // String
 using String = std::string;
+using StringStream = std::stringstream;
 
 // Smart pointers
 template <class T> using SharedPtr = std::shared_ptr<T>;
@@ -55,7 +56,12 @@ template <class T, class... Args> inline SharedPtr<T> MakeShared(Args&&... args)
 }
 template <class T, class... Args> inline UniquePtr<T> MakeUnique(Args&&... args)
 {
+    // C++14 feature
+#ifdef DW_MSVC
     return std::make_unique<T>(std::forward<Args>(args)...);
+#else
+    return UniquePtr<T>(new T(std::forward<Args>(args)...));
+#endif
 }
 template <class T1, class T2> inline SharedPtr<T1> StaticPointerCast(const SharedPtr<T2>& other)
 {

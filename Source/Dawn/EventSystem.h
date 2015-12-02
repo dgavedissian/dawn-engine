@@ -11,6 +11,8 @@
 #define REMOVE_LISTENER(LISTENER, EVENT) \
     EventSystem::inst().RemoveListener(fastdelegate::MakeDelegate(this, &LISTENER::HandleEvent), \
                                        EVENT::eventType);
+#define REMOVE_ALL_LISTENERS(LISTENER) \
+    EventSystem::inst().RemoveAllListeners(fastdelegate::MakeDelegate(this, &LISTENER::HandleEvent))
 
 NAMESPACE_BEGIN
 
@@ -33,11 +35,22 @@ public:
 typedef SharedPtr<EventData> EventDataPtr;
 typedef fastdelegate::FastDelegate1<SharedPtr<EventData>> EventListenerDelegate;
 
+// Event listener interface
+class DW_API EventListener
+{
+    virtual void HandleEvent(EventDataPtr eventData) = 0;
+};
+
 #define EVENTSYSTEM_NUM_QUEUES 2
 
-template <class T> bool EventIs(const EventDataPtr ed)
+template <class T> bool EventIs(const EventDataPtr eventData)
 {
-    return ed->GetEventType() == T::eventType;
+    return eventData->GetEventType() == T::eventType;
+}
+
+template <class T> SharedPtr<T> CastEvent(const EventDataPtr eventData)
+{
+    return StaticPointerCast<T>(eventData);
 }
 
 class DW_API EventSystem : public Singleton<EventSystem>
@@ -52,6 +65,9 @@ public:
     // Removes a delegate / event type pairing from the internal tables. Returns false if the
     // pairing was not found
     bool RemoveListener(const EventListenerDelegate& eventDelegate, const EventType& type);
+
+    // Removes all delegate / event type pairings from a given delegate
+    void RemoveAllListeners(const EventListenerDelegate& eventDelegate);
 
     // Fire off event NOW. This bypasses the queue entirely and immediately calls all delegate
     // functions registered for the event

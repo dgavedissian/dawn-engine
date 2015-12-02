@@ -24,37 +24,40 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateVertexShader(
 {
     std::stringstream ss;
 
+    // Version information
+    ss << "#version 330 core" << std::endl;
+
     ss << "uniform mat4 worldViewProjMatrix;" << std::endl;
     ss << "uniform mat4 worldViewMatrix;" << std::endl;
 
     uint32 numTexCoords = (permutation & GBufferMaterialGenerator::GBP_TEXCOORD_MASK) >> 8;
-    ss << "attribute vec4 vertex;" << std::endl;
-    ss << "attribute vec3 normal;" << std::endl;
+    ss << "in vec4 vertex;" << std::endl;
+    ss << "in vec3 normal;" << std::endl;
 
     if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP)
-        ss << "attribute vec3 tangent;" << std::endl;
+        ss << "in vec3 tangent;" << std::endl;
 
     for (uint32 i = 0; i < numTexCoords; i++)
-        ss << "attribute vec2 uv" << i << ";" << std::endl;
+        ss << "in vec2 uv" << i << ";" << std::endl;
 
     // TODO : Skinning inputs
     ss << std::endl;
 
 #ifdef WRITE_LINEAR_DEPTH
-    ss << "varying vec3 oViewPos;" << std::endl;
+    ss << "out vec3 oViewPos;" << std::endl;
 #else
-    ss << "varying float oDepth;" << std::endl;
+    ss << "out float oDepth;" << std::endl;
 #endif
-    ss << "varying vec3 oNormal;" << std::endl;
+    ss << "out vec3 oNormal;" << std::endl;
 
     if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP)
     {
-        ss << "varying vec3 oTangent;" << std::endl;
-        ss << "varying vec3 oBiNormal;" << std::endl;
+        ss << "out vec3 oTangent;" << std::endl;
+        ss << "out vec3 oBiNormal;" << std::endl;
     }
 
     for (uint32 i = 0; i < numTexCoords; i++)
-        ss << "varying vec2 oUv" << i << ";" << std::endl;
+        ss << "out vec2 oUv" << i << ";" << std::endl;
 
     ss << "void main()" << std::endl;
 
@@ -107,6 +110,10 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateFragmentShader(
     MaterialGenerator::Perm permutation)
 {
     std::stringstream ss;
+
+    // Version information
+    ss << "#version 330 core" << std::endl;
+
     if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP)
         ss << "uniform sampler2D sNormalMap;" << std::endl;
 
@@ -125,22 +132,25 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateFragmentShader(
     ss << "uniform float cSpecularity;" << std::endl;
 
 #ifdef WRITE_LINEAR_DEPTH
-    ss << "varying vec3 oViewPos;" << std::endl;
+    ss << "in vec3 oViewPos;" << std::endl;
 #else
-    ss << "varying float oDepth;" << std::endl;
+    ss << "in float oDepth;" << std::endl;
 #endif
-    ss << "varying vec3 oNormal;" << std::endl;
+    ss << "in vec3 oNormal;" << std::endl;
 
     if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP)
     {
-        ss << "varying vec3 oTangent;" << std::endl;
-        ss << "varying vec3 oBiNormal;" << std::endl;
+        ss << "in vec3 oTangent;" << std::endl;
+        ss << "in vec3 oBiNormal;" << std::endl;
     }
 
     uint32 numTexCoords = (permutation & GBufferMaterialGenerator::GBP_TEXCOORD_MASK) >> 8;
 
     for (uint32 i = 0; i < numTexCoords; i++)
-        ss << "varying vec2 oUv" << i << ';' << std::endl;
+        ss << "in vec2 oUv" << i << ';' << std::endl;
+
+    ss << "layout(location = 0) out vec4 gbuffer0;" << std::endl;
+    ss << "layout(location = 1) out vec4 gbuffer1;" << std::endl;
 
     // Encode Normals
     ss << "vec2 encodeNormal(vec3 n) {" << std::endl;
@@ -161,33 +171,33 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateFragmentShader(
 
     if (numTexCoords > 0 && numTextures > 0)
     {
-        ss << "gl_FragData[0].rgb = texture2D(sTex0, oUv0).rgb;" << std::endl;
+        ss << "gbuffer0.rgb = texture2D(sTex0, oUv0).rgb;" << std::endl;
         if (permutation & GBufferMaterialGenerator::GBP_HAS_DIFFUSE_COLOUR)
-            ss << "gl_FragData[0].rgb *= cDiffuseColour.rgb;" << std::endl;
+            ss << "gbuffer0.rgb *= cDiffuseColour.rgb;" << std::endl;
     }
     else
     {
-        ss << "gl_FragData[0].rgb = cDiffuseColour.rgb;" << std::endl;
+        ss << "gbuffer0.rgb = cDiffuseColour.rgb;" << std::endl;
     }
 
-    ss << "gl_FragData[0].a = cSpecularity;" << std::endl;
+    ss << "gbuffer0.a = cSpecularity;" << std::endl;
 
     if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP)
     {
         ss << "vec3 texNormal = (texture2D(sNormalMap, oUv0).rgb - 0.5) * 2.0;" << std::endl;
         ss << "mat3 normalRotation = mat3(oTangent, oBiNormal, oNormal);" << std::endl;
-        ss << "gl_FragData[1].rg = encodeNormal(normalize(texNormal * "
+        ss << "gbuffer1.rg = encodeNormal(normalize(texNormal * "
               "normalRotation));" << std::endl;
     }
     else
     {
-        ss << "gl_FragData[1].rg = encodeNormal(normalize(oNormal));" << std::endl;
+        ss << "gbuffer1.rg = encodeNormal(normalize(oNormal));" << std::endl;
     }
 
 #ifdef WRITE_LINEAR_DEPTH
-    ss << "gl_FragData[1].ba = encodeDepth(length(oViewPos) / cFarDistance);" << std::endl;
+    ss << "gbuffer1.ba = encodeDepth(length(oViewPos) / cFarDistance); " << std::endl;
 #else
-    ss << "gl_FragData[1].ba = encodeDepth(oDepth);" << std::endl;
+    ss << "gbuffer1.ba = encodeDepth(oDepth);" << std::endl;
 #endif
 
     ss << "}" << std::endl;

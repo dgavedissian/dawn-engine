@@ -61,8 +61,13 @@ void Console::Write(const String& str)
         mOutput += "\n";
     }
 
+    // Sanitise the input
+    String sanitisedStr(str);
+    sanitisedStr = Replace(sanitisedStr, "<", "&lt;");
+    sanitisedStr = Replace(sanitisedStr, ">", "&gt;");
+
     // Add the string
-    mOutput += str;
+    mOutput += sanitisedStr;
 
     // Set the inner RML and scroll down
     mText->SetInnerRML(mOutput.c_str());

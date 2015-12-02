@@ -9,7 +9,7 @@ NAMESPACE_BEGIN
 class Camera;
 class SceneManager;
 
-class DW_API Entity : public EnableSharedFromThis<Entity> // TODO: remove, required in Transcendent
+class DW_API Entity
 {
 public:
     Entity(SceneManager* sceneMgr);

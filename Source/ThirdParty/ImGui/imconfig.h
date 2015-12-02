@@ -6,11 +6,6 @@
 
 #pragma once
 
-//---- Define your own ImVector<> type if you don't want to use the provided implementation defined in imgui.h
-//#include <vector>
-//#define ImVector  std::vector
-//#define ImVector  MyVector
-
 //---- Define assertion handler. Defaults to calling assert().
 //#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
 
@@ -30,6 +25,9 @@
 
 //---- Don't implement help and test window functionality (ShowUserGuide()/ShowStyleEditor()/ShowTestWindow() methods will be empty)
 //#define IMGUI_DISABLE_TEST_WINDOWS
+
+//---- Don't define obsolete functions names
+//#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
 //---- Implement STB libraries in a namespace to avoid conflicts
 //#define IMGUI_STB_NAMESPACE     ImStb

@@ -1,53 +1,5 @@
-set(CPP_FILES
-    Audio/Audio.cpp
-    Audio/Sound.cpp
-    Audio/Source.cpp
-    Audio/Track.cpp
-    Core/Config.cpp
-    Core/ConfigNode.cpp
-    Core/Log.cpp
-    Core/Utils.cpp
-    Input/Input.cpp
-    Math/Noise.cpp
-    Math/Rect.cpp
-    Math/Vec2i.cpp
-    Math/Vec3i.cpp
-    Math/Vec4i.cpp
-    Physics/PhysicsWorld.cpp
-    Renderer/Deferred/AmbientLight.cpp
-    Renderer/Deferred/DeferredLight.cpp
-    Renderer/Deferred/DeferredLightCompPass.cpp
-    Renderer/Deferred/DeferredShadingManager.cpp
-    Renderer/Deferred/GBufferMaterialGenerator.cpp
-    Renderer/Deferred/GBufferSchemeHandler.cpp
-    Renderer/Deferred/LightMaterialGenerator.cpp
-    Renderer/Deferred/MaterialGenerator.cpp
-    Renderer/GeometryUtils.cpp
-    Renderer/Renderer.cpp
-    Renderer/SpriteManager.cpp
-    Scene/Space/AsteroidBelt.cpp
-    Scene/Space/Barycentre.cpp
-    Scene/Space/Galaxy.cpp
-    Scene/Space/Orbit.cpp
-    Scene/Space/Planet.cpp
-    Scene/Space/Star.cpp
-    Scene/Space/StarSystem.cpp
-    Scene/Space/SystemBody.cpp
-    Scene/Camera.cpp
-    Scene/DefaultCamera.cpp
-    Scene/Entity.cpp
-    Scene/Position.cpp
-    Scene/RigidEntity.cpp
-    Scene/SceneManager.cpp
-    Script/LuaState.cpp
-    UI/Console.cpp
-    UI/ImGuiInterface.cpp
-    UI/Layout.cpp
-    UI/RocketInterface.cpp
-    UI/UI.cpp
-    StateManager.cpp
-    Engine.cpp
-    EventSystem.cpp)
+# Dawn Engine
+# Copyright (c) 2012-2015 David Avedissian (avedissian.david@gmail.com)
 
 set(H_FILES
     Audio/Audio.h
@@ -109,9 +61,60 @@ set(H_FILES
     Platform.h
     Prerequisites.h)
 
+set(CPP_FILES
+    Audio/Audio.cpp
+    Audio/Sound.cpp
+    Audio/Source.cpp
+    Audio/Track.cpp
+    Core/Config.cpp
+    Core/ConfigNode.cpp
+    Core/Log.cpp
+    Core/Utils.cpp
+    Input/Input.cpp
+    Math/Noise.cpp
+    Math/Rect.cpp
+    Math/Vec2i.cpp
+    Math/Vec3i.cpp
+    Math/Vec4i.cpp
+    Physics/PhysicsWorld.cpp
+    Renderer/Deferred/AmbientLight.cpp
+    Renderer/Deferred/DeferredLight.cpp
+    Renderer/Deferred/DeferredLightCompPass.cpp
+    Renderer/Deferred/DeferredShadingManager.cpp
+    Renderer/Deferred/GBufferMaterialGenerator.cpp
+    Renderer/Deferred/GBufferSchemeHandler.cpp
+    Renderer/Deferred/LightMaterialGenerator.cpp
+    Renderer/Deferred/MaterialGenerator.cpp
+    Renderer/GeometryUtils.cpp
+    Renderer/Renderer.cpp
+    Renderer/SpriteManager.cpp
+    Scene/Space/AsteroidBelt.cpp
+    Scene/Space/Barycentre.cpp
+    Scene/Space/Galaxy.cpp
+    Scene/Space/Orbit.cpp
+    Scene/Space/Planet.cpp
+    Scene/Space/Star.cpp
+    Scene/Space/StarSystem.cpp
+    Scene/Space/SystemBody.cpp
+    Scene/Camera.cpp
+    Scene/DefaultCamera.cpp
+    Scene/Entity.cpp
+    Scene/Position.cpp
+    Scene/RigidEntity.cpp
+    Scene/SceneManager.cpp
+    Script/LuaState.cpp
+    UI/Console.cpp
+    UI/ImGuiInterface.cpp
+    UI/Layout.cpp
+    UI/RocketInterface.cpp
+    UI/UI.cpp
+    StateManager.cpp
+    Engine.cpp
+    EventSystem.cpp)
+
 if(APPLE)
-    set(CPP_FILES} ${CPP_FILES}} Graphics/OSXGetNSView.mm)
     set(H_FILES ${H_FILES} Graphics/OSXGetNSView.h)
+    set(CPP_FILES} ${CPP_FILES} Graphics/OSXGetNSView.mm)
 endif()
 
 # BtOgre
@@ -129,6 +132,16 @@ set(TP_SOURCE_FILES ${TP_SOURCE_FILES} ${YAML_CPP_SRC})
 # Project
 set(SOURCE_FILES ${TP_SOURCE_FILES} ${CPP_FILES} ${H_FILES})
 add_library(Dawn ${SOURCE_FILES})
+set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD")
+
+# Cotire
+message(STATUS ${CMAKE_CXX_FLAGS} ${INCLUDE_DIRS})
+set_target_properties(Dawn PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
+set_target_properties(Dawn PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "Prerequisites.h")
+include(cotire)
+if(WIN32)
+    cotire(Dawn)
+endif()
 
 # Random extras
 mirror_physical_directories(${SOURCE_FILES})
@@ -141,18 +154,3 @@ include_directories(
     .
     ${INCLUDE_DIRS})
 target_link_libraries(Dawn ${LIBS})
-
-set_target_properties(Dawn PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
-set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD")
-set_target_properties(Dawn PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "Prerequisites.h")
-
-# Libs
-include_directories(../ThirdParty/Bullet/src ../ThirdParty/MathGeoLib/src)
-target_link_libraries(Dawn Bullet MathGeoLib)
-
-include_directories(../ThirdParty/LuaJIT/src)
-target_link_libraries(Dawn LuaJIT)
-
-# Cotire
-include(cotire)
-cotire(Dawn)

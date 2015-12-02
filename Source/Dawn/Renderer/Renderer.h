@@ -128,8 +128,9 @@ private:
     // Deferred Shading Pipeline
     SharedPtr<DeferredShadingManager> mDeferredShadingMgr;
 
-    // HDR
+    // Post Processing
     Ogre::CompositorInstance* mHDRComp;
+    Ogre::CompositorInstance* mBlurComp;
 
     // Sprite Manager
     SharedPtr<SpriteManager> mSpriteManager;

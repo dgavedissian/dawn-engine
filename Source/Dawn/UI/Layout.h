@@ -17,6 +17,8 @@ enum ShowType
 
 enum UIEvent
 {
+    UI_MOUSE_ENTER,
+    UI_MOUSE_LEAVE,
     UI_CLICK,
     UI_SUBMIT
 };

@@ -56,6 +56,9 @@ Engine::Engine(const String& game, const String& version)
     // Initialise logging
     new Log(mPrefPath + mLogFile);
     LOG << "Starting " << mGameName << " " << mGameVersion;
+#ifdef DW_DEBUG
+    LOGWARN << "This is a debug build!";
+#endif
     PrintSystemInfo();
 }
 
@@ -68,7 +71,6 @@ void Engine::Setup()
 {
     assert(!mInitialised);
 
-    // Set up SDL
     SDL_Init(SDL_INIT_VIDEO);
 
     // Create EventSystem
@@ -81,9 +83,17 @@ void Engine::Setup()
     mLuaState = new LuaState;
     BindToLua();
 
+    // Build window title
+    String gameTitle(mGameName);
+    gameTitle += " ";
+    gameTitle += mGameVersion;
+#ifdef DW_DEBUG
+    gameTitle += " (debug)";
+#endif
+
     // Create the engine systems
     mInput = new Input;
-    mRenderer = new Renderer(mBasePath, mPrefPath, mInput, mGameName + " " + mGameVersion);
+    mRenderer = new Renderer(mBasePath, mPrefPath, mInput, gameTitle);
     mUI = new UI(mRenderer, mInput, mLuaState);
     mInput->SetViewportSize(mRenderer->GetViewportSize());
     mAudio = new Audio;
@@ -175,7 +185,6 @@ void Engine::Run(EngineTickCallback tickFunc)
 
     // Ensure that all states have been exited so no crashes occur later
     mStateMgr->Clear();
-    mSceneMgr->ClearEntities();
 }
 
 void Engine::SetMainCamera(Camera *camera)

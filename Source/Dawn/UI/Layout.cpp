@@ -68,6 +68,14 @@ void Layout::BindEvent(const String& id, UIEvent event)
     String eventID;
     switch (event)
     {
+    case UI_MOUSE_ENTER:
+        eventID = "mouseover";
+        break;
+
+    case UI_MOUSE_LEAVE:
+        eventID = "mouseout";
+        break;
+
     case UI_CLICK:
         eventID = "click";
         break;
@@ -86,7 +94,7 @@ void Layout::BindEvent(const String& id, UIEvent event)
 
     // Add the Listener
     elem->AddEventListener(eventID.c_str(), mInterfaceMgr);
-    mListeners.push_back(make_tuple(id, eventID, mInterfaceMgr));
+    mListeners.push_back(MakeTuple(id, eventID, mInterfaceMgr));
 }
 
 Rocket::Core::Element* Layout::GetElementById(Rocket::Core::String id)

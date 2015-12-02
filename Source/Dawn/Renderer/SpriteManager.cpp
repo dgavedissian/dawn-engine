@@ -77,6 +77,9 @@ void SpriteManager::LoadSprite(const String& textureName)
         texUnit->setTextureFiltering(Ogre::FO_NONE, Ogre::FO_NONE, Ogre::FO_NONE);
         texUnit->setHardwareGammaEnabled(true);
 
+        pass->setVertexProgram("Post/Quad/VS");
+        pass->setFragmentProgram("Billboard/FS");
+
         // Load material
         material->load();
     }
@@ -255,18 +258,13 @@ void SpriteManager::Render()
 
     mHwBuffer->unlock();
 
-    // Prepare the render system
-    mRenderSystem->_setWorldMatrix(Ogre::Matrix4::IDENTITY);
-    mRenderSystem->_setViewMatrix(Ogre::Matrix4::IDENTITY);
-    mRenderSystem->_setProjectionMatrix(Ogre::Matrix4::IDENTITY);
-    mRenderOp.vertexData->vertexStart = 0;
-
     // Render the sprites
+    mRenderOp.vertexData->vertexStart = 0;
     for (auto c = chunks.begin(); c != chunks.end(); c++)
     {
         mRenderOp.vertexData->vertexCount = c->vertexCount;
-        mSceneManager->_setPass(c->pass);
-        mRenderSystem->_render(mRenderOp);
+        mSceneManager->manualRender(&mRenderOp, c->pass, nullptr,
+            Ogre::Matrix4::IDENTITY, Ogre::Matrix4::IDENTITY, Ogre::Matrix4::IDENTITY);
         mRenderOp.vertexData->vertexStart += c->vertexCount;
     }
 

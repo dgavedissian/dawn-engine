@@ -60,11 +60,12 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     Ogre::NameValuePairList options;
     options["vsync"] = vsync ? "true" : "false";
     options["gamma"] = "true";
+    options["title"] = windowTitle;
     CreateSDLWindow(windowTitle, displayMode, fullscreen, options);
 
     // Initialise Ogre and use the SDL window
     mRoot->initialise(false, "", "");
-    mRenderWindow = mRoot->createRenderWindow("", displayMode.x, displayMode.y, fullscreen, &options);
+    mRenderWindow = mRoot->createRenderWindow(windowTitle, displayMode.x, displayMode.y, fullscreen, &options);
     mRenderWindow->setVisible(true);
 
     // OGRE IS NOW READY, SET UP THE SCENE
@@ -82,7 +83,9 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
 
     // Set up post processing
     mHDRComp = Ogre::CompositorManager::getSingleton().addCompositor(mViewport, "HDR");
+    mBlurComp = Ogre::CompositorManager::getSingleton().addCompositor(mViewport, "GaussianBlur");
     mHDRComp->setEnabled(true);
+    //mBlurComp->setEnabled(true);
 
     // Set up the sprite manager
     mSpriteManager = MakeShared<SpriteManager>(mViewport, mSceneManager);
@@ -105,14 +108,12 @@ Renderer::~Renderer()
 
     // Clean up Ogre
     mRoot->destroySceneManager(mSceneManager);
-#if DW_PLATFORM != DW_MAC_OSX    // TODO: Fix OgreOSXCocoaWindow
-    mRenderWindow->destroy();
-#endif
     mRoot.reset();
     mLogManager.reset();
     LOG << "Ogre cleaned up";
 
     // Destroy the SDL window
+    SDL_SetWindowFullscreen(mWindow, 0);
     SDL_DestroyWindow(mWindow);
 }
 
@@ -128,13 +129,50 @@ void Renderer::RenderFrame(Camera* camera)
             EventSystem::inst().QueueEvent(MakeShared<EvtData_Exit>());
             break;
 
+        case SDL_WINDOWEVENT:
+            switch (e.window.event)
+            {
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
+                int w, h;
+                SDL_GetWindowSize(mWindow, &w, &h);
+#if DW_PLATFORM == DW_LINUX
+                mRenderWindow->resize(w, h);
+#else
+                mRenderWindow->windowMovedOrResized();
+#endif
+                break;
+
+            case SDL_WINDOWEVENT_RESIZED:
+#if DW_PLATFORM == DW_LINUX
+                mRenderWindow->resize(e.window.data1, e.window.data2);
+#else
+                mRenderWindow->windowMovedOrResized();
+#endif
+                break;
+
+            case SDL_WINDOWEVENT_CLOSE:
+                break;
+
+            case SDL_WINDOWEVENT_SHOWN:
+                mRenderWindow->setVisible(true);
+                break;
+
+            case SDL_WINDOWEVENT_HIDDEN:
+                mRenderWindow->setVisible(false);
+                break;
+
+            default:
+                break;
+            }
+            break;
+
         default:
             mInputMgr->HandleSDLEvent(e);
             break;
         }
     }
 
-    // Update Ribbon trail root node
+    // Update ribbon trail root node
     mRTRoot->setPosition(mRTRootPosition.ToCameraSpace(camera));
 
     // Draw a frame
@@ -147,18 +185,23 @@ void Renderer::HandleEvent(EventDataPtr eventData)
 {
     if (EventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = StaticPointerCast<EvtData_KeyDown>(eventData);
+        auto castedEventData = CastEvent<EvtData_KeyDown>(eventData);
         switch (castedEventData->keycode)
         {
         case SDLK_F4:
             // Toggle deferred shading debug mode
             mDeferredShadingMgr->SetDebugMode(!mDeferredShadingMgr->IsDebugMode());
-            mHDRComp->setEnabled(!mDeferredShadingMgr->IsDebugMode());
+            //mHDRComp->setEnabled(!mDeferredShadingMgr->IsDebugMode());
             break;
 
         case SDLK_p:
             // Take a screenshot
             mRenderWindow->writeContentsToTimestampedFile("Transcendent", ".png");
+            break;
+
+        case SDLK_h:
+            // Toggle HDR
+            mHDRComp->setEnabled(!mHDRComp->getEnabled());
             break;
 
         default:
@@ -359,7 +402,7 @@ bool Renderer::RaycastQueryGeometry(const Vec3& start, const Vec3& end, Camera* 
 
 void Renderer::TogglePostEffect(const String& name, bool enabled)
 {
-    Ogre::CompositorManager::getSingleton().setCompositorEnabled(mViewport, name, enabled);
+    //Ogre::CompositorManager::getSingleton().setCompositorEnabled(mViewport, name, enabled);
 }
 
 void Renderer::SetRibbonTrailRootPosition(const Position& position)
@@ -389,7 +432,7 @@ Vector<SDL_DisplayMode> Renderer::EnumerateDisplayModes() const
 void Renderer::LoadPlugins()
 {
     Vector<String> plugins;
-    plugins.push_back("RenderSystem_GL");
+    plugins.push_back("RenderSystem_GL3Plus");
 #if DW_PLATFORM == DW_WIN32
     plugins.push_back("Plugin_ParticleUniverse");
 #endif
@@ -427,23 +470,40 @@ void Renderer::CreateSDLWindow(const String& windowTitle, const Vec2i& displayMo
         assert(0);
     }
 
-    // Pass SDL information to Ogre
+    // Get the native window handle
     SDL_SysWMinfo wmInfo;
     SDL_VERSION(&wmInfo.version);
     SDL_GetWindowWMInfo(mWindow, &wmInfo);
+
+    String winHandle;
+    switch (wmInfo.subsystem)
+    {
 #if DW_PLATFORM == DW_WIN32
-    unsigned long winHandle = reinterpret_cast<unsigned long>(wmInfo.info.win.window);
-    options["externalWindowHandle"] = Ogre::StringConverter::toString(winHandle);
+    case SDL_SYSWM_WINDOWS:
+        winHandle = Ogre::StringConverter::toString((unsigned long)wmInfo.info.win.window);
+        break;
 #elif DW_PLATFORM == DW_MAC_OSX
-    unsigned long winHandle = getWindowContentViewHandle(wmInfo);
-    options["macAPI"] = "cocoa";
-    options["macAPICocoaUseNSView"] = "true";
-    options["externalWindowHandle"] = Ogre::StringConverter::toString(winHandle);
+    case SDL_SYSWM_COCOA:
+        options["macAPI"] = "cocoa";
+        options["macAPICocoaUseNSView"] = "true";
+        winHandle = Ogre::StringConverter::toString(getWindowContentViewHandle(wmInfo));
+        break;
 #elif DW_PLATFORM == DW_LINUX
-    unsigned long winHandle = reinterpret_cast<unsigned long>(wmInfo.info.x11.window);
-    options["parentWindowHandle"] = Ogre::StringConverter::toString(winHandle);
+    case SDL_SYSWM_X11:
+        winHandle = Ogre::StringConverter::toString((unsigned long)wmInfo.info.x11.window);
+        break;
 #else
 #   error Unhandled SDL2 platform
+#endif
+    default:
+        // TODO: Error!
+        break;
+    }
+
+#if DW_PLATFORM == DW_WIN32
+    options["externalWindowHandle"] = winHandle;
+#else
+    options["parentWindowHandle"] = winHandle;
 #endif
 }
 
@@ -452,20 +512,20 @@ void Renderer::InitResources(const String& basePath)
     // Add all resource locations to the resource group manager
     // TODO move resource manager to global class
     Vector<String> rl;
-    rl.push_back("Media/fonts/");
-    rl.push_back("Media/materials/deferred/");
-    rl.push_back("Media/materials/explosions/pu/");
-    rl.push_back("Media/materials/explosions/");
-    rl.push_back("Media/materials/scene/");
-    rl.push_back("Media/materials/ship/");
-    rl.push_back("Media/materials/");
-    rl.push_back("Media/models/");
-    rl.push_back("Media/scripts/");
-    rl.push_back("Media/scripts/gamemodes");
-    rl.push_back("Media/scripts/gui");
-    rl.push_back("Media/textures/");
-    rl.push_back("Media/textures/scene");
-    rl.push_back("Media/textures/ui");
+    rl.push_back("Media/Fonts/");
+    rl.push_back("Media/Materials/Deferred/");
+    rl.push_back("Media/Materials/Explosions/pu/");
+    rl.push_back("Media/Materials/Explosions/");
+    rl.push_back("Media/Materials/Scene/");
+    rl.push_back("Media/Materials/Ship/");
+    rl.push_back("Media/Materials/");
+    rl.push_back("Media/Models/");
+    rl.push_back("Media/Scripts/");
+    rl.push_back("Media/Scripts/GameModes");
+    rl.push_back("Media/Textures/");
+    rl.push_back("Media/Textures/Scene");
+    rl.push_back("Media/Textures/UI");
+    rl.push_back("Media/UI");
     LOG << "Resource Locations:";
     for (auto& resourceLocation : rl)
     {
@@ -576,7 +636,7 @@ void Renderer::FindClosestPolygon(Ogre::Entity* entity, float& closestDistance,
         Ogre::Vector3 vertex1;
         Ogre::Vector3 vertex2;
         float* pReal;
-        uint index;
+        uint index;//
 
         for (uint k = 0; k < subMesh->indexData->indexCount; k++)
         {

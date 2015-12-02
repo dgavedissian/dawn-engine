@@ -75,6 +75,14 @@ bool EventSystem::RemoveListener(const EventListenerDelegate& eventDelegate, con
     }
 }
 
+void EventSystem::RemoveAllListeners(const EventListenerDelegate& eventDelegate)
+{
+    for (auto listenerPair : mEventListeners)
+    {
+        RemoveListener(eventDelegate, listenerPair.first);
+    }
+}
+
 bool EventSystem::TriggerEvent(const EventDataPtr& eventData) const
 {
     bool processed = false;

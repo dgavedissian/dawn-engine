@@ -81,6 +81,16 @@ String Concat(const Vector<String>& vec, const String& delim)
     return out;
 }
 
+String Replace(String subject, const String& search, const String& replace)
+{
+    size_t pos = 0;
+    while ((pos = subject.find(search, pos)) != std::string::npos) {
+        subject.replace(pos, search.length(), replace);
+        pos += replace.length();
+    }
+    return subject;
+}
+
 std::default_random_engine engine;
 
 int RandomInt(int min /*= 0*/, int max /*= INT_MAX*/)

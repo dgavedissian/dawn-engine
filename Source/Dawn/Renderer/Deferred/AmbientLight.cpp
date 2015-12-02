@@ -10,7 +10,7 @@ NAMESPACE_BEGIN
 
 AmbientLight::AmbientLight()
 {
-    setRenderQueueGroup(Ogre::RENDER_QUEUE_2);
+    //setRenderQueueGroup(Ogre::RENDER_QUEUE_2);
 
     mRenderOp.vertexData = new Ogre::VertexData();
     mRenderOp.indexData = nullptr;
@@ -21,18 +21,12 @@ AmbientLight::AmbientLight()
     mRenderOp.useIndexes = false;
 
     // Set bounding
-    setBoundingBox(Ogre::AxisAlignedBox(-10000, -10000, -10000, 10000, 10000, 10000));
+    setBoundingBox(Ogre::AxisAlignedBox(-10000000000, -10000000000, -10000000000, 10000000000, 10000000000, 10000000000));
     mRadius = 15000;
 
     mMaterialPtr = Ogre::MaterialManager::getSingleton().getByName("DeferredShading/AmbientLight");
     assert(mMaterialPtr.isNull() == false);
     mMaterialPtr->load();
-
-    // Explicitly bind samplers for OpenGL
-    mMaterialPtr->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant(
-        "gb0", 0);
-    mMaterialPtr->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant(
-        "gb1", 1);
 }
 
 AmbientLight::~AmbientLight()

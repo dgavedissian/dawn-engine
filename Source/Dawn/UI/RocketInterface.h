@@ -12,12 +12,19 @@ NAMESPACE_BEGIN
 
 class Renderer;
 
+struct RocketOgreVertex
+{
+    Ogre::Vector2 position;
+    Ogre::uint32 colour;
+    Ogre::Vector2 uv;
+};
+
 class RocketInterface : public Rocket::Core::RenderInterface,
                         public Rocket::Core::FileInterface,
                         public Rocket::Core::SystemInterface
 {
 public:
-    RocketInterface(Renderer* rs);
+    RocketInterface(Renderer* rs, Ogre::MaterialPtr uiMaterial, const Ogre::Matrix4& projection);
     virtual ~RocketInterface();
 
     /// Maps an SDL keycode to libRocket
@@ -36,6 +43,7 @@ public:
     int MapSDLMouseButton(uint button);
 
     // Inherited from Rocket::Core::RenderInterface
+    void Transform(RocketOgreVertex* vertex);
     virtual void RenderGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices,
                                 int num_indices, Rocket::Core::TextureHandle texture,
                                 const Rocket::Core::Vector2f& translation) override;
@@ -70,9 +78,9 @@ public:
 
 private:
     Ogre::RenderSystem* mRenderSystem;
-
-    Ogre::LayerBlendModeEx mColourBlendMode;
-    Ogre::LayerBlendModeEx mAlphaBlendMode;
+    Ogre::SceneManager* mSceneMgr;
+    Ogre::MaterialPtr mUIMaterial;
+    Ogre::Matrix4 mProjection;
 
     Map<SDL_Keycode, int> mKeyMap;
 
@@ -81,6 +89,10 @@ private:
     int mScissorTop;
     int mScissorRight;
     int mScissorBottom;
+
+private:
+    void SetupKeymap();
+
 };
 
 NAMESPACE_END

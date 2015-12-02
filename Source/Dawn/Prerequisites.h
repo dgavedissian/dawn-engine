@@ -4,10 +4,12 @@
  */
 #pragma once
 
+#include "Platform.h"
+
 // Mark this header as a system header
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(DW_GCC) || defined(DW_CLANG)
 #   pragma GCC system_header
-#elif defined(_MSC_VER)
+#elif defined(DW_MSVC)
 #   pragma warning(push, 0)
 #endif
 
@@ -19,8 +21,9 @@
 #include <cassert>
 #include <cstdint>
 #include <ctime>
+
 #include <exception>
-#include <List>
+#include <list>
 #include <map>
 #include <string>
 #include <vector>
@@ -75,7 +78,10 @@
 // SDL
 #include <SDL.h>
 
-// Undef things defined by Obj-C/Cocoa on OS X which conflicts with other libs
+// Undefine conflicting names define by stupid platform SDKs
+#ifdef PlaySound
+#   undef PlaySound
+#endif
 #ifdef None
 #   undef None
 #endif
@@ -101,7 +107,8 @@
 // FastDelegate
 #include "FastDelegate.h"
 
+
 // Re-enable warnings
-#if defined(_MSC_VER)
+#if defined(DW_MSVC)
 #   pragma warning(pop)
 #endif

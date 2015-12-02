@@ -99,7 +99,7 @@ irrklang::ISoundEngine* Audio::GetSoundEngine()
 
 Track* Audio::CreateTrack(const String& filename)
 {
-    SharedPtr<Track> track = MakeShared<Track>("Media/sounds/" + filename, mSoundEngine);
+    SharedPtr<Track> track = MakeShared<Track>("Media/Sounds/" + filename, mSoundEngine);
     mTracks.push_back(track);
     return track.get();
 }
@@ -123,7 +123,7 @@ void Audio::DestroyTrack(Track* track)
 
 Sound* Audio::CreateSound(const String& filename, bool looped /*= false*/)
 {
-    SharedPtr<Sound> sound = MakeShared<Sound>("Media/sounds/" + filename, looped, mSoundEngine);
+    SharedPtr<Sound> sound = MakeShared<Sound>("Media/Sounds/" + filename, looped, mSoundEngine);
     mSounds.push_back(sound);
     return sound.get();
 }
@@ -132,7 +132,7 @@ Sound* Audio::CreateSound(const String& filename, const Position& position,
                                  bool looped /*= false*/)
 {
     SharedPtr<Sound> sound =
-        MakeShared<Sound>("Media/sounds/" + filename, position, looped, mSoundEngine);
+        MakeShared<Sound>("Media/Sounds/" + filename, position, looped, mSoundEngine);
     mSounds.push_back(sound);
     return sound.get();
 }

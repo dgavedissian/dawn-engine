@@ -269,8 +269,6 @@ public:
 		return mDebugOn;
 	}
 
-    bool isVisible(const btVector3& a, const btVector3& b) override { return true; }
-
 };
 
 }

@@ -11,6 +11,9 @@ project(Dawn)
 # Include modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
+# Limit configuration types
+set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug)
+
 
 ###############################################
 # Utilities
@@ -94,8 +97,6 @@ if(NOT ${CMAKE_SOURCE_DIR} EQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     set(LIBS "${LIBS}" PARENT_SCOPE)
 endif()
 
-# Enter source directory
-add_subdirectory(Source)
 
 ###############################################
 # Helpful functions
@@ -120,13 +121,10 @@ endfunction()
 
 
 ###############################################
-# Sandbox
+# Source
 ###############################################
 
-add_executable(Sandbox Source/Sandbox/Main.cpp)
-target_link_libraries(Sandbox Dawn)
-mirror_physical_directories(Source/Sandbox/Main.cpp)
-include_directories(../Dawn)
+add_subdirectory(Source)
 
 
 ###############################################

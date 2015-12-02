@@ -34,6 +34,7 @@ public:
 
     /// Returns the ogre camera associated with this camera
     Ogre::Camera* GetOgreCamera() { return mCamera; }
+    Ogre::SceneNode* GetOgreCameraSceneNode() { return mSceneNode; }
 
     // Inherited from Entity
     virtual void SetOrientation(const Quat& orientation) override;

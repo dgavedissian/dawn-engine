@@ -37,7 +37,7 @@ void SandboxState::HandleEvent(EventDataPtr eventData)
 {
     if (EventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_KeyDown>(eventData);
+        auto castedEventData = CastEvent<EvtData_KeyDown>(eventData);
         switch (castedEventData->keycode)
         {
         case SDLK_EQUALS:
@@ -55,7 +55,7 @@ void SandboxState::HandleEvent(EventDataPtr eventData)
 
     if (EventIs<EvtData_MouseWheel>(eventData))
     {
-        auto castedEventData = static_pointer_cast<EvtData_MouseWheel>(eventData);
+        auto castedEventData = CastEvent<EvtData_MouseWheel>(eventData);
 
         auto camera = mEngine->GetCameraMgr();
         float speed = camera->GetMovementSpeed() * (float)std::pow(1.5f, castedEventData->motion.y);

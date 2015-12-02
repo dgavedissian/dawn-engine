@@ -234,10 +234,10 @@ void CreateQuad(Ogre::VertexData* vertexData)
     // Upload data
     float data[] =
     {
-        -1.0f, 1.0f, -1.0f,    // corner 1
-        -1.0f, -1.0f, -1.0f,   // corner 2
-        1.0f, 1.0f, -1.0f,     // corner 3
-        1.0f, -1.0f, -1.0f     // corner 4
+        -1.0f,  1.0f, -1.0f, // corner 1
+        -1.0f, -1.0f, -1.0f, // corner 2
+         1.0f,  1.0f, -1.0f, // corner 3
+         1.0f, -1.0f, -1.0f  // corner 4
     };
 
     vbuf->writeData(0, sizeof(data), data, true);
