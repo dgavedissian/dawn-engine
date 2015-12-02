@@ -2,10 +2,10 @@
 .tags*
 
 # Bin
-Bin
+bin
 
 # CMake Output Directories
-Build*/
+build*/
 
 # YouCompleteMe
 *.pyc

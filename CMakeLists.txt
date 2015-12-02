@@ -39,7 +39,7 @@ endif()
 # Dependencies
 ###############################################
 
-set(DAWN_DEPS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies" CACHE STRING
+set(DAWN_DEPS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" CACHE STRING
     "Directory to an extracted Dawn Engine dependencies package")
 
 # Locations of dependencies
@@ -85,11 +85,11 @@ set(LIBS
 # Add bundled external libraries
 set(INCLUDE_DIRS
     ${INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/BtOgre
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/FastDelegate
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/ImGui
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/LuaBridge
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source/ThirdParty/YamlCpp/include)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/BtOgre
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/FastDelegate
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/ImGui
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/LuaBridge
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/YamlCpp/include)
 
 # Push dependencies to the parent scope
 if(NOT ${CMAKE_SOURCE_DIR} EQUAL ${CMAKE_CURRENT_SOURCE_DIR})
@@ -124,7 +124,7 @@ endfunction()
 # Source
 ###############################################
 
-add_subdirectory(Source)
+add_subdirectory(src)
 
 
 ###############################################

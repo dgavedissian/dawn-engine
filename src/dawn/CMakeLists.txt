@@ -119,14 +119,14 @@ endif()
 
 # BtOgre
 set(TP_SOURCE_FILES
-    ../ThirdParty/BtOgre/BtOgre.cpp)
+    ../3rdparty/BtOgre/BtOgre.cpp)
 
 # ImGui
 set(TP_SOURCE_FILES ${TP_SOURCE_FILES}
-    ../ThirdParty/ImGui/imgui.cpp)
+    ../3rdparty/ImGui/imgui.cpp)
 
 # YamlCpp
-file(GLOB YAML_CPP_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ../ThirdParty/YamlCpp/src/*.cpp)
+file(GLOB YAML_CPP_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ../3rdparty/YamlCpp/src/*.cpp)
 set(TP_SOURCE_FILES ${TP_SOURCE_FILES} ${YAML_CPP_SRC})
 
 # Project
@@ -135,7 +135,6 @@ add_library(Dawn ${SOURCE_FILES})
 set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD")
 
 # Cotire
-message(STATUS ${CMAKE_CXX_FLAGS} ${INCLUDE_DIRS})
 set_target_properties(Dawn PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
 set_target_properties(Dawn PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "Prerequisites.h")
 include(cotire)

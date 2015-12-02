@@ -1,5 +1,5 @@
 # Dawn Engine
 # Copyright (c) 2012-2015 David Avedissian (avedissian.david@gmail.com)
 
-add_subdirectory(Dawn)
-add_subdirectory(Sandbox)
+add_subdirectory(dawn)
+add_subdirectory(sandbox)

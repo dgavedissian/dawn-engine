@@ -9,7 +9,7 @@ set(CPP_FILES
     SandboxState.cpp)
 
 include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Dawn
+    ${CMAKE_CURRENT_SOURCE_DIR}/../dawn
     ${INCLUDE_DIRS})
 add_game(Sandbox ${CPP_FILES} ${H_FILES})
 target_link_libraries(Sandbox Dawn)
