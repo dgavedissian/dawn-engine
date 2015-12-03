@@ -70,8 +70,11 @@ void Console::Write(const String& str)
     mOutput += sanitisedStr;
 
     // Set the inner RML and scroll down
-    mText->SetInnerRML(mOutput.c_str());
-    mConsole->SetScrollTop(mConsole->GetScrollHeight());
+	if (mText)
+	{
+		mText->SetInnerRML(mOutput.c_str());
+		mConsole->SetScrollTop(mConsole->GetScrollHeight());
+	}
 }
 
 void Console::Execute(const String& statement)
