@@ -5,11 +5,10 @@ A game engine written in C++ designed for powering space games which require gal
 
 Build Process
 -------------
-1) Build dependencies as specified in the instructions below.
-2) Run CMake, set the source directory to .../dawnengine, and the binary directory to .../dawnengine/build. (replacing ... with where this repo was cloned).
+1. Build dependencies as specified in the instructions below.
+2. Run CMake, set the source directory to .../dawnengine, and the binary directory to .../dawnengine/build. (replacing ... with where this repo was cloned).
     * For Linux and OS X, just execute `cd dawnengine && mkdir build && cd build && cmake ..`
-3a) For Windows, enter the build directory and open the produced DawnEngine.sln file.
-3b) For Linux and OS X, just run make in the build directory.
+3. For Windows, enter the build directory and open the produced DawnEngine.sln file. For Linux and OS X, just run make in the build directory.
 
 Dependencies
 -------------
