@@ -117,21 +117,9 @@ if(APPLE)
     set(CPP_FILES} ${CPP_FILES} Graphics/OSXGetNSView.mm)
 endif()
 
-# BtOgre
-set(TP_SOURCE_FILES
-    ../3rdparty/BtOgre/BtOgre.cpp)
-
-# ImGui
-set(TP_SOURCE_FILES ${TP_SOURCE_FILES}
-    ../3rdparty/ImGui/imgui.cpp)
-
-# YamlCpp
-file(GLOB YAML_CPP_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ../3rdparty/YamlCpp/src/*.cpp)
-set(TP_SOURCE_FILES ${TP_SOURCE_FILES} ${YAML_CPP_SRC})
-
 # Project
 set(SOURCE_FILES ${TP_SOURCE_FILES} ${CPP_FILES} ${H_FILES})
-add_library(Dawn ${SOURCE_FILES})
+add_library(Dawn SHARED ${SOURCE_FILES})
 set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD")
 
 # Cotire
@@ -149,7 +137,5 @@ if(WIN32)
 endif()
 
 # Add include dirs and libraries
-include_directories(
-    .
-    ${INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
 target_link_libraries(Dawn ${LIBS})
