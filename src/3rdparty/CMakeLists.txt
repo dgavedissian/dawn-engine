@@ -19,7 +19,7 @@ set(ROCKETDIR "${DAWN_DEPS_DIR}")
 set(SDL2DIR "${DAWN_DEPS_DIR}")
 
 # Dependencies
-find_package(Bullet REQUIRED)                           # physics
+#find_package(Bullet REQUIRED)                           # physics
 find_package(IrrKlang REQUIRED)                         # audio
 find_package(Lua REQUIRED)                              # scripting
 find_package(MathGeoLib REQUIRED)                       # vectors and matrices
@@ -29,7 +29,7 @@ find_package(Rocket REQUIRED Core Controls Debugger)    # gui
 find_package(SDL2 REQUIRED)                             # windowing and input
 
 set(INCLUDE_DIRS
-    ${BULLET_INCLUDE_DIRS}
+    #${BULLET_INCLUDE_DIRS}
     ${IRRKLANG_INCLUDE_DIR}
     ${LUA_INCLUDE_DIR}
     ${MATHGEOLIB_INCLUDE_DIR}
@@ -39,7 +39,7 @@ set(INCLUDE_DIRS
     ${SDL2_INCLUDE_DIR})
 
 set(LIBS
-    ${BULLET_LIBRARIES}
+    #${BULLET_LIBRARIES}
     ${IRRKLANG_LIBRARIES}
     ${LUA_LIBRARIES}
     ${MATHGEOLIB_LIBRARY}
@@ -56,6 +56,28 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/LuaBridge
     ${CMAKE_CURRENT_SOURCE_DIR}/YamlCpp/include)
 
+
+##############################################################
+# External Projects
+##############################################################
+
+include(ExternalProject)
+set(INCLUDE_DIRS ${INCLUDE_DIRS} ${CMAKE_BINARY_DIR}/dependencies/install/include)
+
+ExternalProject_Add(Bullet
+    PREFIX ${CMAKE_BINARY_DIR}/dependencies
+    INSTALL_DIR ${CMAKE_BINARY_DIR}/dependencies/install
+    GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
+    CMAKE_ARGS
+        -DBUILD_EXTRAS=0
+        -DBUILD_BULLET2_DEMOS=0
+        -DBUILD_BULLET3=0
+        -DBUILD_UNIT_TESTS=0
+        -DINSTALL_LIBS=1
+        -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/dependencies/install)
+
+set(INCLUDE_DIRS ${INCLUDE_DIRS} ${CMAKE_BINARY_DIR}/dependencies/install/include/bullet)
+set(LIBS BulletDynamics BulletCollision LinearMath)
 
 ##############################################################
 # Packaged Dependencies
