@@ -4,7 +4,7 @@
  */
 #include "Common.h"
 #include "SceneManager.h"
-#include "Physics/PhysicsWorld.h"
+#include "physics/PhysicsWorld.h"
 #include "RigidEntity.h"
 
 NAMESPACE_BEGIN

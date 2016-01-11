@@ -3,9 +3,9 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Renderer/Renderer.h"
-#include "Physics/PhysicsWorld.h"
-#include "Scene/Camera.h"
+#include "renderer/Renderer.h"
+#include "physics/PhysicsWorld.h"
+#include "scene/Camera.h"
 #include "StarSystem.h"
 #include "Star.h"
 

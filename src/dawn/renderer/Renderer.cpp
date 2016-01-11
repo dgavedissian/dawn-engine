@@ -3,9 +3,9 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Input/Input.h"
-#include "Deferred/DeferredShadingManager.h"
-#include "Scene/Camera.h"
+#include "input/Input.h"
+#include "deferred/DeferredShadingManager.h"
+#include "scene/Camera.h"
 #include "Renderer.h"
 
 #if DW_PLATFORM == DW_MAC_OSX

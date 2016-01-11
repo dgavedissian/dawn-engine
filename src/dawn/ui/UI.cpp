@@ -3,8 +3,8 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Input/Input.h"
-#include "Renderer/Renderer.h"
+#include "input/Input.h"
+#include "renderer/Renderer.h"
 #include "UI.h"
 
 #include "RocketInterface.h"

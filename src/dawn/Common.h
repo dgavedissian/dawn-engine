@@ -125,29 +125,29 @@ NAMESPACE_END
 #define ERROR_FATAL(x) { LOGERR << (x); throw std::runtime_error(x); }
 
 // Math library
-#include "Math/MathDefs.h"
-#include "Math/Noise.h"
-#include "Math/Vec2i.h"
-#include "Math/Vec3i.h"
-#include "Math/Vec4i.h"
-#include "Math/Rect.h"
+#include "math/Defs.h"
+#include "math/Noise.h"
+#include "math/Vec2i.h"
+#include "math/Vec3i.h"
+#include "math/Vec4i.h"
+#include "math/Rect.h"
 // TODO: Random number generators
 
 // Data structures
-#include "Core/FixedMemoryPool.h"
+#include "core/FixedMemoryPool.h"
 
 // Platform library
 // Thread
 // File
 
 // Position
-#include "Scene/Position.h"
+#include "scene/Position.h"
 
 // Core
-#include "Core/Singleton.h"
-#include "Core/Log.h"
-#include "Core/Config.h"
-#include "Core/Utils.h"
+#include "core/Singleton.h"
+#include "core/Log.h"
+#include "core/Config.h"
+#include "core/Utils.h"
 
 // Event System
 #include "EventSystem.h"

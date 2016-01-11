@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Renderer/Renderer.h"
+#include "renderer/Renderer.h"
 #include "RocketInterface.h"
 
 NAMESPACE_BEGIN

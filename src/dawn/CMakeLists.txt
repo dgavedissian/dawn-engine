@@ -14,7 +14,7 @@ set(H_FILES
     core/Singleton.h
     core/Utils.h
     input/Input.h
-    math/MathDefs.h
+    math/Defs.h
     math/Noise.h
     math/Rect.h
     math/Vec2i.h

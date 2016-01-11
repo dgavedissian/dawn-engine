@@ -3,9 +3,9 @@
  * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
  */
 #include "Common.h"
-#include "Renderer/Renderer.h"
-#include "Renderer/Deferred/DeferredShadingManager.h"
-#include "Script/LuaState.h"
+#include "renderer/Renderer.h"
+#include "renderer/deferred/DeferredShadingManager.h"
+#include "script/LuaState.h"
 #include "StarSystem.h"
 
 NAMESPACE_BEGIN
