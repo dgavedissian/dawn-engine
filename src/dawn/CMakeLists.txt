@@ -2,57 +2,57 @@
 # Copyright (c) 2012-2015 David Avedissian (avedissian.david@gmail.com)
 
 set(H_FILES
-    Audio/Audio.h
-    Audio/Sound.h
-    Audio/Source.h
-    Audio/Track.h
-    Core/Config.h
-    Core/ConfigNode.h
-    Core/ConfigNode.inl
-    Core/FixedMemoryPool.h
-    Core/Log.h
-    Core/Singleton.h
-    Core/Utils.h
-    Input/Input.h
-    Math/MathDefs.h
-    Math/Noise.h
-    Math/Rect.h
-    Math/Vec2i.h
-    Math/Vec3i.h
-    Math/Vec4i.h
-    Physics/PhysicsWorld.h
-    Renderer/Deferred/AmbientLight.h
-    Renderer/Deferred/DeferredLight.h
-    Renderer/Deferred/DeferredLightCompPass.h
-    Renderer/Deferred/DeferredShadingManager.h
-    Renderer/Deferred/GBufferMaterialGenerator.h
-    Renderer/Deferred/GBufferSchemeHandler.h
-    Renderer/Deferred/LightMaterialGenerator.h
-    Renderer/Deferred/ListenerFactoryLogic.h
-    Renderer/Deferred/MaterialGenerator.h
-    Renderer/GeometryUtils.h
-    Renderer/Renderer.h
-    Renderer/SpriteManager.h
-    Scene/Space/AsteroidBelt.h
-    Scene/Space/Barycentre.h
-    Scene/Space/Galaxy.h
-    Scene/Space/Orbit.h
-    Scene/Space/Planet.h
-    Scene/Space/Star.h
-    Scene/Space/StarSystem.h
-    Scene/Space/SystemBody.h
-    Scene/Camera.h
-    Scene/DefaultCamera.h
-    Scene/Entity.h
-    Scene/Position.h
-    Scene/RigidEntity.h
-    Scene/SceneManager.h
-    Script/LuaState.h
-    UI/Console.h
-    UI/ImGuiInterface.h
-    UI/Layout.h
-    UI/RocketInterface.h
-    UI/UI.h
+    audio/Audio.h
+    audio/Sound.h
+    audio/Source.h
+    audio/Track.h
+    core/Config.h
+    core/ConfigNode.h
+    core/ConfigNode.inl
+    core/FixedMemoryPool.h
+    core/Log.h
+    core/Singleton.h
+    core/Utils.h
+    input/Input.h
+    math/MathDefs.h
+    math/Noise.h
+    math/Rect.h
+    math/Vec2i.h
+    math/Vec3i.h
+    math/Vec4i.h
+    physics/PhysicsWorld.h
+    renderer/deferred/AmbientLight.h
+    renderer/deferred/DeferredLight.h
+    renderer/deferred/DeferredLightCompPass.h
+    renderer/deferred/DeferredShadingManager.h
+    renderer/deferred/GBufferMaterialGenerator.h
+    renderer/deferred/GBufferSchemeHandler.h
+    renderer/deferred/LightMaterialGenerator.h
+    renderer/deferred/ListenerFactoryLogic.h
+    renderer/deferred/MaterialGenerator.h
+    renderer/GeometryUtils.h
+    renderer/Renderer.h
+    renderer/SpriteManager.h
+    scene/space/AsteroidBelt.h
+    scene/space/Barycentre.h
+    scene/space/Galaxy.h
+    scene/space/Orbit.h
+    scene/space/Planet.h
+    scene/space/Star.h
+    scene/space/StarSystem.h
+    scene/space/SystemBody.h
+    scene/Camera.h
+    scene/DefaultCamera.h
+    scene/Entity.h
+    scene/Position.h
+    scene/RigidEntity.h
+    scene/SceneManager.h
+    script/LuaState.h
+    ui/Console.h
+    ui/ImGuiInterface.h
+    ui/Layout.h
+    ui/RocketInterface.h
+    ui/UI.h
     StateManager.h
     Common.h
     DawnEngine.h
@@ -62,59 +62,59 @@ set(H_FILES
     Prerequisites.h)
 
 set(CPP_FILES
-    Audio/Audio.cpp
-    Audio/Sound.cpp
-    Audio/Source.cpp
-    Audio/Track.cpp
-    Core/Config.cpp
-    Core/ConfigNode.cpp
-    Core/Log.cpp
-    Core/Utils.cpp
-    Input/Input.cpp
-    Math/Noise.cpp
-    Math/Rect.cpp
-    Math/Vec2i.cpp
-    Math/Vec3i.cpp
-    Math/Vec4i.cpp
-    Physics/PhysicsWorld.cpp
-    Renderer/Deferred/AmbientLight.cpp
-    Renderer/Deferred/DeferredLight.cpp
-    Renderer/Deferred/DeferredLightCompPass.cpp
-    Renderer/Deferred/DeferredShadingManager.cpp
-    Renderer/Deferred/GBufferMaterialGenerator.cpp
-    Renderer/Deferred/GBufferSchemeHandler.cpp
-    Renderer/Deferred/LightMaterialGenerator.cpp
-    Renderer/Deferred/MaterialGenerator.cpp
-    Renderer/GeometryUtils.cpp
-    Renderer/Renderer.cpp
-    Renderer/SpriteManager.cpp
-    Scene/Space/AsteroidBelt.cpp
-    Scene/Space/Barycentre.cpp
-    Scene/Space/Galaxy.cpp
-    Scene/Space/Orbit.cpp
-    Scene/Space/Planet.cpp
-    Scene/Space/Star.cpp
-    Scene/Space/StarSystem.cpp
-    Scene/Space/SystemBody.cpp
-    Scene/Camera.cpp
-    Scene/DefaultCamera.cpp
-    Scene/Entity.cpp
-    Scene/Position.cpp
-    Scene/RigidEntity.cpp
-    Scene/SceneManager.cpp
-    Script/LuaState.cpp
-    UI/Console.cpp
-    UI/ImGuiInterface.cpp
-    UI/Layout.cpp
-    UI/RocketInterface.cpp
-    UI/UI.cpp
+    audio/Audio.cpp
+    audio/Sound.cpp
+    audio/Source.cpp
+    audio/Track.cpp
+    core/Config.cpp
+    core/ConfigNode.cpp
+    core/Log.cpp
+    core/Utils.cpp
+    input/Input.cpp
+    math/Noise.cpp
+    math/Rect.cpp
+    math/Vec2i.cpp
+    math/Vec3i.cpp
+    math/Vec4i.cpp
+    physics/PhysicsWorld.cpp
+    renderer/deferred/AmbientLight.cpp
+    renderer/deferred/DeferredLight.cpp
+    renderer/deferred/DeferredLightCompPass.cpp
+    renderer/deferred/DeferredShadingManager.cpp
+    renderer/deferred/GBufferMaterialGenerator.cpp
+    renderer/deferred/GBufferSchemeHandler.cpp
+    renderer/deferred/LightMaterialGenerator.cpp
+    renderer/deferred/MaterialGenerator.cpp
+    renderer/GeometryUtils.cpp
+    renderer/Renderer.cpp
+    renderer/SpriteManager.cpp
+    scene/space/AsteroidBelt.cpp
+    scene/space/Barycentre.cpp
+    scene/space/Galaxy.cpp
+    scene/space/Orbit.cpp
+    scene/space/Planet.cpp
+    scene/space/Star.cpp
+    scene/space/StarSystem.cpp
+    scene/space/SystemBody.cpp
+    scene/Camera.cpp
+    scene/DefaultCamera.cpp
+    scene/Entity.cpp
+    scene/Position.cpp
+    scene/RigidEntity.cpp
+    scene/SceneManager.cpp
+    script/LuaState.cpp
+    ui/Console.cpp
+    ui/ImGuiInterface.cpp
+    ui/Layout.cpp
+    ui/RocketInterface.cpp
+    ui/UI.cpp
     StateManager.cpp
     Engine.cpp
     EventSystem.cpp)
 
 if(APPLE)
-    set(H_FILES ${H_FILES} Graphics/OSXGetNSView.h)
-    set(CPP_FILES} ${CPP_FILES} Graphics/OSXGetNSView.mm)
+    set(H_FILES ${H_FILES} renderer/OSXGetNSView.h)
+    set(CPP_FILES} ${CPP_FILES} renderer/OSXGetNSView.mm)
 endif()
 
 # Project
