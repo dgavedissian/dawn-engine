@@ -1,46 +1,10 @@
 # Dawn Engine
 # Copyright (c) 2012-2015 David Avedissian (git@davedissian.com)
 
-##############################################################
-# External Dependencies
-##############################################################
-
-set(DAWN_DEPS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../dependencies" CACHE STRING
-    "Directory to an extracted Dawn Engine dependencies package")
-
-# Locations of dependencies
-set(IRRKLANG_DIR "${DAWN_DEPS_DIR}")
-set(LUA_DIR "${DAWN_DEPS_DIR}")
-set(MATHGEOLIB_DIR "${DAWN_DEPS_DIR}")
-set(PARTICLEUNIVERSE_DIR "${DAWN_DEPS_DIR}")
-set(ROCKETDIR "${DAWN_DEPS_DIR}")
-set(SDL2DIR "${DAWN_DEPS_DIR}")
-
-# Dependencies
-#find_package(IrrKlang REQUIRED)                         # audio
-#find_package(ParticleUniverse REQUIRED)                 # particles
-#find_package(Rocket REQUIRED Core Controls Debugger)    # gui
-#find_package(SDL2 REQUIRED)                             # windowing and input
-
-#set(INCLUDE_DIRS
-    #${BULLET_INCLUDE_DIRS}
-#    ${IRRKLANG_INCLUDE_DIR}
-#    ${LUA_INCLUDE_DIR}
-#    ${MATHGEOLIB_INCLUDE_DIR}
-#    ${OGRE_INCLUDE_DIRS}
-#    ${PARTICLEUNIVERSE_INCLUDE_DIR}
-#    ${ROCKET_INCLUDE_DIR}
-#    ${SDL2_INCLUDE_DIR})
-
-#set(LIBS
-    #${BULLET_LIBRARIES}
-#    ${IRRKLANG_LIBRARIES}
-#    ${LUA_LIBRARIES}
-#    ${MATHGEOLIB_LIBRARY}
-#    ${OGRE_LIBRARIES}
-#    ${PARTICLEUNIVERSE_LIBRARIES}
-#    ${ROCKET_LIBRARIES}
-#    ${SDL2_LIBRARIES})
+# Find SDL2 on the system
+find_package(SDL2 REQUIRED)
+set(INCLUDE_DIRS ${INCLUDE_DIRS} ${SDL2_INCLUDE_DIR})
+set(LIBS ${LIBS} ${SDL2_LIBRARIES})
 
 # Add bundled external libraries
 set(INCLUDE_DIRS ${INCLUDE_DIRS}
@@ -58,12 +22,13 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS}
 include(ExternalProject)
 
 set(EXTERNAL_PREFIX ${CMAKE_BINARY_DIR}/dependencies)
-set(EXTERNAL_ARGS -DCMAKE_INSTALL_PREFIX="${EXTERNAL_PREFIX}/install")
+set(EXTERNAL_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_PREFIX}/install)
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_PREFIX}/install/include)
 
 # Bullet
 ExternalProject_Add(Bullet
     PREFIX ${EXTERNAL_PREFIX}
+    INSTALL_DIR ${EXTERNAL_PREFIX}/install
     GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
@@ -93,9 +58,10 @@ ExternalProject_Add(Ogre
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_PREFIX}/install
     HG_REPOSITORY https://bitbucket.org/sinbad/ogre
-    HG_TAG b9c0799
+    HG_TAG 374723e
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
+        -DOIS_INCLUDE_DIR="" # this is needed for some reason?
         -DOGRE_DEPENDENCIES_DIR=${CMAKE_BINARY_DIR}/dependencies/ogredeps/ogredeps
         -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=0
         -DOGRE_BUILD_COMPONENT_OVERLAY=0
@@ -117,8 +83,17 @@ ExternalProject_Add(Ogre
         -DOGRE_INSTALL_DOCS=0
         -DOGRE_INSTALL_PDB=0
         -DOGRE_INSTALL_SAMPLES=0
+        -DOGRE_STATIC=1
         -DOGRE_UNITY_BUILD=1
         -DOGRE_USE_BOOST=0)
+
+set(OGRE_INCLUDE_DIRS ${EXTERNAL_PREFIX}/install/include/OGRE)
+if (WIN32)
+else()
+    set(OGRE_LIBRARIES
+        ${EXTERNAL_PREFIX}/install/lib/libOgreMainStatic.a
+        ${EXTERNAL_PREFIX}/install/lib/libRenderSystem_GL3PlusStatic.a)
+endif()
 
 ExternalProject_Add(ParticleUniverse
     DEPENDS Ogre
@@ -127,14 +102,15 @@ ExternalProject_Add(ParticleUniverse
     GIT_REPOSITORY https://github.com/davedissian/particleuniverse.git
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DBUILD_SHARED_LIBS=1
-        -DOGRE_HOME=${EXTERNAL_PREFIX}/install
+        -DBUILD_SHARED_LIBS=0
+        -DOGRE_FOUND=1 # supress FindOgre.cmake
+        -DOGRE_INCLUDE_DIRS=${OGRE_INCLUDE_DIRS}
+        -DOGRE_LIBRARIES=${OGRE_LIBRARIES}
         -DPU_BUILD_SAMPLES=0
         -DPU_BUILD_TOOLS=0)
 
-set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_PREFIX}/install/include/OGRE)
-set(LIBS ${LIBS}
-    ${EXTERNAL_PREFIX}/install/lib/libOgreMain.so)
+set(INCLUDE_DIRS ${INCLUDE_DIRS} ${OGRE_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${OGRE_LIBRARIES})
 
 # MathGeoLib
 ExternalProject_Add(MathGeoLib
@@ -144,6 +120,8 @@ ExternalProject_Add(MathGeoLib
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0)
+set(INCLUDE_DIRS ${INCLUDE_DIRS}
+    ${EXTERNAL_PREFIX}/install/include/MathGeoLib)
 set(LIBS ${LIBS}
     ${EXTERNAL_PREFIX}/install/lib/libMathGeoLib.a)
 
@@ -157,7 +135,7 @@ ExternalProject_Add(Luajit
         -DBUILD_SHARED_LIBS=0
         -DLUA_BUILD_WLUA=0)
 set(LIBS ${LIBS}
-    ${EXTERNAL_PREFIX}/install/libs/liblua.a)
+    ${EXTERNAL_PREFIX}/install/lib/liblua.a)
 
 # libRocket
 if(WIN32)
@@ -172,7 +150,7 @@ ExternalProject_Add(LibRocket
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ${CMAKE_COMMAND} ../LibRocket/Build
     CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DBUILD_SHARED_LIBS=1
+        -DBUILD_SHARED_LIBS=0
         -DFREETYPE_INCLUDE_DIR_ft2build=${CMAKE_BINARY_DIR}/dependencies/ogredeps/ogredeps/include
         -DFREETYPE_INCLUDE_DIR_freetype2=${CMAKE_BINARY_DIR}/dependencies/ogredeps/ogredeps/include/freetype
         -DFREETYPE_LIBRARY=${CMAKE_BINARY_DIR}/dependencies/ogredeps/ogredeps/lib/${FREETYPE_LIB})
@@ -193,16 +171,34 @@ ExternalProject_Add(RakNet
 set(LIBS ${LIBS})
 
 # IrrKlang
-set(IRRKLANG_PATCH_COMMAND)
+if(WIN32)
+elseif(APPLE)
+    set(IRRKLANG_LIBIRRKLANG libirrklang.dylib)
+    set(IRRKLANG_IKPFLAC ikpFLAC.dylib)
+    set(IRRKLANG_IKPMP3 ikpMP3.dylib)
+    set(IRRKLANG_COPY_LIBIRRKLANG
+        ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/libirrklang.dylib ${EXTERNAL_PREFIX}/install/lib/)
+    set(IRRKLANG_COPY_IKPFLAC
+        ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/ikpFLAC.dylib ${EXTERNAL_PREFIX}/install/lib/)
+    set(IRRKLANG_COPY_IKPMP3
+        ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/ikpMP3.dylib ${EXTERNAL_PREFIX}/install/lib/)
+else()
+endif()
 ExternalProject_Add(IrrKlang
     PREFIX ${EXTERNAL_PREFIX}
     URL http://www.ambiera.at/downloads/irrKlang-64bit-1.5.0.zip
-    PATCH_COMMAND ${IRRKLANG_PATCH_COMMAND}
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
-    INSTALL_COMMAND "")
-set(LIBS ${LIBS})
+    INSTALL_COMMAND ""
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/${IRRKLANG_LIBIRRKLANG} ${EXTERNAL_PREFIX}/install/lib/
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/${IRRKLANG_IKPFLAC} ${EXTERNAL_PREFIX}/install/lib/
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/${IRRKLANG_IKPMP3} ${EXTERNAL_PREFIX}/install/lib/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${EXTERNAL_PREFIX}/install/include)
+set(LIBS ${LIBS}
+    ${EXTERNAL_PREFIX}/install/lib/${IRRKLANG_LIBIRRKLANG}
+    ${EXTERNAL_PREFIX}/install/lib/${IRRKLANG_IKPFLAC}
+    ${EXTERNAL_PREFIX}/install/lib/${IRRKLANG_IKPMP3})
 
 
 ##############################################################

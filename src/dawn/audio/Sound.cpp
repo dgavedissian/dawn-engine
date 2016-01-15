@@ -73,7 +73,7 @@ void Sound::Update(Camera* camera, float dt)
     if (mIs3D)
     {
         Vec3 velocity =
-            dt > math::eps ? mPosition.GetRelativeToPoint(mOldPosition) / dt : Vec3(0.0f);
+            dt > M_EPSILON ? mPosition.GetRelativeToPoint(mOldPosition) / dt : Vec3(0.0f);
         mOldPosition = mPosition;
         mSound->setVelocity(velocity);
         mSound->setPosition(mPosition.ToCameraSpace(camera));

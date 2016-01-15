@@ -62,7 +62,7 @@ void Audio::PlaySound(const String& filename, const Position& position, float mi
 void Audio::Update(float dt, Camera* Listener)
 {
     // Calculate velocity
-    Vec3 velocity = dt > math::eps
+    Vec3 velocity = dt > M_EPSILON
                         ? Listener->GetPosition().GetRelativeToPoint(mLastCameraPosition) / dt
                         : Vec3(0.0f, 0.0f, 0.0f);
     mLastCameraPosition = Listener->GetPosition();

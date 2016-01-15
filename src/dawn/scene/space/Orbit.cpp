@@ -18,7 +18,7 @@ CircularOrbit::~CircularOrbit()
 
 Position CircularOrbit::CalculatePosition(double time)
 {
-    if (mRadius < math::eps)
+    if (mRadius < M_EPSILON)
     {
         return Position();
     }

@@ -145,7 +145,7 @@ void Star::PreRender(Camera* camera)
     mPhysicsMgr->RaycastQuery(camera->GetPosition(), mPosition, camera, query);
     mFlareVisibility =
         math::Clamp(mFlareVisibility + (query.hit ? -1.0f : 1.0f) * 8.0f / 60.0f, 0.0f, 1.0f);
-    if (mFlareVisibility < math::eps && mFlareBillboard)
+    if (mFlareVisibility < M_EPSILON && mFlareBillboard)
     {
         mFlareBillboardSet->removeBillboard(mFlareBillboard);
         mFlareBillboard = nullptr;
