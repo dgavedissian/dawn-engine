@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2015 (avedissian.david@gmail.com)
+ * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
 #include "LuaState.h"

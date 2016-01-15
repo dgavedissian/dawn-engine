@@ -1,5 +1,5 @@
 # Dawn Engine
-# Copyright (c) 2012-2015 David Avedissian (avedissian.david@gmail.com)
+# Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
 
 add_subdirectory(3rdparty)
 add_subdirectory(dawn)

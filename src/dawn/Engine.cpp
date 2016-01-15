@@ -1,7 +1,6 @@
 /*
-    Dawn Engine
-    Copyright (c) 2012-2015 David Avedissian (avedissian.david@gmail.com)
-    Author: David Avedissian
+* Dawn Engine
+* Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
 */
 #include "Common.h"
 #include "DawnEngine.h"

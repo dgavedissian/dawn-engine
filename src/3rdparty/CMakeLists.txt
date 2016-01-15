@@ -1,5 +1,5 @@
 # Dawn Engine
-# Copyright (c) 2012-2015 David Avedissian (git@davedissian.com)
+# Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
 
 # Find SDL2 on the system
 find_package(SDL2 REQUIRED)
