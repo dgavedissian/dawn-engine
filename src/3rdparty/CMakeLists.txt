@@ -26,7 +26,10 @@ set(EXTERNAL_PREFIX ${CMAKE_BINARY_DIR}/dependencies)
 set(EXTERNAL_INSTALL ${EXTERNAL_PREFIX}/install)
 
 # Arguments to be passed to all calls to CMake
-set(EXTERNAL_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL} -DCMAKE_CXX_FLAGS=-fPIC)
+set(EXTERNAL_ARGS
+    -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL}
+    -DCMAKE_C_FLAGS=-fPIC
+    -DCMAKE_CXX_FLAGS=-fPIC)
 
 # General include directory for all external dependencies
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include)
@@ -50,14 +53,13 @@ set(LIBS ${LIBS}
     ${EXTERNAL_INSTALL}/lib/libLinearMath.a)
 
 # OGRE
-set(OGREDEPS_PREFIX ${EXTERNAL_PREFIX}/src/ogredepspkg)
 ExternalProject_Add(OgreDeps
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${CMAKE_BINARY_DIR}/dependencies/ogredeps/ogredeps
     HG_REPOSITORY https://bitbucket.org/cabalistic/ogredeps
     UPDATE_COMMAND ""
     CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=${OGREDEPS_PREFIX}
+        -DCMAKE_INSTALL_PREFIX=${EXTERNAL_PREFIX}/install
         -DOGREDEPS_BUILD_OIS=0)
 
 ExternalProject_Add(Ogre
@@ -69,7 +71,7 @@ ExternalProject_Add(Ogre
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DOIS_INCLUDE_DIR="" # this is needed for some reason?
-        -DOGRE_DEPENDENCIES_DIR=${OGREDEPS_PREFIX}
+        -DOGRE_DEPENDENCIES_DIR=${EXTERNAL_PREFIX}/install
         -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=0
         -DOGRE_BUILD_COMPONENT_OVERLAY=0
         -DOGRE_BUILD_COMPONENT_PAGING=0
@@ -98,11 +100,22 @@ set(OGRE_INCLUDE_DIRS ${EXTERNAL_INSTALL}/include/OGRE)
 if (WIN32)
 else()
     set(OGRE_LIBRARIES
+        ${EXTERNAL_PREFIX}/install/lib/libFreeImage.a
+        ${EXTERNAL_PREFIX}/install/lib/libfreetype.a
+        ${EXTERNAL_PREFIX}/install/lib/libzlib.a
+        ${EXTERNAL_PREFIX}/install/lib/libzziplib.a
         ${EXTERNAL_INSTALL}/lib/libOgreMainStatic.a
         ${EXTERNAL_INSTALL}/lib/OGRE/libRenderSystem_GL3PlusStatic.a)
 endif()
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${OGRE_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${OGRE_LIBRARIES})
+
+# Ogre External Dependencies
+if(UNIX AND NOT APPLE)
+    find_package(X11 REQUIRED)
+    find_library(XAW_LIBRARY NAMES Xaw)
+    set(LIBS ${LIBS} ${X11_LIBRARIES} ${X11_Xt_LIBRARIES} ${XAW_LIBRARY} ${X11_Xrandr_LIB})
+endif()
 
 # ParticleUniverse
 ExternalProject_Add(ParticleUniverse
@@ -143,7 +156,7 @@ else()
 endif()
 
 # Luajit
-ExternalProject_Add(Luajit
+ExternalProject_Add(Lua
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
     GIT_REPOSITORY https://github.com/davedissian/dawnengine-luajit.git
@@ -161,6 +174,7 @@ else()
     set(FREETYPE_LIB libfreetype.a)
 endif()
 ExternalProject_Add(LibRocket
+    DEPENDS OgreDeps
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
     GIT_REPOSITORY https://github.com/davedissian/dawnengine-libRocket.git
@@ -168,9 +182,9 @@ ExternalProject_Add(LibRocket
     CONFIGURE_COMMAND ${CMAKE_COMMAND} ../LibRocket/Build
         ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0
-        -DFREETYPE_INCLUDE_DIR_ft2build=${OGREDEPS_PREFIX}/include
-        -DFREETYPE_INCLUDE_DIR_freetype2=${OGREDEPS_PREFIX}/include/freetype
-        -DFREETYPE_LIBRARY=${OGREDEPS_PREFIX}/lib/${FREETYPE_LIB})
+        -DFREETYPE_INCLUDE_DIR_ft2build=${EXTERNAL_PREFIX}/install/include
+        -DFREETYPE_INCLUDE_DIR_freetype2=${EXTERNAL_PREFIX}/install/include/freetype
+        -DFREETYPE_LIBRARY=${EXTERNAL_PREFIX}/install/lib/${FREETYPE_LIB})
 if(WIN32)
 else()
     set(LIBS ${LIBS}
@@ -215,19 +229,33 @@ ExternalProject_Add(IrrKlang
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_LIBIRRKLANG} ${EXTERNAL_INSTALL}/lib/
-    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_IKPFLAC} ${EXTERNAL_INSTALL}/lib/
-    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_IKPMP3} ${EXTERNAL_INSTALL}/lib/
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_IKPFLAC} ${EXTERNAL_INSTALL}/lib/lib${IRRKLANG_IKPFLAC}
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_IKPMP3} ${EXTERNAL_INSTALL}/lib/lib${IRRKLANG_IKPMP3}
     COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${EXTERNAL_INSTALL}/include)
-set(LIBS ${LIBS}
-    ${EXTERNAL_INSTALL}/lib/${IRRKLANG_LIBIRRKLANG}
-    ${EXTERNAL_INSTALL}/lib/${IRRKLANG_IKPFLAC}
-    ${EXTERNAL_INSTALL}/lib/${IRRKLANG_IKPMP3})
+if(WIN32)
+    set(LIBS ${LIBS}
+        ${EXTERNAL_INSTALL}/lib/${IRRKLANG_LIBIRRKLANG}
+        ${EXTERNAL_INSTALL}/lib/${IRRKLANG_IKPFLAC}
+        ${EXTERNAL_INSTALL}/lib/${IRRKLANG_IKPMP3})
+else()
+    set(LIBS ${LIBS}
+        ${EXTERNAL_INSTALL}/lib/${IRRKLANG_LIBIRRKLANG}
+        ${EXTERNAL_INSTALL}/lib/lib${IRRKLANG_IKPFLAC}
+        ${EXTERNAL_INSTALL}/lib/lib${IRRKLANG_IKPMP3})
+endif()
+
+set(EXTERNAL_DEPS Bullet Ogre ParticleUniverse MathGeoLib Lua LibRocket RakNet IrrKlang PARENT_SCOPE)
 
 
 ##############################################################
 # Packaged Dependencies
 ##############################################################
 include_directories(${INCLUDE_DIRS})
+
+# Build static libraries as PIC
+if(UNIX) # TODO: If is Clang or GCC
+    add_definitions(-fPIC)
+endif()
 
 # BtOgre
 add_library(BtOgre BtOgre/BtOgre.cpp)

@@ -121,12 +121,13 @@ endif()
 set(SOURCE_FILES ${TP_SOURCE_FILES} ${CPP_FILES} ${H_FILES})
 add_library(Dawn SHARED ${SOURCE_FILES})
 set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD")
+add_dependencies(Dawn ${EXTERNAL_DEPS})
 
 # Cotire
-set_target_properties(Dawn PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
-set_target_properties(Dawn PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "Prerequisites.h")
-include(cotire)
 if(WIN32)
+    include(cotire)
+    set_target_properties(Dawn PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
+    set_target_properties(Dawn PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "Prerequisites.h")
     cotire(Dawn)
 endif()
 
