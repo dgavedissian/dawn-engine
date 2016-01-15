@@ -21,14 +21,20 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS}
 
 include(ExternalProject)
 
+# External directories
 set(EXTERNAL_PREFIX ${CMAKE_BINARY_DIR}/dependencies)
-set(EXTERNAL_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_PREFIX}/install)
-set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_PREFIX}/install/include)
+set(EXTERNAL_INSTALL ${EXTERNAL_PREFIX}/install)
+
+# Arguments to be passed to all calls to CMake
+set(EXTERNAL_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL} -DCMAKE_CXX_FLAGS=-fPIC)
+
+# General include directory for all external dependencies
+set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include)
 
 # Bullet
 ExternalProject_Add(Bullet
     PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_PREFIX}/install
+    INSTALL_DIR ${EXTERNAL_INSTALL}
     GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
@@ -37,32 +43,33 @@ ExternalProject_Add(Bullet
         -DBUILD_BULLET3=0
         -DBUILD_UNIT_TESTS=0
         -DINSTALL_LIBS=1)
-set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_PREFIX}/install/include/bullet)
+set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include/bullet)
 set(LIBS ${LIBS}
-    ${EXTERNAL_PREFIX}/install/lib/libBulletCollision.a
-    ${EXTERNAL_PREFIX}/install/lib/libBulletDynamics.a
-    ${EXTERNAL_PREFIX}/install/lib/libLinearMath.a)
+    ${EXTERNAL_INSTALL}/lib/libBulletCollision.a
+    ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a
+    ${EXTERNAL_INSTALL}/lib/libLinearMath.a)
 
 # OGRE
-# TODO: Make this all static
+set(OGREDEPS_PREFIX ${EXTERNAL_PREFIX}/src/ogredepspkg)
 ExternalProject_Add(OgreDeps
     PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_PREFIX}/install
+    INSTALL_DIR ${CMAKE_BINARY_DIR}/dependencies/ogredeps/ogredeps
     HG_REPOSITORY https://bitbucket.org/cabalistic/ogredeps
     UPDATE_COMMAND ""
-    CMAKE_ARGS ${EXTERNAL_ARGS}
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${OGREDEPS_PREFIX}
         -DOGREDEPS_BUILD_OIS=0)
 
 ExternalProject_Add(Ogre
     DEPENDS OgreDeps
     PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_PREFIX}/install
+    INSTALL_DIR ${EXTERNAL_INSTALL}
     HG_REPOSITORY https://bitbucket.org/sinbad/ogre
     HG_TAG 374723e
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DOIS_INCLUDE_DIR="" # this is needed for some reason?
-        -DOGRE_DEPENDENCIES_DIR=${CMAKE_BINARY_DIR}/dependencies/ogredeps/ogredeps
+        -DOGRE_DEPENDENCIES_DIR=${OGREDEPS_PREFIX}
         -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=0
         -DOGRE_BUILD_COMPONENT_OVERLAY=0
         -DOGRE_BUILD_COMPONENT_PAGING=0
@@ -87,55 +94,65 @@ ExternalProject_Add(Ogre
         -DOGRE_UNITY_BUILD=1
         -DOGRE_USE_BOOST=0)
 
-set(OGRE_INCLUDE_DIRS ${EXTERNAL_PREFIX}/install/include/OGRE)
+set(OGRE_INCLUDE_DIRS ${EXTERNAL_INSTALL}/include/OGRE)
 if (WIN32)
 else()
     set(OGRE_LIBRARIES
-        ${EXTERNAL_PREFIX}/install/lib/libOgreMainStatic.a
-        ${EXTERNAL_PREFIX}/install/lib/libRenderSystem_GL3PlusStatic.a)
+        ${EXTERNAL_INSTALL}/lib/libOgreMainStatic.a
+        ${EXTERNAL_INSTALL}/lib/OGRE/libRenderSystem_GL3PlusStatic.a)
 endif()
+set(INCLUDE_DIRS ${INCLUDE_DIRS} ${OGRE_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${OGRE_LIBRARIES})
 
+# ParticleUniverse
 ExternalProject_Add(ParticleUniverse
     DEPENDS Ogre
     PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_PREFIX}/install
-    GIT_REPOSITORY https://github.com/davedissian/particleuniverse.git
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    GIT_REPOSITORY https://github.com/davedissian/dawnengine-particleuniverse.git
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0
         -DOGRE_FOUND=1 # supress FindOgre.cmake
+        -DOGRE_STATIC=1
         -DOGRE_INCLUDE_DIRS=${OGRE_INCLUDE_DIRS}
         -DOGRE_LIBRARIES=${OGRE_LIBRARIES}
         -DPU_BUILD_SAMPLES=0
         -DPU_BUILD_TOOLS=0)
-
-set(INCLUDE_DIRS ${INCLUDE_DIRS} ${OGRE_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${OGRE_LIBRARIES})
+if(WIN32)
+else()
+    set(LIBS ${LIBS}
+        ${OGRE_LIBRARIES}
+        ${EXTERNAL_INSTALL}/lib/Plugin_ParticleUniverse.a)
+endif()
 
 # MathGeoLib
 ExternalProject_Add(MathGeoLib
     PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_PREFIX}/install
-    GIT_REPOSITORY https://github.com/juj/MathGeoLib.git
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    GIT_REPOSITORY https://github.com/davedissian/dawnengine-MathGeoLib.git
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0)
 set(INCLUDE_DIRS ${INCLUDE_DIRS}
-    ${EXTERNAL_PREFIX}/install/include/MathGeoLib)
-set(LIBS ${LIBS}
-    ${EXTERNAL_PREFIX}/install/lib/libMathGeoLib.a)
+    ${EXTERNAL_INSTALL}/include/MathGeoLib)
+if(WIN32)
+else()
+    set(LIBS ${LIBS}
+        ${EXTERNAL_INSTALL}/lib/libMathGeoLib.a)
+endif()
 
 # Luajit
 ExternalProject_Add(Luajit
     PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_PREFIX}/install
-    GIT_REPOSITORY https://github.com/LuaDist/luajit.git
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    GIT_REPOSITORY https://github.com/davedissian/dawnengine-luajit.git
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0
         -DLUA_BUILD_WLUA=0)
 set(LIBS ${LIBS}
-    ${EXTERNAL_PREFIX}/install/lib/liblua.a)
+    ${EXTERNAL_INSTALL}/lib/liblua.a)
 
 # libRocket
 if(WIN32)
@@ -145,44 +162,50 @@ else()
 endif()
 ExternalProject_Add(LibRocket
     PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_PREFIX}/install
-    GIT_REPOSITORY https://github.com/davedissian/libRocket.git
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    GIT_REPOSITORY https://github.com/davedissian/dawnengine-libRocket.git
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ${CMAKE_COMMAND} ../LibRocket/Build
-    CMAKE_ARGS ${EXTERNAL_ARGS}
+        ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0
-        -DFREETYPE_INCLUDE_DIR_ft2build=${CMAKE_BINARY_DIR}/dependencies/ogredeps/ogredeps/include
-        -DFREETYPE_INCLUDE_DIR_freetype2=${CMAKE_BINARY_DIR}/dependencies/ogredeps/ogredeps/include/freetype
-        -DFREETYPE_LIBRARY=${CMAKE_BINARY_DIR}/dependencies/ogredeps/ogredeps/lib/${FREETYPE_LIB})
-set(LIBS ${LIBS}
-    ${EXTERNAL_PREFIX}/install/libs/libRocketControls.so
-    ${EXTERNAL_PREFIX}/install/libs/libRocketCore.so
-    ${EXTERNAL_PREFIX}/install/libs/libRocketDebugger.so)
+        -DFREETYPE_INCLUDE_DIR_ft2build=${OGREDEPS_PREFIX}/include
+        -DFREETYPE_INCLUDE_DIR_freetype2=${OGREDEPS_PREFIX}/include/freetype
+        -DFREETYPE_LIBRARY=${OGREDEPS_PREFIX}/lib/${FREETYPE_LIB})
+if(WIN32)
+else()
+    set(LIBS ${LIBS}
+        ${EXTERNAL_INSTALL}/lib/libRocketControls.a
+        ${EXTERNAL_INSTALL}/lib/libRocketCore.a
+        ${EXTERNAL_INSTALL}/lib/libRocketDebugger.a)
+endif()
 
 # RakNet
 ExternalProject_Add(RakNet
     PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_PREFIX}/install
-    GIT_REPOSITORY https://github.com/davedissian/RakNet.git
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    GIT_REPOSITORY https://github.com/davedissian/dawnengine-RakNet.git
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DRAKNET_ENABLE_DLL=0
         -DRAKNET_ENABLE_SAMPLES=0)
-set(LIBS ${LIBS})
+if(WIN32)
+else()
+    set(LIBS ${LIBS}
+        ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic.a)
+endif()
 
 # IrrKlang
 if(WIN32)
 elseif(APPLE)
+    set(IRRKLANG_LIB_PREFIX bin/macosx-gcc)
     set(IRRKLANG_LIBIRRKLANG libirrklang.dylib)
     set(IRRKLANG_IKPFLAC ikpFLAC.dylib)
     set(IRRKLANG_IKPMP3 ikpMP3.dylib)
-    set(IRRKLANG_COPY_LIBIRRKLANG
-        ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/libirrklang.dylib ${EXTERNAL_PREFIX}/install/lib/)
-    set(IRRKLANG_COPY_IKPFLAC
-        ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/ikpFLAC.dylib ${EXTERNAL_PREFIX}/install/lib/)
-    set(IRRKLANG_COPY_IKPMP3
-        ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/ikpMP3.dylib ${EXTERNAL_PREFIX}/install/lib/)
 else()
+    set(IRRKLANG_LIB_PREFIX bin/linux-gcc-64)
+    set(IRRKLANG_LIBIRRKLANG libIrrKlang.so)
+    set(IRRKLANG_IKPFLAC ikpFlac.so)
+    set(IRRKLANG_IKPMP3 ikpMP3.so)
 endif()
 ExternalProject_Add(IrrKlang
     PREFIX ${EXTERNAL_PREFIX}
@@ -191,14 +214,14 @@ ExternalProject_Add(IrrKlang
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
-    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/${IRRKLANG_LIBIRRKLANG} ${EXTERNAL_PREFIX}/install/lib/
-    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/${IRRKLANG_IKPFLAC} ${EXTERNAL_PREFIX}/install/lib/
-    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/bin/macosx-gcc/${IRRKLANG_IKPMP3} ${EXTERNAL_PREFIX}/install/lib/
-    COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${EXTERNAL_PREFIX}/install/include)
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_LIBIRRKLANG} ${EXTERNAL_INSTALL}/lib/
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_IKPFLAC} ${EXTERNAL_INSTALL}/lib/
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_IKPMP3} ${EXTERNAL_INSTALL}/lib/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${EXTERNAL_INSTALL}/include)
 set(LIBS ${LIBS}
-    ${EXTERNAL_PREFIX}/install/lib/${IRRKLANG_LIBIRRKLANG}
-    ${EXTERNAL_PREFIX}/install/lib/${IRRKLANG_IKPFLAC}
-    ${EXTERNAL_PREFIX}/install/lib/${IRRKLANG_IKPMP3})
+    ${EXTERNAL_INSTALL}/lib/${IRRKLANG_LIBIRRKLANG}
+    ${EXTERNAL_INSTALL}/lib/${IRRKLANG_IKPFLAC}
+    ${EXTERNAL_INSTALL}/lib/${IRRKLANG_IKPMP3})
 
 
 ##############################################################
