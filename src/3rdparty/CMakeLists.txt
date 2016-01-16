@@ -167,16 +167,26 @@ else()
 endif()
 
 # Luajit
-ExternalProject_Add(Lua
-    PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_INSTALL}
-    GIT_REPOSITORY https://github.com/davedissian/dawnengine-luajit.git
-    UPDATE_COMMAND ""
-    CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DBUILD_SHARED_LIBS=0
-        -DLUA_BUILD_WLUA=0)
-set(LIBS ${LIBS}
-    ${EXTERNAL_INSTALL}/lib/liblua.a)
+if(WIN32)
+    ExternalProject_Add(Luajit
+        PREFIX ${EXTERNAL_PREFIX}
+        INSTALL_DIR ${EXTERNAL_INSTALL}
+        GIT_REPOSITORY https://github.com/davedissian/dawnengine-luajit.git
+        UPDATE_COMMAND ""
+        CMAKE_ARGS ${EXTERNAL_ARGS}
+            -DBUILD_SHARED_LIBS=0
+            -DLUA_BUILD_WLUA=0)
+    set(LIBS ${LIBS})
+else()
+    ExternalProject_Add(Luajit
+        PREFIX ${EXTERNAL_PREFIX}
+        URL http://luajit.org/download/LuaJIT-2.0.4.tar.gz
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND cd ../Luajit && make PREFIX=${EXTERNAL_INSTALL}
+        INSTALL_COMMAND cd ../Luajit && make install PREFIX=${EXTERNAL_INSTALL})
+    set(LIBS ${LIBS}
+        ${EXTERNAL_INSTALL}/lib/libluajit.a)
+endif()
 
 # libRocket
 if(WIN32)
@@ -243,7 +253,6 @@ endif()
 ExternalProject_Add(IrrKlang
     PREFIX ${EXTERNAL_PREFIX}
     URL http://www.ambiera.at/downloads/irrKlang-64bit-1.5.0.zip
-    UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
@@ -262,7 +271,7 @@ else()
         ${EXTERNAL_INSTALL}/lib/lib${IRRKLANG_IKPMP3})
 endif()
 
-set(EXTERNAL_DEPS Bullet Ogre ParticleUniverse MathGeoLib Lua LibRocket RakNet IrrKlang PARENT_SCOPE)
+set(EXTERNAL_DEPS Bullet Ogre ParticleUniverse MathGeoLib Luajit LibRocket RakNet IrrKlang PARENT_SCOPE)
 
 
 ##############################################################
