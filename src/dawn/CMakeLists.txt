@@ -114,7 +114,7 @@ set(CPP_FILES
 
 if(APPLE)
     set(H_FILES ${H_FILES} renderer/OSXGetNSView.h)
-    set(CPP_FILES} ${CPP_FILES} renderer/OSXGetNSView.mm)
+    set(CPP_FILES ${CPP_FILES} renderer/OSXGetNSView.mm)
 endif()
 
 # Project

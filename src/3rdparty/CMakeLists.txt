@@ -34,9 +34,17 @@ set(EXTERNAL_INSTALL ${EXTERNAL_PREFIX}/install)
 
 # Arguments to be passed to all calls to CMake
 set(EXTERNAL_ARGS
-    -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL}
-    -DCMAKE_C_FLAGS=-fPIC
-    -DCMAKE_CXX_FLAGS=-fPIC)
+    -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL})
+if(APPLE)
+    set(EXTERNAL_ARGS ${EXTERNAL_ARGS}
+        -DCMAKE_OSX_ARCHITECTURES=x86_64
+        -DCMAKE_C_FLAGS=-fPIC\ -stdlib=libc++
+        -DCMAKE_CXX_FLAGS=-fPIC\ -std=c++11\ -stdlib=libc++)
+elseif(UNIX)
+    set(EXTERNAL_ARGS ${EXTERNAL_ARGS}
+        -DCMAKE_C_FLAGS=-fPIC
+        -DCMAKE_CXX_FLAGS=-fPIC)
+endif()
 
 # General include directory for all external dependencies
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include)
@@ -60,13 +68,17 @@ set(LIBS ${LIBS}
     ${EXTERNAL_INSTALL}/lib/libLinearMath.a)
 
 # OGRE
+if(APPLE)
+    set(OGREDEPS_PATCH_COMMAND
+        sed -ie "s/set\(CMAKE_OSX_DEPLOYMENT_TARGET/#set\(CMAKE_OSX_DEPLOYMENT_TARGET/g" CMakeLists.txt)
+endif()
 ExternalProject_Add(OgreDeps
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_PREFIX}/install
     HG_REPOSITORY https://bitbucket.org/cabalistic/ogredeps
+    PATCH_COMMAND ${OGREDEPS_PATCH_COMMAND}
     UPDATE_COMMAND ""
-    CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=${EXTERNAL_PREFIX}/install
+    CMAKE_ARGS ${EXTERNAL_ARGS}
         -DOGREDEPS_BUILD_CG=0
         -DOGREDEPS_BUILD_AMD_QBS=0
         -DOGREDEPS_BUILD_NVIDIA_NVAPI=0
@@ -108,7 +120,15 @@ ExternalProject_Add(Ogre
         -DOGRE_USE_BOOST=0)
 
 set(OGRE_INCLUDE_DIRS ${EXTERNAL_INSTALL}/include/OGRE)
-if (WIN32)
+if(WIN32)
+elseif(APPLE)
+    set(OGRE_LIBRARIES
+        ${EXTERNAL_PREFIX}/install/lib/libFreeImage.a
+        ${EXTERNAL_PREFIX}/install/lib/libfreetype.a
+        ${EXTERNAL_PREFIX}/install/lib/libzlib.a
+        ${EXTERNAL_PREFIX}/install/lib/libzziplib.a
+        ${EXTERNAL_INSTALL}/lib/libOgreMainStatic.a
+        ${EXTERNAL_INSTALL}/lib/libRenderSystem_GL3PlusStatic.a)
 else()
     set(OGRE_LIBRARIES
         ${EXTERNAL_PREFIX}/install/lib/libFreeImage.a
@@ -185,7 +205,7 @@ else()
         BUILD_COMMAND cd ../Luajit && make PREFIX=${EXTERNAL_INSTALL}
         INSTALL_COMMAND cd ../Luajit && make install PREFIX=${EXTERNAL_INSTALL})
     set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/libluajit.a)
+        ${EXTERNAL_INSTALL}/lib/libluajit-5.1.a)
 endif()
 
 # libRocket
