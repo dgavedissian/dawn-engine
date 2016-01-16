@@ -1,6 +1,13 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
 
+##############################################################
+# DISCLAIMER
+##############################################################
+# This entire file is basically a gigantic hack, because C++ has no concept of dependency resolution
+# and modules WHATSOEVER. You've been warned...
+##############################################################
+
 # Find SDL2 on the system
 find_package(SDL2 REQUIRED)
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${SDL2_INCLUDE_DIR})
@@ -55,11 +62,15 @@ set(LIBS ${LIBS}
 # OGRE
 ExternalProject_Add(OgreDeps
     PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${CMAKE_BINARY_DIR}/dependencies/ogredeps/ogredeps
+    INSTALL_DIR ${EXTERNAL_PREFIX}/install
     HG_REPOSITORY https://bitbucket.org/cabalistic/ogredeps
     UPDATE_COMMAND ""
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${EXTERNAL_PREFIX}/install
+        -DOGREDEPS_BUILD_CG=0
+        -DOGREDEPS_BUILD_AMD_QBS=0
+        -DOGREDEPS_BUILD_NVIDIA_NVAPI=0
+        -DOGREDEPS_BUILD_SDL2=0
         -DOGREDEPS_BUILD_OIS=0)
 
 ExternalProject_Add(Ogre
@@ -203,6 +214,8 @@ ExternalProject_Add(RakNet
         -DRAKNET_ENABLE_DLL=0
         -DRAKNET_ENABLE_SAMPLES=0)
 if(WIN32)
+    set(LIBS ${LIBS}
+        debug;${EXTERNAL_INSTALL}/lib/RakNetLibStatic_d.lib;optimized;${EXTERNAL_INSTALL}/lib/RakNetLibStatic.lib)
 else()
     set(LIBS ${LIBS}
         ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic.a)
@@ -210,6 +223,12 @@ endif()
 
 # IrrKlang
 if(WIN32)
+    set(IRRKLANG_LIB_PREFIX bin/winx64-visualStudio)
+    set(IRRKLANG_LIBIRRKLANG irrKlang.dll)
+    set(IRRKLANG_IKPFLAC ikpFlac.dll)
+    set(IRRKLANG_IKPMP3 ikpMP3.dll)
+    set(IRRKLANG_WINDOWS_COPY_IMPORT_LIB
+        ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/lib/Winx64-visualStudio/irrKlang.lib ${EXTERNAL_INSTALL}/lib/)
 elseif(APPLE)
     set(IRRKLANG_LIB_PREFIX bin/macosx-gcc)
     set(IRRKLANG_LIBIRRKLANG libirrklang.dylib)
@@ -228,15 +247,14 @@ ExternalProject_Add(IrrKlang
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
+    COMMAND ${IRRKLANG_WINDOWS_COPY_IMPORT_LIB}
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_LIBIRRKLANG} ${EXTERNAL_INSTALL}/lib/
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_IKPFLAC} ${EXTERNAL_INSTALL}/lib/lib${IRRKLANG_IKPFLAC}
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_IKPMP3} ${EXTERNAL_INSTALL}/lib/lib${IRRKLANG_IKPMP3}
     COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${EXTERNAL_INSTALL}/include)
 if(WIN32)
     set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/${IRRKLANG_LIBIRRKLANG}
-        ${EXTERNAL_INSTALL}/lib/${IRRKLANG_IKPFLAC}
-        ${EXTERNAL_INSTALL}/lib/${IRRKLANG_IKPMP3})
+        ${EXTERNAL_INSTALL}/lib/irrKlang.lib)
 else()
     set(LIBS ${LIBS}
         ${EXTERNAL_INSTALL}/lib/${IRRKLANG_LIBIRRKLANG}
