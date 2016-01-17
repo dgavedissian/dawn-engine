@@ -56,6 +56,33 @@ function(add_game GAME_NAME)
 
     # Add executable
     add_executable(${GAME_NAME} ${TYPE} ${ARGN})
+    target_link_libraries(${GAME_NAME} Dawn)
+    set_target_properties(${GAME_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+
+    # Copy over shared library dependencies
+    get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
+    set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
+    if(WIN32)
+        # TODO: Windows
+    elseif(APPLE)
+        set(BUNDLE_DIR ${BIN_DIR}/${GAME_NAME}.app)
+        set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)
+        if(CMAKE_GENERATOR STREQUAL Xcode)
+            add_custom_command(TARGET ${GAME_NAME} POST_BUILD
+                CONFIGURATION Debug
+                COMMAND cp -r ${LIB_DIR}/Debug/Dawn.framework ${FRAMEWORKS_DIR})
+            add_custom_command(TARGET ${GAME_NAME} POST_BUILD
+                CONFIGURATION Release
+                COMMAND cp -r ${LIB_DIR}/Release/Dawn.framework ${FRAMEWORKS_DIR})
+        else()
+            add_custom_command(TARGET ${GAME_NAME} POST_BUILD
+                COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR})
+        endif()
+        add_custom_command(TARGET ${GAME_NAME} POST_BUILD
+            COMMAND cp ${LIB_DIR}/libirrklang.dylib ${BUNDLE_DIR}/Contents/MacOS)
+    else()
+        # TODO: Linux
+    endif()
 endfunction()
 
 

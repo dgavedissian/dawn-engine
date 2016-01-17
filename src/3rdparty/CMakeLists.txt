@@ -167,7 +167,8 @@ if(WIN32)
 else()
     set(LIBS ${LIBS}
         ${OGRE_LIBRARIES}
-        ${EXTERNAL_INSTALL}/lib/Plugin_ParticleUniverse.a)
+        debug ${EXTERNAL_INSTALL}/lib/Plugin_ParticleUniverse_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/Plugin_ParticleUniverse.a)
 endif()
 
 # MathGeoLib
@@ -183,7 +184,8 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS}
 if(WIN32)
 else()
     set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/libMathGeoLib.a)
+        debug ${EXTERNAL_INSTALL}/lib/libMathGeoLib_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libMathGeoLib.a)
 endif()
 
 # Luajit
@@ -204,6 +206,8 @@ else()
         CONFIGURE_COMMAND ""
         BUILD_COMMAND cd ../Luajit && make PREFIX=${EXTERNAL_INSTALL}
         INSTALL_COMMAND cd ../Luajit && make install PREFIX=${EXTERNAL_INSTALL})
+    set(INCLUDE_DIRS ${INCLUDE_DIRS}
+        ${EXTERNAL_INSTALL}/include/luajit-2.0)
     set(LIBS ${LIBS}
         ${EXTERNAL_INSTALL}/lib/libluajit-5.1.a)
 endif()
@@ -245,50 +249,44 @@ ExternalProject_Add(RakNet
         -DRAKNET_ENABLE_SAMPLES=0)
 if(WIN32)
     set(LIBS ${LIBS}
-        debug;${EXTERNAL_INSTALL}/lib/RakNetLibStatic_d.lib;optimized;${EXTERNAL_INSTALL}/lib/RakNetLibStatic.lib)
+        debug ${EXTERNAL_INSTALL}/lib/RakNetLibStatic_d.lib
+        optimized ${EXTERNAL_INSTALL}/lib/RakNetLibStatic.lib)
 else()
     set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic.a)
+        debug ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic.a)
 endif()
 
 # IrrKlang
 if(WIN32)
     set(IRRKLANG_LIB_PREFIX bin/winx64-visualStudio)
     set(IRRKLANG_LIBIRRKLANG irrKlang.dll)
-    set(IRRKLANG_IKPFLAC ikpFlac.dll)
-    set(IRRKLANG_IKPMP3 ikpMP3.dll)
     set(IRRKLANG_WINDOWS_COPY_IMPORT_LIB
         ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/lib/Winx64-visualStudio/irrKlang.lib ${EXTERNAL_INSTALL}/lib/)
 elseif(APPLE)
     set(IRRKLANG_LIB_PREFIX bin/macosx-gcc)
     set(IRRKLANG_LIBIRRKLANG libirrklang.dylib)
-    set(IRRKLANG_IKPFLAC ikpFLAC.dylib)
-    set(IRRKLANG_IKPMP3 ikpMP3.dylib)
+    set(IRRKLANG_PATCH_COMMAND install_name_tool -id @rpath/libirrklang.dylib <SOURCE_DIR>/bin/macosx-gcc/libirrklang.dylib)
 else()
     set(IRRKLANG_LIB_PREFIX bin/linux-gcc-64)
     set(IRRKLANG_LIBIRRKLANG libIrrKlang.so)
-    set(IRRKLANG_IKPFLAC ikpFlac.so)
-    set(IRRKLANG_IKPMP3 ikpMP3.so)
 endif()
 ExternalProject_Add(IrrKlang
     PREFIX ${EXTERNAL_PREFIX}
     URL http://www.ambiera.at/downloads/irrKlang-64bit-1.5.0.zip
+    PATCH_COMMAND ${IRRKLANG_PATCH_COMMAND}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
     COMMAND ${IRRKLANG_WINDOWS_COPY_IMPORT_LIB}
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_LIBIRRKLANG} ${EXTERNAL_INSTALL}/lib/
-    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_IKPFLAC} ${EXTERNAL_INSTALL}/lib/lib${IRRKLANG_IKPFLAC}
-    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_IKPMP3} ${EXTERNAL_INSTALL}/lib/lib${IRRKLANG_IKPMP3}
     COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${EXTERNAL_INSTALL}/include)
 if(WIN32)
     set(LIBS ${LIBS}
         ${EXTERNAL_INSTALL}/lib/irrKlang.lib)
 else()
     set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/${IRRKLANG_LIBIRRKLANG}
-        ${EXTERNAL_INSTALL}/lib/lib${IRRKLANG_IKPFLAC}
-        ${EXTERNAL_INSTALL}/lib/lib${IRRKLANG_IKPMP3})
+        ${EXTERNAL_INSTALL}/lib/${IRRKLANG_LIBIRRKLANG})
 endif()
 
 set(EXTERNAL_DEPS Bullet Ogre ParticleUniverse MathGeoLib Luajit LibRocket RakNet IrrKlang PARENT_SCOPE)

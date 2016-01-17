@@ -118,10 +118,19 @@ if(APPLE)
 endif()
 
 # Project
-set(SOURCE_FILES ${TP_SOURCE_FILES} ${CPP_FILES} ${H_FILES})
-add_library(Dawn SHARED ${SOURCE_FILES})
-set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD")
+add_library(Dawn SHARED ${CPP_FILES} ${H_FILES})
 add_dependencies(Dawn ${EXTERNAL_DEPS})
+set_target_properties(Dawn PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD")
+
+# Copy over shared library dependencies
+set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)
+get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
+if(APPLE)
+    set_target_properties(Dawn PROPERTIES FRAMEWORK TRUE)
+    add_custom_command(TARGET Dawn POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${DEPS_DIR}/libirrklang.dylib ${LIB_DIR})
+endif()
 
 # Cotire
 if(WIN32)
@@ -132,7 +141,7 @@ if(WIN32)
 endif()
 
 # Random extras
-mirror_physical_directories(${SOURCE_FILES})
+mirror_physical_directories(${CPP_FILES} ${H_FILES})
 if(WIN32)
     set_target_properties(Dawn PROPERTIES DEBUG_POSTFIX _d)
 endif()
