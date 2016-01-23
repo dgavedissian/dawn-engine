@@ -67,17 +67,8 @@ function(add_game GAME_NAME)
     elseif(APPLE)
         set(BUNDLE_DIR ${BIN_DIR}/${GAME_NAME}.app)
         set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)
-        if(CMAKE_GENERATOR STREQUAL Xcode)
-            add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-                CONFIGURATION Debug
-                COMMAND cp -r ${LIB_DIR}/Debug/Dawn.framework ${FRAMEWORKS_DIR})
-            add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-                CONFIGURATION Release
-                COMMAND cp -r ${LIB_DIR}/Release/Dawn.framework ${FRAMEWORKS_DIR})
-        else()
-            add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-                COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR})
-        endif()
+        add_custom_command(TARGET ${GAME_NAME} POST_BUILD
+            COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR})
         add_custom_command(TARGET ${GAME_NAME} POST_BUILD
             COMMAND cp ${LIB_DIR}/libirrklang.dylib ${BUNDLE_DIR}/Contents/MacOS)
     else()
