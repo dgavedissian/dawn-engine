@@ -34,6 +34,7 @@ set(EXTERNAL_INSTALL ${EXTERNAL_PREFIX}/install)
 
 # Arguments to be passed to all calls to CMake
 set(EXTERNAL_ARGS
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} # CMake doesn't seem to do this automatically?
     -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL})
 if(APPLE)
     set(EXTERNAL_ARGS ${EXTERNAL_ARGS}
@@ -93,7 +94,7 @@ ExternalProject_Add(Ogre
     HG_TAG 374723e
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DOIS_INCLUDE_DIR="" # this is needed for some reason?
+        -DOIS_INCLUDE_DIR=${EXTERNAL_PREFIX}/install # dummy directory to shut CMake up
         -DOGRE_DEPENDENCIES_DIR=${EXTERNAL_PREFIX}/install
         -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=0
         -DOGRE_BUILD_COMPONENT_OVERLAY=0
@@ -189,28 +190,16 @@ else()
 endif()
 
 # Luajit
-if(WIN32)
-    ExternalProject_Add(Luajit
-        PREFIX ${EXTERNAL_PREFIX}
-        INSTALL_DIR ${EXTERNAL_INSTALL}
-        GIT_REPOSITORY https://github.com/davedissian/dawnengine-luajit.git
-        UPDATE_COMMAND ""
-        CMAKE_ARGS ${EXTERNAL_ARGS}
-            -DBUILD_SHARED_LIBS=0
-            -DLUA_BUILD_WLUA=0)
-    set(LIBS ${LIBS})
-else()
-    ExternalProject_Add(Luajit
-        PREFIX ${EXTERNAL_PREFIX}
-        URL http://luajit.org/download/LuaJIT-2.0.4.tar.gz
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND cd ../Luajit && make PREFIX=${EXTERNAL_INSTALL}
-        INSTALL_COMMAND cd ../Luajit && make install PREFIX=${EXTERNAL_INSTALL})
-    set(INCLUDE_DIRS ${INCLUDE_DIRS}
-        ${EXTERNAL_INSTALL}/include/luajit-2.0)
-    set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/libluajit-5.1.a)
-endif()
+ExternalProject_Add(Luajit
+    PREFIX ${EXTERNAL_PREFIX}
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    GIT_REPOSITORY https://github.com/davedissian/dawnengine-luajit.git
+    UPDATE_COMMAND ""
+    CMAKE_ARGS ${EXTERNAL_ARGS}
+        -DBUILD_SHARED_LIBS=0
+        -DLUA_BUILD_WLUA=0)
+set(LIBS ${LIBS}
+    ${EXTERNAL_INSTALL}/lib/liblua.a)
 
 # libRocket
 if(WIN32)
@@ -233,9 +222,12 @@ ExternalProject_Add(LibRocket
 if(WIN32)
 else()
     set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/libRocketControls.a
-        ${EXTERNAL_INSTALL}/lib/libRocketCore.a
-        ${EXTERNAL_INSTALL}/lib/libRocketDebugger.a)
+        debug ${EXTERNAL_INSTALL}/lib/libRocketCore_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libRocketCore.a
+        debug ${EXTERNAL_INSTALL}/lib/libRocketControls_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libRocketControls.a
+        debug ${EXTERNAL_INSTALL}/lib/libRocketDebugger_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libRocketDebugger.a)
 endif()
 
 # RakNet

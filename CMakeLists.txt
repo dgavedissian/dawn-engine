@@ -49,14 +49,12 @@ function(add_game GAME_NAME)
         set(TYPE MACOSX_BUNDLE)
     endif()
 
-    # Necessary linker flags on 64-bit OS X for LuaJIT
-    if(APPLE)
-        set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
-    endif()
-
     # Add executable
     add_executable(${GAME_NAME} ${TYPE} ${ARGN})
     target_link_libraries(${GAME_NAME} Dawn)
+    if(APPLE)
+        target_link_libraries(${GAME_NAME} -pagezero_size 10000 -image_base 100000000)
+    endif()
     set_target_properties(${GAME_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
     # Copy over shared library dependencies
@@ -67,17 +65,8 @@ function(add_game GAME_NAME)
     elseif(APPLE)
         set(BUNDLE_DIR ${BIN_DIR}/${GAME_NAME}.app)
         set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)
-        if(CMAKE_GENERATOR STREQUAL Xcode)
-            add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-                CONFIGURATION Debug
-                COMMAND cp -r ${LIB_DIR}/Debug/Dawn.framework ${FRAMEWORKS_DIR})
-            add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-                CONFIGURATION Release
-                COMMAND cp -r ${LIB_DIR}/Release/Dawn.framework ${FRAMEWORKS_DIR})
-        else()
-            add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-                COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR})
-        endif()
+        add_custom_command(TARGET ${GAME_NAME} POST_BUILD
+            COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR})
         add_custom_command(TARGET ${GAME_NAME} POST_BUILD
             COMMAND cp ${LIB_DIR}/libirrklang.dylib ${BUNDLE_DIR}/Contents/MacOS)
     else()
