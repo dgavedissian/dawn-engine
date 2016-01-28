@@ -1,0 +1,71 @@
+vertex_program UI/VS glsl
+{
+    source UI.vs
+    default_params
+    {
+        param_named_auto worldViewProj worldviewproj_matrix
+    }
+}
+
+fragment_program UI/Texture/FS glsl
+{
+    source UITexture.fs
+    default_params
+    {
+        param_named texture int 0
+    }
+}
+
+fragment_program UI/NoTexture/FS glsl
+{
+    source UINoTexture.fs
+}
+
+material UI
+{
+    technique Texture
+    {
+        pass
+        {
+            lighting off
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            scene_blend alpha_blend
+
+            vertex_program_ref UI/VS
+            {
+            }
+
+            fragment_program_ref UI/Texture/FS
+            {
+            }
+
+            texture_unit
+            {
+            }
+        }
+    }
+
+    technique NoTexture
+    {
+        pass
+        {
+            lighting off
+            depth_check off
+            depth_write off
+            cull_hardware none
+            cull_software none
+            scene_blend alpha_blend
+
+            vertex_program_ref UI/VS
+            {
+            }
+
+            fragment_program_ref UI/NoTexture/FS
+            {
+            }
+        }
+    }
+}

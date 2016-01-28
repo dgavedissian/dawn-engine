@@ -37,7 +37,7 @@ public:
     template <class T>
     void Reserve(uint slots)
     {
-        mEntityTypePoolMap[&typeid(T)] = UniquePtr<MemoryPool>(new FixedMemoryPool<T>(slots));
+		mEntityTypePoolMap.emplace(&typeid(T), MakeShared<FixedMemoryPool<T>>(slots));
     }
 
     void ClearEntities();
@@ -64,7 +64,7 @@ private:
     Vector<Entity*> mEntities;
 
     // Memory pools
-    Map<const std::type_info*, UniquePtr<MemoryPool>> mEntityTypePoolMap;
+    HashMap<const std::type_info*, SharedPtr<MemoryPool>> mEntityTypePoolMap;
 
 #ifdef DW_DEBUG
     bool mIterating;

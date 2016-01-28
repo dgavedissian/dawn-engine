@@ -1,0 +1,18 @@
+material Flare
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+
+            texture_unit pump_flare_02.png
+            {
+                texture_alias pump_flare_02.png
+                texture pump_flare_02.png
+            }
+        }
+    }
+}

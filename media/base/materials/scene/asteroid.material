@@ -1,0 +1,13 @@
+material Scene/Asteroid
+{
+    technique
+    {
+        pass
+        {
+            texture_unit
+            {
+                texture scene-asteroid.jpg
+            }
+        }
+    }
+}

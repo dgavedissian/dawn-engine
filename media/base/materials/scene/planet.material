@@ -1,0 +1,67 @@
+vertex_program Scene/Planet/VS glsl
+{
+    source planet.vs
+}
+
+fragment_program Scene/Planet/FS glsl
+{
+    source planet.fs
+}
+
+material Scene/Planet
+{
+    technique
+    {
+        scheme NoGBuffer
+        pass
+        { 
+            texture_unit surface
+            {
+                filtering anisotropic
+                max_anisotropy 8
+            }
+            
+            texture_unit night
+            {
+                filtering anisotropic
+                max_anisotropy 8
+            }
+
+            texture_unit rings
+            {
+            }
+
+            vertex_program_ref Scene/Planet/VS
+            {
+                param_named_auto worldViewProjMatrix worldviewproj_matrix
+                param_named_auto worldMatrix world_matrix
+                param_named_auto normalMatrix inverse_transpose_world_matrix
+                param_named_auto znear near_clip_distance
+                param_named_auto zfar far_clip_distance
+
+                param_named_auto config custom 0
+                param_named_auto invWavelength custom 5
+                param_named_auto radius custom 6
+                param_named_auto KrKm custom 7
+                param_named_auto atmosScale custom 8
+                param_named_auto sunDirection custom 3
+                param_named_auto cameraPosition custom 10
+                param_named_auto cameraHeight custom 11
+            }
+            
+            fragment_program_ref Scene/Planet/FS
+            {
+                param_named_auto config custom 0
+                param_named_auto planetPosition custom 1
+                param_named_auto sunDirection custom 2
+                param_named_auto localSunDirection custom 3
+                param_named_auto ringDimensions custom 4
+
+                param_named surfaceTexture int 0
+                param_named nightTexture int 1
+                param_named ringsTexture int 2
+            }
+        }
+    }
+}
+

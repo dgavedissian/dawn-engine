@@ -1,0 +1,26 @@
+material Effect/Explosion
+{
+    technique
+    {
+        pass
+        {
+            scene_blend add
+            depth_write off
+            lighting off
+
+            texture_unit
+            {
+                texture explosion.jpg
+            }
+
+            vertex_program_ref Billboard/VS
+            {
+            }
+
+            fragment_program_ref Billboard/FS
+            {
+                param_named billboardTex int 0
+            }
+        }
+    }
+}

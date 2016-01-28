@@ -1,0 +1,70 @@
+.window
+{
+    display: block;
+
+    margin: auto;
+
+    text-align: left;
+    /*overflow: hidden;*/
+}
+
+div#title-bar
+{
+    position: absolute;
+    top: -2.5em; /*-1.5em*/
+    left: 1em;
+}
+
+div#title-bar span
+{
+    font-size: 1.5em;
+}
+
+button,
+input.submit
+{
+    background-color: #2e2e2ecc;
+}
+
+button:hover,
+input.submit:hover
+{
+    background-color: #1a80b3cc;
+    border-color: #598cb2cc;
+}
+
+button:active,
+input.submit:active
+{
+    background-color: #212121cc;
+    border-color: #474747cc;
+}
+
+
+tabset
+{
+    display: inline-block;
+}
+
+tab
+{
+    text-align: center;
+    vertical-align: middle;
+
+    background-color: #212121bb;
+}
+
+tab:hover
+{
+    background-color: #1a4063bb;
+}
+
+tab:selected
+{
+    background-color: #232629aa;
+}
+
+panel
+{
+    background-color: #232527aa;
+}

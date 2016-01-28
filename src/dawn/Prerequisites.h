@@ -54,7 +54,9 @@
 #include <lua.hpp>
 
 // Ogre
+#define OGRE_STATIC_LIB
 #include <Ogre.h>
+#include <RenderSystems/GL3Plus/OgreGL3PlusPlugin.h>
 #include <ParticleUniversePlugin.h>
 
 // MathGeoLib
@@ -70,6 +72,7 @@
 #endif
 
 // Rocket
+#define ROCKET_STATIC_LIB
 #include <Rocket/Core.h>
 #include <Rocket/Controls.h>
 #include <Rocket/Controls/DataSource.h>

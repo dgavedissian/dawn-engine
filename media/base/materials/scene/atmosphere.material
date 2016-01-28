@@ -1,0 +1,43 @@
+vertex_program Scene/Atmosphere/VS glsl
+{
+    source atmosphere.vs
+}
+ 
+fragment_program Scene/Atmosphere/FS glsl
+{
+    source atmosphere.fs
+}
+
+material Scene/Atmosphere
+{
+    technique
+    {
+        pass
+        {
+            cull_hardware anticlockwise
+            cull_software front
+            depth_check off
+            depth_write off
+            scene_blend alpha_blend
+
+            vertex_program_ref Scene/Atmosphere/VS
+            {
+                param_named_auto worldViewProjMatrix worldviewproj_matrix
+
+                param_named_auto invWavelength custom 0
+                param_named_auto radius custom 1
+                param_named_auto KrKm custom 2
+                param_named_auto atmosScale custom 3
+                param_named_auto sunDirection custom 4
+                param_named_auto cameraPosition custom 5
+                param_named_auto cameraHeight custom 6
+            }
+
+            fragment_program_ref Scene/Atmosphere/FS
+            {
+                param_named_auto sunDirection custom 4
+                param_named_auto g custom 7
+            }
+        }
+    }
+}

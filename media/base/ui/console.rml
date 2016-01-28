@@ -1,0 +1,43 @@
+<rml>
+    <head>
+        <style>
+            body
+            {
+                width: 100%;
+                height: auto;
+                z-index: top;
+            }
+
+            div#console
+            {
+                width: 100%;
+                height: 20em;
+                background-color:#111111ea;
+                overflow: scroll;
+            }
+
+            div#entry
+            {
+                display: block;
+                height: 1.333em;
+                background-color: #151515ef;
+            }
+
+            input#cmd
+            {
+                width: 100%;
+                border-width: 0;
+                background-color: #0000;
+            }
+        </style>
+        <link type="text/rcss" href="default.rcss"/>
+    </head>
+    <body>
+        <div id="console">
+            <pre id="consoletext"></pre>
+        </div>
+        <div id="entry">
+            <input id="cmd" type="text" />
+        </div>
+    </body>
+</rml>

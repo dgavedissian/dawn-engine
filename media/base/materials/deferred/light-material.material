@@ -1,0 +1,72 @@
+vertex_program DeferredShading/Light/VS glsl
+{
+    source light-material.vs
+    default_params
+    {
+        param_named_auto worldViewProjMatrix worldviewproj_matrix
+    }
+}
+
+material DeferredShading/Light/Geometry
+{
+    technique DeferredTechnique
+    {
+        pass DeferredPass
+        {
+            scene_blend add
+            depth_write off
+            depth_check on
+            lighting off
+
+            texture_unit GBuffer1
+            {
+                content_type compositor DeferredShading/GBuffer gbuffer 0
+                tex_address_mode clamp
+                filtering none
+            }
+
+            texture_unit GBuffer2
+            {
+                content_type compositor DeferredShading/GBuffer gbuffer 1
+                tex_address_mode clamp
+                filtering none
+            }
+        }
+    }
+}
+
+material DeferredShading/Light/GeometryShadow : DeferredShading/Light/Geometry
+{
+    technique DeferredTechnique
+    {
+        pass DeferredPass
+        {
+            texture_unit ShadowMap
+            {
+                content_type shadow
+            }
+        }
+    }
+}
+
+material DeferredShading/Light/Quad : DeferredShading/Light/Geometry
+{
+    technique DeferredTechnique
+    {
+        pass DeferredPass
+        {
+            depth_check off
+        }
+    }
+}
+
+material DeferredShading/Light/QuadShadow : DeferredShading/Light/GeometryShadow
+{
+    technique DeferredTechnique
+    {
+        pass DeferredPass
+        {
+            depth_check off
+        }
+    }
+}

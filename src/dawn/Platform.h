@@ -6,7 +6,6 @@
 
 // DLL Export/Import
 #ifdef DW_DLL
-#   define YAML_CPP_DLL
 #   ifdef DW_BUILD
 #       define DW_API __declspec(dllexport)
 #   else

@@ -1,0 +1,93 @@
+vertex_program Scene/Skybox/VS glsl
+{
+    source skybox.vs
+    default_params
+    {
+        param_named_auto worldViewProjMatrix worldviewproj_matrix
+    }
+}
+
+fragment_program Scene/Starfield/FS glsl
+{
+    source starfield.fs
+    default_params
+    {
+        param_named starfieldTexture int 0
+    }
+}
+
+fragment_program Scene/GalacticPlane/FS glsl
+{
+    source galacticPlane.fs
+    default_params
+    {
+        param_named galacticPlaneTexture int 0
+        param_named nebulaTexture int 1
+    }
+}
+
+material Scene/Starfield
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            depth_check off
+            depth_write off
+
+            cull_hardware anticlockwise
+            cull_software front
+
+            vertex_program_ref Scene/Skybox/VS
+            {
+            }
+
+            fragment_program_ref Scene/Starfield/FS
+            {
+            }
+
+            texture_unit
+            {
+                texture scene-starfield.jpg gamma
+                filtering anisotropic
+                max_anisotropy 8
+            }
+        }
+    }
+}
+
+material Scene/GalacticPlane
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            depth_check off
+            depth_write off
+            scene_blend add
+
+            cull_hardware anticlockwise
+            cull_software front
+
+            texture_unit
+            {
+                texture scene-galactic-plane.jpg gamma
+            }
+
+            texture_unit
+            {
+                texture scene-nebula.png gamma
+            }
+
+            vertex_program_ref Scene/Skybox/VS
+            {
+            }
+
+            fragment_program_ref Scene/GalacticPlane/FS
+            {
+            }
+        }
+    }
+}

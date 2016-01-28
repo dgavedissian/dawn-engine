@@ -1,0 +1,18 @@
+material Debris
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+
+            texture_unit
+            {
+                texture_alias pu_fire_01_64x64.png
+                texture pu_fire_01_64x64.png
+            }
+        }
+    }
+}

@@ -1,0 +1,19 @@
+vertex_program Billboard/VS glsl
+{
+    source billboard.vs
+    default_params
+    {
+        param_named_auto worldViewProjMatrix worldviewproj_matrix
+        param_named_auto znear near_clip_distance
+        param_named_auto zfar far_clip_distance
+    }
+}
+
+fragment_program Billboard/FS glsl
+{
+    source billboard.fs
+    default_params
+    {
+        param_named billboardTex int 0
+    }
+}

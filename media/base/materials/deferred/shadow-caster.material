@@ -1,0 +1,35 @@
+vertex_program DeferredShading/Shadows/Caster/VS glsl
+{
+    source shadow-caster.vs
+    default_params
+    {
+        param_named_auto worldViewProjMatrix worldviewproj_matrix
+        param_named_auto worldViewMatrix worldview_matrix
+    }
+}
+
+fragment_program DeferredShading/Shadows/Caster/FS glsl
+{
+    source shadow-caster.fs
+    default_params
+    {
+        param_named_auto farDistance far_clip_distance
+    }
+}
+
+material DeferredShading/Shadows/Caster
+{
+    technique
+    {
+        pass
+        {
+            vertex_program_ref DeferredShading/Shadows/Caster/VS
+            {
+            }
+            
+            fragment_program_ref DeferredShading/Shadows/Caster/FS
+            {
+            }
+        }
+    }
+}

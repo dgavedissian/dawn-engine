@@ -1,0 +1,9 @@
+material Explosion_smoke
+{
+    technique
+    {
+        pass
+        {
+        }
+    }
+}

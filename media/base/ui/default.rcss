@@ -1,0 +1,214 @@
+/*
+* Default styles for all the basic elements.
+*/
+body
+{
+    font-family: Liberation;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 11pt;
+    color: #d3d3d3;
+}
+
+div
+{
+    display: block;
+}
+
+p
+{
+    display: block;
+}
+
+h1
+{
+    display: block;
+}
+
+em
+{
+    font-style: italic;
+}
+
+strong
+{
+    font-weight: bold;
+}
+
+datagrid
+{
+    display: block;
+}
+
+select, dataselect, datacombo
+{
+    text-align: left;
+}
+
+tabset tabs
+{
+    display: block;
+}
+
+pre
+{
+    white-space: pre;
+}
+
+
+
+p
+{
+    text-align: left;
+}
+
+h1
+{
+    font-size: 200%;
+    font-weight: bold;
+}
+
+h2
+{
+    font-size: 150%;
+    font-weight: bold;
+}
+
+button,
+input.submit
+{
+    display: inline-block;
+
+    width: 6.5em;
+    height: 2em;
+    line-height: 2em;
+
+    text-align: center;
+
+    tab-index: auto;
+}
+
+button:hover,
+input.submit:hover
+{
+    background-color: #1a4063cc;
+    border-color: #598cb2cc;
+}
+
+button:active,
+input.submit:active
+{
+    background-color: #212121cc;
+    border-color: #474747cc;
+}
+
+
+input.text,
+input.password
+{
+    height: 1.333em;
+    background-color: #1a1a1acc;
+    border-style: solid;
+    border-width: 0.083em;
+    border-color: #262626ff;
+    margin: -0.083em;
+}
+
+/*
+datagrid
+{
+}
+
+datagridheader
+{
+    padding: 0.25em;
+}
+
+datagridbody
+{
+    background-color: #272a2dff;
+
+    border-style: solid;
+    border-width: 0.083em;
+    border-color: #5a5f66cc;
+    margin: -0.083em;
+}
+
+datagridrow
+{
+    border-bottom-style: solid;
+    border-bottom-width: 0.083em;
+    border-bottom-color: #35393cff;
+    padding: 0.25em;
+}
+*/
+
+
+select,
+dataselect
+{
+    height: 1.5em;
+    background-color: #2e2e2eff;
+}
+
+select selectvalue,
+dataselect selectvalue
+{
+}
+
+select selectvalue:hover,
+dataselect selectvalue:hover
+{
+}
+
+select selectarrow,
+dataselect selectarrow
+{
+    width: 1.333em;
+    height: 1.333em;
+    background: #404040ff;
+}
+
+select selectarrow:hover,
+dataselect selectarrow:hover
+{
+    background: #606060ff;
+}
+
+select selectarrow:active,
+select selectarrow:checked,
+dataselect selectarrow:active,
+dataselect selectarrow:checked
+{
+}
+
+select selectbox,
+dataselect selectbox
+{
+    background-color: #232323ff;
+}
+
+select selectbox option,
+dataselect selectbox option
+{
+    width: auto;
+    padding-left: 0.25em;
+}
+
+select selectbox option:hover,
+dataselect selectbox option:hover
+{
+    background-color: #1a4063ff;
+}
+
+
+scrollbarvertical
+{
+    width: 1em;
+    background-color:#202020bb;
+}
+
+scrollbarvertical sliderbar
+{
+    background-color:#353535bb;
+}

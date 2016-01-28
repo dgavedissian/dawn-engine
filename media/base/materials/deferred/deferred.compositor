@@ -1,0 +1,93 @@
+compositor DeferredShading/GBuffer
+{
+    technique
+    {
+        // GBuffer Layout:
+        // |   R   |   G   |   B   |   A   |
+        // |   Diffuse Colour      |   X   |
+        // |   Normal XY   |     Depth     |
+        texture gbuffer target_width target_height PF_FLOAT16_RGBA PF_FLOAT16_RGBA chain_scope
+
+        target gbuffer
+        {
+            input none
+
+            pass clear
+            {
+            }
+
+            shadows off
+            material_scheme GBuffer
+            pass render_scene
+            {
+                first_render_queue 10
+                last_render_queue 79
+            }
+        }
+    }
+}
+
+compositor DeferredShading/ShowLit
+{
+    technique
+    {
+        texture_ref gbuffer DeferredShading/GBuffer gbuffer
+
+        target_output
+        {
+            input none
+            shadows off
+
+            pass clear
+            {
+            }
+
+            // Render any pre-GBuffer objects
+            pass render_scene
+            {
+                first_render_queue 0
+                last_render_queue 9
+            }
+
+            // NOTE: This is necessary for the following render_custom for some reason
+            pass clear
+            {
+                buffers depth
+            }
+
+            // Render all the deferred lights
+            pass render_custom DeferredLight
+            {
+            }
+
+            // Render any transparent or other non-GBuffer objects
+            pass render_scene
+            {
+                material_scheme NoGBuffer
+                first_render_queue 10
+                last_render_queue 79
+            }
+        }
+    }
+}
+
+compositor DeferredShading/ShowDebug
+{
+    technique
+    {
+        texture_ref gbuffer DeferredShading/GBuffer gbuffer
+
+        target_output
+        {
+            input none
+            shadows off
+
+            pass render_quad
+            {
+                material DeferredShading/ShowDebug
+                input 0 gbuffer 0
+                input 1 gbuffer 1
+            }
+        }
+    }
+}

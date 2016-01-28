@@ -1,0 +1,88 @@
+vertex_program Scene/Rings/VS glsl
+{
+    source rings.vs
+}
+
+fragment_program Scene/Rings/FS glsl
+{
+    source rings.fs
+}
+
+material Scene/Rings
+{
+    technique
+    {
+        pass
+        {
+            cull_hardware none
+            cull_software none
+            scene_blend alpha_blend
+            depth_write off
+            
+            texture_unit rings
+            {
+            }
+
+            texture_unit noise
+            {
+                texture noise.jpg gamma
+                filtering anisotropic
+                max_anisotropy 16
+            }
+            
+            vertex_program_ref Scene/Rings/VS
+            {
+                param_named_auto worldViewProjMatrix worldviewproj_matrix
+                param_named_auto worldMatrix world_matrix
+
+                param_named_auto ringDimensions custom 1
+            }
+            
+            fragment_program_ref Scene/Rings/FS
+            {
+                param_named_auto cameraPosition camera_position
+                param_named_auto znear near_clip_distance
+                param_named_auto zfar far_clip_distance
+
+                param_named_auto planetRadius custom 0
+                param_named_auto ringDimensions custom 1
+                param_named_auto planetPosition custom 2
+                param_named_auto planetPenumbraRecip custom 3
+                param_named_auto atmosphereColour custom 4
+                param_named_auto lightToPlanet custom 5
+                param_named_auto lightPosition custom 6
+                param_named_auto distanceThreshold custom 7
+
+                param_named ringsTexture int 0
+                param_named noiseTexture int 1
+            }
+        }
+    }
+}
+
+material Scene/Rings/Dust
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            lighting off
+            depth_write off
+
+            texture_unit
+            {
+                texture scene-asteroid-fragment.png gamma
+            }
+
+            vertex_program_ref Billboard/VS
+            {
+            }
+
+            fragment_program_ref Billboard/FS
+            {
+                param_named billboardTex int 0
+            }
+        }
+    }
+}

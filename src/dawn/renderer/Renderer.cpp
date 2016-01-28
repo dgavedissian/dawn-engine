@@ -20,11 +20,17 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
                    Input* inputMgr, const String& windowTitle)
     : mInputMgr(inputMgr),
       mWindow(nullptr),
+	  mLogManager(nullptr),
+	  mLog(nullptr),
+	  mRoot(nullptr),
       mSceneManager(nullptr),
+	  mRootNode(nullptr),
       mRenderWindow(nullptr),
       mViewport(nullptr),
       mDefaultCamera(nullptr),
       mRaySceneQuery(nullptr),
+	  mRenderSystemPlugin(nullptr),
+	  mParticleUniversePlugin(nullptr),
       mRTRoot(nullptr),
       mRTRootPosition(Position::origin)
 {
@@ -34,11 +40,11 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     bool vsync = Config::Get<bool>("vsync", true);
 
     // Set up Ogre's log manager
-    mLogManager = MakeShared<Ogre::LogManager>();
+    mLogManager = new Ogre::LogManager();
     mLog = mLogManager->createLog(prefPath + "ogre.log", true, false, false);
 
     // Create the Ogre root
-    mRoot = MakeShared<Ogre::Root>("", "");
+    mRoot = new Ogre::Root("", "");
     LOG << "Created Ogre Root";
     LOG << "\tVersion: " << OGRE_VERSION_MAJOR << "." << OGRE_VERSION_MINOR << "."
                 << OGRE_VERSION_PATCH << " " << OGRE_VERSION_NAME;
@@ -49,7 +55,7 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     // Set the render system to the first available renderer
     if (mRoot->getAvailableRenderers().empty())
     {
-        // TODO: ERROR
+        // TODO: THIS SHOULD NEVER HAPPEN
         assert(0);
     }
     mRoot->setRenderSystem(mRoot->getAvailableRenderers().front());
@@ -69,17 +75,16 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     mRenderWindow->setVisible(true);
 
     // OGRE IS NOW READY, SET UP THE SCENE
-    InitResources(basePath);
+	InitResources(basePath);
     InitScene();
 
     // Set up the raycast query object
-    mRaySceneQuery =
-        mSceneManager->createRayQuery(Ogre::Ray(), Ogre::SceneManager::WORLD_GEOMETRY_TYPE_MASK);
+    mRaySceneQuery = mSceneManager->createRayQuery(Ogre::Ray(), Ogre::SceneManager::WORLD_GEOMETRY_TYPE_MASK);
     mRaySceneQuery->setSortByDistance(true);
     mRaySceneQuery->setQueryMask(UNIVERSE_OBJECT);
 
     // Set up the deferred shading system
-    mDeferredShadingMgr = MakeShared<DeferredShadingManager>(mViewport, mSceneManager);
+    mDeferredShadingMgr = new DeferredShadingManager(mViewport, mSceneManager);
 
     // Set up post processing
     mHDRComp = Ogre::CompositorManager::getSingleton().addCompositor(mViewport, "HDR");
@@ -88,7 +93,7 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     //mBlurComp->setEnabled(true);
 
     // Set up the sprite manager
-    mSpriteManager = MakeShared<SpriteManager>(mViewport, mSceneManager);
+    mSpriteManager = new SpriteManager(mViewport, mSceneManager);
 
     // Set up the root scene nodes
     mRootNode = mSceneManager->getRootSceneNode();
@@ -103,13 +108,15 @@ Renderer::~Renderer()
     REMOVE_LISTENER(Renderer, EvtData_KeyDown);
 
     // Delete the sprite manager and deferred shading manager
-    mSpriteManager.reset();
-    mDeferredShadingMgr.reset();
+    SAFE_DELETE(mSpriteManager);
+    SAFE_DELETE(mDeferredShadingMgr);
 
     // Clean up Ogre
     mRoot->destroySceneManager(mSceneManager);
-    mRoot.reset();
-    mLogManager.reset();
+	SAFE_DELETE(mRoot);
+	SAFE_DELETE(mLogManager);
+	SAFE_DELETE(mParticleUniversePlugin);
+	SAFE_DELETE(mRenderSystemPlugin);
     LOG << "Ogre cleaned up";
 
     // Destroy the SDL window
@@ -173,11 +180,14 @@ void Renderer::RenderFrame(Camera* camera)
     }
 
     // Update ribbon trail root node
-    mRTRoot->setPosition(mRTRootPosition.ToCameraSpace(camera));
+	if (camera)
+	{
+		mRTRoot->setPosition(mRTRootPosition.ToCameraSpace(camera));
+		if (mViewport->getCamera() != camera->GetOgreCamera())
+			mViewport->setCamera(camera->GetOgreCamera());
+	}
 
     // Draw a frame
-    if (mViewport->getCamera() != camera->GetOgreCamera())
-        mViewport->setCamera(camera->GetOgreCamera());
     mRoot->renderOneFrame();
 }
 
@@ -235,8 +245,7 @@ void MergeBounds(Ogre::SceneNode* node, Ogre::SceneNode* rootNode,
     Ogre::SceneNode::ChildNodeIterator child = node->getChildIterator();
     while (child.hasMoreElements())
     {
-        MergeBounds(static_cast<Ogre::SceneNode*>(child.getNext()), rootNode, currentTransform,
-                     aabb);
+        MergeBounds(static_cast<Ogre::SceneNode*>(child.getNext()), rootNode, currentTransform, aabb);
     }
 }
 
@@ -431,26 +440,10 @@ Vector<SDL_DisplayMode> Renderer::EnumerateDisplayModes() const
 
 void Renderer::LoadPlugins()
 {
-    Vector<String> plugins;
-    plugins.push_back("RenderSystem_GL3Plus");
-#if DW_PLATFORM == DW_WIN32
-    plugins.push_back("Plugin_ParticleUniverse");
-#endif
-    LOG << "Plugins:";
-    for (auto& plugin : plugins)
-    {
-#if DW_PLATFORM == DW_WIN32 && defined(DW_DEBUG)
-        plugin.append("_d");
-#endif
-        mRoot->loadPlugin(plugin);
-        LOG << "\t" << plugin;
-    }
-
-    // Work around the missing msSingleton assert for ParticleUniverse
-#if DW_PLATFORM != DW_WIN32
-    mParticleUniversePlugin = MakeShared<ParticleUniverse::ParticleUniversePlugin>();
-    mRoot->installPlugin(mParticleUniversePlugin.get());
-#endif
+	mRenderSystemPlugin = new Ogre::GL3PlusPlugin();
+	mRoot->installPlugin(mRenderSystemPlugin);
+    mParticleUniversePlugin = new ParticleUniverse::ParticleUniversePlugin();
+    mRoot->installPlugin(mParticleUniversePlugin);
 }
 
 void Renderer::CreateSDLWindow(const String& windowTitle, const Vec2i& displayMode,
@@ -512,20 +505,14 @@ void Renderer::InitResources(const String& basePath)
     // Add all resource locations to the resource group manager
     // TODO move resource manager to global class
     Vector<String> rl;
-    rl.push_back("Media/Fonts/");
-    rl.push_back("Media/Materials/Deferred/");
-    rl.push_back("Media/Materials/Explosions/pu/");
-    rl.push_back("Media/Materials/Explosions/");
-    rl.push_back("Media/Materials/Scene/");
-    rl.push_back("Media/Materials/Ship/");
-    rl.push_back("Media/Materials/");
-    rl.push_back("Media/Models/");
-    rl.push_back("Media/Scripts/");
-    rl.push_back("Media/Scripts/GameModes");
-    rl.push_back("Media/Textures/");
-    rl.push_back("Media/Textures/Scene");
-    rl.push_back("Media/Textures/UI");
-    rl.push_back("Media/UI");
+	rl.push_back("media/base/fonts");
+	rl.push_back("media/base/materials/deferred");
+	rl.push_back("media/base/materials/explosions/pu");
+	rl.push_back("media/base/materials/explosions");
+	rl.push_back("media/base/materials/scene");
+	rl.push_back("media/base/materials");
+	rl.push_back("media/base/scripts");
+	rl.push_back("media/base/ui");
     LOG << "Resource Locations:";
     for (auto& resourceLocation : rl)
     {

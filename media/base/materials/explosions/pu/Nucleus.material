@@ -1,0 +1,18 @@
+material Nucleus
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+
+            texture_unit pu_nucleus.png
+            {
+                texture_alias pu_nucleus.png
+                texture pu_nucleus.png
+            }
+        }
+    }
+}

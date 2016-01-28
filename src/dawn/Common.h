@@ -114,11 +114,12 @@ using Plane = math::Plane;
 template <class T> using Vector = std::vector<T>;
 template <class T> using List = std::list<T>;
 template <class K, class T> using Map = std::map<K, T>;
+template <class K, class T> using HashMap = std::unordered_map<K, T>;
 
 NAMESPACE_END
 
 // Safe delete macros
-#define SAFE_DELETE(x) if ((x)) { delete (x); x = nullptr; }
+#define SAFE_DELETE(x) if (x) { delete (x); x = nullptr; }
 
 // Error macros
 #define ERROR_WARN(x) LOGWARN << (x)

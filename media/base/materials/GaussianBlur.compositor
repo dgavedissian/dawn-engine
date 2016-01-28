@@ -1,0 +1,35 @@
+compositor GaussianBlur
+{
+    technique
+    {
+        texture blurX target_width target_height PF_FLOAT16_RGBA
+        texture blurY target_width target_height PF_FLOAT16_RGBA
+
+        target blurX
+        {
+            input previous
+        }
+
+        target blurY
+        {
+            pass clear
+            {
+            }
+
+            pass render_quad
+            {
+                material Post/GaussianBlurX
+                input 0 blurX
+            }
+        }
+
+        target_output
+        {
+            pass render_quad
+            {
+                material Post/GaussianBlurY
+                input 0 blurY
+            }
+        }
+    }
+}

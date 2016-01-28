@@ -1,0 +1,18 @@
+vertex_program Post/Quad/VS glsl
+{
+    source PostQuad.vs
+    default_params
+    {
+        param_named_auto renderTargetFlipping render_target_flipping
+    }
+}
+
+vertex_program Post/QuadRay/VS glsl
+{
+    source PostQuadRay.vs
+    default_params
+    {
+        param_named farCorner float3 1 1 1
+        param_named_auto renderTargetFlipping render_target_flipping
+    }
+}

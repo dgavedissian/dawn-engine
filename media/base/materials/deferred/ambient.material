@@ -1,0 +1,47 @@
+fragment_program DeferredShading/Ambient/FS glsl
+{
+    source ambient.fs
+    default_params
+    {
+        param_named_auto ambientColor ambient_light_colour 0
+        param_named_auto proj projection_matrix
+        param_named_auto znear near_clip_distance
+        param_named_auto zfar far_clip_distance
+        param_named gb0 int 0
+        param_named gb1 int 1
+    }
+}
+
+material DeferredShading/AmbientLight
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+
+            texture_unit
+            {
+                content_type compositor DeferredShading/GBuffer gbuffer 0
+                tex_address_mode clamp
+                filtering none
+            }
+
+            texture_unit
+            {
+                content_type compositor DeferredShading/GBuffer gbuffer 1
+                tex_address_mode clamp
+                filtering none
+            }
+
+            vertex_program_ref Post/QuadRay/VS
+            {
+            }
+
+            fragment_program_ref DeferredShading/Ambient/FS
+            {
+            }
+        }
+    }
+}
+

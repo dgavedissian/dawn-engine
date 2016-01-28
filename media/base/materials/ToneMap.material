@@ -1,0 +1,32 @@
+fragment_program Post/ToneMap/FS glsl
+{
+    source ToneMap.fs
+}
+
+material Post/ToneMap
+{
+    technique
+    {
+        pass
+        {
+            cull_hardware none
+            cull_software none
+            depth_check off
+            depth_write off
+
+            vertex_program_ref Post/Quad/VS
+            {
+            }
+
+            fragment_program_ref Post/ToneMap/FS
+            {
+                param_named texture int 0
+                param_named exposureLevel float 2.0
+            }
+
+            texture_unit
+            {
+            }
+        }
+    }
+}

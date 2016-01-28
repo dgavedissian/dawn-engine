@@ -1,0 +1,13 @@
+<template name="window" content="content">
+<head>
+    <link type="text/rcss" href="default.rcss"/>
+    <link type="text/rcss" href="window.rcss"/>
+</head>
+<body class="window">
+    <div id="title-bar">
+        <span id="title">Window Title</span>
+    </div>
+    <div id="content">
+    </div>
+</body>
+</template>

@@ -100,8 +100,8 @@ public:
     Ogre::SceneNode* GetRootSceneNode() { return mRootNode; }
     Ogre::RenderWindow* GetWindow() { return mRenderWindow; }
  	Ogre::Viewport* GetViewport() { return mViewport; }
-    SpriteManager* GetSpriteMgr() { return mSpriteManager.get(); }
-    DEPRECATED DeferredShadingManager* GetDeferredShadingMgr() { return mDeferredShadingMgr.get(); }
+    SpriteManager* GetSpriteMgr() { return mSpriteManager; }
+    DEPRECATED DeferredShadingManager* GetDeferredShadingMgr() { return mDeferredShadingMgr; }
     DEPRECATED Ogre::RenderSystem* GetOgreRenderSystem() const { return mRoot->getRenderSystem(); }
 
 private:
@@ -111,11 +111,11 @@ private:
     SDL_Window* mWindow;
 
     // Ogre Log
-    SharedPtr<Ogre::LogManager> mLogManager;
+    Ogre::LogManager* mLogManager;
     Ogre::Log* mLog;
 
     // Ogre
-    SharedPtr<Ogre::Root> mRoot;
+    Ogre::Root* mRoot;
     Ogre::SceneManager* mSceneManager;
     Ogre::SceneNode* mRootNode;
     Ogre::RenderWindow* mRenderWindow;
@@ -125,24 +125,24 @@ private:
 
     Ogre::RaySceneQuery* mRaySceneQuery;
 
+	// Ogre Plugins
+	Ogre::GL3PlusPlugin* mRenderSystemPlugin;
+    ParticleUniverse::ParticleUniversePlugin* mParticleUniversePlugin;
+
     // Deferred Shading Pipeline
-    SharedPtr<DeferredShadingManager> mDeferredShadingMgr;
+    DeferredShadingManager* mDeferredShadingMgr;
 
     // Post Processing
     Ogre::CompositorInstance* mHDRComp;
     Ogre::CompositorInstance* mBlurComp;
 
     // Sprite Manager
-    SharedPtr<SpriteManager> mSpriteManager;
+    SpriteManager* mSpriteManager;
 
     // Ribbon-trail root node
     // This is automatically set to the scene origin
     Ogre::SceneNode* mRTRoot;
     Position mRTRootPosition;
-
-#if DW_PLATFORM != DW_WIN32
-    SharedPtr<ParticleUniverse::ParticleUniversePlugin> mParticleUniversePlugin;
-#endif
 
     // Set up
     void LoadPlugins();
