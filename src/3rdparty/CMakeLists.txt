@@ -34,6 +34,7 @@ set(EXTERNAL_INSTALL ${EXTERNAL_PREFIX}/install)
 
 # Arguments to be passed to all calls to CMake
 set(EXTERNAL_ARGS
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} # CMake doesn't seem to do this automatically?
     -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL})
 if(APPLE)
     set(EXTERNAL_ARGS ${EXTERNAL_ARGS}
@@ -221,9 +222,12 @@ ExternalProject_Add(LibRocket
 if(WIN32)
 else()
     set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/libRocketControls.a
-        ${EXTERNAL_INSTALL}/lib/libRocketCore.a
-        ${EXTERNAL_INSTALL}/lib/libRocketDebugger.a)
+        debug ${EXTERNAL_INSTALL}/lib/libRocketCore_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libRocketCore.a
+        debug ${EXTERNAL_INSTALL}/lib/libRocketControls_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libRocketControls.a
+        debug ${EXTERNAL_INSTALL}/lib/libRocketDebugger_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libRocketDebugger.a)
 endif()
 
 # RakNet

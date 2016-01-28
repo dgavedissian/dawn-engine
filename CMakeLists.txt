@@ -49,14 +49,12 @@ function(add_game GAME_NAME)
         set(TYPE MACOSX_BUNDLE)
     endif()
 
-    # Necessary linker flags on 64-bit OS X for LuaJIT
-    if(APPLE)
-        set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
-    endif()
-
     # Add executable
     add_executable(${GAME_NAME} ${TYPE} ${ARGN})
     target_link_libraries(${GAME_NAME} Dawn)
+    if(APPLE)
+        target_link_libraries(${GAME_NAME} -pagezero_size 10000 -image_base 100000000)
+    endif()
     set_target_properties(${GAME_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
     # Copy over shared library dependencies
