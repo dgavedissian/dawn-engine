@@ -49,19 +49,41 @@ function(add_game GAME_NAME)
         set(TYPE MACOSX_BUNDLE)
     endif()
 
+    # Necessary linker flags on 64-bit OS X for LuaJIT
+    if(APPLE)
+        set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
+    endif()
+
+    # Currently, dawn can only be linked dynamically
+    add_definitions(-DDW_DLL)
+
     # Add executable
     add_executable(${GAME_NAME} ${TYPE} ${ARGN})
     target_link_libraries(${GAME_NAME} Dawn)
     if(APPLE)
         target_link_libraries(${GAME_NAME} -pagezero_size 10000 -image_base 100000000)
     endif()
-    set_target_properties(${GAME_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+    set_output_dir(${GAME_NAME} ${CMAKE_SOURCE_DIR}/bin)
+    set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
+
+    # Create a special "CopyMedia target"
+    set(COPY_MEDIA_TARGET ${GAME_NAME}_CopyMedia)
+    add_custom_target(${COPY_MEDIA_TARGET} ALL)
+    if(MSVC OR XCODE)
+        add_dependencies(${GAME_NAME} ${COPY_MEDIA_TARGET})
+    else()
+        add_dependencies(${COPY_MEDIA_TARGET} ${COPY_MEDIA_TARGET})
+    endif()
 
     # Copy over shared library dependencies
     get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
     set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
     if(WIN32)
-        # TODO: Windows
+        add_custom_command(TARGET ${COPY_MEDIA_TARGET} POST_BUILD
+            COMMAND if exist ${LIB_DIR}/Dawn_d.dll ${CMAKE_COMMAND} -E copy ${LIB_DIR}/Dawn_d.dll ${BIN_DIR}
+            COMMAND if exist ${LIB_DIR}/Dawn.dll ${CMAKE_COMMAND} -E copy ${LIB_DIR}/Dawn.dll ${BIN_DIR}
+            COMMAND  ${CMAKE_COMMAND} -E copy ${LIB_DIR}/irrKlang.dll ${BIN_DIR}
+            COMMAND ${CMAKE_COMMAND} -E copy ${LIB_DIR}/SDL2.dll ${BIN_DIR})
     elseif(APPLE)
         set(BUNDLE_DIR ${BIN_DIR}/${GAME_NAME}.app)
         set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)

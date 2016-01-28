@@ -120,13 +120,19 @@ endif()
 # Project
 add_library(Dawn SHARED ${CPP_FILES} ${H_FILES})
 add_dependencies(Dawn ${EXTERNAL_DEPS})
-set_target_properties(Dawn PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD")
+set_output_dir(Dawn ${CMAKE_BINARY_DIR}/lib)
+set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
 
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)
 get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
-if(APPLE)
+if(WIN32)
+    add_custom_command(TARGET Dawn POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${DEPS_DIR}/irrKlang.dll ${LIB_DIR})
+    # TODO: Use SDL2_LIBRARIES
+    add_custom_command(TARGET Dawn POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_INCLUDE_DIR}/../lib/x86/SDL2.dll ${LIB_DIR})
+elseif(APPLE)
     set_target_properties(Dawn PROPERTIES FRAMEWORK TRUE)
     add_custom_command(TARGET Dawn POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy ${DEPS_DIR}/libirrklang.dylib ${LIB_DIR})
@@ -142,9 +148,7 @@ endif()
 
 # Random extras
 mirror_physical_directories(${CPP_FILES} ${H_FILES})
-if(WIN32)
-    set_target_properties(Dawn PROPERTIES DEBUG_POSTFIX _d)
-endif()
+set_target_properties(Dawn PROPERTIES DEBUG_POSTFIX _d)
 
 # Add include dirs and libraries
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
