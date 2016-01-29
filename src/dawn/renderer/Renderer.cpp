@@ -30,7 +30,6 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
       mDefaultCamera(nullptr),
       mRaySceneQuery(nullptr),
 	  mRenderSystemPlugin(nullptr),
-	  mParticleUniversePlugin(nullptr),
       mRTRoot(nullptr),
       mRTRootPosition(Position::origin)
 {
@@ -115,7 +114,6 @@ Renderer::~Renderer()
     mRoot->destroySceneManager(mSceneManager);
 	SAFE_DELETE(mRoot);
 	SAFE_DELETE(mLogManager);
-	SAFE_DELETE(mParticleUniversePlugin);
 	SAFE_DELETE(mRenderSystemPlugin);
     LOG << "Ogre cleaned up";
 
@@ -442,8 +440,6 @@ void Renderer::LoadPlugins()
 {
 	mRenderSystemPlugin = new Ogre::GL3PlusPlugin();
 	mRoot->installPlugin(mRenderSystemPlugin);
-    mParticleUniversePlugin = new ParticleUniverse::ParticleUniversePlugin();
-    mRoot->installPlugin(mParticleUniversePlugin);
 }
 
 void Renderer::CreateSDLWindow(const String& windowTitle, const Vec2i& displayMode,

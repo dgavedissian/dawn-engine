@@ -191,33 +191,6 @@ if(UNIX AND NOT APPLE)
 endif()
 set(LIBS ${LIBS} ${OPENGL_LIBRARY})
 
-# ParticleUniverse
-ExternalProject_Add(ParticleUniverse
-    DEPENDS Ogre
-    PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_INSTALL}
-    GIT_REPOSITORY https://github.com/davedissian/dawnengine-particleuniverse.git
-    UPDATE_COMMAND ""
-    CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DBUILD_SHARED_LIBS=0
-        -DOGRE_FOUND=1 # supress FindOgre.cmake
-        -DOGRE_STATIC=1
-        -DOGRE_INCLUDE_DIRS=${OGRE_INCLUDE_DIRS}
-        -DOGRE_LIBRARIES=${OGRE_LIBRARIES}
-        -DPU_BUILD_SAMPLES=0
-        -DPU_BUILD_TOOLS=0
-        -DFREETYPE_LIBRARY=${EXTERNAL_INSTALL}/lib/${FREETYPE_LIB}) # Not sure why this is needed..
-set_target_properties(ParticleUniverse PROPERTIES FOLDER "3rdparty")
-if(WIN32)
-    set(LIBS ${LIBS}
-        debug ${EXTERNAL_INSTALL}/lib/Plugin_ParticleUniverse_d.lib
-        optimized ${EXTERNAL_INSTALL}/lib/Plugin_ParticleUniverse.lib)
-else()
-    set(LIBS ${LIBS}
-        debug ${EXTERNAL_INSTALL}/lib/Plugin_ParticleUniverse_d.a
-        optimized ${EXTERNAL_INSTALL}/lib/Plugin_ParticleUniverse.a)
-endif()
-
 # MathGeoLib
 ExternalProject_Add(MathGeoLib
     PREFIX ${EXTERNAL_PREFIX}
@@ -346,7 +319,7 @@ else()
 endif()
 set_target_properties(IrrKlang PROPERTIES FOLDER "3rdparty")
 
-set(EXTERNAL_DEPS Bullet Ogre ParticleUniverse MathGeoLib Luajit LibRocket RakNet IrrKlang PARENT_SCOPE)
+set(EXTERNAL_DEPS Bullet Ogre MathGeoLib Luajit LibRocket RakNet IrrKlang PARENT_SCOPE)
 
 
 ##############################################################

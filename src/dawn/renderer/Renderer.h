@@ -127,7 +127,6 @@ private:
 
 	// Ogre Plugins
 	Ogre::GL3PlusPlugin* mRenderSystemPlugin;
-    ParticleUniverse::ParticleUniversePlugin* mParticleUniversePlugin;
 
     // Deferred Shading Pipeline
     DeferredShadingManager* mDeferredShadingMgr;
