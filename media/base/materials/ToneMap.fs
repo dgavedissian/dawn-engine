@@ -12,6 +12,6 @@ void main()
     colour = texture2D(texture, oUv);
     vec2 mid = oUv - vec2(0.5);
     float vignette = 1.0 - dot(mid, mid);
-    colour *= pow(vignette, 4.0);
+    colour *= pow(vignette, 1.0);
     colour *= exposureLevel;
 }

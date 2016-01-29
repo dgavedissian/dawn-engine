@@ -4,17 +4,6 @@
  */
 #pragma once
 
-// DLL Export/Import
-#ifdef DW_DLL
-#   ifdef DW_BUILD
-#       define DW_API __declspec(dllexport)
-#   else
-#       define DW_API __declspec(dllimport)
-#   endif
-#else
-#   define DW_API
-#endif
-
 // Determine build type
 #ifdef _DEBUG
 #   define DW_DEBUG
@@ -47,28 +36,39 @@
 #elif defined(__GNUC__)
 #   if DW_PLATFORM == DW_WIN32
 #       define DW_MINGW
-#   else
-#       define DW_GCC
 #   endif
+#   define DW_GCC
 #else
 #   error This compiler is not recognised!
+#endif
+
+// DLL Import/Export specifiers
+#if defined(DW_DLL) and DW_PLATFORM == DW_WIN32
+#   ifdef DW_BUILD
+#       define DW_API __declspec(dllexport)
+#   else
+#       define DW_API __declspec(dllimport)
+#   endif
+#else
+#   define DW_API
 #endif
 
 // Deprecated
 #ifdef DEPRECATED
 #   undef DEPRECATED
 #endif
-#ifdef __GNUC__
+#if defined(DW_GCC) || defined(DW_CLANG)
 #   define DEPRECATED __attribute__((deprecated))
-#elif defined(_MSC_VER)
+#elif defined(DW_MSVC)
 #   define DEPRECATED __declspec(deprecated)
 #else
 #   pragma message("WARNING: DEPRECATED is not implemented for this compiler")
 #   define DEPRECATED
 #endif
 
-// Force inline and alignment
+// Force inline and alignment - reuse Bullet's macros
 #define DW_INLINE SIMD_FORCE_INLINE
 #define DW_ALIGNED16(X) ATTRIBUTE_ALIGNED16(X)
 #define DW_ALIGNED64(X) ATTRIBUTE_ALIGNED64(X)
 #define DW_ALIGNED128(X) ATTRIBUTE_ALIGNED128(X)
+

@@ -42,7 +42,7 @@ float PerlinNoise::Noise(float x, float y)
     vec[0] = x;
     vec[1] = y;
     return PerlinNoise2(vec);
-};
+}
 
 float PerlinNoise::Noise(float x, float y, float z)
 {

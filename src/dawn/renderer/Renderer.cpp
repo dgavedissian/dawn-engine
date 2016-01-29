@@ -512,6 +512,7 @@ void Renderer::InitResources(const String& basePath)
 	rl.push_back("media/base/materials/scene");
 	rl.push_back("media/base/materials");
 	rl.push_back("media/base/scripts");
+	rl.push_back("media/base/textures");
 	rl.push_back("media/base/ui");
     LOG << "Resource Locations:";
     for (auto& resourceLocation : rl)
@@ -623,8 +624,7 @@ void Renderer::FindClosestPolygon(Ogre::Entity* entity, float& closestDistance,
         Ogre::Vector3 vertex1;
         Ogre::Vector3 vertex2;
         float* pReal;
-        uint index;//
-
+        uint index;
         for (uint k = 0; k < subMesh->indexData->indexCount; k++)
         {
             // Read index value

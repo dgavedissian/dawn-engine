@@ -166,12 +166,18 @@ elseif(APPLE)
         ${EXTERNAL_INSTALL}/lib/libRenderSystem_GL3PlusStatic.a)
 else()
     set(OGRE_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/libFreeImage.a
-        ${EXTERNAL_INSTALL}/lib/libfreetype.a
-        ${EXTERNAL_INSTALL}/lib/libzlib.a
-        ${EXTERNAL_INSTALL}/lib/libzziplib.a
-        ${EXTERNAL_INSTALL}/lib/libOgreMainStatic.a
-        ${EXTERNAL_INSTALL}/lib/OGRE/libRenderSystem_GL3PlusStatic.a)
+        debug ${EXTERNAL_INSTALL}/lib/libFreeImage_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libFreeImage.a
+        debug ${EXTERNAL_INSTALL}/lib/libfreetype_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libfreetype.a
+        debug ${EXTERNAL_INSTALL}/lib/libzlib_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libzlib.a
+        debug ${EXTERNAL_INSTALL}/lib/libzziplib_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libzziplib.a
+        debug ${EXTERNAL_INSTALL}/lib/libOgreMainStatic_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libOgreMainStatic.a
+        debug ${EXTERNAL_INSTALL}/lib/OGRE/libRenderSystem_GL3PlusStatic_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/OGRE/libRenderSystem_GL3PlusStatic.a)
 endif()
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${OGRE_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${OGRE_LIBRARIES})
