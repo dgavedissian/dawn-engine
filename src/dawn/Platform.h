@@ -43,7 +43,7 @@
 #endif
 
 // DLL Import/Export specifiers
-#if defined(DW_DLL) and DW_PLATFORM == DW_WIN32
+#if defined(DW_DLL) && DW_PLATFORM == DW_WIN32
 #   ifdef DW_BUILD
 #       define DW_API __declspec(dllexport)
 #   else

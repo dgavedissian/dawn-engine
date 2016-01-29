@@ -12,7 +12,7 @@ NAMESPACE_BEGIN
 class SceneManager;
 
 // A camera entity, used as a viewpoint into the world. Derive this class to implement behaviours
-class Camera : public Entity
+class DW_API Camera : public Entity
 {
 public:
     Camera(SceneManager* sceneMgr);

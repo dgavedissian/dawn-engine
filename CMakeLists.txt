@@ -66,20 +66,11 @@ function(add_game GAME_NAME)
     set_output_dir(${GAME_NAME} ${CMAKE_SOURCE_DIR}/bin)
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
 
-    # Create a special "CopyMedia target"
-    set(COPY_MEDIA_TARGET ${GAME_NAME}_CopyMedia)
-    add_custom_target(${COPY_MEDIA_TARGET} ALL)
-    if(MSVC OR XCODE)
-        add_dependencies(${GAME_NAME} ${COPY_MEDIA_TARGET})
-    else()
-        add_dependencies(${COPY_MEDIA_TARGET} ${COPY_MEDIA_TARGET})
-    endif()
-
     # Copy over shared library dependencies
     get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
     set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
     if(WIN32)
-        add_custom_command(TARGET ${COPY_MEDIA_TARGET} POST_BUILD
+        add_custom_command(TARGET ${GAME_NAME} POST_BUILD
             COMMAND if exist ${LIB_DIR}/Dawn_d.dll ${CMAKE_COMMAND} -E copy ${LIB_DIR}/Dawn_d.dll ${BIN_DIR}
             COMMAND if exist ${LIB_DIR}/Dawn.dll ${CMAKE_COMMAND} -E copy ${LIB_DIR}/Dawn.dll ${BIN_DIR}
             COMMAND  ${CMAKE_COMMAND} -E copy ${LIB_DIR}/irrKlang.dll ${BIN_DIR}

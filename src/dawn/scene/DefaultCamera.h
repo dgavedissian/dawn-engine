@@ -32,7 +32,7 @@ enum CameraDragEventState
     CDES_RMB_DOWN
 };
 
-class DefaultCamera : public Camera
+class DW_API DefaultCamera : public Camera
 {
 public:
     DefaultCamera(Renderer* renderSystem, Input* inputMgr, SceneManager* sceneMgr);
