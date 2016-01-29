@@ -40,7 +40,7 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
 
     // Set up Ogre's log manager
     mLogManager = new Ogre::LogManager();
-    mLog = mLogManager->createLog(prefPath + "ogre.log", true, false, false);
+	mLog = mLogManager->createLog(prefPath + "ogre.log", true, false, false);
 
     // Create the Ogre root
     mRoot = new Ogre::Root("", "");
@@ -498,6 +498,8 @@ void Renderer::CreateSDLWindow(const String& windowTitle, const Vec2i& displayMo
 
 void Renderer::InitResources(const String& basePath)
 {
+	mResourceMgr = Ogre::ResourceGroupManager::getSingletonPtr();
+
     // Add all resource locations to the resource group manager
     // TODO move resource manager to global class
     Vector<String> rl;
@@ -513,13 +515,12 @@ void Renderer::InitResources(const String& basePath)
     LOG << "Resource Locations:";
     for (auto& resourceLocation : rl)
     {
-        Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-                basePath + resourceLocation, "FileSystem", "General");
+        mResourceMgr->addResourceLocation(basePath + resourceLocation, "FileSystem", "General");
         LOG << "\t" << resourceLocation;
     }
 
     // Initialise resources
-    Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+	mResourceMgr->initialiseAllResourceGroups();
     LOG << "Initialised resources";
 }
 

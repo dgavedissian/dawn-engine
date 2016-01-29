@@ -4,37 +4,38 @@
  */
 #pragma once
 
-#include "Engine.h"
-#include "UI/Layout.h"
-#include "Scene/space/SystemBody.h"
+using dw::uint;
+using dw::String;
 
-NAMESPACE_BEGIN
+enum StateID
+{
+	S_SANDBOX = dw::S_USER_ID_BEGIN
+};
 
 // The state where the universe can be explored. Useful for debugging the planetary engine
-class SandboxState : public State
+class SandboxState : public dw::State
 {
 public:
-    SandboxState(Engine* engine);
+    SandboxState(dw::Engine* engine);
     virtual ~SandboxState();
 
-    void HandleEvent(EventDataPtr eventData);
+    void HandleEvent(dw::EventDataPtr eventData);
 
     // Inherited from State
     virtual void Enter();
     virtual void Exit();
     virtual void Update(float dt);
     virtual uint GetID() const { return S_SANDBOX; }
-    virtual string GetName() const { return "SandboxState"; }
+    virtual String GetName() const { return "SandboxState"; }
 
 private:
-    Engine* mEngine;
-    Layout* mData;
+	dw::Engine* mEngine;
+	dw::DefaultCamera* mCamera;
+	dw::Layout* mData;
 
     double mTime;
     double mDeltaTime;
-    SystemBody* mTrackedObject;
+	dw::SystemBody* mTrackedObject;
 
     void UpdateUI(float speed);
 };
-
-NAMESPACE_END
