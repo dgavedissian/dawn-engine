@@ -151,5 +151,5 @@ mirror_physical_directories(${CPP_FILES} ${H_FILES})
 set_target_properties(Dawn PROPERTIES DEBUG_POSTFIX _d)
 
 # Add include dirs and libraries
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
+target_include_directories(Dawn PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
 target_link_libraries(Dawn ${LIBS})
