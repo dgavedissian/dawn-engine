@@ -59,10 +59,20 @@ function(add_game GAME_NAME)
 
     # Add executable
     add_executable(${GAME_NAME} ${TYPE} ${ARGN})
+
+    # Add include directories
+    get_target_property(DAWN_INCLUDE_DIRS Dawn INCLUDE_DIRECTORIES)
+    target_include_directories(${GAME_NAME} PRIVATE
+        ${DAWN_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # Add libraries
     target_link_libraries(${GAME_NAME} Dawn)
     if(APPLE)
         target_link_libraries(${GAME_NAME} -pagezero_size 10000 -image_base 100000000)
     endif()
+
+    # Set output directory
     set_output_dir(${GAME_NAME} ${CMAKE_SOURCE_DIR}/bin)
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
 
@@ -99,3 +109,4 @@ add_subdirectory(src)
 # Installation
 ###############################################
 # TODO
+

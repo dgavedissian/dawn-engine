@@ -325,7 +325,6 @@ set(EXTERNAL_DEPS Bullet Ogre MathGeoLib Luajit LibRocket RakNet IrrKlang PARENT
 ##############################################################
 # Packaged Dependencies
 ##############################################################
-include_directories(${INCLUDE_DIRS})
 
 # Build static libraries as PIC
 if(UNIX) # TODO: If is Clang or GCC
@@ -334,18 +333,21 @@ endif()
 
 # BtOgre
 add_library(BtOgre BtOgre/BtOgre.cpp)
+target_include_directories(BtOgre PRIVATE ${INCLUDE_DIRS})
 set_target_properties(BtOgre PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} BtOgre)
 add_dependencies(BtOgre Bullet Ogre)
 
 # ImGui
 add_library(ImGui ImGui/imgui.cpp)
+target_include_directories(ImGui PRIVATE ${INCLUDE_DIRS})
 set_target_properties(ImGui PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} ImGui)
 
 # YamlCpp
 file(GLOB YAML_CPP_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} YamlCpp/src/*.cpp)
 add_library(YamlCpp ${YAML_CPP_SRC})
+target_include_directories(YamlCpp PRIVATE ${INCLUDE_DIRS})
 set_target_properties(YamlCpp PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} YamlCpp)
 
