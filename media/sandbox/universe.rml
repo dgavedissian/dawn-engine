@@ -1,0 +1,27 @@
+<rml>
+  <head>
+    <title></title>
+    <link type="text/template" href="window.rml" />
+    <style>
+      .window
+      {
+        width: 14em;
+        height: 10em;
+        margin: 0.5em;
+        display: block;
+      }
+
+      button
+      {
+        width: 13.6em;
+        margin: 0.2em;
+      }
+    </style>
+  </head>
+  <body template="window">
+    <button>Load System</button>
+    <button>Jump To</button>
+    <p>Speed: <span id="speed"></span></p>
+    <p id="time"></p>
+  </body>
+</rml>

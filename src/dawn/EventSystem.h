@@ -6,13 +6,13 @@
 
 // Macros to make adding/removing event Listeners more sane
 #define ADD_LISTENER(LISTENER, EVENT) \
-    EventSystem::inst().AddListener(fastdelegate::MakeDelegate(this, &LISTENER::HandleEvent), \
+    dw::EventSystem::inst().AddListener(fastdelegate::MakeDelegate(this, &LISTENER::HandleEvent), \
                                     EVENT::eventType);
 #define REMOVE_LISTENER(LISTENER, EVENT) \
-    EventSystem::inst().RemoveListener(fastdelegate::MakeDelegate(this, &LISTENER::HandleEvent), \
+    dw::EventSystem::inst().RemoveListener(fastdelegate::MakeDelegate(this, &LISTENER::HandleEvent), \
                                        EVENT::eventType);
 #define REMOVE_ALL_LISTENERS(LISTENER) \
-    EventSystem::inst().RemoveAllListeners(fastdelegate::MakeDelegate(this, &LISTENER::HandleEvent))
+    dw::EventSystem::inst().RemoveAllListeners(fastdelegate::MakeDelegate(this, &LISTENER::HandleEvent))
 
 NAMESPACE_BEGIN
 

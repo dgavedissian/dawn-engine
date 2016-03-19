@@ -58,7 +58,6 @@
 #define OGRE_STATIC_LIB
 #include <Ogre.h>
 #include <RenderSystems/GL3Plus/OgreGL3PlusPlugin.h>
-#include <ParticleUniversePlugin.h>
 
 // MathGeoLib
 #define MATH_ENABLE_STL_SUPPORT

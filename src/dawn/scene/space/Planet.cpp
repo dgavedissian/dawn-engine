@@ -215,8 +215,7 @@ void Planet::PreRender(Camera* camera)
 void Planet::CalculatePosition(double time)
 {
     // TODO Rotating the planet causes issues with the atmosphere shader
-    mSurfaceNode->setOrientation(mAxialTilt *
-                                 Quat(Vec3::unitY, time / mDesc.rotationPeriod * 2.0f * math::pi));
+    //mSurfaceNode->setOrientation(mAxialTilt * Quat(Vec3::unitY, time / mDesc.rotationPeriod * 2.0f * math::pi));
     SystemBody::CalculatePosition(time);
 }
 

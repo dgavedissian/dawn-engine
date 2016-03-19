@@ -3,18 +3,26 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "DawnEngine.h"
+#include "SandboxState.h"
 
 int main(int argc, char** argv)
 {
+	// Set up the engine
     dw::Engine* engine = new dw::Engine("Sandbox", "1.0.0");
-    engine->Setup();
-    dw::DefaultCamera* camera = new dw::DefaultCamera(engine->GetRenderer(), engine->GetInput(), engine->GetSceneMgr());
-    camera->SetControlState(dw::CCS_FREE);
-    engine->SetMainCamera(camera);
-    engine->SetStarSystem(new dw::StarSystem(engine->GetRenderer(), engine->GetPhysicsWorld()));
-    engine->Run([camera](float dt) {camera->Update(dt);});
-    delete camera; // This needs to be deleted before engine->Shutdown() because deleting the camera
-                   // unregisters it from the event listener
+	engine->Setup();
+
+	// Add resource locations
+	// TODO: move this out of the renderer class
+	engine->GetRenderer()->AddResourceLocation(engine->GetBasePath() + "media/sandbox");
+
+	// Register the sandbox state and switch to it
+	engine->GetStateMgr()->RegisterState(dw::MakeShared<SandboxState>(engine));
+	engine->GetStateMgr()->Switch(S_SANDBOX);
+
+	// Run the engine
+	engine->Run([](float) {});
+
+	// Shutdown and exit
     engine->Shutdown();
     return 0;
 }

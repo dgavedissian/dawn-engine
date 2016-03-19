@@ -104,6 +104,9 @@ public:
     DEPRECATED DeferredShadingManager* GetDeferredShadingMgr() { return mDeferredShadingMgr; }
     DEPRECATED Ogre::RenderSystem* GetOgreRenderSystem() const { return mRoot->getRenderSystem(); }
 
+	/// Access the Resource Manager
+	void AddResourceLocation(const String& location) { mResourceMgr->addResourceLocation(location, "FileSystem"); }
+
 private:
     Input* mInputMgr;
 
@@ -119,6 +122,7 @@ private:
     Ogre::SceneManager* mSceneManager;
     Ogre::SceneNode* mRootNode;
     Ogre::RenderWindow* mRenderWindow;
+	Ogre::ResourceGroupManager* mResourceMgr;
 
     Ogre::Viewport* mViewport;
     Ogre::Camera* mDefaultCamera;
@@ -127,7 +131,6 @@ private:
 
 	// Ogre Plugins
 	Ogre::GL3PlusPlugin* mRenderSystemPlugin;
-    ParticleUniverse::ParticleUniversePlugin* mParticleUniversePlugin;
 
     // Deferred Shading Pipeline
     DeferredShadingManager* mDeferredShadingMgr;
