@@ -36,7 +36,6 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm500" CACHE STRING "" FORCE)
 endif()
 
-
 ###############################################
 # Helpful functions
 ###############################################
@@ -49,12 +48,7 @@ function(add_game GAME_NAME)
         set(TYPE MACOSX_BUNDLE)
     endif()
 
-    # Necessary linker flags on 64-bit OS X for LuaJIT
-    if(APPLE)
-        set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
-    endif()
-
-    # Currently, dawn can only be linked dynamically
+    # Currently, Dawn can only be linked dynamically
     add_definitions(-DDW_DLL)
 
     # Add executable
@@ -68,13 +62,13 @@ function(add_game GAME_NAME)
 
     # Add libraries
     target_link_libraries(${GAME_NAME} Dawn)
-    if(APPLE)
-        target_link_libraries(${GAME_NAME} -pagezero_size 10000 -image_base 100000000)
-    endif()
-
-    # Set output directory
     set_output_dir(${GAME_NAME} ${CMAKE_SOURCE_DIR}/bin)
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
+
+    # LuaJIT on 64-bit OS X requires these linker flags for executables
+    if(APPLE)
+        set_target_properties(${GAME_NAME} PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
+    endif()
 
     # Copy over shared library dependencies
     get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
