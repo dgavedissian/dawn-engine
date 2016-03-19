@@ -46,17 +46,17 @@ SpriteManager::~SpriteManager()
 {
     mSceneManager->removeRenderQueueListener(this);
     if (!mHwBuffer.isNull())
-        DestroyHardwareBuffer();
+        destroyHardwareBuffer();
 }
 
 void SpriteManager::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation,
                                      bool& repeatThisInvocation)
 {
     if (mRenderSystem->_getViewport() == mViewport && queueGroupId == Ogre::RENDER_QUEUE_OVERLAY)
-        Render();
+        render();
 }
 
-void SpriteManager::LoadSprite(const String& textureName)
+void SpriteManager::loadSprite(const String& textureName)
 {
     // Set up the material
     String materialName = "Sprite/" + textureName;
@@ -85,11 +85,11 @@ void SpriteManager::LoadSprite(const String& textureName)
     }
 }
 
-void SpriteManager::DrawSprite(const String& textureName, const Vec2& position,
+void SpriteManager::drawSprite(const String& textureName, const Vec2& position,
                                SpriteOrigin origin /*= SO_TOP_LEFT*/, float angle /*= 0.0f*/)
 {
     // Ensure that the material exists
-    LoadSprite(textureName);
+    loadSprite(textureName);
 
     // Determine size
     Ogre::TexturePtr tp = Ogre::TextureManager::getSingleton().getByName(textureName);
@@ -132,14 +132,14 @@ void SpriteManager::DrawSprite(const String& textureName, const Vec2& position,
     s.colour = Colour(1.0f, 1.0f, 1.0f, 1.0f);
     s.origin = originCoord;
     s.angle = angle;
-    DrawSprite(s);
+    drawSprite(s);
 }
 
-void SpriteManager::DrawSprite(const String& textureName, const Vec2& position, const Vec2& origin,
+void SpriteManager::drawSprite(const String& textureName, const Vec2& position, const Vec2& origin,
                                float angle /*= 0.0f*/)
 {
     // Ensure that the material exists
-    LoadSprite(textureName);
+    loadSprite(textureName);
 
     // Determine size
     Ogre::TexturePtr tp = Ogre::TextureManager::getSingleton().getByName(textureName);
@@ -154,14 +154,14 @@ void SpriteManager::DrawSprite(const String& textureName, const Vec2& position, 
     s.colour = Colour(1.0f, 1.0f, 1.0f, 1.0f);
     s.origin = origin;
     s.angle = angle;
-    DrawSprite(s);
+    drawSprite(s);
 }
 
-void SpriteManager::DrawSprite(const String& textureName, const Vec2& position, const Vec2& size,
+void SpriteManager::drawSprite(const String& textureName, const Vec2& position, const Vec2& size,
                                const Vec2& origin, float angle /*= 0.0f*/)
 {
     // Ensure that the material exists
-    LoadSprite(textureName);
+    loadSprite(textureName);
 
     // Call drawSprite with these parameters
     SpriteDesc s;
@@ -172,13 +172,13 @@ void SpriteManager::DrawSprite(const String& textureName, const Vec2& position, 
     s.colour = Colour(1.0f, 1.0f, 1.0f, 1.0f);
     s.origin = origin;
     s.angle = angle;
-    DrawSprite(s);
+    drawSprite(s);
 }
 
-void SpriteManager::DrawSprite(const SpriteDesc& s)
+void SpriteManager::drawSprite(const SpriteDesc& s)
 {
     // Ensure that the material exists
-    LoadSprite(s.textureName);
+    loadSprite(s.textureName);
 
     // Calculate corners
     // Vertex order:
@@ -198,8 +198,8 @@ void SpriteManager::DrawSprite(const SpriteDesc& s)
     {
         // Transform point
         if (!math::EqualAbs(s.angle, 0.0f))
-            c[i].p = Rotate(c[i].p, s.angle);
-        c[i].p = ToScreenCoord(c[i].p + s.position);
+            c[i].p = rotate(c[i].p, s.angle);
+        c[i].p = toScreenCoord(c[i].p + s.position);
 
         // Copy vertex
         spr.vertex[i] = c[i];
@@ -210,7 +210,7 @@ void SpriteManager::DrawSprite(const SpriteDesc& s)
     mSpriteCount++;
 }
 
-void SpriteManager::Render()
+void SpriteManager::render()
 {
     uint newSize = mSpriteCount * 6;
     if (newSize < MIN_HARDWARE_BUFFER_SIZE)
@@ -220,8 +220,8 @@ void SpriteManager::Render()
     if (mHwBuffer.isNull() || mHwBuffer->getNumVertices() < newSize)
     {
         if (!mHwBuffer.isNull())
-            DestroyHardwareBuffer();
-        CreateHardwareBuffer(newSize);
+            destroyHardwareBuffer();
+        createHardwareBuffer(newSize);
     }
 
     // Bail if there are no sprites to render
@@ -273,7 +273,7 @@ void SpriteManager::Render()
     mSpriteCount = 0;
 }
 
-void SpriteManager::CreateHardwareBuffer(uint size)
+void SpriteManager::createHardwareBuffer(uint size)
 {
     mRenderOp.vertexData = new Ogre::VertexData;
     mRenderOp.vertexData->vertexStart = 0;
@@ -296,14 +296,14 @@ void SpriteManager::CreateHardwareBuffer(uint size)
     mRenderOp.useIndexes = false;
 }
 
-void SpriteManager::DestroyHardwareBuffer()
+void SpriteManager::destroyHardwareBuffer()
 {
     delete mRenderOp.vertexData;
     mRenderOp.vertexData = nullptr;
     mHwBuffer.setNull();
 }
 
-Vec2 SpriteManager::Rotate(const Vec2& c, float angle)
+Vec2 SpriteManager::rotate(const Vec2& c, float angle)
 {
     // This is just an expansion of the matrix multiplication:
     // |x'| = |cos(a), -sin(a)||x|
@@ -314,7 +314,7 @@ Vec2 SpriteManager::Rotate(const Vec2& c, float angle)
     return out;
 }
 
-Vec2 SpriteManager::ToScreenCoord(const Vec2& pos)
+Vec2 SpriteManager::toScreenCoord(const Vec2& pos)
 {
     float vpWidth = (float)mViewport->getActualWidth();
     float vpHeight = (float)mViewport->getActualHeight();

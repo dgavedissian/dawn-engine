@@ -31,7 +31,7 @@ Layout::~Layout()
     mDocument->Close();
 }
 
-void Layout::FocusOn(const String& id)
+void Layout::focusOn(const String& id)
 {
     if (!mDocument->GetElementById(id.c_str())->Focus())
     {
@@ -39,12 +39,12 @@ void Layout::FocusOn(const String& id)
     }
 }
 
-void Layout::Show(int showType)
+void Layout::show(int showType)
 {
     mDocument->Show(showType);
 }
 
-void Layout::Hide()
+void Layout::hide()
 {
     // Disable modality by calling "Show" again
     if (mDocument->IsModal())
@@ -57,12 +57,12 @@ void Layout::Hide()
     mDocument->Hide();
 }
 
-bool Layout::IsVisible() const
+bool Layout::isVisible() const
 {
     return mDocument->IsVisible();
 }
 
-void Layout::BindEvent(const String& id, UIEvent event)
+void Layout::bindEvent(const String& id, UIEvent event)
 {
     // Map event ID to string
     String eventID;
@@ -94,15 +94,15 @@ void Layout::BindEvent(const String& id, UIEvent event)
 
     // Add the Listener
     elem->AddEventListener(eventID.c_str(), mInterfaceMgr);
-    mListeners.push_back(MakeTuple(id, eventID, mInterfaceMgr));
+    mListeners.push_back(makeTuple(id, eventID, mInterfaceMgr));
 }
 
-Rocket::Core::Element* Layout::GetElementById(Rocket::Core::String id)
+Rocket::Core::Element* Layout::getElementById(Rocket::Core::String id)
 {
     return mDocument->GetElementById(id);
 }
 
-Rocket::Core::ElementDocument* Layout::GetDocument()
+Rocket::Core::ElementDocument* Layout::getDocument()
 {
     return mDocument;
 }

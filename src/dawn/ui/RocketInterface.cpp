@@ -25,8 +25,8 @@ struct RocketOgreGeometry
 
 RocketInterface::RocketInterface(Renderer* rs, Ogre::MaterialPtr uiMaterial,
                                  const Ogre::Matrix4& projection)
-    : mRenderSystem(rs->GetOgreRenderSystem()),
-      mSceneMgr(rs->GetSceneMgr()),
+    : mRenderSystem(rs->getOgreRenderSystem()),
+      mSceneMgr(rs->getSceneMgr()),
       mUIMaterial(uiMaterial),
       mProjection(projection)
 {
@@ -34,17 +34,17 @@ RocketInterface::RocketInterface(Renderer* rs, Ogre::MaterialPtr uiMaterial,
 
     mScissorLeft = 0;
     mScissorTop = 0;
-    mScissorRight = (int)rs->GetWidth();
-    mScissorBottom = (int)rs->GetHeight();
+    mScissorRight = (int)rs->getWidth();
+    mScissorBottom = (int)rs->getHeight();
 
-    SetupKeymap();
+    setupKeymap();
 }
 
 RocketInterface::~RocketInterface()
 {
 }
 
-int RocketInterface::MapSDLKeyCode(SDL_Keycode key)
+int RocketInterface::mapSDLKeyCode(SDL_Keycode key)
 {
     auto it = mKeyMap.find(key);
     if (it != mKeyMap.end())
@@ -53,7 +53,7 @@ int RocketInterface::MapSDLKeyCode(SDL_Keycode key)
         return Rocket::Core::Input::KI_UNKNOWN;
 }
 
-Rocket::Core::Input::KeyModifier RocketInterface::MapSDLKeyMod(Uint16 mod)
+Rocket::Core::Input::KeyModifier RocketInterface::mapSDLKeyMod(Uint16 mod)
 {
     using namespace Rocket::Core::Input;
 
@@ -74,7 +74,7 @@ Rocket::Core::Input::KeyModifier RocketInterface::MapSDLKeyMod(Uint16 mod)
     return KeyModifier(rocketMod);
 }
 
-int RocketInterface::MapSDLMouseButton(uint button)
+int RocketInterface::mapSDLMouseButton(uint button)
 {
     return button - 1;
 }
@@ -136,10 +136,10 @@ Rocket::Core::CompiledGeometryHandle RocketInterface::CompileGeometry(
             vertices[i].colour.blue / 255.0f, vertices[i].colour.alpha / 255.0f);
 
         // Scale colour by gamma value (2.2)
-        diffuse.r = Pow(diffuse.r, 2.2f);
-        diffuse.g = Pow(diffuse.g, 2.2f);
-        diffuse.b = Pow(diffuse.b, 2.2f);
-        diffuse.a = Pow(diffuse.a, 2.2f);
+        diffuse.r = pow(diffuse.r, 2.2f);
+        diffuse.g = pow(diffuse.g, 2.2f);
+        diffuse.b = pow(diffuse.b, 2.2f);
+        diffuse.a = pow(diffuse.a, 2.2f);
 
         mRenderSystem->convertColourValue(diffuse, &vertexData[i].colour);
     }
@@ -339,7 +339,7 @@ size_t RocketInterface::Tell(Rocket::Core::FileHandle file)
 
 float RocketInterface::GetElapsedTime()
 {
-    return static_cast<float>(time::Now());
+    return static_cast<float>(time::now());
 }
 
 bool RocketInterface::LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message)
@@ -349,7 +349,7 @@ bool RocketInterface::LogMessage(Rocket::Core::Log::Type type, const Rocket::Cor
     return false;
 }
 
-void RocketInterface::SetupKeymap()
+void RocketInterface::setupKeymap()
 {
     // Set up key mappings
     using namespace Rocket::Core::Input;

@@ -9,21 +9,21 @@ dw::ConfigNode dw::Config::root;
 
 NAMESPACE_BEGIN
 
-void Config::Load(const String& filename)
+void Config::load(const String& filename)
 {
     Config::filename = filename;
     ifstream file(filename);
     file >> Config::root;
-    Config::Dump();
+    Config::dump();
 }
 
-void Config::Save()
+void Config::save()
 {
     ofstream file(Config::filename);
     file << Config::root;
 }
 
-void Config::Dump()
+void Config::dump()
 {
     LOG << Config::root;
 }

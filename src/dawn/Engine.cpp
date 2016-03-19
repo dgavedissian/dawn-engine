@@ -58,15 +58,15 @@ Engine::Engine(const String& game, const String& version)
 #ifdef DW_DEBUG
     LOGWARN << "This is a debug build!";
 #endif
-    PrintSystemInfo();
+    printSystemInfo();
 }
 
 Engine::~Engine()
 {
-    Shutdown();
+    shutdown();
 }
 
-void Engine::Setup()
+void Engine::setup()
 {
     assert(!mInitialised);
 
@@ -76,11 +76,11 @@ void Engine::Setup()
     mEventSystem = new EventSystem;
 
     // Load configuration
-    Config::Load(mPrefPath + mConfigFile);
+    Config::load(mPrefPath + mConfigFile);
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
     mLuaState = new LuaState;
-    BindToLua();
+    bindToLua();
 
     // Build window title
     String gameTitle(mGameName);
@@ -94,15 +94,15 @@ void Engine::Setup()
     mInput = new Input;
     mRenderer = new Renderer(mBasePath, mPrefPath, mInput, gameTitle);
     mUI = new UI(mRenderer, mInput, mLuaState);
-    mInput->SetViewportSize(mRenderer->GetViewportSize());
+    mInput->setViewportSize(mRenderer->getViewportSize());
     mAudio = new Audio;
     mPhysicsWorld = new PhysicsWorld(mRenderer);
-    mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->GetSceneMgr());
+    mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->getSceneMgr());
     mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
     mStateMgr = new StateManager;
 
     // Enumerate available video modes
-    Vector<SDL_DisplayMode> displayModes = mRenderer->EnumerateDisplayModes();
+    Vector<SDL_DisplayMode> displayModes = mRenderer->getDeviceDisplayModes();
     LOG << "Available video modes:";
     for (auto i = displayModes.begin(); i != displayModes.end(); i++)
     {
@@ -120,14 +120,14 @@ void Engine::Setup()
     ADD_LISTENER(Engine, EvtData_Exit);
 }
 
-void Engine::Shutdown()
+void Engine::shutdown()
 {
     if (!mInitialised)
         return;
 
     // Save config
     if (mSaveConfigOnExit)
-        Config::Save();
+        Config::save();
 
     // Shutdown the engine
     SAFE_DELETE(mStateMgr);
@@ -154,44 +154,44 @@ void Engine::Shutdown()
     mInitialised = false;
 }
 
-void Engine::Run(EngineTickCallback tickFunc)
+void Engine::run(EngineTickCallback tickFunc)
 {
     // Start the main loop
     const float dt = 1.0f / 60.0f;
-    double previousTime = time::Now();
+    double previousTime = time::now();
     double accumulator = 0.0;
     while (mRunning)
     {
-        mUI->BeginFrame();
+        mUI->beginFrame();
 
         // Update game logic
         while (accumulator >= dt)
         {
-            Update(dt, mMainCamera);
+            update(dt, mMainCamera);
             tickFunc(dt);
             accumulator -= dt;
         }
 
         // Render a frame
-        PreRender(mMainCamera);
-        mRenderer->RenderFrame(mMainCamera);
+        preRender(mMainCamera);
+        mRenderer->renderFrame(mMainCamera);
 
         // Calculate frameTime
-        double currentTime = time::Now();
+        double currentTime = time::now();
         accumulator += currentTime - previousTime;
         previousTime = currentTime;
     }
 
     // Ensure that all states have been exited so no crashes occur later
-    mStateMgr->Clear();
+    mStateMgr->clear();
 }
 
-void Engine::SetMainCamera(Camera *camera)
+void Engine::setMainCamera(Camera *camera)
 {
     mMainCamera = camera;
 }
 
-void Engine::PrintSystemInfo()
+void Engine::printSystemInfo()
 {
     LOG << "\tPlatform: " << SDL_GetPlatform();
     LOG << "\tBase Path: " << mBasePath;
@@ -199,41 +199,41 @@ void Engine::PrintSystemInfo()
     // TODO: more system info
 }
 
-void Engine::Update(float dt, Camera* camera)
+void Engine::update(float dt, Camera* camera)
 {
-    mPhysicsWorld->Update(dt, camera);
-    mStarSystem->Update(dt);
-    mEventSystem->Update((uint64_t)20);
-    mAudio->Update(dt, camera);
-    mStateMgr->Update(dt);
-    mUI->Update(dt);
-    mSceneMgr->Update(dt);
+    mPhysicsWorld->update(dt, camera);
+    mStarSystem->update(dt);
+    mEventSystem->update((uint64_t)20);
+    mAudio->update(dt, camera);
+    mStateMgr->update(dt);
+    mUI->update(dt);
+    mSceneMgr->update(dt);
 }
 
-void Engine::PreRender(Camera* camera)
+void Engine::preRender(Camera* camera)
 {
-    mStarSystem->PreRender(camera);
-    mSceneMgr->PreRender(camera);
-    mStateMgr->PreRender();
-    mUI->PreRender();
+    mStarSystem->preRender(camera);
+    mSceneMgr->preRender(camera);
+    mStateMgr->preRender();
+    mUI->preRender();
 }
 
-void Engine::HandleEvent(EventDataPtr eventData)
+void Engine::handleEvent(EventDataPtr eventData)
 {
-    assert(EventIs<EvtData_Exit>(eventData));
+    assert(eventIs<EvtData_Exit>(eventData));
     mRunning = false;
 }
 
 // Lua functions
 void Lua_EnterSandbox()
 {
-    gEngine->GetStateMgr()->Clear();
-    gEngine->GetStateMgr()->Push(S_SANDBOX);
+    gEngine->getStateMgr()->clear();
+    gEngine->getStateMgr()->push(S_SANDBOX);
 }
 
-void Engine::BindToLua()
+void Engine::bindToLua()
 {
-    mLuaState->Bind()
+    mLuaState->bind()
         .addFunction("EnterSandbox", &Lua_EnterSandbox)
         .beginClass<Vec2>("Vec2")
         .addConstructor<void (*)(void)>()
@@ -283,9 +283,9 @@ void Engine::BindToLua()
         .addConstructor<void (*)(void)>()
         .addConstructor<void (*)(double, double, double)>()
         .addFunction("add", (Position & (Position::*)(const Vec3&)) & Position::operator+=)
-        .addFunction("getRelativeToPoint", &Position::GetRelativeToPoint)
-        .addFunction("toCameraSpace", &Position::ToCameraSpace)
-        .addStaticFunction("fromCameraSpace", &Position::FromCameraSpace)
+        .addFunction("getRelativeToPoint", &Position::getRelativeTo)
+        .addFunction("toCameraSpace", &Position::toCameraSpace)
+        .addStaticFunction("fromCameraSpace", &Position::fromCameraSpace)
         .addData("x", &Position::x)
         .addData("y", &Position::y)
         .addData("z", &Position::z)

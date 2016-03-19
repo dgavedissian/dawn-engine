@@ -21,14 +21,14 @@ ImGuiInterface::ImGuiInterface(Renderer* rs, Input* im, Ogre::MaterialPtr uiMate
                                const Ogre::Matrix4& projection)
     : mInputMgr(im),
       mIO(ImGui::GetIO()),
-      mRenderSystem(rs->GetOgreRenderSystem()),
-      mSceneMgr(rs->GetSceneMgr()),
+      mRenderSystem(rs->getOgreRenderSystem()),
+      mSceneMgr(rs->getSceneMgr()),
       mUIMaterial(uiMaterial),
       mProjection(projection),
       mVbSize(1000),
       mIbSize(1000),
-      mWidth(rs->GetWidth()),
-      mHeight(rs->GetHeight())
+      mWidth(rs->getWidth()),
+      mHeight(rs->getHeight())
 {
     assert(gCurrentImGuiInterface == nullptr);
     gCurrentImGuiInterface = this;
@@ -37,11 +37,11 @@ ImGuiInterface::ImGuiInterface(Renderer* rs, Input* im, Ogre::MaterialPtr uiMate
     mIO.DisplaySize.y = (float)mHeight;
     mIO.IniFilename = NULL;
     mIO.LogFilename = NULL;
-    mIO.RenderDrawListsFn = ImGuiInterface::RenderDrawListsCallback;
+    mIO.RenderDrawListsFn = ImGuiInterface::renderDrawListsCallback;
 
     // Set up font
     mIO.Fonts->AddFontDefault();
-    CreateFontsTexture();
+    createFontsTexture();
 
     // Set up key bindings
     mIO.KeyMap[ImGuiKey_Tab] = SDLK_TAB;
@@ -82,8 +82,8 @@ ImGuiInterface::ImGuiInterface(Renderer* rs, Input* im, Ogre::MaterialPtr uiMate
     vd->addElement(0, offset, Ogre::VET_COLOUR, Ogre::VES_DIFFUSE);
 
     // Create initial buffers
-    AllocateVertexBuffer(mVbSize);
-    AllocateIndexBuffer(mIbSize);
+    allocateVertexBuffer(mVbSize);
+    allocateIndexBuffer(mIbSize);
 }
 
 ImGuiInterface::~ImGuiInterface()
@@ -91,12 +91,12 @@ ImGuiInterface::~ImGuiInterface()
     gCurrentImGuiInterface = nullptr;
 }
 
-void ImGuiInterface::BeginFrame()
+void ImGuiInterface::beginFrame()
 {
     // Copy mouse position
     if (true) // TODO: This window is focused
     {
-        Vec2i mp = mInputMgr->GetMousePosition();
+        Vec2i mp = mInputMgr->getMousePosition();
         mIO.MousePos.x = mp.x;
         mIO.MousePos.y = mp.y;
     }
@@ -110,7 +110,7 @@ void ImGuiInterface::BeginFrame()
     {
         // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss
         // click-release events that are shorter than 1 frame.
-        mIO.MouseDown[i] = mMousePressed[i] || mInputMgr->IsMouseButtonDown(SDL_BUTTON_LEFT + i);
+        mIO.MouseDown[i] = mMousePressed[i] || mInputMgr->isMouseButtonDown(SDL_BUTTON_LEFT + i);
         mMousePressed[i] = false;
     }
 
@@ -121,19 +121,19 @@ void ImGuiInterface::BeginFrame()
     ImGui::NewFrame();
 }
 
-void ImGuiInterface::OnMouseButton(int button)
+void ImGuiInterface::onMouseButton(int button)
 {
     button -= SDL_BUTTON_LEFT;
     if (button >= 0 && button < 3)
         mMousePressed[button] = true;
 }
 
-void ImGuiInterface::OnMouseScroll(float scroll)
+void ImGuiInterface::onMouseScroll(float scroll)
 {
     mMouseWheel += scroll;
 }
 
-void ImGuiInterface::OnKey(SDL_Keycode key, Uint16 mod, bool down)
+void ImGuiInterface::onKey(SDL_Keycode key, Uint16 mod, bool down)
 {
     if (key < 0x0 || key > 0x200)
         return;
@@ -144,12 +144,12 @@ void ImGuiInterface::OnKey(SDL_Keycode key, Uint16 mod, bool down)
     mIO.KeyAlt = mod & KMOD_ALT;
 }
 
-void ImGuiInterface::OnTextInput(const String& s)
+void ImGuiInterface::onTextInput(const String& s)
 {
     mIO.AddInputCharactersUTF8(s.c_str());
 }
 
-void ImGuiInterface::CreateFontsTexture()
+void ImGuiInterface::createFontsTexture()
 {
     unsigned char* pixels;
     int width, height;
@@ -167,7 +167,7 @@ void ImGuiInterface::CreateFontsTexture()
     mIO.Fonts->TexID = reinterpret_cast<void*>(handle);
 }
 
-void ImGuiInterface::AllocateVertexBuffer(uint size)
+void ImGuiInterface::allocateVertexBuffer(uint size)
 {
     Ogre::HardwareVertexBufferSharedPtr vb =
         Ogre::HardwareBufferManager::getSingleton().createVertexBuffer(
@@ -177,7 +177,7 @@ void ImGuiInterface::AllocateVertexBuffer(uint size)
     mRenderOp.vertexData->vertexCount = mVbSize;
 }
 
-void ImGuiInterface::AllocateIndexBuffer(uint size)
+void ImGuiInterface::allocateIndexBuffer(uint size)
 {
     Ogre::HardwareIndexBufferSharedPtr ib =
         Ogre::HardwareBufferManager::getSingleton().createIndexBuffer(
@@ -186,7 +186,7 @@ void ImGuiInterface::AllocateIndexBuffer(uint size)
     mRenderOp.indexData->indexBuffer = ib;
 }
 
-void ImGuiInterface::RenderDrawLists(ImDrawData* drawData)
+void ImGuiInterface::renderDrawLists(ImDrawData* drawData)
 {
     // For each command List
     for (int i = 0; i < drawData->CmdListsCount; i++)
@@ -198,7 +198,7 @@ void ImGuiInterface::RenderDrawLists(ImDrawData* drawData)
         if (mVbSize < cmdList->VtxBuffer.size())
         {
             mVbSize = cmdList->VtxBuffer.size();
-            AllocateVertexBuffer(mVbSize);
+            allocateVertexBuffer(mVbSize);
         }
 
         // Fill the vertex buffer
@@ -211,7 +211,7 @@ void ImGuiInterface::RenderDrawLists(ImDrawData* drawData)
         if (mIbSize < cmdList->IdxBuffer.size())
         {
             mIbSize = cmdList->IdxBuffer.size();
-            AllocateIndexBuffer(mIbSize);
+            allocateIndexBuffer(mIbSize);
         }
 
         // Fill the index buffer
@@ -249,9 +249,9 @@ void ImGuiInterface::RenderDrawLists(ImDrawData* drawData)
     mRenderSystem->setScissorTest(false);
 }
 
-void ImGuiInterface::RenderDrawListsCallback(ImDrawData* drawData)
+void ImGuiInterface::renderDrawListsCallback(ImDrawData* drawData)
 {
-    gCurrentImGuiInterface->RenderDrawLists(drawData);
+    gCurrentImGuiInterface->renderDrawLists(drawData);
 }
 
 NAMESPACE_END

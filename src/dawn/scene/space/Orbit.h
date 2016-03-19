@@ -13,7 +13,7 @@ public:
     virtual ~Orbit(){};
 
     // Calculate a position given a time
-    virtual Position CalculatePosition(double time) = 0;
+    virtual Position calculatePosition(double time) = 0;
 };
 
 // Circular Orbit
@@ -24,7 +24,7 @@ public:
     CircularOrbit(float radius, float period, float phaseDifference = 0.0f);
     virtual ~CircularOrbit();
 
-    virtual Position CalculatePosition(double time) override;
+    virtual Position calculatePosition(double time) override;
 
 private:
     float mRadius;

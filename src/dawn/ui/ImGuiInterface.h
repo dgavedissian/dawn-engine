@@ -16,13 +16,13 @@ public:
                    const Ogre::Matrix4& projection);
     ~ImGuiInterface();
 
-    void BeginFrame();
+    void beginFrame();
 
     // Input events
-    void OnMouseButton(int button);
-    void OnMouseScroll(float scroll);
-    void OnKey(SDL_Keycode key, Uint16 mod, bool down);
-    void OnTextInput(const String& s);
+    void onMouseButton(int button);
+    void onMouseScroll(float scroll);
+    void onKey(SDL_Keycode key, Uint16 mod, bool down);
+    void onTextInput(const String& s);
 
 private:
     Input* mInputMgr;
@@ -44,13 +44,13 @@ private:
     float mMouseWheel;
 
 private:
-    void CreateFontsTexture();
-    void AllocateVertexBuffer(uint size);
-    void AllocateIndexBuffer(uint size);
-    void RenderDrawLists(ImDrawData* drawData);
+    void createFontsTexture();
+    void allocateVertexBuffer(uint size);
+    void allocateIndexBuffer(uint size);
+    void renderDrawLists(ImDrawData* drawData);
 
     // Callback used by ImGui
-    static void RenderDrawListsCallback(ImDrawData* drawData);
+    static void renderDrawListsCallback(ImDrawData* drawData);
 };
 
 NAMESPACE_END

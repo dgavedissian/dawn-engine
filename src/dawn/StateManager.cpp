@@ -18,42 +18,42 @@ StateManager::~StateManager()
     REMOVE_LISTENER(StateManager, EvtData_KeyDown);
 
     while (!mStateStack.empty())
-        Pop();
+        pop();
     mStateMap.clear();
 }
 
-void StateManager::RegisterState(SharedPtr<State> state)
+void StateManager::registerState(SharedPtr<State> state)
 {
-    mStateMap[state->GetID()] = state;
+    mStateMap[state->getId()] = state;
 }
 
-void StateManager::Switch(int id)
+void StateManager::changeTo(int id)
 {
     if (mStateStack.size() > 0)
-        Pop();
-    Push(id);
+        pop();
+    push(id);
 }
 
-void StateManager::Push(int id)
+void StateManager::push(int id)
 {
     if (id == S_NO_STATE)
         return;
 
     // TODO: We need some kind of way to "pause" the frame timer
-    SharedPtr<State> newState = GetStateByID(id);
+    SharedPtr<State> newState = getStateById(id);
     mStateStack.push_back(newState);
-    newState->Enter();
-    LOG << "Pushed " << newState->GetName();
+    newState->enter();
+    LOG << "Pushed " << newState->getName();
 }
 
-void StateManager::Pop()
+void StateManager::pop()
 {
     if (mStateStack.size() > 0)
     {
         SharedPtr<State> back = mStateStack.back();
-        back->Exit();
+        back->exit();
         mStateStack.pop_back();
-        LOG << "Popped " << back->GetName();
+        LOG << "Popped " << back->getName();
     }
     else
     {
@@ -61,61 +61,56 @@ void StateManager::Pop()
     }
 }
 
-void StateManager::Reload()
+void StateManager::reload()
 {
-    int top = GetTop();
-    Pop();
-    Push(top);
+    int top = getTop();
+    pop();
+    push(top);
 }
 
-void StateManager::Clear()
+void StateManager::clear()
 {
     while (mStateStack.size() > 0)
-        Pop();
+        pop();
 }
 
-void StateManager::Update(float dt)
+void StateManager::update(float dt)
 {
     uint size = mStateStack.size();
     for (uint i = 0; i < size; ++i)
-        mStateStack[i]->Update(dt);
+        mStateStack[i]->update(dt);
 }
 
-void StateManager::PreRender()
+void StateManager::preRender()
 {
     for (uint i = 0; i < mStateStack.size(); ++i)
-        mStateStack[i]->PreRender();
+        mStateStack[i]->preRender();
 }
 
-int StateManager::GetTop() const
+int StateManager::getTop() const
 {
     if (mStateStack.size() > 0)
-        return mStateStack.back()->GetID();
+        return mStateStack.back()->getId();
     else
         return S_NO_STATE;
 }
 
-void StateManager::HandleEvent(EventDataPtr eventData)
+void StateManager::handleEvent(EventDataPtr eventData)
 {
     // Handle state reloading
-    if (EventIs<EvtData_KeyDown>(eventData))
+    if (eventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_KeyDown>(eventData);
+        auto castedEventData = castEvent<EvtData_KeyDown>(eventData);
         if (castedEventData->keycode == SDLK_F8)
-            Reload();
+            reload();
     }
 }
 
-SharedPtr<State> StateManager::GetStateByID(uint id)
+SharedPtr<State> StateManager::getStateById(uint id)
 {
     auto it = mStateMap.find(id);
     assert(it != mStateMap.end());
     return (*it).second;
-}
-
-uint StateManager::GetDepth() const
-{
-    return mStateStack.size();
 }
 
 NAMESPACE_END

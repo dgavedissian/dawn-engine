@@ -24,54 +24,54 @@ public:
     // TODO: replace with PlayList
     /// Plays a new track immediately
     /// @param filename The filename of the track to be played
-    DEPRECATED void PlayTrack(const String& filename);
+    DEPRECATED void playTrack(const String& filename);
 
     /// Shortcut function to play a 2D sound immediately
     /// @param filename The filename of the sound to be played
-    DEPRECATED void PlaySound(const String& filename);
+    DEPRECATED void playSound(const String& filename);
 
     /// Shortcut function to play a 3D sound immediately
     /// @param filename The filename of the sound to be played
     /// @param position The position for the sound to appear from
     /// @param filename The filename of the sound to be played
     /// @param filename The filename of the sound to be played
-    DEPRECATED void PlaySound(const String& filename, const Position& position, float minDistance,
+    DEPRECATED void playSound(const String& filename, const Position& position, float minDistance,
                    float attenuation = 0.5f);
 
     // ---------------------------------------------------
 
     /// Creates a track
     /// @param filename The filename of the track to be played
-    Track* CreateTrack(const String& filename);
+    Track* createTrack(const String& filename);
 
     /// Destroys a track
     /// @param track Track to destroy
-    void DestroyTrack(Track* track);
+    void destroyTrack(Track* track);
 
     /// Creates a new 2D sound
     /// @param filename The filename of the sound
     /// @param loop     True if the sound should be looped
-    Sound* CreateSound(const String& filename, bool looped = false);
+    Sound* createSound(const String& filename, bool looped = false);
 
     /// Creates a new 3D sound
     /// @param filename The filename of the sound
     /// @param position Position of the sound
     /// @param loop     True if the sound should be looped
-    Sound* CreateSound(const String& filename, const Position& position, bool looped = false);
+    Sound* createSound(const String& filename, const Position& position, bool looped = false);
 
     /// Destroys a sound
     /// @param sound The sound to destroy
-    void DestroySound(Sound* sound);
+    void destroySound(Sound* sound);
 
     /// Updates the Listeners position
     /// @param dt          Delta-time
     /// @param Listener    Listener
-    void Update(float dt, Camera* Listener);
+    void update(float dt, Camera* Listener);
 
     /// Returns the current irrKlang sound engine
     /// @return The pointer to the irrKlang sound engine
 private:
-    irrklang::ISoundEngine* GetSoundEngine();
+    irrklang::ISoundEngine* getSoundEngine();
 
 private:
     irrklang::ISoundEngine* mSoundEngine;

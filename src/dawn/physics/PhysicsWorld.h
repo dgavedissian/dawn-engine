@@ -28,13 +28,13 @@ public:
     ~PhysicsWorld();
 
     // Takes a step of dt seconds in the simulation
-    void Update(float dt, Camera* camera);
+    void update(float dt, Camera* camera);
 
     // Event Delegate
-    void HandleEvent(EventDataPtr eventData);
+    void handleEvent(EventDataPtr eventData);
 
     // Performs a raycast query
-    bool RaycastQuery(const Position& start, const Position& end, Camera* camera,
+    bool rayQuery(const Position& start, const Position& end, Camera* camera,
                       PhysicsRaycastResult& result);
 
 private:

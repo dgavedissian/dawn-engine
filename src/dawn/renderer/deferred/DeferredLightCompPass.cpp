@@ -29,14 +29,14 @@ DeferredLightRenderOperation::DeferredLightRenderOperation(Ogre::CompositorInsta
     mDirectionalLightOp.vertexData = new Ogre::VertexData();
     mDirectionalLightOp.indexData = nullptr;
     mDirectionalLightOp.useIndexes = false;
-    CreateQuad(mDirectionalLightOp.vertexData);
+    createQuad(mDirectionalLightOp.vertexData);
 
     // Point Light
     mPointLightOp.operationType = Ogre::RenderOperation::OT_TRIANGLE_LIST;
     mPointLightOp.vertexData = new Ogre::VertexData();
     mPointLightOp.indexData = new Ogre::IndexData();
     mPointLightOp.useIndexes = true;
-    CreateSphere(mPointLightOp.vertexData, mPointLightOp.indexData, 1.0f, 10, 10, false,
+    createSphere(mPointLightOp.vertexData, mPointLightOp.indexData, 1.0f, 10, 10, false,
                         false);
 
     // Spot Light
@@ -44,7 +44,7 @@ DeferredLightRenderOperation::DeferredLightRenderOperation(Ogre::CompositorInsta
     mSpotlightOp.vertexData = new Ogre::VertexData();
     mSpotlightOp.indexData = new Ogre::IndexData();
     mSpotlightOp.useIndexes = true;
-    CreateCone(mSpotlightOp.vertexData, mSpotlightOp.indexData, 1.0f, 1.0f, 20);
+    createCone(mSpotlightOp.vertexData, mSpotlightOp.indexData, 1.0f, 1.0f, 20);
 }
 
 DeferredLightRenderOperation::~DeferredLightRenderOperation()
@@ -109,10 +109,10 @@ void DeferredLightRenderOperation::execute(Ogre::SceneManager* sm, Ogre::RenderS
         else
         {
             dLight = dLightIt->second;
-            dLight->UpdateFromParent();
+            dLight->updateFromParent();
         }
 
-        dLight->UpdateFromCamera(cam);
+        dLight->updateFromCamera(cam);
         tech = dLight->getMaterial()->getBestTechnique();
 
         // Update shadow texture

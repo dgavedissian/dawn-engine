@@ -37,8 +37,8 @@ DefaultCamera::DefaultCamera(Renderer* renderSystem, Input* inputMgr, SceneManag
       mParticleSet(nullptr),
       mLastParticlePosition()
 {
-    mParticlesRoot = renderSystem->GetRootSceneNode()->createChildSceneNode();
-    mParticleSet = renderSystem->GetSceneMgr()->createBillboardSet(PARTICLE_COUNT);
+    mParticlesRoot = renderSystem->getRootSceneNode()->createChildSceneNode();
+    mParticleSet = renderSystem->getSceneMgr()->createBillboardSet(PARTICLE_COUNT);
     mParticleSet->setDefaultDimensions(0.5f, 80.0f);
     mParticleSet->setBounds(Ogre::AxisAlignedBox::BOX_INFINITE, 1e20f);
     mParticleSet->setUseAccurateFacing(true);
@@ -53,24 +53,24 @@ DefaultCamera::DefaultCamera(Renderer* renderSystem, Input* inputMgr, SceneManag
 
 DefaultCamera::~DefaultCamera()
 {
-    ToggleParticles(false);
+    toggleParticles(false);
 
     REMOVE_LISTENER(DefaultCamera, EvtData_MouseDown);
     REMOVE_LISTENER(DefaultCamera, EvtData_MouseUp);
     REMOVE_LISTENER(DefaultCamera, EvtData_MouseMove);
 }
 
-void DefaultCamera::SetControlState(uint state)
+void DefaultCamera::setControlState(uint state)
 {
     mControlState = state;
 }
 
-uint DefaultCamera::GetControlState() const
+uint DefaultCamera::getControlState() const
 {
     return mControlState;
 }
 
-void DefaultCamera::SetDragEventState(uint state)
+void DefaultCamera::setDragEventState(uint state)
 {
     mDragEventState = state;
 
@@ -78,23 +78,23 @@ void DefaultCamera::SetDragEventState(uint state)
     switch (mDragEventState)
     {
         case CDES_ALWAYS:
-            SetDraggingFlag(true);
+            setDraggingFlag(true);
             break;
 
         case CDES_LMB_DOWN:
-            SetDraggingFlag(mInputMgr->IsMouseButtonDown(SDL_BUTTON_LEFT));
+            setDraggingFlag(mInputMgr->isMouseButtonDown(SDL_BUTTON_LEFT));
             break;
 
         case CDES_LMB_UP:
-            SetDraggingFlag(!mInputMgr->IsMouseButtonDown(SDL_BUTTON_LEFT));
+            setDraggingFlag(!mInputMgr->isMouseButtonDown(SDL_BUTTON_LEFT));
             break;
 
         case CDES_RMB_DOWN:
-            SetDraggingFlag(mInputMgr->IsMouseButtonDown(SDL_BUTTON_RIGHT));
+            setDraggingFlag(mInputMgr->isMouseButtonDown(SDL_BUTTON_RIGHT));
             break;
 
         case CDES_RMB_UP:
-            SetDraggingFlag(!mInputMgr->IsMouseButtonDown(SDL_BUTTON_RIGHT));
+            setDraggingFlag(!mInputMgr->isMouseButtonDown(SDL_BUTTON_RIGHT));
             break;
 
         default:
@@ -102,28 +102,28 @@ void DefaultCamera::SetDragEventState(uint state)
     }
 
     // Update cursor visibility
-    mInputMgr->LockCursor(mIsDragging);
+    mInputMgr->lockCursor(mIsDragging);
 }
 
-void DefaultCamera::SetDraggingFlag(bool flag)
+void DefaultCamera::setDraggingFlag(bool flag)
 {
     mIsDragging = flag;
-    mInputMgr->LockCursor(flag);
+    mInputMgr->lockCursor(flag);
 }
 
-void DefaultCamera::SetMovementSpeed(float speed)
+void DefaultCamera::setMovementSpeed(float speed)
 {
     mSpeed = speed;
 }
 
-float DefaultCamera::GetMovementSpeed() const
+float DefaultCamera::getMovementSpeed() const
 {
     return mSpeed;
 }
 
-void DefaultCamera::SetTrackingTarget(const Position& point, const Vec3& offset)
+void DefaultCamera::setTrackingTarget(const Position& point, const Vec3& offset)
 {
-    ToggleParticles(false);
+    toggleParticles(false);
 
     mTrackedPosition = point;
     mOffset = offset;
@@ -132,10 +132,10 @@ void DefaultCamera::SetTrackingTarget(const Position& point, const Vec3& offset)
     mFPSStyle = false;
 }
 
-void DefaultCamera::SetTrackingTarget(const Position& point, const Vec3& offset,
+void DefaultCamera::setTrackingTarget(const Position& point, const Vec3& offset,
                                              const Vec2& limits)
 {
-    ToggleParticles(false);
+    toggleParticles(false);
 
     mTrackedPosition = point;
     mOffset = offset;
@@ -146,32 +146,32 @@ void DefaultCamera::SetTrackingTarget(const Position& point, const Vec3& offset,
     mAngleLimitOrientation = Vec2::zero;
 }
 
-Position DefaultCamera::GetTrackedPoint() const
+Position DefaultCamera::getTrackedPoint() const
 {
     return mTrackedPosition;
 }
 
-void DefaultCamera::SetOffset(const Vec3& offset)
+void DefaultCamera::setOffset(const Vec3& offset)
 {
     mOffset = offset;
 }
 
-Vec3 DefaultCamera::GetOffset() const
+Vec3 DefaultCamera::getOffset() const
 {
     return mOffset;
 }
 
-void DefaultCamera::SetOrientationOffset(const Quat& orientation)
+void DefaultCamera::setOrientationOffset(const Quat& orientation)
 {
     mOrientationOffset = orientation;
 }
 
-Quat DefaultCamera::GetOrientationOffset() const
+Quat DefaultCamera::getOrientationOffset() const
 {
     return mOrientationOffset;
 }
 
-void DefaultCamera::ToggleParticles(bool active)
+void DefaultCamera::toggleParticles(bool active)
 {
     if (active && !mParticlesEnabled)
     {
@@ -198,11 +198,11 @@ void DefaultCamera::ToggleParticles(bool active)
     mParticlesEnabled = active;
 }
 
-void DefaultCamera::UpdateParticles(float dt)
+void DefaultCamera::updateParticles(float dt)
 {
     // Calculate velocity
     static const float maxVelocity = 2000.0f;
-    Vec3 velocity = mPosition.GetRelativeToPoint(mLastParticlePosition);
+    Vec3 velocity = mPosition.getRelativeTo(mLastParticlePosition);
     float length = velocity.Length();
     if (velocity.Dot(velocity) > (maxVelocity * maxVelocity))
     {
@@ -211,16 +211,16 @@ void DefaultCamera::UpdateParticles(float dt)
     }
 
     // Update particles root
-    mParticlesRoot->setPosition(mPosition.ToCameraSpace(this));
+    mParticlesRoot->setPosition(mPosition.toCameraSpace(this));
 
     // Update and wrap particles
     for (auto i = mParticles.begin(); i != mParticles.end(); ++i)
     {
         Ogre::Vector3& position = (*i)->mPosition;
         position -= velocity;
-        position.x = Wrap<float>(position.x, -mParticlesSize.x, mParticlesSize.x);
-		position.y = Wrap<float>(position.y, -mParticlesSize.y, mParticlesSize.y);
-		position.z = Wrap<float>(position.z, -mParticlesSize.z, mParticlesSize.z);
+        position.x = wrap<float>(position.x, -mParticlesSize.x, mParticlesSize.x);
+		position.y = wrap<float>(position.y, -mParticlesSize.y, mParticlesSize.y);
+		position.z = wrap<float>(position.z, -mParticlesSize.z, mParticlesSize.z);
 
         // Set length
         (*i)->setDimensions(math::Min(length * 0.5f, mParticleSet->getDefaultWidth()),
@@ -238,26 +238,26 @@ void DefaultCamera::UpdateParticles(float dt)
     mLastParticlePosition = mPosition;
 }
 
-bool DefaultCamera::IsParticlesEnabled() const
+bool DefaultCamera::isParticlesEnabled() const
 {
     return mParticlesEnabled;
 }
 
-void DefaultCamera::SetPosition(const Position& position)
+void DefaultCamera::setPosition(const Position& position)
 {
     mTargetPosition = position;
-    if (!ShouldInterpolate())
-        Camera::SetPosition(mTargetPosition);
+    if (!shouldInterpolate())
+        Camera::setPosition(mTargetPosition);
 }
 
-void DefaultCamera::SetOrientation(const Quat& orientation)
+void DefaultCamera::setOrientation(const Quat& orientation)
 {
     mTargetOrientation = orientation;
-    if (!ShouldInterpolate())
-        Camera::SetOrientation(mTargetOrientation);
+    if (!shouldInterpolate())
+        Camera::setOrientation(mTargetOrientation);
 }
 
-bool DefaultCamera::Update(float dt)
+bool DefaultCamera::update(float dt)
 {
     // Update the camera position based on the control state
     switch (mControlState)
@@ -266,19 +266,19 @@ bool DefaultCamera::Update(float dt)
             break;
 
         case CCS_FREE:
-            FreeControl(dt);
+            freeControl(dt);
             break;
 
         case CCS_TRACK_FIXED:
-            TrackFixed(mTrackedPosition, Quat::identity, mOffset);
+            trackFixed(mTrackedPosition, Quat::identity, mOffset);
             break;
 
         case CCS_TRACK_FREE:
-            TrackFree(mTrackedPosition, Quat::identity, mOffset, mOrientationOffset);
+            trackFree(mTrackedPosition, Quat::identity, mOffset, mOrientationOffset);
             break;
 
         default:
-            CustomControlStateHandler(dt);
+            customControlStateHandler(dt);
             break;
     }
 
@@ -287,8 +287,8 @@ bool DefaultCamera::Update(float dt)
     if (mShakeFactor > 0.0f)
     {
         float scale = mShakeFactor * 0.008f;
-        Vec2 shakeFactor(mNoiseFunction.Noise(mShakeTimer, 0.0f) * scale,
-                         mNoiseFunction.Noise(0.0f, mShakeTimer) * scale);
+        Vec2 shakeFactor(mNoiseFunction.noise(mShakeTimer, 0.0f) * scale,
+                         mNoiseFunction.noise(0.0f, mShakeTimer) * scale);
         shake = Quat::RotateX(shakeFactor.x) * Quat::RotateY(shakeFactor.y);
         mShakeTimer += 1.0f * dt;
     }
@@ -296,33 +296,33 @@ bool DefaultCamera::Update(float dt)
     // Interpolate position
     float percentage = 0.95f;
     float scaledDt = dt * 4.0f;
-    Camera::SetPosition(Lerp(GetPosition(), mTargetPosition, percentage, scaledDt * 4.0f));
-    Camera::SetOrientation(Lerp(GetOrientation(), mTargetOrientation, percentage, scaledDt));
+    Camera::setPosition(lerp(getPosition(), mTargetPosition, percentage, scaledDt * 4.0f));
+    Camera::setOrientation(lerp(getOrientation(), mTargetOrientation, percentage, scaledDt));
 
     // Update particles
     if (mParticlesEnabled)
-        UpdateParticles(dt);
+        updateParticles(dt);
 
     return true;
 }
 
-void DefaultCamera::HandleEvent(EventDataPtr eventData)
+void DefaultCamera::handleEvent(EventDataPtr eventData)
 {
     static const float unitsToRadians = -0.002f;
 
-    if (EventIs<EvtData_MouseDown>(eventData))
+    if (eventIs<EvtData_MouseDown>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_MouseDown>(eventData);
+        auto castedEventData = castEvent<EvtData_MouseDown>(eventData);
         if (castedEventData->button == SDL_BUTTON_LEFT)
         {
             if (mDragEventState == CDES_LMB_DOWN)
             {
-                SetDraggingFlag(true);
+                setDraggingFlag(true);
             }
 
             if (mDragEventState == CDES_LMB_UP)
             {
-                SetDraggingFlag(false);
+                setDraggingFlag(false);
             }
         }
 
@@ -330,28 +330,28 @@ void DefaultCamera::HandleEvent(EventDataPtr eventData)
         {
             if (mDragEventState == CDES_RMB_DOWN)
             {
-                SetDraggingFlag(true);
+                setDraggingFlag(true);
             }
 
             if (mDragEventState == CDES_RMB_UP)
             {
-                SetDraggingFlag(false);
+                setDraggingFlag(false);
             }
         }
     }
 
-    if (EventIs<EvtData_MouseUp>(eventData))
+    if (eventIs<EvtData_MouseUp>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_MouseUp>(eventData);
+        auto castedEventData = castEvent<EvtData_MouseUp>(eventData);
         if (castedEventData->button == SDL_BUTTON_LEFT)
         {
             if (mDragEventState == CDES_LMB_DOWN)
             {
-                SetDraggingFlag(false);
+                setDraggingFlag(false);
             }
             if (mDragEventState == CDES_LMB_UP)
             {
-                SetDraggingFlag(true);
+                setDraggingFlag(true);
             }
         }
 
@@ -359,18 +359,18 @@ void DefaultCamera::HandleEvent(EventDataPtr eventData)
         {
             if (mDragEventState == CDES_RMB_DOWN)
             {
-                SetDraggingFlag(false);
+                setDraggingFlag(false);
             }
             if (mDragEventState == CDES_RMB_UP)
             {
-                SetDraggingFlag(true);
+                setDraggingFlag(true);
             }
         }
     }
 
-    if (EventIs<EvtData_MouseMove>(eventData))
+    if (eventIs<EvtData_MouseMove>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_MouseMove>(eventData);
+        auto castedEventData = castEvent<EvtData_MouseMove>(eventData);
 
         // Dragging
         if (mIsDragging)
@@ -399,7 +399,7 @@ void DefaultCamera::HandleEvent(EventDataPtr eventData)
             else if (mControlState == CCS_FREE)
             {
                 // Free control orientation
-                SetOrientation(GetOrientation() *
+                setOrientation(getOrientation() *
                                Quat::RotateX(castedEventData->motion.y * unitsToRadians) *
                                Quat::RotateY(castedEventData->motion.x * unitsToRadians));
             }
@@ -407,45 +407,45 @@ void DefaultCamera::HandleEvent(EventDataPtr eventData)
     }
 }
 
-void DefaultCamera::FreeControl(float dt)
+void DefaultCamera::freeControl(float dt)
 {
     // Control based on the input state
     float speed = mSpeed;
-    if (mInputMgr->IsKeyDown(SDLK_LSHIFT))
+    if (mInputMgr->isKeyDown(SDLK_LSHIFT))
         speed *= 10.0f;
 
     // Calculate acceleration
-    float forwardAcceleration = speed * ((float)mInputMgr->IsKeyDown(SDLK_s) -
-                                         (float)mInputMgr->IsKeyDown(SDLK_w));
-    float rightAcceleration = speed * ((float)mInputMgr->IsKeyDown(SDLK_d) -
-                                       (float)mInputMgr->IsKeyDown(SDLK_a));
+    float forwardAcceleration = speed * ((float)mInputMgr->isKeyDown(SDLK_s) -
+                                         (float)mInputMgr->isKeyDown(SDLK_w));
+    float rightAcceleration = speed * ((float)mInputMgr->isKeyDown(SDLK_d) -
+                                       (float)mInputMgr->isKeyDown(SDLK_a));
 
     // Damp velocity and update position
     float damping = 1.0f - math::Clamp01(dt);
     mFreeControlVelocity *= damping * damping;
     mFreeControlVelocity +=
-            GetOrientation() * Vec3(rightAcceleration, 0.0f, forwardAcceleration) * dt;
-    SetPosition(GetPosition() + mFreeControlVelocity * dt);
+            getOrientation() * Vec3(rightAcceleration, 0.0f, forwardAcceleration) * dt;
+    setPosition(getPosition() + mFreeControlVelocity * dt);
 }
 
-void DefaultCamera::TrackFixed(const Position& position, const Quat& orientation,
+void DefaultCamera::trackFixed(const Position& position, const Quat& orientation,
                                const Vec3& offset)
 {
-    SetOrientation(orientation);
-    SetPosition(position + GetOrientation() * offset);
+    setOrientation(orientation);
+    setPosition(position + getOrientation() * offset);
 }
 
-void DefaultCamera::TrackFree(const Position& position, const Quat& orientation,
+void DefaultCamera::trackFree(const Position& position, const Quat& orientation,
                                      const Vec3& offset, const Quat& orientationOffset)
 {
-    SetOrientation(orientationOffset);
-    SetPosition(position + GetOrientation() * offset);
+    setOrientation(orientationOffset);
+    setPosition(position + getOrientation() * offset);
 }
 
-bool DefaultCamera::ShouldInterpolate() const
+bool DefaultCamera::shouldInterpolate() const
 {
-    return CustomControlStateShouldInterpolate(mControlState) &&
-        GetPosition().GetRelativeToPoint(mTargetPosition).Length() < 1000.0f;
+    return customControlStateShouldInterpolate(mControlState) &&
+        getPosition().getRelativeTo(mTargetPosition).Length() < 1000.0f;
 }
 
 NAMESPACE_END

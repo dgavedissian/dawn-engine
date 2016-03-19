@@ -28,44 +28,44 @@ public:
     ~Engine();
 
     /// Sets up the engine
-    void Setup();
+    void setup();
 
     /// Shuts down the engine
-    void Shutdown();
+    void shutdown();
 
     /// Run the main loop
     /// @param tickFunc Function to run every time the game logic is updated
-    void Run(EngineTickCallback tickFunc);
+    void run(EngineTickCallback tickFunc);
 
     /// Set the main camera
     /// @param camera Camera
-    void SetMainCamera(Camera *camera);
+    void setMainCamera(Camera *camera);
 
     /// Get the main camera
-    Camera* GetMainCamera() { return mMainCamera; }
+    Camera* getMainCamera() { return mMainCamera; }
 
     /// Get the base path of the application
     /// @returns The base path
-    const String& GetBasePath() const { return mBasePath; }
+    const String& getBasePath() const { return mBasePath; }
 
     /// Get the preferences path of the application
     /// @returns The pref path
-    const String& GetPrefPath() const { return mPrefPath; }
+    const String& getPrefPath() const { return mPrefPath; }
 
     // TODO: Remove this
-    DEPRECATED void SetStarSystem(StarSystem* ss) { mStarSystem = ss; }
+    DEPRECATED void setStarSystem(StarSystem* ss) { mStarSystem = ss; }
 
 	// Engine accessors
-	Audio* GetAudio() { return mAudio; }
-    EventSystem* GetEventSystem() { return mEventSystem; }
-    LuaState* GetLuaState() { return mLuaState; }
-    Input* GetInput() { return mInput; }
-    Renderer* GetRenderer() { return mRenderer; }
-    UI* GetUI() { return mUI; }
-    PhysicsWorld* GetPhysicsWorld() { return mPhysicsWorld; }
-    SceneManager* GetSceneMgr() { return mSceneMgr; }
-    StarSystem* GetStarSystem() { return mStarSystem; }
-    StateManager* GetStateMgr() { return mStateMgr; }
+	Audio* getAudio() { return mAudio; }
+    EventSystem* getEventSystem() { return mEventSystem; }
+    LuaState* getLuaState() { return mLuaState; }
+    Input* getInput() { return mInput; }
+    Renderer* getRenderer() { return mRenderer; }
+    UI* getUI() { return mUI; }
+    PhysicsWorld* getPhysicsWorld() { return mPhysicsWorld; }
+    SceneManager* getSceneMgr() { return mSceneMgr; }
+    StarSystem* getStarSystem() { return mStarSystem; }
+    StateManager* getStateMgr() { return mStateMgr; }
 
 private:
     bool mInitialised;
@@ -99,11 +99,11 @@ private:
     StateManager* mStateMgr;
 
 private:
-    void PrintSystemInfo();
-    void Update(float dt, Camera* camera);
-    void PreRender(Camera* camera);
-    void HandleEvent(EventDataPtr eventData);
-    void BindToLua();
+    void printSystemInfo();
+    void update(float dt, Camera* camera);
+    void preRender(Camera* camera);
+    void handleEvent(EventDataPtr eventData);
+    void bindToLua();
 
 };
 

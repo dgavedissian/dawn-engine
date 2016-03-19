@@ -19,7 +19,7 @@ Rect::Rect(const Vec2i& _begin, const Vec2i& _end) : begin(_begin), end(_end)
 {
 }
 
-Rect& Rect::Merge(const Rect& other)
+Rect& Rect::merge(const Rect& other)
 {
     begin.x = math::Min(begin.x, other.begin.x);
     begin.y = math::Min(begin.y, other.begin.y);

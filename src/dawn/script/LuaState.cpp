@@ -19,10 +19,10 @@ LuaState::LuaState() : mL(nullptr)
     luaL_openlibs(mL);
 
     // Bind a new print function
-    Bind().addFunction("_logWrite", l_logWrite);
+    bind().addFunction("_logWrite", l_logWrite);
 
     // Redirect Lua printing to the Log
-    ExecuteString(
+    executeString(
         "function print(...)\n"
         "  local arg = {...}\n"
         "  local str\n"
@@ -41,7 +41,7 @@ LuaState::~LuaState()
     lua_close(mL);
 }
 
-void LuaState::ExecuteString(const String& str)
+void LuaState::executeString(const String& str)
 {
     luaL_loadstring(mL, str.c_str());
     int result = lua_pcall(mL, 0, 0, 0);
@@ -51,7 +51,7 @@ void LuaState::ExecuteString(const String& str)
     }
 }
 
-void LuaState::ExecuteFile(const String& filename)
+void LuaState::executeFile(const String& filename)
 {
     String fullFilename = "Media/" + filename;
     luaL_loadfile(mL, fullFilename.c_str());
@@ -62,17 +62,17 @@ void LuaState::ExecuteFile(const String& filename)
     }
 }
 
-luabridge::LuaRef LuaState::GetGlobal(const String& name)
+luabridge::LuaRef LuaState::getGlobal(const String& name)
 {
     return luabridge::getGlobal(mL, name.c_str());
 }
 
-luabridge::Namespace LuaState::Bind()
+luabridge::Namespace LuaState::bind()
 {
     return luabridge::getGlobalNamespace(mL);
 }
 
-lua_State* LuaState::GetState()
+lua_State* LuaState::getState()
 {
     return mL;
 }

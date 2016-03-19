@@ -13,21 +13,21 @@ public:
     virtual ~MemoryPool() {}
 
     template <class T, class... Args>
-    T* New(Args... args)
+    T* alloc(Args... args)
     {
-        return new(Alloc()) T(args...);
+        return new(internalAlloc()) T(args...);
     }
 
     template <class T>
-    void Delete(T* object)
+    void free(T* object)
     {
         object->~T();
-        Free(object);
+        internalFree(object);
     }
 
 protected:
-    virtual void* Alloc() = 0;
-    virtual void Free(void* object) = 0;
+    virtual void* internalAlloc() = 0;
+    virtual void internalFree(void* object) = 0;
 
 };
 
@@ -35,30 +35,30 @@ template <class T>
 class FixedMemoryPool : public MemoryPool
 {
 public:
-    FixedMemoryPool(uint slots) { AllocateBlock(slots); }
-    virtual ~FixedMemoryPool() { DeallocateBlock(); }
+    FixedMemoryPool(uint slots) { allocateBlock(slots); }
+    virtual ~FixedMemoryPool() { freeBlock(); }
 
 private:
-    void* Alloc() override
+    void* internalAlloc() override
     {
         T* object = mFreeList.front();
         mFreeList.pop_front();
         return reinterpret_cast<void*>(object);
     }
 
-    void Free(void* object) override
+    void internalFree(void* object) override
     {
         mFreeList.push_back(reinterpret_cast<T*>(object));
     }
 
-    void AllocateBlock(uint slots)
+    void allocateBlock(uint slots)
     {
         mBlock = reinterpret_cast<T*>(operator new(slots * sizeof(T)));
         for (uint i = 0; i < slots; i++)
             mFreeList.push_back(mBlock + i);
     }
 
-    void DeallocateBlock()
+    void freeBlock()
     {
         operator delete(mBlock);
         mFreeList.clear();

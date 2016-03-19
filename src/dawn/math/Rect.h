@@ -15,9 +15,9 @@ public:
     Rect();
     Rect(int x1, int y1, int x2, int y2);
     Rect(const Vec2i& _begin, const Vec2i& _end);
-    
+
     /// Merge a rect into this one
-    Rect& Merge(const Rect& other);
+    Rect& merge(const Rect& other);
 
 };
 

@@ -19,27 +19,27 @@ public:
     virtual ~Camera();
 
     /// Return this cameras view matrix
-    Mat4 GetViewMatrix() const { return mCamera->getViewMatrix(); }
+    Mat4 getViewMatrix() const { return mCamera->getViewMatrix(); }
 
     /// Return this cameras projection matrix
-    Mat4 GetProjMatrix() const { return mCamera->getProjectionMatrix(); }
+    Mat4 getProjMatrix() const { return mCamera->getProjectionMatrix(); }
 
     /// Set this cameras field of view in degrees
     /// @param fov New FOV
-    void SetFOV(float fov);
+    void setFov(float fov);
 
     /// Return this cameras field of view in degrees
     /// @returns This cameras FOV
-    float GetFOV() const { return mCamera->getFOVy().valueDegrees(); }
+    float getFov() const { return mCamera->getFOVy().valueDegrees(); }
 
     /// Returns the ogre camera associated with this camera
-    Ogre::Camera* GetOgreCamera() { return mCamera; }
-    Ogre::SceneNode* GetOgreCameraSceneNode() { return mSceneNode; }
+    DEPRECATED Ogre::Camera* _getOgreCamera() { return mCamera; }
+    DEPRECATED Ogre::SceneNode* _getOgreSceneNode() { return mSceneNode; }
 
     // Inherited from Entity
-    virtual void SetOrientation(const Quat& orientation) override;
-    virtual bool Update(float dt) override { return true; }
-    virtual void PreRender(Camera* camera) override {}
+    virtual void setOrientation(const Quat& orientation) override;
+    virtual bool update(float dt) override { return true; }
+    virtual void preRender(Camera* camera) override {}
 
 private:
     Ogre::Camera* mCamera;

@@ -6,7 +6,7 @@
 
 NAMESPACE_BEGIN
 
-CommandLineArgs ParseCommandArgs(int argc, char** argv)
+CommandLineArgs parseCommandArgs(int argc, char** argv)
 {
     CommandLineArgs args;
 
@@ -46,7 +46,7 @@ CommandLineArgs ParseCommandArgs(int argc, char** argv)
     return args;
 }
 
-String GenerateName(const String& prefix /*= "Unnamed"*/)
+String generateName(const String& prefix /*= "Unnamed"*/)
 {
     static Map<String, int> countMap;
     if (countMap.find(prefix) == countMap.end())
@@ -54,7 +54,7 @@ String GenerateName(const String& prefix /*= "Unnamed"*/)
     return prefix + std::to_string(++countMap[prefix]);
 }
 
-String PadString(const String& str, uint length)
+String padString(const String& str, uint length)
 {
     String out = str;
     if (length > out.size())
@@ -62,7 +62,7 @@ String PadString(const String& str, uint length)
     return out;
 }
 
-Vector<String>& Split(const String& s, char delim, Vector<String>& elems)
+Vector<String>& splitString(const String& s, char delim, Vector<String>& elems)
 {
     std::stringstream ss(s);
     String item;
@@ -71,7 +71,7 @@ Vector<String>& Split(const String& s, char delim, Vector<String>& elems)
     return elems;
 }
 
-String Concat(const Vector<String>& vec, const String& delim)
+String concatStrings(const Vector<String>& vec, const String& delim)
 {
     String out;
     for (uint i = 0; i < vec.size() - 1; ++i)
@@ -81,7 +81,7 @@ String Concat(const Vector<String>& vec, const String& delim)
     return out;
 }
 
-String Replace(String subject, const String& search, const String& replace)
+String replaceString(String subject, const String& search, const String& replace)
 {
     size_t pos = 0;
     while ((pos = subject.find(search, pos)) != std::string::npos) {
@@ -93,40 +93,40 @@ String Replace(String subject, const String& search, const String& replace)
 
 std::default_random_engine engine;
 
-int RandomInt(int min /*= 0*/, int max /*= INT_MAX*/)
+int randomInt(int min /*= 0*/, int max /*= INT_MAX*/)
 {
     return std::uniform_int_distribution<int>(min, max)(engine);
 }
 
-uint RandomUint(uint min /*= 0*/, uint max /*= UINT_MAX*/)
+uint randomUnsigned(uint min /*= 0*/, uint max /*= UINT_MAX*/)
 {
     return std::uniform_int_distribution<uint>(min, max)(engine);
 }
 
-float RandomFloat(float min /*= 0.0f*/, float max /*= 1.0f*/)
+float randomFloat(float min /*= 0.0f*/, float max /*= 1.0f*/)
 {
     return std::uniform_real_distribution<float>(min, max)(engine);
 }
 
-double RandomDouble(double min /*= 0.0f*/, double max /*= 1.0f*/)
+double randomDouble(double min /*= 0.0f*/, double max /*= 1.0f*/)
 {
     return std::uniform_real_distribution<double>(min, max)(engine);
 }
 
-Vec2 RandomVec2(const Vec2& min /*= Vec2(-1.0f)*/, const Vec2& max /*= Vec2(1.0f)*/)
+Vec2 randomVec2(const Vec2& min /*= Vec2(-1.0f)*/, const Vec2& max /*= Vec2(1.0f)*/)
 {
     return Vec2(std::uniform_real_distribution<float>(min.x, max.x)(engine),
                 std::uniform_real_distribution<float>(min.y, max.y)(engine));
 }
 
-Vec3 RandomVec3(const Vec3& min /*= Vec3(-1.0f)*/, const Vec3& max /*= Vec3(1.0f)*/)
+Vec3 randomVec3(const Vec3& min /*= Vec3(-1.0f)*/, const Vec3& max /*= Vec3(1.0f)*/)
 {
     return Vec3(std::uniform_real_distribution<float>(min.x, max.x)(engine),
                 std::uniform_real_distribution<float>(min.y, max.y)(engine),
                 std::uniform_real_distribution<float>(min.z, max.z)(engine));
 }
 
-Vec4 RandomVec4(const Vec4& min /*= Vec4(-1.0f)*/, const Vec4& max /*= Vec4(1.0f)*/)
+Vec4 randomVec4(const Vec4& min /*= Vec4(-1.0f)*/, const Vec4& max /*= Vec4(1.0f)*/)
 {
     return Vec4(std::uniform_real_distribution<float>(min.x, max.x)(engine),
                 std::uniform_real_distribution<float>(min.y, max.y)(engine),
@@ -136,18 +136,18 @@ Vec4 RandomVec4(const Vec4& min /*= Vec4(-1.0f)*/, const Vec4& max /*= Vec4(1.0f
 
 namespace time
 {
-    TimePoint Now()
+    TimePoint now()
     {
         static Ogre::Timer timer;
         return static_cast<TimePoint>(timer.getMicroseconds()) * 1e-6;
     }
 
-    Duration GetElapsed(TimePoint tp)
+    Duration getElapsed(TimePoint tp)
     {
-        return Now() - tp;
+        return now() - tp;
     }
 
-    String Format(time_t time, const String& formatString)
+    String format(time_t time, const String& formatString)
     {
 #if DW_PLATFORM == DW_WIN32
         std::stringstream out;

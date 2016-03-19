@@ -27,28 +27,28 @@ Position::Position(const Position& other) : x(other.x), y(other.y), z(other.z)
 {
 }
 
-Vec3 Position::GetRelativeToPoint(const Position& point) const
+Vec3 Position::getRelativeTo(const Position& point) const
 {
     Position delta = *this - point;
     return Vec3((float)delta.x, (float)delta.y, (float)delta.z);
 }
 
-Vec3 Position::ToCameraSpace(Camera* camera) const
+Vec3 Position::toCameraSpace(Camera* camera) const
 {
-    return GetRelativeToPoint(camera->GetPosition());
+    return getRelativeTo(camera->getPosition());
 }
 
-Position Position::FromCameraSpace(Camera* camera, const Vec3& cameraSpace)
+Position Position::fromCameraSpace(Camera* camera, const Vec3& cameraSpace)
 {
-    return camera->GetPosition() + cameraSpace;
+    return camera->getPosition() + cameraSpace;
 }
 
 bool Position::operator==(const Position& other) const
 {
     return
-        FloatEq(x, other.x) && 
-        FloatEq(y, other.y) && 
-        FloatEq(z, other.z);
+        floatEq(x, other.x) &&
+        floatEq(y, other.y) &&
+        floatEq(z, other.z);
 }
 
 bool Position::operator!=(const Position& other) const

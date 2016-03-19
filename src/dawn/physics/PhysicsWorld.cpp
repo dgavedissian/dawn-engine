@@ -20,7 +20,7 @@ PhysicsWorld::PhysicsWorld(Renderer* rs)
     mSolver.reset(new btSequentialImpulseConstraintSolver);
     mWorld.reset(new btDiscreteDynamicsWorld(mDispatcher.get(), mBroadphase.get(), mSolver.get(),
                                              mCollisionConfig.get()));
-    mDebugDrawer.reset(new BtOgre::DebugDrawer(rs->GetRootSceneNode(), mWorld.get()));
+    mDebugDrawer.reset(new BtOgre::DebugDrawer(rs->getRootSceneNode(), mWorld.get()));
 
     // Set the properties of the world
     mWorld->setGravity(btVector3(0.0f, 0.0f, 0.0f));
@@ -39,7 +39,7 @@ PhysicsWorld::~PhysicsWorld()
     LOG << "Bullet cleaned up";
 }
 
-void PhysicsWorld::Update(float dt, Camera* camera)
+void PhysicsWorld::update(float dt, Camera* camera)
 {
     // Call PreSimulationStep on each rigid body
     for (auto body : mRigidBodyList)
@@ -50,11 +50,11 @@ void PhysicsWorld::Update(float dt, Camera* camera)
     mDebugDrawer->step();
 }
 
-void PhysicsWorld::HandleEvent(EventDataPtr eventData)
+void PhysicsWorld::handleEvent(EventDataPtr eventData)
 {
-    if (EventIs<EvtData_KeyDown>(eventData))
+    if (eventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_KeyDown>(eventData);
+        auto castedEventData = castEvent<EvtData_KeyDown>(eventData);
         if (castedEventData->keycode == SDLK_F2)
             mDebugDrawer->setDebugMode(!mDebugDrawer->getDebugMode());
     }
@@ -72,12 +72,12 @@ void PhysicsWorld::RemoveFromWorld(btRigidBody* body)
     mWorld->removeRigidBody(body);
 }
 
-bool PhysicsWorld::RaycastQuery(const Position& start, const Position& end, Camera* camera,
+bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera* camera,
                                   PhysicsRaycastResult& result)
 {
     // Make sure this is done in camera-space
-    btVector3 startCS = start.ToCameraSpace(camera);
-    btVector3 endCS = end.ToCameraSpace(camera);
+    btVector3 startCS = start.toCameraSpace(camera);
+    btVector3 endCS = end.toCameraSpace(camera);
 
     // Ensure that the direction can be normalised
     btVector3 delta = endCS - startCS;
@@ -87,7 +87,7 @@ bool PhysicsWorld::RaycastQuery(const Position& start, const Position& end, Came
         mWorld->rayTest(startCS, endCS, raycast);
 
         // Fill the result structure
-        result.position = Position::FromCameraSpace(camera, raycast.m_hitPointWorld);
+        result.position = Position::fromCameraSpace(camera, raycast.m_hitPointWorld);
         result.normal = raycast.m_hitNormalWorld;
         result.hit = raycast.hasHit();
 

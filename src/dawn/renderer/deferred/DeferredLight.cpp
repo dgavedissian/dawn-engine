@@ -22,14 +22,14 @@ DeferredLight::DeferredLight(MaterialGenerator* sys, Ogre::Light* parentLight,
       mGenerator(sys),
       mPermutation(0)
 {
-    UpdateFromParent();
+    updateFromParent();
 }
 
 DeferredLight::~DeferredLight()
 {
 }
 
-void DeferredLight::SetAttenuation(float c, float b, float a)
+void DeferredLight::setAttenuation(float c, float b, float a)
 {
     float outerRadius = mParentLight->getAttenuationRange();
 
@@ -56,10 +56,10 @@ void DeferredLight::SetAttenuation(float c, float b, float a)
         DISABLE_BIT(mPermutation, LightMaterialGenerator::MI_ATTENUATED);
     }
 
-    SetupGeometry(outerRadius);
+    setupGeometry(outerRadius);
 }
 
-void DeferredLight::SetSpecularColour(const Ogre::ColourValue& col)
+void DeferredLight::setSpecularColour(const Ogre::ColourValue& col)
 {
     // setCustomParameter(2, Vector4(col.r, col.g, col.b, col.a));
 
@@ -74,7 +74,7 @@ void DeferredLight::SetSpecularColour(const Ogre::ColourValue& col)
     }
 }
 
-void DeferredLight::SetupGeometry(float radius)
+void DeferredLight::setupGeometry(float radius)
 {
     // Disable all 3 bits
     DISABLE_BIT(mPermutation, LightMaterialGenerator::MI_POINT);
@@ -165,12 +165,12 @@ void DeferredLight::getWorldTransforms(Ogre::Matrix4* xform) const
     }
 }
 
-void DeferredLight::UpdateFromParent()
+void DeferredLight::updateFromParent()
 {
     // TODO : Don't do this unless something changed
-    SetAttenuation(mParentLight->getAttenuationConstant(), mParentLight->getAttenuationLinear(),
+    setAttenuation(mParentLight->getAttenuationConstant(), mParentLight->getAttenuationLinear(),
                     mParentLight->getAttenuationQuadric());
-    SetSpecularColour(mParentLight->getSpecularColour());
+    setSpecularColour(mParentLight->getSpecularColour());
 
     if (getCastChadows())
     {
@@ -182,7 +182,7 @@ void DeferredLight::UpdateFromParent()
     }
 }
 
-bool DeferredLight::IsCameraInside(Ogre::Camera* camera)
+bool DeferredLight::isCameraInside(Ogre::Camera* camera)
 {
     switch (mParentLight->getType())
     {
@@ -236,7 +236,7 @@ bool DeferredLight::getCastChadows() const
         mParentLight->getType() == Ogre::Light::LT_SPOTLIGHT);
 }
 
-void DeferredLight::UpdateFromCamera(Ogre::Camera* camera)
+void DeferredLight::updateFromCamera(Ogre::Camera* camera)
 {
     // Set shader params
     const Ogre::MaterialPtr& mat = getMaterial();
@@ -270,7 +270,7 @@ void DeferredLight::UpdateFromCamera(Ogre::Camera* camera)
         {
             pass->setDepthCheckEnabled(true);
 
-            if (IsCameraInside(camera))
+            if (isCameraInside(camera))
             {
                 pass->setCullingMode(Ogre::CULL_ANTICLOCKWISE);
                 pass->setDepthFunction(Ogre::CMPF_GREATER_EQUAL);

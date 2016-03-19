@@ -22,11 +22,11 @@ public:
     void HandleEvent(dw::EventDataPtr eventData);
 
     // Inherited from State
-    virtual void Enter();
-    virtual void Exit();
-    virtual void Update(float dt);
-    virtual uint GetID() const { return S_SANDBOX; }
-    virtual String GetName() const { return "SandboxState"; }
+    virtual void enter();
+    virtual void exit();
+    virtual void update(float dt);
+    virtual uint getId() const { return S_SANDBOX; }
+    virtual String getName() const { return "SandboxState"; }
 
 private:
 	dw::Engine* mEngine;

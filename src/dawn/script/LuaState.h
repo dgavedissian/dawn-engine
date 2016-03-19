@@ -14,19 +14,19 @@ public:
     virtual ~LuaState();
 
     // Execute a string
-    void ExecuteString(const String& str);
+    void executeString(const String& str);
 
     // Execute a file
-    void ExecuteFile(const String& filename);
+    void executeFile(const String& filename);
 
     // Get an object from the global namespace
-    LuaRef GetGlobal(const String& name);
+    LuaRef getGlobal(const String& name);
 
     // Get the global namespace and begin binding
-    Namespace Bind();
+    Namespace bind();
 
     // Accessors
-    lua_State* GetState();
+    lua_State* getState();
 
 private:
     lua_State* mL;

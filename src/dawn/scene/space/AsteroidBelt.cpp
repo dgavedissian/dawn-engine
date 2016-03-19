@@ -34,15 +34,15 @@ AsteroidBelt::AsteroidBelt(Renderer* rs, float minRadius, float maxRadius, float
         for (int i = 0; i < ASTEROID_COUNT; ++i)
         {
             Asteroid a;
-            Ogre::Entity* ent = rs->GetSceneMgr()->createEntity(
+            Ogre::Entity* ent = rs->getSceneMgr()->createEntity(
                 "scene-asteroid" + std::to_string(randomID(engine)) + ".mesh");
             ent->setMaterialName("Scene/Asteroid");
-            a.node = rs->GetSceneMgr()->createSceneNode();
+            a.node = rs->getSceneMgr()->createSceneNode();
             a.node->attachObject(ent);
             a.node->setScale(Ogre::Vector3(INITIAL_SIZE * sizeScaleFactor));
             a.node->setOrientation(Quat::RotateX(randomRotation(engine)) *
                                    Quat::RotateY(randomRotation(engine)));
-            rs->GetRootSceneNode()->addChild(a.node);
+            rs->getRootSceneNode()->addChild(a.node);
 
             // Choose random position
             float halfRegionSize = HALF_REGION_SIZE * posScaleFactor;
@@ -63,12 +63,12 @@ AsteroidBelt::~AsteroidBelt()
 {
 }
 
-void AsteroidBelt::Update(float dt, const Position& cameraPosition)
+void AsteroidBelt::update(float dt, const Position& cameraPosition)
 {
     if (mParent)
     {
         // Calculate position relative to belt origin
-        Position relativePosition = cameraPosition - mParent->GetPosition();
+        Position relativePosition = cameraPosition - mParent->getPosition();
 
         // Determine whether the camera is within the bounds of the belt
         // TODO: stop wrapping asteroids if they're outside the boundaries
@@ -85,26 +85,26 @@ void AsteroidBelt::Update(float dt, const Position& cameraPosition)
                 Position max = relativePosition + Position(halfRegion);
                 for (auto& a : mAsteroidLevels[l])
                 {
-                    a.position.x = Wrap(a.position.x, min.x, max.x);
-                    a.position.y = Wrap(a.position.y, min.y, max.y);
-                    a.position.z = Wrap(a.position.z, min.z, max.z);
+                    a.position.x = wrap(a.position.x, min.x, max.x);
+                    a.position.y = wrap(a.position.y, min.y, max.y);
+                    a.position.z = wrap(a.position.z, min.z, max.z);
                 }
             }
         }
     }
 }
 
-void AsteroidBelt::PreRender(Camera* camera)
+void AsteroidBelt::preRender(Camera* camera)
 {
     // Update asteroid meshes
     for (int l = 0; l < ASTEROID_LEVELS; ++l)
     {
         for (auto& a : mAsteroidLevels[l])
-            a.node->setPosition(a.position.ToCameraSpace(camera));
+            a.node->setPosition(a.position.toCameraSpace(camera));
     }
 }
 
-void AsteroidBelt::SetParent(SystemBody* parent)
+void AsteroidBelt::setParent(SystemBody* parent)
 {
     mParent = parent;
 }

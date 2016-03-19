@@ -27,65 +27,65 @@ Sound::~Sound()
     mSound->drop();
 }
 
-void Sound::Play()
+void Sound::play()
 {
     mSound->setIsPaused(false);
 }
 
-void Sound::Stop()
+void Sound::stop()
 {
-    Pause();
+    pause();
     mSound->setPlayPosition(0);
 }
 
-void Sound::Pause()
+void Sound::pause()
 {
     mSound->setIsPaused(true);
 }
 
-bool Sound::IsPaused() const
+bool Sound::isPaused() const
 {
     return mSound->getIsPaused();
 }
 
-bool Sound::IsFinished() const
+bool Sound::isFinished() const
 {
     return mSound->isFinished();
 }
 
-void Sound::SetPlaybackSpeed(float speed)
+void Sound::setSpeed(float speed)
 {
     mSound->setPlaybackSpeed(speed);
 }
 
-void Sound::SetPosition(const Position& position)
+void Sound::setPosition(const Position& position)
 {
     mPosition = position;
 }
 
-void Sound::SetMinDistance(float minDistance, float attenuation /*= 0.5f*/)
+void Sound::setMinDistance(float minDistance, float attenuation /*= 0.5f*/)
 {
     mSound->setMinDistance(minDistance);
 }
 
-void Sound::Update(Camera* camera, float dt)
+void Sound::update(Camera* camera, float dt)
 {
     if (mIs3D)
     {
         Vec3 velocity =
-            dt > M_EPSILON ? mPosition.GetRelativeToPoint(mOldPosition) / dt : Vec3(0.0f);
+            dt > M_EPSILON ? mPosition.getRelativeTo(mOldPosition) / dt : Vec3(0.0f);
         mOldPosition = mPosition;
         mSound->setVelocity(velocity);
-        mSound->setPosition(mPosition.ToCameraSpace(camera));
+        mSound->setPosition(mPosition.toCameraSpace(camera));
     }
 }
 
-void Sound::SetVolume(float volume)
+void Sound::setVolume(float volume)
 {
     mSound->setVolume(volume);
 }
 
-float Sound::GetVolume() const
+float Sound::getVolume() const
 {
     return mSound->getVolume();
 }
