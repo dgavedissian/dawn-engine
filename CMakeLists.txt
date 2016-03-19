@@ -48,9 +48,6 @@ function(add_game GAME_NAME)
         set(TYPE MACOSX_BUNDLE)
     endif()
 
-    # Currently, Dawn can only be linked dynamically
-    add_definitions(-DDW_DLL)
-
     # Add executable
     add_executable(${GAME_NAME} ${TYPE} ${ARGN})
 
@@ -64,6 +61,9 @@ function(add_game GAME_NAME)
     target_link_libraries(${GAME_NAME} Dawn)
     set_output_dir(${GAME_NAME} ${CMAKE_SOURCE_DIR}/bin)
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
+
+    # Currently, Dawn can only be linked dynamically
+    set_target_properties(${GAME_NAME} PROPERTIES COMPILE_FLAGS "-DDW_DLL")
 
     # LuaJIT on 64-bit OS X requires these linker flags for executables
     if(APPLE)
