@@ -46,8 +46,8 @@ public:
     void load(const String& s);
 
     // Stream operators
-    friend std::istream& operator>>(std::istream& stream, ConfigNode &node);
-    friend std::ostream& operator<<(std::ostream& stream, const ConfigNode& node);
+    friend DW_API std::istream& operator>>(std::istream& stream, ConfigNode &node);
+    friend DW_API std::ostream& operator<<(std::ostream& stream, const ConfigNode& node);
 
     template <class T>
     T as() const

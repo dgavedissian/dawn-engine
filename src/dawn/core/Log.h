@@ -24,7 +24,7 @@ public:
 };
 
 // Outputs to the platform specific log
-class PlatformLog : public LogListener
+class DW_API PlatformLog : public LogListener
 {
 public:
     virtual void logWrite(const String& message) override;
@@ -33,7 +33,7 @@ public:
 class DW_API Log : public Singleton<Log>
 {
 private:
-    class Stream
+    class DW_API Stream
     {
     public:
         Stream(Log* log, LogLevel level, const String& message);

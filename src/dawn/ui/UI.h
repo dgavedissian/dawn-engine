@@ -61,7 +61,7 @@ private:
 
 };
 
-class EvtData_UIMouseEnter : public EventData
+class DW_API EvtData_UIMouseEnter : public EventData
 {
 public:
     typedef Map<String, String> Parameters;
@@ -74,7 +74,7 @@ public:
     Parameters parameters;
 };
 
-class EvtData_UIMouseLeave : public EventData
+class DW_API EvtData_UIMouseLeave : public EventData
 {
 public:
     typedef Map<String, String> Parameters;
@@ -87,7 +87,7 @@ public:
     Parameters parameters;
 };
 
-class EvtData_UIClick : public EventData
+class DW_API EvtData_UIClick : public EventData
 {
 public:
     typedef Map<String, String> Parameters;
@@ -100,7 +100,7 @@ public:
     Parameters parameters;
 };
 
-class EvtData_UISubmit : public EventData
+class DW_API EvtData_UISubmit : public EventData
 {
 public:
     typedef Map<String, String> Parameters;

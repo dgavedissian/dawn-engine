@@ -6,7 +6,7 @@
 
 NAMESPACE_BEGIN
 
-class Rect
+class DW_API Rect
 {
 public:
     Vec2i begin, end;

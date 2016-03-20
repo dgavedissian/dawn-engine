@@ -277,10 +277,12 @@ ExternalProject_Add(RakNet
 set_target_properties(RakNet PROPERTIES FOLDER "3rdparty")
 if(WIN32)
     set(LIBS ${LIBS}
+    	ws2_32.lib
         debug ${EXTERNAL_INSTALL}/lib/RakNetLibStatic_d.lib
         optimized ${EXTERNAL_INSTALL}/lib/RakNetLibStatic.lib)
 else()
     set(LIBS ${LIBS}
+    	pthread
         debug ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic_d.a
         optimized ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic.a)
 endif()
