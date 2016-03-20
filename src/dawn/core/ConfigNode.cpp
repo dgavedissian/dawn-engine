@@ -22,7 +22,7 @@ ConfigNode ConvertFromYaml(const YAML::Node& node)
             for (auto i = node.begin(); i != node.end(); i++)
             {
                 const YAML::Node& n = *i;
-                seq.Push(ConvertFromYaml(n));
+                seq.push(ConvertFromYaml(n));
             }
             return seq;
         }
@@ -31,7 +31,7 @@ ConfigNode ConvertFromYaml(const YAML::Node& node)
         {
             ConfigNode m;
             for (auto i = node.begin(); i != node.end(); i++)
-                m.Insert(make_pair(i.first().to<String>(), ConvertFromYaml(i.second())));
+                m.insert(make_pair(i.first().to<String>(), ConvertFromYaml(i.second())));
             return m;
         }
 
@@ -42,10 +42,10 @@ ConfigNode ConvertFromYaml(const YAML::Node& node)
 
 void EmitYaml(YAML::Emitter& out, const ConfigNode& node)
 {
-    switch (node.GetType())
+    switch (node.getType())
     {
     case NT_SCALAR:
-        out << node.As<String>();
+        out << node.as<String>();
         break;
 
     case NT_SEQUENCE:
@@ -66,7 +66,7 @@ void EmitYaml(YAML::Emitter& out, const ConfigNode& node)
         break;
 
     default:
-        ERROR_WARN("Can't emit a YAML node of type " + std::to_string(node.GetType()));
+        ERROR_WARN("Can't emit a YAML node of type " + std::to_string(node.getType()));
     }
 }
 
@@ -113,32 +113,32 @@ ConfigNode::~ConfigNode()
 {
 }
 
-void ConfigNode::Load(const String& s)
+void ConfigNode::load(const String& s)
 {
     std::istringstream(s) >> *this;
 }
 
-ConfigNodeType ConfigNode::GetType() const
+ConfigNodeType ConfigNode::getType() const
 {
     return mType;
 }
 
-bool ConfigNode::IsScalar() const
+bool ConfigNode::isScalar() const
 {
     return mType == NT_SCALAR;
 }
 
-bool ConfigNode::IsSequence() const
+bool ConfigNode::isSequence() const
 {
     return mType == NT_SEQUENCE;
 }
 
-bool ConfigNode::IsMap() const
+bool ConfigNode::isMap() const
 {
     return mType == NT_MAP;
 }
 
-uint ConfigNode::Size() const
+uint ConfigNode::size() const
 {
     switch (mType)
     {
@@ -153,7 +153,7 @@ uint ConfigNode::Size() const
     }
 }
 
-void ConfigNode::Push(const ConfigNode& v)
+void ConfigNode::push(const ConfigNode& v)
 {
     if (mType == NT_NULL)
         mType = NT_SEQUENCE;
@@ -192,14 +192,14 @@ Vector<ConfigNode>::const_iterator ConfigNode::seq_end() const
     return mData.sequence.end();
 }
 
-void ConfigNode::Insert(const Pair<String, ConfigNode>& p)
+void ConfigNode::insert(const Pair<String, ConfigNode>& p)
 {
     if (mType == NT_NULL)
         mType = NT_MAP;
     mData.keymap.insert(p);
 }
 
-bool ConfigNode::Contains(const String& key) const
+bool ConfigNode::contains(const String& key) const
 {
     return mData.keymap.count(key) > 0;
 }

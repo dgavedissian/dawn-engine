@@ -22,18 +22,18 @@ public:
     ~UI();
 
     /// Called at the beginning of a frame
-    void BeginFrame();
+    void beginFrame();
 
     // Update
-    void Update(float dt);
-    void PreRender();
+    void update(float dt);
+    void preRender();
 
     // Load a layout
-    Layout* LoadLayout(const String& filename);
-    void UnloadLayout(Layout* layout);
+    Layout* loadLayout(const String& filename);
+    void unloadLayout(Layout* layout);
 
     // Event Delegate
-    void HandleEvent(EventDataPtr eventData);
+    void handleEvent(EventDataPtr eventData);
 
     // Inherited from Rocket::Core::EventListener
 	virtual void ProcessEvent(Rocket::Core::Event& event) override;
@@ -57,57 +57,57 @@ private:
     SharedPtr<Console> mConsole;
 
 private:
-    void BuildProjectionMatrix(Ogre::Matrix4& projectionMatrix);
+    void buildProjMatrix(Ogre::Matrix4& projectionMatrix);
 
 };
 
-class EvtData_UIMouseEnter : public EventData
+class DW_API EvtData_UIMouseEnter : public EventData
 {
 public:
     typedef Map<String, String> Parameters;
     static const EventType eventType;
     EvtData_UIMouseEnter(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
-    const EventType& GetEventType() const override { return eventType; }
-    const String GetName() const override { return "EvtData_UIMouseOver"; }
+    const EventType& getType() const override { return eventType; }
+    const String getName() const override { return "EvtData_UIMouseOver"; }
 
     String id;
     Parameters parameters;
 };
 
-class EvtData_UIMouseLeave : public EventData
+class DW_API EvtData_UIMouseLeave : public EventData
 {
 public:
     typedef Map<String, String> Parameters;
     static const EventType eventType;
     EvtData_UIMouseLeave(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
-    const EventType& GetEventType() const override { return eventType; }
-    const String GetName() const override { return "EvtData_UIMouseLeave"; }
+    const EventType& getType() const override { return eventType; }
+    const String getName() const override { return "EvtData_UIMouseLeave"; }
 
     String id;
     Parameters parameters;
 };
 
-class EvtData_UIClick : public EventData
+class DW_API EvtData_UIClick : public EventData
 {
 public:
     typedef Map<String, String> Parameters;
     static const EventType eventType;
     EvtData_UIClick(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
-    const EventType& GetEventType() const override { return eventType; }
-    const String GetName() const override { return "EvtData_UIClick"; }
+    const EventType& getType() const override { return eventType; }
+    const String getName() const override { return "EvtData_UIClick"; }
 
     String id;
     Parameters parameters;
 };
 
-class EvtData_UISubmit : public EventData
+class DW_API EvtData_UISubmit : public EventData
 {
 public:
     typedef Map<String, String> Parameters;
     static const EventType eventType;
     EvtData_UISubmit(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
-    const EventType& GetEventType() const override { return eventType; }
-    const String GetName() const override { return "EvtData_UISubmit"; }
+    const EventType& getType() const override { return eventType; }
+    const String getName() const override { return "EvtData_UISubmit"; }
 
     String id;
     Parameters parameters;

@@ -22,23 +22,23 @@ public:
     virtual ~State() {}
 
     // Called when the state is entered
-    virtual void Enter() {};
+    virtual void enter() {};
 
     // Called when the state exits (either on pop or change)
-    virtual void Exit() {};
+    virtual void exit() {};
 
     // Updates this state
-    virtual void Update(float dt) {};
+    virtual void update(float dt) {};
 
     // Called before rendering
     // Use this to blit sprites
-    virtual void PreRender() {};
+    virtual void preRender() {};
 
     // Get the ID of this state
-    virtual uint GetID() const = 0;
+    virtual uint getId() const = 0;
 
     // Returns the name of this state for debugging purposes
-    virtual String GetName() const = 0;
+    virtual String getName() const = 0;
 };
 
 // State modality - does it own the screen or is it a pop-up?
@@ -56,36 +56,35 @@ public:
     ~StateManager();
 
     // Registers a new state
-    void RegisterState(SharedPtr<State> state);
+    void registerState(SharedPtr<State> state);
 
     // Switches the game to a new state. This will clear all current active pop-up states
-    void Switch(int id);
+    void changeTo(int id);
 
     // Pushes a new pop-up state to the top of the state stack
-    void Push(int id);
+    void push(int id);
 
     // Pops a state from the top of the state stack
-    void Pop();
+    void pop();
 
     // Reloads the current top state
-    void Reload();
+    void reload();
 
     // Pops all states from the state stack
-    void Clear();
+    void clear();
 
     // Update all the visible states
-    void Update(float dt);
+    void update(float dt);
 
     // Pre-renders all visible states
-    void PreRender();
+    void preRender();
 
     // Event handler
-    void HandleEvent(EventDataPtr e);
+    void handleEvent(EventDataPtr e);
 
     // Accessors
-    int GetTop() const;
-    SharedPtr<State> GetStateByID(uint id);
-    uint GetDepth() const;
+    int getTop() const;
+    SharedPtr<State> getStateById(uint id);
 
 private:
     Map<int, SharedPtr<State>> mStateMap;

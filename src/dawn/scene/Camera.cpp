@@ -14,7 +14,7 @@ Camera::Camera(SceneManager* sceneMgr)
       mCamera(nullptr),
       mSceneNode(nullptr)
 {
-    mCamera = sceneMgr->mSceneMgr->createCamera(GenerateName());
+    mCamera = sceneMgr->mSceneMgr->createCamera(generateName());
 
     // Create the camera and attach it to the viewport
     mSceneNode = sceneMgr->mSceneMgr->getRootSceneNode()->createChildSceneNode();
@@ -30,14 +30,14 @@ Camera::~Camera()
     mSceneMgr->mSceneMgr->destroyCamera(mCamera);
 }
 
-void Camera::SetFOV(float fov)
+void Camera::setFov(float fov)
 {
     mCamera->setFOVy(Ogre::Degree(fov));
 }
 
-void Camera::SetOrientation(const Quat& orientation)
+void Camera::setOrientation(const Quat& orientation)
 {
-    Entity::SetOrientation(orientation);
+    Entity::setOrientation(orientation);
     mSceneNode->setOrientation(orientation);
 }
 

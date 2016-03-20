@@ -8,15 +8,15 @@ NAMESPACE_BEGIN
 
 LogListener::LogListener()
 {
-    Log::inst().AddListener(this);
+    Log::inst().addListener(this);
 }
 
 LogListener::~LogListener()
 {
-    Log::inst().RemoveListener(this);
+    Log::inst().removeListener(this);
 }
 
-void PlatformLog::LogWrite(const String& message)
+void PlatformLog::logWrite(const String& message)
 {
     // Output to stdout
     std::cout << message << std::endl;
@@ -37,7 +37,7 @@ Log::Stream::Stream(Log* log, LogLevel level, const String& message)
 
 Log::Stream::~Stream()
 {
-    mLogger->Write(mMessage, mLevel);
+    mLogger->write(mMessage, mLevel);
 }
 
 Log::Log(const String& filename) : mLogFile(filename)
@@ -51,7 +51,7 @@ Log::~Log()
     mLogFile.close();
 }
 
-void Log::Write(const String& message, LogLevel level)
+void Log::write(const String& message, LogLevel level)
 {
     // Get the time of day
     time_t t = ::time(nullptr);
@@ -63,7 +63,7 @@ void Log::Write(const String& message, LogLevel level)
     String timeStr = ss.str();
 
     Vector<String> lines;
-    Split(message, '\n', lines);
+    splitString(message, '\n', lines);
 
     // TODO: threading - add lock here
     for (uint i = 0; i < lines.size(); ++i)
@@ -102,29 +102,29 @@ void Log::Write(const String& message, LogLevel level)
 
         // Output to Listeners
         for (auto i = mListeners.begin(); i != mListeners.end(); ++i)
-            (*i)->LogWrite(line);
+            (*i)->logWrite(line);
 
         // Add to the log buffer
         mLogBuffer.push_back(line);
     }
 }
 
-Log::Stream Log::GetStream(LogLevel level)
+Log::Stream Log::getStream(LogLevel level)
 {
     return Stream(this, level, "");
 }
 
-void Log::AddListener(LogListener* Listener)
+void Log::addListener(LogListener* Listener)
 {
     mListeners.push_back(Listener);
 }
 
-void Log::RemoveListener(LogListener* Listener)
+void Log::removeListener(LogListener* Listener)
 {
     mListeners.erase(std::find(mListeners.begin(), mListeners.end(), Listener));
 }
 
-const Vector<String>& Log::GetLogBuffer() const
+const Vector<String>& Log::getBuffer() const
 {
     return mLogBuffer;
 }

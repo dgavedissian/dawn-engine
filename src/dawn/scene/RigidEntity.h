@@ -20,28 +20,28 @@ public:
 
     // Construct the object - I'm not really a fan of two-stage init but this is enforced if we want
     // to cache entities or use RakNet::Replica3
-    void Init(SharedPtr<btCollisionShape> shape, float mass, bool disableDeactivation,
+    void init(SharedPtr<btCollisionShape> shape, float mass, bool disableDeactivation,
               const Position& position = Position::origin, const Quat& rotation = Quat::identity);
-    void Init(SharedPtr<btCollisionShape> shape, Vec3 localInertia, float mass,
+    void init(SharedPtr<btCollisionShape> shape, Vec3 localInertia, float mass,
               bool disableDeactivation, const Position& position = Position::origin,
               const Quat& rotation = Quat::identity);
 
     // Accessors
-    SharedPtr<btCollisionShape> GetBulletCollisionShape() { return mCollisionShape; }
-    SharedPtr<btRigidBody> GetBulletRigidBody() { return mRigidBody; }
-    SharedPtr<btMotionState> GetBulletMotionState() { return mMotionState; }
-    Vec3 GetLinearVelocity() const
+    SharedPtr<btCollisionShape> getBulletCollisionShape() { return mCollisionShape; }
+    SharedPtr<btRigidBody> getBulletRigidBody() { return mRigidBody; }
+    SharedPtr<btMotionState> getBulletMotionState() { return mMotionState; }
+    Vec3 getLinearVelocity() const
     {
         return mRigidBody ? Vec3(mRigidBody->getLinearVelocity()) : Vec3::zero;
     }
-    Vec3 GetAngularVelocity() const
+    Vec3 getAngularVelocity() const
     {
         return mRigidBody ? Vec3(mRigidBody->getAngularVelocity()) : Vec3::zero;
     }
 
     // Inherited from Entity
-    virtual void SetPosition(const Position& position) override;
-    virtual void SetOrientation(const Quat& orient) override;
+    virtual void setPosition(const Position& position) override;
+    virtual void setOrientation(const Quat& orient) override;
 
 protected:
     SharedPtr<btCollisionShape> mCollisionShape;

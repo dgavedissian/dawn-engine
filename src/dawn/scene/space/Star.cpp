@@ -35,16 +35,16 @@ Star::Star(Renderer* renderSystem,
     assert(desc.radius > 0.0f);
 
     // Get the correct colour, and create the scene node
-    mSceneNode = starSystem->GetRootSceneNode()->createChildSceneNode();
+    mSceneNode = starSystem->getRootSceneNode()->createChildSceneNode();
 
     // Create the flare effect
-    mFlareBillboardSet = renderSystem->GetSceneMgr()->createBillboardSet(1);
+    mFlareBillboardSet = renderSystem->getSceneMgr()->createBillboardSet(1);
     mFlareBillboardSet->setMaterialName("Scene/Star/Flare");
     mFlareBillboardSet->setBounds(Ogre::AxisAlignedBox::BOX_INFINITE, 1000000.0f);
     mSceneNode->attachObject(mFlareBillboardSet);
 
     // Create the glow effect
-    mGlowBillboardSet = renderSystem->GetSceneMgr()->createBillboardSet(1);
+    mGlowBillboardSet = renderSystem->getSceneMgr()->createBillboardSet(1);
     mGlowBillboardSet->setMaterialName("Scene/Star/Glow");
     mGlowBillboardSet->setBounds(Ogre::AxisAlignedBox::BOX_INFINITE, 1000000.0f);
     mSceneNode->attachObject(mGlowBillboardSet);
@@ -55,20 +55,20 @@ Star::Star(Renderer* renderSystem,
         mGlowBillboardSet->createBillboard(Ogre::Vector3::ZERO, Colour(1.0f, 1.0f, 1.0f));
 
     // Create light
-    mLight = renderSystem->GetSceneMgr()->createLight();
+    mLight = renderSystem->getSceneMgr()->createLight();
     mLight->setType(Ogre::Light::LT_DIRECTIONAL);
     mLight->setDiffuseColour(Colour(1.0f, 1.0f, 1.0f));
 }
 
 Star::~Star()
 {
-    mRenderSystem->GetSceneMgr()->destroyLight(mLight);
-    mRenderSystem->GetSceneMgr()->destroyBillboardSet(mGlowBillboardSet);
-    mRenderSystem->GetSceneMgr()->destroyBillboardSet(mFlareBillboardSet);
-    mRenderSystem->GetSceneMgr()->destroySceneNode(mSceneNode);
+    mRenderSystem->getSceneMgr()->destroyLight(mLight);
+    mRenderSystem->getSceneMgr()->destroyBillboardSet(mGlowBillboardSet);
+    mRenderSystem->getSceneMgr()->destroyBillboardSet(mFlareBillboardSet);
+    mRenderSystem->getSceneMgr()->destroySceneNode(mSceneNode);
 }
 
-Colour Star::GetColour() const
+Colour Star::getColour() const
 {
     Colour colour;
 
@@ -118,15 +118,15 @@ Colour Star::GetColour() const
     return colour;
 }
 
-void Star::PreRender(Camera* camera)
+void Star::preRender(Camera* camera)
 {
-    Vec3 localPosition = mPosition.ToCameraSpace(camera);
+    Vec3 localPosition = mPosition.toCameraSpace(camera);
 
     // Calculate light direction and apparent radius
     float distance = math::Max(localPosition.Length(), 1.0f);
     Vec3 lightDirection = localPosition / distance;
     mLight->setDirection(-lightDirection);
-    float apparentRadius = mDesc.radius / (math::Tan(camera->GetFOV() * 0.5f) * distance);
+    float apparentRadius = mDesc.radius / (math::Tan(camera->getFov() * 0.5f) * distance);
 
     // Position the billboards
     float scale = 100000.0f;
@@ -142,7 +142,7 @@ void Star::PreRender(Camera* camera)
 
     // Perform a ray cast and fade out the flare
     PhysicsRaycastResult query;
-    mPhysicsMgr->RaycastQuery(camera->GetPosition(), mPosition, camera, query);
+    mPhysicsMgr->rayQuery(camera->getPosition(), mPosition, camera, query);
     mFlareVisibility =
         math::Clamp(mFlareVisibility + (query.hit ? -1.0f : 1.0f) * 8.0f / 60.0f, 0.0f, 1.0f);
     if (mFlareVisibility < M_EPSILON && mFlareBillboard)
@@ -157,11 +157,11 @@ void Star::PreRender(Camera* camera)
 
     if (mFlareBillboard)
     {
-        mFlareBillboard->setColour(GetColour() * mFlareVisibility);
+        mFlareBillboard->setColour(getColour() * mFlareVisibility);
     }
 
     // Update satellites
-    SystemBody::PreRender(camera);
+    SystemBody::preRender(camera);
 }
 
 NAMESPACE_END

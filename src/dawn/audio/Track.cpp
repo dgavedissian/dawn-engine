@@ -24,30 +24,30 @@ Track::~Track()
     mTrack->drop();
 }
 
-void Track::Play()
+void Track::play()
 {
     mTrack->setIsPaused(false);
 }
 
-void Track::Pause()
+void Track::pause()
 {
     mTrack->setIsPaused(true);
 }
 
-void Track::Stop()
+void Track::stop()
 {
-    Pause();
+    pause();
     mTrack->setPlayPosition(0);
 }
 
-void Track::Seek(float location)
+void Track::seek(float location)
 {
     irrklang::ik_u32 length = mTrack->getSoundSource()->getPlayLength();
     if (length > 0.0f)
         mTrack->setPlayPosition((irrklang::ik_u32)(location * length));
 }
 
-void Track::SetVolume(float volume)
+void Track::setVolume(float volume)
 {
     mTrack->setVolume(volume);
 }

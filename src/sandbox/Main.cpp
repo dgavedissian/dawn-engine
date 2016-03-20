@@ -9,20 +9,20 @@ int main(int argc, char** argv)
 {
 	// Set up the engine
     dw::Engine* engine = new dw::Engine("Sandbox", "1.0.0");
-	engine->Setup();
+	engine->setup();
 
 	// Add resource locations
 	// TODO: move this out of the renderer class
-	engine->GetRenderer()->AddResourceLocation(engine->GetBasePath() + "media/sandbox");
+	engine->getRenderer()->addResourceLocation(engine->getBasePath() + "media/sandbox");
 
 	// Register the sandbox state and switch to it
-	engine->GetStateMgr()->RegisterState(dw::MakeShared<SandboxState>(engine));
-	engine->GetStateMgr()->Switch(S_SANDBOX);
+	engine->getStateMgr()->RegisterState(dw::makeShared<SandboxState>(engine));
+	engine->getStateMgr()->changeTo(S_SANDBOX);
 
 	// Run the engine
-	engine->Run([](float) {});
+	engine->run([](float) {});
 
 	// Shutdown and exit
-    engine->Shutdown();
+    engine->shutdown();
     return 0;
 }

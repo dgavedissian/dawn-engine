@@ -18,19 +18,19 @@ public:
     virtual ~Console();
 
     // Set the visibility of the console
-    void SetVisible(bool visible);
+    void setVisible(bool visible);
 
     // Returns the state of the visibility flag
-    bool IsVisible() const;
+    bool isVisible() const;
 
     // Internal: Write a line
-    void Write(const String& str);
+    void write(const String& str);
 
     // Internal: Execute a lua statement
-    void Execute(const String& statement);
+    void execute(const String& statement);
 
     // Inherited from LogListener
-    virtual void LogWrite(const String& msg) override;
+    virtual void logWrite(const String& msg) override;
 
     // Inherited from Rocket::Core::EventListener
     virtual void ProcessEvent(Rocket::Core::Event& event) override;

@@ -15,7 +15,7 @@ AmbientLight::AmbientLight()
     mRenderOp.vertexData = new Ogre::VertexData();
     mRenderOp.indexData = nullptr;
 
-    CreateQuad(mRenderOp.vertexData);
+    createQuad(mRenderOp.vertexData);
 
     mRenderOp.operationType = Ogre::RenderOperation::OT_TRIANGLE_STRIP;
     mRenderOp.useIndexes = false;

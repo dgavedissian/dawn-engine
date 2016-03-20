@@ -14,28 +14,28 @@ public:
 
     /// Set the viewport size
     /// @param viewportSize Size of the viewport in pixels
-    void SetViewportSize(const Vec2i& viewportSize);
+    void setViewportSize(const Vec2i& viewportSize);
 
     /// Toggles the relative mouse mode, which fixes the position and hides
     /// the cursor
     /// @param visible True if relative, false otherwise
-    void LockCursor(bool relative);
+    void lockCursor(bool relative);
 
     // Input blocking
-    DEPRECATED void PushInputBlock();
-    DEPRECATED void PopInputBlock();
-    DEPRECATED bool IsInputBlocked() const;
+    DEPRECATED void pushInputBlock();
+    DEPRECATED void popInputBlock();
+    DEPRECATED bool isInputBlocked() const;
 
     /// Process an SDL event. This should be called only by RenderSystem
     /// @param e SDL event structure
-    void HandleSDLEvent(SDL_Event& e);
+    void handleSDLEvent(SDL_Event& e);
 
     // Check the current state of the input devices
-    bool IsKeyDown(SDL_Keycode key) const;
-    bool IsMouseButtonDown(uint button) const;
-    Vec2i GetMousePosition() const;
-    Vec2 GetMousePositionRelative() const;
-    Vec3i GetMouseMove() const;
+    bool isKeyDown(SDL_Keycode key) const;
+    bool isMouseButtonDown(uint button) const;
+    Vec2i getMousePosition() const;
+    Vec2 getMousePositionRel() const;
+    Vec3i getMouseMove() const;
 
 private:
     uint mInputBlock;
@@ -51,11 +51,11 @@ public:
     EvtData_KeyDown(SDL_Keycode kc, SDL_Scancode sc, u16 m) : keycode(kc), scancode(sc), mod(m)
     {
     }
-    const EventType& GetEventType() const override
+    const EventType& getType() const override
     {
         return eventType;
     }
-    const String GetName() const override
+    const String getName() const override
     {
         return "EvtData_KeyDown";
     }
@@ -73,11 +73,11 @@ public:
     EvtData_KeyUp(SDL_Keycode kc, SDL_Scancode sc, u16 m) : keycode(kc), scancode(sc), mod(m)
     {
     }
-    const EventType& GetEventType() const override
+    const EventType& getType() const override
     {
         return eventType;
     }
-    const String GetName() const override
+    const String getName() const override
     {
         return "EvtData_KeyUp";
     }
@@ -95,11 +95,11 @@ public:
     EvtData_TextInput(String t) : text(t)
     {
     }
-    const EventType& GetEventType() const override
+    const EventType& getType() const override
     {
         return eventType;
     }
-    const String GetName() const override
+    const String getName() const override
     {
         return "EvtData_TextInput";
     }
@@ -115,11 +115,11 @@ public:
     EvtData_MouseDown(uint b) : button(b)
     {
     }
-    const EventType& GetEventType() const override
+    const EventType& getType() const override
     {
         return eventType;
     }
-    const String GetName() const override
+    const String getName() const override
     {
         return "EvtData_MouseDown";
     }
@@ -135,11 +135,11 @@ public:
     EvtData_MouseUp(uint b) : button(b)
     {
     }
-    const EventType& GetEventType() const override
+    const EventType& getType() const override
     {
         return eventType;
     }
-    const String GetName() const override
+    const String getName() const override
     {
         return "EvtData_MouseUp";
     }
@@ -153,8 +153,8 @@ public:
     static const EventType eventType;
 
     EvtData_MouseMove(const Vec2i& p, const Vec2& pr, const Vec2i& m) : pos(p), posRel(pr), motion(m) {}
-    const EventType& GetEventType() const override { return eventType; }
-    const String GetName() const override { return "EvtData_MouseMove"; }
+    const EventType& getType() const override { return eventType; }
+    const String getName() const override { return "EvtData_MouseMove"; }
 
     Vec2i pos;
     Vec2 posRel;
@@ -169,11 +169,11 @@ public:
     EvtData_MouseWheel(const Vec2i& m) : motion(m)
     {
     }
-    const EventType& GetEventType() const override
+    const EventType& getType() const override
     {
         return eventType;
     }
-    const String GetName() const override
+    const String getName() const override
     {
         return "EvtData_MouseWheel";
     }

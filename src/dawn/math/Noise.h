@@ -13,23 +13,23 @@ public:
     PerlinNoise(int octaves, float freq, float amp, int seed);
 
     // Generate noise
-    float Noise(float x);
-    float Noise(float x, float y);
-    float Noise(float x, float y, float z);
+    float noise(float x);
+    float noise(float x, float y);
+    float noise(float x, float y, float z);
 
 private:
-    float PerlinNoise1(float arg);
-    float PerlinNoise2(float vec[2]);
-    float PerlinNoise3(float vec[3]);
+    float perlin1(float arg);
+    float perlin2(float vec[2]);
+    float perlin3(float vec[3]);
 
-    void Init();
+    void init();
 
     // Helper functions
-    float Noise1(float arg);
-    float Noise2(float vec[2]);
-    float Noise3(float vec[3]);
-    void Normalise2(float v[2]);
-    void Normalise3(float v[3]);
+    float noise1(float arg);
+    float noise2(float vec[2]);
+    float noise3(float vec[3]);
+    void normalise2(float v[2]);
+    void normalise3(float v[3]);
 
     int mOctaves;
     float mFrequency;

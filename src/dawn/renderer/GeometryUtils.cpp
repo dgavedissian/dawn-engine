@@ -7,14 +7,14 @@
 
 NAMESPACE_BEGIN
 
-Ogre::MeshPtr CreateSphere(const String& name, float radius, int rings, int segments, bool normals,
+Ogre::MeshPtr createSphere(const String& name, float radius, int rings, int segments, bool normals,
                            bool texCoords)
 {
     Ogre::MeshPtr sphere = Ogre::MeshManager::getSingleton().createManual(
         name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     Ogre::SubMesh* sphereVertex = sphere->createSubMesh();
     sphere->sharedVertexData = new Ogre::VertexData();
-    CreateSphere(sphere->sharedVertexData, sphereVertex->indexData, radius, rings, segments,
+    createSphere(sphere->sharedVertexData, sphereVertex->indexData, radius, rings, segments,
         normals, texCoords);
 
     // Set up mesh
@@ -27,7 +27,7 @@ Ogre::MeshPtr CreateSphere(const String& name, float radius, int rings, int segm
     return sphere;
 }
 
-void CreateSphere(Ogre::VertexData* vertexData, Ogre::IndexData* indexData, float radius, int rings,
+void createSphere(Ogre::VertexData* vertexData, Ogre::IndexData* indexData, float radius, int rings,
                   int segments, bool normals, bool texCoords)
 {
     assert(vertexData && indexData);
@@ -126,14 +126,14 @@ void CreateSphere(Ogre::VertexData* vertexData, Ogre::IndexData* indexData, floa
     iBuf->unlock();
 }
 
-Ogre::MeshPtr CreateCone(const String& strName, float radius, float height, int verticesInBase)
+Ogre::MeshPtr createCone(const String& strName, float radius, float height, int verticesInBase)
 {
     Ogre::MeshPtr cone = Ogre::MeshManager::getSingleton().createManual(
         strName, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     Ogre::SubMesh* coneVertex = cone->createSubMesh();
     cone->sharedVertexData = new Ogre::VertexData();
 
-    CreateCone(cone->sharedVertexData, coneVertex->indexData, radius, height, verticesInBase);
+    createCone(cone->sharedVertexData, coneVertex->indexData, radius, height, verticesInBase);
 
     // Set up the cone mesh
     coneVertex->useSharedVertices = true;
@@ -145,7 +145,7 @@ Ogre::MeshPtr CreateCone(const String& strName, float radius, float height, int 
     return cone;
 }
 
-void CreateCone(Ogre::VertexData* vertexData, Ogre::IndexData* indexData, float radius,
+void createCone(Ogre::VertexData* vertexData, Ogre::IndexData* indexData, float radius,
                 float height, int verticesInBase)
 {
     assert(vertexData && indexData);
@@ -211,7 +211,7 @@ void CreateCone(Ogre::VertexData* vertexData, Ogre::IndexData* indexData, float 
     iBuf->unlock();
 }
 
-void CreateQuad(Ogre::VertexData* vertexData)
+void createQuad(Ogre::VertexData* vertexData)
 {
     assert(vertexData);
 

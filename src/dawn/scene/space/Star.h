@@ -41,10 +41,10 @@ public:
     virtual ~Star();
 
     // Get the stars colour
-    Colour GetColour() const;
+    Colour getColour() const;
 
     // Inherited from SystemBody
-    void PreRender(Camera* camera) override;
+    void preRender(Camera* camera) override;
 
 private:
     PhysicsWorld* mPhysicsMgr;

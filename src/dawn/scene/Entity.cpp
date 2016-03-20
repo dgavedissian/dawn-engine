@@ -32,22 +32,22 @@ Entity::~Entity()
 {
 }
 
-void Entity::SetPosition(const Position& position)
+void Entity::setPosition(const Position& position)
 {
     mPosition = position;
 }
 
-void Entity::SetOrientation(const Quat& orient)
+void Entity::setOrientation(const Quat& orient)
 {
     mOrientation = orient;
 }
 
-const Position& Entity::GetPosition() const
+const Position& Entity::getPosition() const
 {
     return mPosition;
 }
 
-const Quat& Entity::GetOrientation() const
+const Quat& Entity::getOrientation() const
 {
     return mOrientation;
 }

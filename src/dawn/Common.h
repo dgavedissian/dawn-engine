@@ -45,7 +45,7 @@ template <class T> using SharedPtr = std::shared_ptr<T>;
 template <class T> using WeakPtr = std::weak_ptr<T>;
 template <class T> using UniquePtr = std::unique_ptr<T>;
 template <class T> using EnableSharedFromThis = std::enable_shared_from_this<T>;
-template <class T, class... Args> inline SharedPtr<T> MakeShared(Args&&... args)
+template <class T, class... Args> inline SharedPtr<T> makeShared(Args&&... args)
 {
 #ifdef DW_MSVC
     // MSVC's implementation of make_shared seems to crash in seemingly random scenarios
@@ -54,7 +54,7 @@ template <class T, class... Args> inline SharedPtr<T> MakeShared(Args&&... args)
     return std::make_shared<T>(std::forward<Args>(args)...);
 #endif
 }
-template <class T, class... Args> inline UniquePtr<T> MakeUnique(Args&&... args)
+template <class T, class... Args> inline UniquePtr<T> makeUnique(Args&&... args)
 {
     // C++14 feature
 #ifdef DW_MSVC
@@ -63,11 +63,11 @@ template <class T, class... Args> inline UniquePtr<T> MakeUnique(Args&&... args)
     return UniquePtr<T>(new T(std::forward<Args>(args)...));
 #endif
 }
-template <class T1, class T2> inline SharedPtr<T1> StaticPointerCast(const SharedPtr<T2>& other)
+template <class T1, class T2> inline SharedPtr<T1> staticPointerCast(const SharedPtr<T2>& other)
 {
     return std::static_pointer_cast<T1, T2>(other);
 }
-template <class T1, class T2> inline SharedPtr<T1> DynamicPointerCast(const SharedPtr<T2>& other)
+template <class T1, class T2> inline SharedPtr<T1> dynamicPointerCast(const SharedPtr<T2>& other)
 {
     return std::dynamic_pointer_cast<T1, T2>(other);
 }
@@ -75,11 +75,11 @@ template <class T1, class T2> inline SharedPtr<T1> DynamicPointerCast(const Shar
 // Pair and tuples
 template <class T1, class T2> using Pair = std::pair<T1, T2>;
 template <class... T> using Tuple = std::tuple<T...>;
-template <class T1, class T2> inline Pair<T1, T2> MakePair(T1&& a, T2&& b)
+template <class T1, class T2> inline Pair<T1, T2> makePair(T1&& a, T2&& b)
 {
     return std::pair<T1, T2>(std::forward<T1>(a), std::forward<T2>(b));
 }
-template <class... T> inline Tuple<T...> MakeTuple(T&&... args)
+template <class... T> inline Tuple<T...> makeTuple(T&&... args)
 {
     return std::tuple<T...>(std::forward<T>(args)...);
 }

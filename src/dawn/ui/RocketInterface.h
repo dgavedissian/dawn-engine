@@ -30,17 +30,17 @@ public:
     /// Maps an SDL keycode to libRocket
     /// @param  key SDL keycode
     /// @return The equivalent libRocket keycode
-    int MapSDLKeyCode(SDL_Keycode key);
+    int mapSDLKeyCode(SDL_Keycode key);
 
     /// Maps an SDL key modifier to libRocket
     /// @param  mod SDL modifier
     /// @return The equivalent libRocket modifier
-    Rocket::Core::Input::KeyModifier MapSDLKeyMod(Uint16 mod);
+    Rocket::Core::Input::KeyModifier mapSDLKeyMod(Uint16 mod);
 
     /// Maps an SDL mouse button to libRocket
     /// @param  button SDL mouse button identifier
     /// @return The equivalent libRocket mouse button identifier
-    int MapSDLMouseButton(uint button);
+    int mapSDLMouseButton(uint button);
 
     // Inherited from Rocket::Core::RenderInterface
     void Transform(RocketOgreVertex* vertex);
@@ -91,7 +91,7 @@ private:
     int mScissorBottom;
 
 private:
-    void SetupKeymap();
+    void setupKeymap();
 
 };
 

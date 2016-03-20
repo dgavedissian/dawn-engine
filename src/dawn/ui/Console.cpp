@@ -16,44 +16,44 @@ Console::Console(UI* im, LuaState* ls)
       mConsole(nullptr),
       mText(nullptr)
 {
-    mLayout = mInterfaceMgr->LoadLayout("console.rml");
-    mLayout->Hide();
+    mLayout = mInterfaceMgr->loadLayout("console.rml");
+    mLayout->hide();
 
     // Bit of a hack, bypass event system and hook this class directly
-    mLayout->GetElementById("cmd")->AddEventListener("keydown", this);
-    mConsole = mLayout->GetElementById("console");
-    mText = mLayout->GetElementById("consoletext");
+    mLayout->getElementById("cmd")->AddEventListener("keydown", this);
+    mConsole = mLayout->getElementById("console");
+    mText = mLayout->getElementById("consoletext");
 
     // Copy all the lines from the log buffer
-    auto lines = Log::inst().GetLogBuffer();
+    auto lines = Log::inst().getBuffer();
     for (auto i = lines.begin(); i != lines.end(); ++i)
-        Write(*i);
+        write(*i);
 }
 
 Console::~Console()
 {
-    mLayout->GetElementById("cmd")->RemoveEventListener("keydown", this);
-    mInterfaceMgr->UnloadLayout(mLayout);
+    mLayout->getElementById("cmd")->RemoveEventListener("keydown", this);
+    mInterfaceMgr->unloadLayout(mLayout);
 }
 
-void Console::SetVisible(bool visible)
+void Console::setVisible(bool visible)
 {
     if (visible)
     {
-        mLayout->Show(Modal);
+        mLayout->show(Modal);
     }
     else
     {
-        mLayout->Hide();
+        mLayout->hide();
     }
 }
 
-bool Console::IsVisible() const
+bool Console::isVisible() const
 {
-    return mLayout->IsVisible();
+    return mLayout->isVisible();
 }
 
-void Console::Write(const String& str)
+void Console::write(const String& str)
 {
     // Add a new line if not empty
     if (!mOutput.empty())
@@ -63,8 +63,8 @@ void Console::Write(const String& str)
 
     // Sanitise the input
     String sanitisedStr(str);
-    sanitisedStr = Replace(sanitisedStr, "<", "&lt;");
-    sanitisedStr = Replace(sanitisedStr, ">", "&gt;");
+    sanitisedStr = replaceString(sanitisedStr, "<", "&lt;");
+    sanitisedStr = replaceString(sanitisedStr, ">", "&gt;");
 
     // Add the string
     mOutput += sanitisedStr;
@@ -77,15 +77,15 @@ void Console::Write(const String& str)
 	}
 }
 
-void Console::Execute(const String& statement)
+void Console::execute(const String& statement)
 {
-    Write("> " + statement);
-    mLuaState->ExecuteString(statement);
+    write("> " + statement);
+    mLuaState->executeString(statement);
 }
 
-void Console::LogWrite(const String& msg)
+void Console::logWrite(const String& msg)
 {
-    Write(msg);
+    write(msg);
 }
 
 void Console::ProcessEvent(Rocket::Core::Event& event)
@@ -100,7 +100,7 @@ void Console::ProcessEvent(Rocket::Core::Event& event)
         {
             String command = inputBox->GetValue().CString();
             inputBox->SetValue("");
-            Execute(command);
+            execute(command);
         }
     }
 }

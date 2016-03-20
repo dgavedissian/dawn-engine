@@ -19,27 +19,27 @@ public:
 
     /// Update the position of this entity in world space
     /// @param position The position to place the entity
-    virtual void SetPosition(const Position& position);
+    virtual void setPosition(const Position& position);
 
     /// Update the orientation of this entity
     /// @param orient The new orientation represented as a quaternion
-    virtual void SetOrientation(const Quat& orient);
+    virtual void setOrientation(const Quat& orient);
 
     /// Get the position of this entity in world space
     /// @return The current position
-    virtual const Position& GetPosition() const;
+    virtual const Position& getPosition() const;
 
     /// Get the orientation of this entity
     /// @return The current position
-    virtual const Quat& GetOrientation() const;
+    virtual const Quat& getOrientation() const;
 
     /// Update this entity
     /// Note: Returning false will remove this entity from the scene manager and free it's memory
     /// @param dt Delta time
-    virtual bool Update(float dt) = 0;
+    virtual bool update(float dt) = 0;
 
     /// Called before rendering
-    virtual void PreRender(Camera* camera) = 0;
+    virtual void preRender(Camera* camera) = 0;
 
 protected:
     SceneManager* mSceneMgr;

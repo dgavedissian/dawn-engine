@@ -20,20 +20,20 @@ public:
     virtual ~LogListener();
 
     // TODO: Override this
-    virtual void LogWrite(const String& message) = 0;
+    virtual void logWrite(const String& message) = 0;
 };
 
 // Outputs to the platform specific log
-class PlatformLog : public LogListener
+class DW_API PlatformLog : public LogListener
 {
 public:
-    virtual void LogWrite(const String& message) override;
+    virtual void logWrite(const String& message) override;
 };
 
 class DW_API Log : public Singleton<Log>
 {
 private:
-    class Stream
+    class DW_API Stream
     {
     public:
         Stream(Log* log, LogLevel level, const String& message);
@@ -59,19 +59,19 @@ public:
     ~Log();
 
     // Writes a new line to the output stream
-    void Write(const String& message, LogLevel level);
+    void write(const String& message, LogLevel level);
 
     // Returns a new output stream object which writes a line when it gets out of scope
-    Stream GetStream(LogLevel level);
+    Stream getStream(LogLevel level);
 
     // Add a Listener
-    void AddListener(LogListener* Listener);
+    void addListener(LogListener* Listener);
 
     // Remove a Listener
-    void RemoveListener(LogListener* Listener);
+    void removeListener(LogListener* Listener);
 
     // Get the current log buffer
-    const Vector<String>& GetLogBuffer() const;
+    const Vector<String>& getBuffer() const;
 
 private:
     std::ofstream mLogFile;
@@ -91,7 +91,7 @@ template <> inline Log::Stream& Log::Stream::operator<<<String>(String val)
 NAMESPACE_END
 
 // Macros
-#define LOG Log::inst().GetStream(LOG_INFO)
-#define LOGWARN Log::inst().GetStream(LOG_WARN)
-#define LOGERR Log::inst().GetStream(LOG_ERROR)
+#define LOG Log::inst().getStream(LOG_INFO)
+#define LOGWARN Log::inst().getStream(LOG_WARN)
+#define LOGERR Log::inst().getStream(LOG_ERROR)
 

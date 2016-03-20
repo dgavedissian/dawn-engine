@@ -26,8 +26,8 @@ struct ConfigNodeData
 template <class T>
 struct Converter
 {
-    static ConfigNode Encode(const T& value);
-    static bool Decode(const ConfigNode& node, T& value);
+    static ConfigNode encode(const T& value);
+    static bool decode(const ConfigNode& node, T& value);
 };
 
 class DW_API ConfigNode
@@ -38,43 +38,43 @@ public:
     ConfigNode();
     ConfigNode(const ConfigNode& rhs);
     template <class T>
-    ConfigNode(const T& s) : ConfigNode(Converter<T>::Encode(s)) {}
+    ConfigNode(const T& s) : ConfigNode(Converter<T>::encode(s)) {}
     ~ConfigNode();
 
     /// Load a configuration from a string
     /// @param s String to parse
-    void Load(const String& s);
+    void load(const String& s);
 
     // Stream operators
-    friend std::istream& operator>>(std::istream& stream, ConfigNode &node);
-    friend std::ostream& operator<<(std::ostream& stream, const ConfigNode& node);
+    friend DW_API std::istream& operator>>(std::istream& stream, ConfigNode &node);
+    friend DW_API std::ostream& operator<<(std::ostream& stream, const ConfigNode& node);
 
     template <class T>
-    T As() const
+    T as() const
     {
         T out;
-        Converter<T>::Decode(*this, out);
+        Converter<T>::decode(*this, out);
         return out;
     }
 
     template <class T>
-    T As(const T& defaultValue) const
+    T as(const T& defaultValue) const
     {
         T out;
-        if (Converter<T>::Decode(*this, out))
+        if (Converter<T>::decode(*this, out))
             return out;
         else
             return defaultValue;
     }
 
-    ConfigNodeType GetType() const;
-    bool IsScalar() const;
-    bool IsSequence() const;
-    bool IsMap() const;
-    uint Size() const;
+    ConfigNodeType getType() const;
+    bool isScalar() const;
+    bool isSequence() const;
+    bool isMap() const;
+    uint size() const;
 
     // Sequence operations
-    void Push(const ConfigNode& v);
+    void push(const ConfigNode& v);
     ConfigNode& operator[](uint i);
     const ConfigNode& operator[](uint i) const;
 
@@ -84,8 +84,8 @@ public:
     Vector<ConfigNode>::const_iterator seq_end() const;
 
     // Map operations
-    void Insert(const Pair<String, ConfigNode>& p);
-    bool Contains(const String& key) const;
+    void insert(const Pair<String, ConfigNode>& p);
+    bool contains(const String& key) const;
     ConfigNode& operator[](const String& key);
     const ConfigNode& operator[](const String& key) const;
 

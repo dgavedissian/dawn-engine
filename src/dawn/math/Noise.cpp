@@ -31,29 +31,29 @@ PerlinNoise::PerlinNoise(int octaves, float freq, float amp, int seed)
     mStart = true;
 }
 
-float PerlinNoise::Noise(float x)
+float PerlinNoise::noise(float x)
 {
-    return PerlinNoise1(x);
+    return perlin1(x);
 }
 
-float PerlinNoise::Noise(float x, float y)
+float PerlinNoise::noise(float x, float y)
 {
     float vec[2];
     vec[0] = x;
     vec[1] = y;
-    return PerlinNoise2(vec);
+    return perlin2(vec);
 }
 
-float PerlinNoise::Noise(float x, float y, float z)
+float PerlinNoise::noise(float x, float y, float z)
 {
     float vec[3];
     vec[0] = x;
     vec[1] = y;
     vec[2] = z;
-    return PerlinNoise3(vec);
+    return perlin3(vec);
 }
 
-void PerlinNoise::Init()
+void PerlinNoise::init()
 {
     int i, j, k;
 
@@ -67,14 +67,14 @@ void PerlinNoise::Init()
             g2[i][j] = (float)((rand() % (B + B)) - B) / B;
         }
 
-        Normalise2(g2[i]);
+        normalise2(g2[i]);
 
         for (j = 0; j < 3; j++)
         {
             g3[i][j] = (float)((rand() % (B + B)) - B) / B;
         }
 
-        Normalise3(g3[i]);
+        normalise3(g3[i]);
     }
 
     while (--i)
@@ -101,7 +101,7 @@ void PerlinNoise::Init()
     }
 }
 
-float PerlinNoise::PerlinNoise1(float arg)
+float PerlinNoise::perlin1(float arg)
 {
     int terms = mOctaves;
     float result = 0.0f;
@@ -111,7 +111,7 @@ float PerlinNoise::PerlinNoise1(float arg)
 
     for (int i = 0; i < terms; i++)
     {
-        result += Noise1(arg) * amp;
+        result += noise1(arg) * amp;
         arg *= 2.0f;
         amp *= 0.5f;
     }
@@ -119,7 +119,7 @@ float PerlinNoise::PerlinNoise1(float arg)
     return result;
 }
 
-float PerlinNoise::PerlinNoise2(float vec[2])
+float PerlinNoise::perlin2(float vec[2])
 {
     int terms = mOctaves;
     float result = 0.0f;
@@ -130,7 +130,7 @@ float PerlinNoise::PerlinNoise2(float vec[2])
 
     for (int i = 0; i < terms; i++)
     {
-        result += Noise2(vec) * amp;
+        result += noise2(vec) * amp;
         vec[0] *= 2.0f;
         vec[1] *= 2.0f;
         amp *= 0.5f;
@@ -139,7 +139,7 @@ float PerlinNoise::PerlinNoise2(float vec[2])
     return result;
 }
 
-float PerlinNoise::PerlinNoise3(float vec[3])
+float PerlinNoise::perlin3(float vec[3])
 {
     int terms = mOctaves;
     float result = 0.0f;
@@ -151,7 +151,7 @@ float PerlinNoise::PerlinNoise3(float vec[3])
 
     for (int i = 0; i < terms; i++)
     {
-        result += Noise3(vec) * amp;
+        result += noise3(vec) * amp;
         vec[0] *= 2.0f;
         vec[1] *= 2.0f;
         vec[2] *= 2.0f;
@@ -161,7 +161,7 @@ float PerlinNoise::PerlinNoise3(float vec[3])
     return result;
 }
 
-float PerlinNoise::Noise1(float arg)
+float PerlinNoise::noise1(float arg)
 {
     int bx0, bx1;
     float rx0, rx1, sx, t, u, v, vec[1];
@@ -172,7 +172,7 @@ float PerlinNoise::Noise1(float arg)
     {
         srand(mSeed);
         mStart = false;
-        Init();
+        init();
     }
 
     setup(0, bx0, bx1, rx0, rx1);
@@ -185,7 +185,7 @@ float PerlinNoise::Noise1(float arg)
     return math::Lerp(sx, u, v);
 }
 
-float PerlinNoise::Noise2(float vec[2])
+float PerlinNoise::noise2(float vec[2])
 {
     int bx0, bx1, by0, by1, b00, b10, b01, b11;
     float rx0, rx1, ry0, ry1, *q, sx, sy, a, b, t, u, v;
@@ -195,7 +195,7 @@ float PerlinNoise::Noise2(float vec[2])
     {
         srand(mSeed);
         mStart = false;
-        Init();
+        init();
     }
 
     setup(0, bx0, bx1, rx0, rx1);
@@ -229,7 +229,7 @@ float PerlinNoise::Noise2(float vec[2])
     return math::Lerp(sy, a, b);
 }
 
-float PerlinNoise::Noise3(float vec[3])
+float PerlinNoise::noise3(float vec[3])
 {
     int bx0, bx1, by0, by1, bz0, bz1, b00, b10, b01, b11;
     float rx0, rx1, ry0, ry1, rz0, rz1, *q, sy, sz, a, b, c, d, t, u, v;
@@ -239,7 +239,7 @@ float PerlinNoise::Noise3(float vec[3])
     {
         srand(mSeed);
         mStart = false;
-        Init();
+        init();
     }
 
     setup(0, bx0, bx1, rx0, rx1);
@@ -291,7 +291,7 @@ float PerlinNoise::Noise3(float vec[3])
     return math::Lerp(sz, c, d);
 }
 
-void PerlinNoise::Normalise2(float v[2])
+void PerlinNoise::normalise2(float v[2])
 {
     float s;
 
@@ -301,7 +301,7 @@ void PerlinNoise::Normalise2(float v[2])
     v[1] = v[1] * s;
 }
 
-void PerlinNoise::Normalise3(float v[3])
+void PerlinNoise::normalise3(float v[3])
 {
     float s;
 

@@ -18,13 +18,13 @@ public:
     ~SceneManager();
 
     template <class T, class... Args>
-    T* Create(Args... args)
+    T* create(Args... args)
     {
         T* entity;
         auto i = mEntityTypePoolMap.find(&typeid(T));
         if (i != mEntityTypePoolMap.end())
         {
-            entity = (*i).second->New<T>(this, args...);
+            entity = (*i).second->alloc<T>(this, args...);
         }
         else
         {
@@ -35,26 +35,26 @@ public:
     }
 
     template <class T>
-    void Reserve(uint slots)
+    void reserve(uint slots)
     {
-		mEntityTypePoolMap.emplace(&typeid(T), MakeShared<FixedMemoryPool<T>>(slots));
+		mEntityTypePoolMap.emplace(&typeid(T), makeShared<FixedMemoryPool<T>>(slots));
     }
 
-    void ClearEntities();
+    void clearEntities();
 
     /// Remove an entity by value. This is quite slow with O(n) complexity.
     /// @param entity The entity to find and remove from the entity List
-    DEPRECATED void RemoveEntity(Entity* entity);
+    DEPRECATED void removeEntity(Entity* entity);
 
     /// Calls update on each entity
     /// @param dt Time elapsed
-    void Update(float dt);
+    void update(float dt);
 
     /// Calls PreRender on each entity
-    void PreRender(Camera* camera);
+    void preRender(Camera* camera);
 
     /// Gets the physics manager associated with this scene manager
-    PhysicsWorld* GetPhysicsWorld() { return mPhysicsWorld; }
+    PhysicsWorld* getPhysicsWorld() { return mPhysicsWorld; }
 
 private:
     PhysicsWorld* mPhysicsWorld;
@@ -73,7 +73,7 @@ private:
     friend class Camera;
 
 private:
-    void DeleteEntity(Entity* entity);
+    void deleteEntity(Entity* entity);
 
 };
 

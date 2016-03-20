@@ -13,26 +13,26 @@ SandboxState::SandboxState(dw::Engine* engine)
       mDeltaTime(1.0),
       mTrackedObject(nullptr)
 {
-	mCamera = new dw::DefaultCamera(engine->GetRenderer(), engine->GetInput(), engine->GetSceneMgr());
-	engine->SetMainCamera(mCamera);
+	mCamera = new dw::DefaultCamera(engine->getRenderer(), engine->getInput(), engine->getSceneMgr());
+	engine->setMainCamera(mCamera);
 
 	// Create the star system
 	// TODO: no
-    engine->SetStarSystem(new dw::StarSystem(engine->GetRenderer(), engine->GetPhysicsWorld()));
+    engine->setStarSystem(new dw::StarSystem(engine->getRenderer(), engine->getPhysicsWorld()));
 }
 
 SandboxState::~SandboxState()
 {
 	SAFE_DELETE(mCamera);
-	delete mEngine->GetStarSystem();
-	mEngine->SetStarSystem(nullptr);
+	delete mEngine->getStarSystem();
+	mEngine->setStarSystem(nullptr);
 }
 
 void SandboxState::HandleEvent(dw::EventDataPtr eventData)
 {
-    if (dw::EventIs<dw::EvtData_KeyDown>(eventData))
+    if (dw::eventIs<dw::EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = dw::CastEvent<dw::EvtData_KeyDown>(eventData);
+        auto castedEventData = dw::castEvent<dw::EvtData_KeyDown>(eventData);
         switch (castedEventData->keycode)
         {
         case SDLK_EQUALS:
@@ -48,25 +48,25 @@ void SandboxState::HandleEvent(dw::EventDataPtr eventData)
         }
     }
 
-    if (dw::EventIs<dw::EvtData_MouseWheel>(eventData))
+    if (dw::eventIs<dw::EvtData_MouseWheel>(eventData))
     {
-        auto castedEventData = dw::CastEvent<dw::EvtData_MouseWheel>(eventData);
+        auto castedEventData = dw::castEvent<dw::EvtData_MouseWheel>(eventData);
 
-        auto camera = dynamic_cast<dw::DefaultCamera*>(mEngine->GetMainCamera());
-        float speed = camera->GetMovementSpeed() * (float)std::pow(1.5f, castedEventData->motion.y);
-        camera->SetMovementSpeed(speed);
+        auto camera = dynamic_cast<dw::DefaultCamera*>(mEngine->getMainCamera());
+        float speed = camera->getMovementSpeed() * (float)std::pow(1.5f, castedEventData->motion.y);
+        camera->setMovementSpeed(speed);
         UpdateUI(speed);
     }
 }
 
-void SandboxState::Enter()
+void SandboxState::enter()
 {
-	mCamera->SetControlState(dw::CCS_FREE);
-	mCamera->SetDragEventState(dw::CDES_RMB_DOWN);
-	mCamera->ToggleParticles(false);
-	mCamera->SetMovementSpeed(10000.0f);
+	mCamera->setControlState(dw::CCS_FREE);
+	mCamera->setDragEventState(dw::CDES_RMB_DOWN);
+	mCamera->toggleParticles(false);
+	mCamera->setMovementSpeed(10000.0f);
 
-    mData = mEngine->GetUI()->LoadLayout("universe.rml");
+    mData = mEngine->getUI()->LoadLayout("universe.rml");
 
 	// TODO: script this
     {
@@ -77,56 +77,56 @@ void SandboxState::Enter()
         // TODO: HACK: Replace StarSystem singleton with a SceneManager that managers star
         // systems properly
         //StarSystem::release();
-		dw::StarSystem* system = mEngine->GetStarSystem();
+		dw::StarSystem* system = mEngine->getStarSystem();
 
         // Create the star at the centre of the system
 		dw::StarDesc s;
-        s.radius = dw::ConvUnit(695500.0f, dw::UNIT_KM);
+        s.radius = dw::convUnit(695500.0f, dw::UNIT_KM);
         s.spectralClass = dw::SC_G;
-        star = system->CreateStar(s);
-        system->SetRoot(star);
+        star = system->createStar(s);
+        system->setRoot(star);
 
         // Create the planet
 		dw::PlanetDesc p;
-        p.radius = dw::ConvUnit(6371.0f, dw::UNIT_KM);
+        p.radius = dw::convUnit(6371.0f, dw::UNIT_KM);
         p.rotationPeriod = 1.0f;
         p.axialTilt = math::pi / 32.0f;
         p.surfaceTexture = "planet.jpg";
         p.hasAtmosphere = true;
         p.atmosphere.radius = p.radius * 1.025f;
-        planet = system->CreatePlanet(p);
-        star->AddSatellite(planet, dw::MakeShared<dw::CircularOrbit>(
-			dw::ConvUnit(1.0f, dw::UNIT_AU), 400.0f));
+        planet = system->createPlanet(p);
+        star->addSatellite(planet, dw::makeShared<dw::CircularOrbit>(
+			dw::convUnit(1.0f, dw::UNIT_AU), 400.0f));
 
         // Create a moon orbiting this planet
 		dw::PlanetDesc m;
-        m.radius = dw::ConvUnit(1200.0f, dw::UNIT_KM);
+        m.radius = dw::convUnit(1200.0f, dw::UNIT_KM);
         m.rotationPeriod = 30.0f;
         m.surfaceTexture = "moon.jpg";
-        moon = system->CreatePlanet(m);
-        planet->AddSatellite(moon, dw::MakeShared<dw::CircularOrbit>(
-			dw::ConvUnit(22000.0f, dw::UNIT_KM), 30.0f));
+        moon = system->createPlanet(m);
+        planet->addSatellite(moon, dw::makeShared<dw::CircularOrbit>(
+			dw::convUnit(22000.0f, dw::UNIT_KM), 30.0f));
 
-        mEngine->GetStarSystem()->CalculatePosition(0.0f);
-		mCamera->SetPosition(planet->GetPosition() +
-			dw::Position(dw::ConvUnit(2000.0f, dw::UNIT_KM), 0.0f,
-				dw::ConvUnit(8000.0f, dw::UNIT_KM)));
+        mEngine->getStarSystem()->calculatePosition(0.0f);
+		mCamera->setPosition(planet->getPosition() +
+			dw::Position(dw::convUnit(2000.0f, dw::UNIT_KM), 0.0f,
+				dw::convUnit(8000.0f, dw::UNIT_KM)));
     }
 
     ADD_LISTENER(SandboxState, dw::EvtData_KeyDown);
     ADD_LISTENER(SandboxState, dw::EvtData_MouseWheel);
 }
 
-void SandboxState::Exit()
+void SandboxState::exit()
 {
-    mEngine->GetUI()->UnloadLayout(mData);
+    mEngine->getUI()->unloadLayout(mData);
     REMOVE_LISTENER(SandboxState, dw::EvtData_KeyDown);
     REMOVE_LISTENER(SandboxState, dw::EvtData_MouseWheel);
 }
 
-void SandboxState::Update(float dt)
+void SandboxState::update(float dt)
 {
-	mCamera->Update(dt);
+	mCamera->update(dt);
 
     // Track the nearest system object
 	dw::SystemBody* nearest;
@@ -134,8 +134,8 @@ void SandboxState::Update(float dt)
     std::function<void(dw::SystemBody*)> findNearest =
         [&nearest, &minDistance, this, &findNearest](dw::SystemBody* body)
     {
-        float distance = body->GetPosition()
-                             .GetRelativeToPoint(this->mEngine->GetMainCamera()->GetPosition())
+        float distance = body->getPosition()
+                             .getRelativeTo(this->mEngine->getMainCamera()->getPosition())
                              .LengthSq();
         if (distance < minDistance)
         {
@@ -144,25 +144,25 @@ void SandboxState::Update(float dt)
         }
 
         // Visit children
-        for (auto c : body->GetAllSatellites())
+        for (auto c : body->getAllSatellites())
             findNearest(c.get());
     };
 
-    findNearest(mEngine->GetStarSystem()->GetRootBody().get());
+    findNearest(mEngine->getStarSystem()->getRootBody().get());
     mTrackedObject = nearest;
 
     // Calculate delta pos from tracked object
-	dw::Position delta = mCamera->GetPosition() - mTrackedObject->GetPosition();
+	dw::Position delta = mCamera->getPosition() - mTrackedObject->getPosition();
 
     // Update the time
     mTime += mDeltaTime * dt;
-    mEngine->GetStarSystem()->CalculatePosition(mTime / (24.0 * 3600.0));
+    mEngine->getStarSystem()->calculatePosition(mTime / (24.0 * 3600.0));
 
     // Update camera position
-	mCamera->SetPosition(mTrackedObject->GetPosition() + delta);
+	mCamera->setPosition(mTrackedObject->getPosition() + delta);
 
     // Update UI
-    UpdateUI(mCamera->GetMovementSpeed());
+    UpdateUI(mCamera->getMovementSpeed());
 }
 
 void SandboxState::UpdateUI(float speed)
@@ -189,9 +189,9 @@ void SandboxState::UpdateUI(float speed)
     // Format time
     std::stringstream timeStr;
     time_t currentTime = static_cast<time_t>(mTime);
-    timeStr << dw::time::Format(currentTime, "%c") << " (+" << mDeltaTime << "s)";
+    timeStr << dw::time::format(currentTime, "%c") << " (+" << mDeltaTime << "s)";
 
     // Update UI
-    mData->GetElementById("speed")->SetInnerRML(speedStr.str().c_str());
-    mData->GetElementById("time")->SetInnerRML(timeStr.str().c_str());
+    mData->getElementById("speed")->SetInnerRML(speedStr.str().c_str());
+    mData->getElementById("time")->SetInnerRML(timeStr.str().c_str());
 }

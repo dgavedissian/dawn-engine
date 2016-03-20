@@ -17,13 +17,13 @@ public:
     ~AsteroidBelt();
 
     // Update this asteroid belt
-    void Update(float dt, const Position& cameraPosition);
+    void update(float dt, const Position& cameraPosition);
 
     // Pre-render this asteroid belt
-    void PreRender(Camera* camera);
+    void preRender(Camera* camera);
 
     // Internal: Set parent
-    void SetParent(SystemBody* parent);
+    void setParent(SystemBody* parent);
 
 private:
     float mMinRadius;

@@ -127,6 +127,9 @@ ExternalProject_Add(Ogre
         -DOGRE_BUILD_PLUGIN_PCZ=0
         -DOGRE_BUILD_PLUGIN_PFX=0
         -DOGRE_BUILD_RENDERSYSTEM_GL=0
+        -DOGRE_BUILD_RENDERSYSTEM_D3D9=0
+        -DOGRE_BUILD_RENDERSYSTEM_D3D11=0
+        -DOGRE_BUILD_RENDERSYSTEM_GL=0
         -DOGRE_BUILD_RENDERSYSTEM_GL3PLUS=1
         -DOGRE_BUILD_SAMPLES=0
         -DOGRE_BUILD_TOOLS=0
@@ -274,10 +277,12 @@ ExternalProject_Add(RakNet
 set_target_properties(RakNet PROPERTIES FOLDER "3rdparty")
 if(WIN32)
     set(LIBS ${LIBS}
+    	ws2_32.lib
         debug ${EXTERNAL_INSTALL}/lib/RakNetLibStatic_d.lib
         optimized ${EXTERNAL_INSTALL}/lib/RakNetLibStatic.lib)
 else()
     set(LIBS ${LIBS}
+    	pthread
         debug ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic_d.a
         optimized ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic.a)
 endif()

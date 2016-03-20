@@ -15,11 +15,11 @@ public:
     ~Galaxy();
 
     /// Create a new star system
-    StarSystem* CreateStarSystem();
+    StarSystem* createStarSystem();
 
     /// Load a star system from a config file
     /// @param config Config filename
-    StarSystem* LoadStarSystem(const String& config);
+    StarSystem* loadStarSystem(const String& config);
 
 };
 

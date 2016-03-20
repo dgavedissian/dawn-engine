@@ -19,38 +19,38 @@ public:
     virtual ~SystemBody();
 
     // Set the orbit of this body
-    void SetOrbit(SharedPtr<Orbit> orbit);
+    void setOrbit(SharedPtr<Orbit> orbit);
 
     // Add a satellite
-    void AddSatellite(SharedPtr<SystemBody> satellite, SharedPtr<Orbit> orbit);
+    void addSatellite(SharedPtr<SystemBody> satellite, SharedPtr<Orbit> orbit);
 
     // Remove all satellites
-    void RemoveAllSatellites();
+    void removeAllSatellites();
 
     // Add an asteroid belt
-    void AddAsteroidBelt(SharedPtr<AsteroidBelt> belt);
+    void addAsteroidBelt(SharedPtr<AsteroidBelt> belt);
 
     // Remove all asteroid belts
-    void RemoveAllAsteroidBelts();
+    void removeAllAsteroidBelts();
 
     // Update this body
-    virtual void Update(float dt, const Position& cameraPosition);
+    virtual void update(float dt, const Position& cameraPosition);
 
     // Pre-render this body
-    virtual void PreRender(Camera* camera);
+    virtual void preRender(Camera* camera);
 
     // Accessors
-    const Orbit* GetOrbit() const;
-    const SystemBody* GetSatellite(uint index) const;
-    const Vector<SharedPtr<SystemBody>>& GetAllSatellites() const;
-    const Position& GetPosition() const;
+    const Orbit* getOrbit() const;
+    const SystemBody* getSatellite(uint index) const;
+    const Vector<SharedPtr<SystemBody>>& getAllSatellites() const;
+    const Position& getPosition() const;
 
     // Internal: Set the parent of this SystemBody
-    DEPRECATED void SetParent(SystemBody* parent);
+    DEPRECATED void setParent(SystemBody* parent);
 
     // Internal: Calculate the position of this object and all satellites
     // at a specific time
-    virtual void CalculatePosition(double time);
+    virtual void calculatePosition(double time);
 
 protected:
     Renderer* mRenderSystem;

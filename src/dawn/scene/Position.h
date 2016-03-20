@@ -19,13 +19,13 @@ public:
     Position(const Position& other);
 
     // Get relative position from a point
-    Vec3 GetRelativeToPoint(const Position& point) const;
+    Vec3 getRelativeTo(const Position& point) const;
 
     // Convert to camera space from world space
-    Vec3 ToCameraSpace(Camera* camera) const;
+    Vec3 toCameraSpace(Camera* camera) const;
 
     // Convert to world space from camera space
-    static Position FromCameraSpace(Camera* camera, const Vec3& cameraSpace);
+    static Position fromCameraSpace(Camera* camera, const Vec3& cameraSpace);
 
     // Operators
     bool operator==(const Position& other) const;
@@ -56,17 +56,17 @@ public:
 };
 
 /// Implementation of Lerp for Position objects
-inline Position Lerp(const Position& a, const Position& b, float t, float dt)
+inline Position lerp(const Position& a, const Position& b, float t, float dt)
 {
-	return a + (b - a) * (1.0f - Pow(1.0f - t, dt));
+	return a + (b - a) * (1.0f - pow(1.0f - t, dt));
 }
 
 // Estimate the position to fire at to hit a moving target given a position, speed, target position
 // and target velocity
-inline Position EstimateHitPosition(const Position& position, float speed,
+inline Position estimateHit(const Position& position, float speed,
 									const Position& targetPosition, const Vec3& targetVelocity)
 {
-	Vec3 toTarget = targetPosition.GetRelativeToPoint(position);
+	Vec3 toTarget = targetPosition.getRelativeTo(position);
 
 	// Here we're solving a quadratic
 	float a = targetVelocity.Dot(targetVelocity) - speed * speed;

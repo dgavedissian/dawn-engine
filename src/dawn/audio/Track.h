@@ -14,21 +14,21 @@ public:
     ~Track();
 
     /// Start playing the track
-    void Play();
+    void play();
 
     /// Pause the track
-    void Pause();
+    void pause();
 
     /// Stop the track
-    void Stop();
+    void stop();
 
     /// Seek to a particular location in the track
     /// @param location Location in the track in the range [0..1]
-    void Seek(float location);
+    void seek(float location);
 
     /// Set the volume of this track
     /// @param volume Volume percentage in the range [0..1]
-    void SetVolume(float volume);
+    void setVolume(float volume);
 
 private:
     irrklang::ISound* mTrack;

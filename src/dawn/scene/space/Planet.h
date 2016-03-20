@@ -47,11 +47,11 @@ public:
     virtual ~Planet();
 
     // Accessors
-    DEPRECATED Ogre::SceneNode* GetSurfaceNode();
+    DEPRECATED Ogre::SceneNode* getSurfaceNode();
 
     // Inherited from SystemBody
-    virtual void PreRender(Camera* camera) override;
-    virtual void CalculatePosition(double time) override;
+    virtual void preRender(Camera* camera) override;
+    virtual void calculatePosition(double time) override;
 
 private:
     class RingNode;
@@ -63,15 +63,15 @@ private:
         ~Rings();
 
         // Propagate updates to the detail hierarchy
-        void Update(const Vec3& cameraPosition);    // Camera position must be in planet space
+        void update(const Vec3& cameraPosition);    // Camera position must be in planet space
 
         // Get the level of detail distance boundary for a particular level
-        float GetLodDistanceSq(uint level) const;
-        Colour GetColour(const Vec2& position) const;    // texture colour component
-        float GetDensity(const Vec2& position) const;    // texture alpha component
+        float getLodDistance(uint level) const;
+        Colour getColour(const Vec2& position) const;    // texture colour component
+        float getDensity(const Vec2& position) const;    // texture alpha component
 
         // Accessors
-        float GetThickness() const;
+        float getThickness() const;
 
     private:
         float mMinRadius;
@@ -112,7 +112,7 @@ private:
         ~RingNode();
 
         // Check if this node needs to be joined/split. The camera position must be in camera space
-        void Update(const Vec3& cameraPosition);
+        void update(const Vec3& cameraPosition);
 
     private:
         // Boundaries (in planet space)
@@ -133,10 +133,10 @@ private:
         Vector<Ogre::Billboard*> mDustList;
 
         // Internal methods
-        void Cache();
-        void Free();
-        void Split();
-        void Join();
+        void cache();
+        void free();
+        void split();
+        void join();
 
         friend class Rings;
     };

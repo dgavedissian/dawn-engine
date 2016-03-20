@@ -22,11 +22,11 @@ const EventType EvtData_UISubmit::eventType(0x3d02cddc);
 UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
 {
     // WORKAROUND: Deal with an ogre bug by call 'getQueueGroup' to ensure it actually exists
-    rs->GetSceneMgr()->getRenderQueue()->getQueueGroup(INTERFACE_RENDER_QUEUE);
-    rs->GetSceneMgr()->addRenderQueueListener(this);
+    rs->getSceneMgr()->getRenderQueue()->getQueueGroup(INTERFACE_RENDER_QUEUE);
+    rs->getSceneMgr()->addRenderQueueListener(this);
 
     // Build projection matrix
-    BuildProjectionMatrix(mProjection);
+    buildProjMatrix(mProjection);
 
     // Load UI material
     mUIMaterial = Ogre::MaterialManager::getSingleton().getByName("UI");
@@ -34,14 +34,14 @@ UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
         mUIMaterial->load();
 
     // Set up libRocket
-    mRocketInterface = MakeShared<RocketInterface>(rs, mUIMaterial, mProjection);
+    mRocketInterface = makeShared<RocketInterface>(rs, mUIMaterial, mProjection);
     Rocket::Core::SetRenderInterface(mRocketInterface.get());
     Rocket::Core::SetSystemInterface(mRocketInterface.get());
     Rocket::Core::SetFileInterface(mRocketInterface.get());
     Rocket::Core::Initialise();
     Rocket::Controls::Initialise();
     mContext = Rocket::Core::CreateContext("default",
-            Rocket::Core::Vector2i(rs->GetWidth(), rs->GetHeight()));
+            Rocket::Core::Vector2i(rs->getWidth(), rs->getHeight()));
     Rocket::Debugger::Initialise(mContext);
 
     // Load fonts
@@ -50,10 +50,10 @@ UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
             Rocket::Core::Font::WEIGHT_NORMAL);
 
     // Initialise ImGui
-    mImGuiInterface = MakeShared<ImGuiInterface>(rs, im, mUIMaterial, mProjection);
+    mImGuiInterface = makeShared<ImGuiInterface>(rs, im, mUIMaterial, mProjection);
 
     // Set up the console
-    mConsole = MakeShared<Console>(this, ls);
+    mConsole = makeShared<Console>(this, ls);
 
     // Event Delegates
     ADD_LISTENER(UI, EvtData_TextInput);
@@ -85,23 +85,23 @@ UI::~UI()
     Rocket::Core::Shutdown();
     mRocketInterface.reset();
 
-    mRenderSystem->GetSceneMgr()->removeRenderQueueListener(this);
+    mRenderSystem->getSceneMgr()->removeRenderQueueListener(this);
 }
 
-void UI::BeginFrame()
+void UI::beginFrame()
 {
-    mImGuiInterface->BeginFrame();
+    mImGuiInterface->beginFrame();
 }
 
-void UI::Update(float dt)
-{
-}
-
-void UI::PreRender()
+void UI::update(float dt)
 {
 }
 
-Layout* UI::LoadLayout(const String& filename)
+void UI::preRender()
+{
+}
+
+Layout* UI::loadLayout(const String& filename)
 {
     // TODO: Deal with failure correctly
     auto fn = Rocket::Core::String(filename.c_str());
@@ -115,26 +115,26 @@ Layout* UI::LoadLayout(const String& filename)
     return new Layout(this, document);
 }
 
-void UI::UnloadLayout(Layout* layout)
+void UI::unloadLayout(Layout* layout)
 {
     delete layout;
 }
 
-void UI::HandleEvent(EventDataPtr eventData)
+void UI::handleEvent(EventDataPtr eventData)
 {
-    if (EventIs<EvtData_TextInput>(eventData))
+    if (eventIs<EvtData_TextInput>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_TextInput>(eventData);
+        auto castedEventData = castEvent<EvtData_TextInput>(eventData);
 
-        mImGuiInterface->OnTextInput(castedEventData->text);
+        mImGuiInterface->onTextInput(castedEventData->text);
 
         if (castedEventData->text != "`")
             mContext->ProcessTextInput(Rocket::Core::String(castedEventData->text.c_str()));
     }
 
-    if (EventIs<EvtData_KeyDown>(eventData))
+    if (eventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_KeyDown>(eventData);
+        auto castedEventData = castEvent<EvtData_KeyDown>(eventData);
 
         // Toggle the console
         if (castedEventData->keycode == SDLK_BACKQUOTE || castedEventData->keycode == SDLK_F12)
@@ -145,54 +145,54 @@ void UI::HandleEvent(EventDataPtr eventData)
             }
             else
             {
-                mConsole->SetVisible(!mConsole->IsVisible());
+                mConsole->setVisible(!mConsole->isVisible());
             }
             return;
         }
 
-        mImGuiInterface->OnKey(castedEventData->keycode, castedEventData->mod, true);
-        int key = mRocketInterface->MapSDLKeyCode(castedEventData->keycode);
+        mImGuiInterface->onKey(castedEventData->keycode, castedEventData->mod, true);
+        int key = mRocketInterface->mapSDLKeyCode(castedEventData->keycode);
         mContext->ProcessKeyDown(Rocket::Core::Input::KeyIdentifier(key),
-                                 mRocketInterface->MapSDLKeyMod(castedEventData->mod));
+                                 mRocketInterface->mapSDLKeyMod(castedEventData->mod));
     }
 
-    if (EventIs<EvtData_KeyUp>(eventData))
+    if (eventIs<EvtData_KeyUp>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_KeyUp>(eventData);
-        mImGuiInterface->OnKey(castedEventData->keycode, castedEventData->mod, false);
-        int key = mRocketInterface->MapSDLKeyCode(castedEventData->keycode);
+        auto castedEventData = castEvent<EvtData_KeyUp>(eventData);
+        mImGuiInterface->onKey(castedEventData->keycode, castedEventData->mod, false);
+        int key = mRocketInterface->mapSDLKeyCode(castedEventData->keycode);
         mContext->ProcessKeyUp(Rocket::Core::Input::KeyIdentifier(key),
-                               mRocketInterface->MapSDLKeyMod(castedEventData->mod));
+                               mRocketInterface->mapSDLKeyMod(castedEventData->mod));
     }
 
-    if (EventIs<EvtData_MouseDown>(eventData))
+    if (eventIs<EvtData_MouseDown>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_MouseDown>(eventData);
-        mImGuiInterface->OnMouseButton(castedEventData->button);
-        mContext->ProcessMouseButtonDown(mRocketInterface->MapSDLMouseButton(castedEventData->button),
-                                         mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
+        auto castedEventData = castEvent<EvtData_MouseDown>(eventData);
+        mImGuiInterface->onMouseButton(castedEventData->button);
+        mContext->ProcessMouseButtonDown(mRocketInterface->mapSDLMouseButton(castedEventData->button),
+                                         mRocketInterface->mapSDLKeyMod(SDL_GetModState()));
     }
 
-    if (EventIs<EvtData_MouseUp>(eventData))
+    if (eventIs<EvtData_MouseUp>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_MouseUp>(eventData);
-        mContext->ProcessMouseButtonUp(mRocketInterface->MapSDLMouseButton(castedEventData->button),
-                                       mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
+        auto castedEventData = castEvent<EvtData_MouseUp>(eventData);
+        mContext->ProcessMouseButtonUp(mRocketInterface->mapSDLMouseButton(castedEventData->button),
+                                       mRocketInterface->mapSDLKeyMod(SDL_GetModState()));
     }
 
-    if (EventIs<EvtData_MouseMove>(eventData))
+    if (eventIs<EvtData_MouseMove>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_MouseMove>(eventData);
+        auto castedEventData = castEvent<EvtData_MouseMove>(eventData);
         mContext->ProcessMouseMove(castedEventData->pos.x, castedEventData->pos.y,
-                                   mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
+                                   mRocketInterface->mapSDLKeyMod(SDL_GetModState()));
     }
 
-    if (EventIs<EvtData_MouseWheel>(eventData))
+    if (eventIs<EvtData_MouseWheel>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_MouseWheel>(eventData);
-        mImGuiInterface->OnMouseScroll(castedEventData->motion.y);
+        auto castedEventData = castEvent<EvtData_MouseWheel>(eventData);
+        mImGuiInterface->onMouseScroll(castedEventData->motion.y);
         mContext->ProcessMouseWheel(-castedEventData->motion.y,
-                                    mRocketInterface->MapSDLKeyMod(SDL_GetModState()));
+                                    mRocketInterface->mapSDLKeyMod(SDL_GetModState()));
     }
 }
 
@@ -225,19 +225,19 @@ void UI::ProcessEvent(Rocket::Core::Event& event)
 
         // Print parameters
         out << key.CString() << "=" << value.CString() << ",";
-        parameters.insert(MakePair<String, String>(key.CString(), value.CString()));
+        parameters.insert(makePair<String, String>(key.CString(), value.CString()));
     }
     out << ")";
     LOG << out.str();
 
     if (type == "mouseover")
-        EventSystem::inst().QueueEvent(MakeShared<EvtData_UIMouseEnter>(id, parameters));
+        EventSystem::inst().queueEvent(makeShared<EvtData_UIMouseEnter>(id, parameters));
     if (type == "mouseout")
-        EventSystem::inst().QueueEvent(MakeShared<EvtData_UIMouseLeave>(id, parameters));
+        EventSystem::inst().queueEvent(makeShared<EvtData_UIMouseLeave>(id, parameters));
     if (type == "click")
-        EventSystem::inst().QueueEvent(MakeShared<EvtData_UIClick>(id, parameters));
+        EventSystem::inst().queueEvent(makeShared<EvtData_UIClick>(id, parameters));
     if (type == "submit")
-        EventSystem::inst().QueueEvent(MakeShared<EvtData_UISubmit>(id, parameters));
+        EventSystem::inst().queueEvent(makeShared<EvtData_UISubmit>(id, parameters));
 }
 
 void UI::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String&, bool&)
@@ -251,15 +251,15 @@ void UI::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String&, bool&
     }
 }
 
-void UI::BuildProjectionMatrix(Ogre::Matrix4& projectionMatrix)
+void UI::buildProjMatrix(Ogre::Matrix4& projectionMatrix)
 {
     float zNear = -1.0f;
     float zFar = 1.0f;
 
     projectionMatrix = Ogre::Matrix4::ZERO;
-    projectionMatrix[0][0] = 2.0f / (float)mRenderSystem->GetWidth();
+    projectionMatrix[0][0] = 2.0f / (float)mRenderSystem->getWidth();
     projectionMatrix[0][3] = -1.0f;
-    projectionMatrix[1][1] = -2.0f / (float)mRenderSystem->GetHeight();
+    projectionMatrix[1][1] = -2.0f / (float)mRenderSystem->getHeight();
     projectionMatrix[1][3] = 1.0f;
     projectionMatrix[2][2] = -2.0f / (zFar - zNear);
     projectionMatrix[3][3] = 1.0f;

@@ -18,28 +18,28 @@ public:
     ~Sound();
 
     // Playback
-    void Play();
-    void Pause();
-    void Stop();
-    bool IsPaused() const;
-    bool IsFinished() const;
+    void play();
+    void pause();
+    void stop();
+    bool isPaused() const;
+    bool isFinished() const;
 
     /// Set the playback speed
     /// @param speed Speed as a percentage of the default speed
-    void SetPlaybackSpeed(float speed);
+    void setSpeed(float speed);
 
     /// Set the position of the sound in 3D space
     /// Note that this only works if the sound is 3D
-    void SetPosition(const Position& position);
-    void SetMinDistance(float minDistance, float attenuation = 0.5f);
+    void setPosition(const Position& position);
+    void setMinDistance(float minDistance, float attenuation = 0.5f);
 
     /// Updates the internal sound position
     /// @param dt Frame-time
-    void Update(Camera* camera, float dt);
+    void update(Camera* camera, float dt);
 
     // Volume
-    void SetVolume(float volume);    // must be in the range [0;1]
-    float GetVolume() const;
+    void setVolume(float volume);    // must be in the range [0;1]
+    float getVolume() const;
 
 private:
     irrklang::ISound* mSound;

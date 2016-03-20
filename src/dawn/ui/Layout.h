@@ -30,28 +30,28 @@ public:
     ~Layout();
 
     /// Focus on an element in this layout
-    void FocusOn(const String& id);
+    void focusOn(const String& id);
 
     /// Show the layout
-    void Show(int showType = Focus);
+    void show(int showType = Focus);
 
     /// Hide the layout
-    void Hide();
+    void hide();
 
     /// Get the current visibility of the layout
     /// @return true if the layout is visible, false otherwise
-    bool IsVisible() const;
+    bool isVisible() const;
 
     /// Add a new event Listener
     /// id    ID of the element to bind to
     /// event Event identifier
-    void BindEvent(const String& id, UIEvent event);
+    void bindEvent(const String& id, UIEvent event);
 
     // Internal: Get element by Id
-    Rocket::Core::Element* GetElementById(Rocket::Core::String id);
+    Rocket::Core::Element* getElementById(Rocket::Core::String id);
 
     // Internal: Get built in document
-    DEPRECATED Rocket::Core::ElementDocument* GetDocument();
+    DEPRECATED Rocket::Core::ElementDocument* getDocument();
 
 private:
     UI* mInterfaceMgr;

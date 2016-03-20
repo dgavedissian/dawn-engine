@@ -48,16 +48,16 @@ public:
     virtual ~SpriteManager();
 
     // Caches a material
-    void LoadSprite(const String& textureName);
+    void loadSprite(const String& textureName);
 
     // Buffers a sprite to be sent to the screen at render time
-    void DrawSprite(const String& textureName, const Vec2& position,
+    void drawSprite(const String& textureName, const Vec2& position,
                     SpriteOrigin origin = SO_TOP_LEFT, float angle = 0.0f);
-    void DrawSprite(const String& textureName, const Vec2& position, const Vec2& origin,
+    void drawSprite(const String& textureName, const Vec2& position, const Vec2& origin,
                     float angle = 0.0f);
-    void DrawSprite(const String& textureName, const Vec2& position, const Vec2& size,
+    void drawSprite(const String& textureName, const Vec2& position, const Vec2& size,
                     const Vec2& origin, float angle = 0.0f);
-    void DrawSprite(const SpriteDesc& s);
+    void drawSprite(const SpriteDesc& s);
 
     // Inherited from Ogre::RenderQueueListener
     virtual void renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation,
@@ -65,19 +65,19 @@ public:
 
 private:
     // Render all the 2D data stored in the hardware buffers.
-    void Render();
+    void render();
 
     // Create a new hardware buffer
-    void CreateHardwareBuffer(uint size);
+    void createHardwareBuffer(uint size);
 
     // Destroy the hardware buffer
-    void DestroyHardwareBuffer();
+    void destroyHardwareBuffer();
 
     // Rotate a point about (0, 0)
-    Vec2 Rotate(const Vec2& c, float angle);
+    Vec2 rotate(const Vec2& c, float angle);
 
     // Convert a position to screen coordinates
-    Vec2 ToScreenCoord(const Vec2& pos);
+    Vec2 toScreenCoord(const Vec2& pos);
 
     // Ogre specifics
     Ogre::RenderSystem* mRenderSystem;

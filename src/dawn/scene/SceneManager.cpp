@@ -16,24 +16,24 @@ SceneManager::SceneManager(PhysicsWorld* physicsMgr, Ogre::SceneManager* ogreSce
 
 SceneManager::~SceneManager()
 {
-    ClearEntities();
+    clearEntities();
 }
 
-void SceneManager::ClearEntities()
+void SceneManager::clearEntities()
 {
     for (auto i = mEntities.begin(); i != mEntities.end(); i++)
-        DeleteEntity(*i);
+        deleteEntity(*i);
     mEntities.clear();
 }
 
-void SceneManager::RemoveEntity(Entity* entity)
+void SceneManager::removeEntity(Entity* entity)
 {
 #ifdef DW_DEBUG
     assert(mIterating == false);
 #endif
 
     // Free memory
-    DeleteEntity(entity);
+    deleteEntity(entity);
 
     // Search for the location of this entity and remove it from the List
     auto i = std::find(mEntities.begin(), mEntities.end(), entity);
@@ -44,7 +44,7 @@ void SceneManager::RemoveEntity(Entity* entity)
     }
 }
 
-void SceneManager::Update(float dt)
+void SceneManager::update(float dt)
 {
 #ifdef DW_DEBUG
     mIterating = true;
@@ -55,10 +55,10 @@ void SceneManager::Update(float dt)
     size_t size = mEntities.size();
     for (size_t i = 0; i < size; ++i)
     {
-        if (!mEntities[i]->Update(dt))
+        if (!mEntities[i]->update(dt))
         {
             // Free memory
-            DeleteEntity(mEntities[i]);
+            deleteEntity(mEntities[i]);
 
             // Swap with the final element that will be updated, then swap the last
             // non-updated element with this one.
@@ -83,19 +83,19 @@ void SceneManager::Update(float dt)
 #endif
 }
 
-void SceneManager::PreRender(Camera* camera)
+void SceneManager::preRender(Camera* camera)
 {
     // Pre-render all entities
     for (size_t i = 0; i < mEntities.size(); ++i)
-        mEntities[i]->PreRender(camera);
+        mEntities[i]->preRender(camera);
 }
 
-void SceneManager::DeleteEntity(Entity* entity)
+void SceneManager::deleteEntity(Entity* entity)
 {
     auto it = mEntityTypePoolMap.find(&typeid(*entity));
     if (it != mEntityTypePoolMap.end())
     {
-        it->second->Delete(entity);
+        it->second->free(entity);
     }
     else
     {

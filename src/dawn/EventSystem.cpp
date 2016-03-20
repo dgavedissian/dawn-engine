@@ -21,7 +21,7 @@ EventSystem::~EventSystem()
 {
 }
 
-bool EventSystem::AddListener(const EventListenerDelegate& eventDelegate, const EventType& type)
+bool EventSystem::addListener(const EventListenerDelegate& eventDelegate, const EventType& type)
 {
     if (mProcessingEvents)
     {
@@ -46,7 +46,7 @@ bool EventSystem::AddListener(const EventListenerDelegate& eventDelegate, const 
     return true;
 }
 
-bool EventSystem::RemoveListener(const EventListenerDelegate& eventDelegate, const EventType& type)
+bool EventSystem::removeListener(const EventListenerDelegate& eventDelegate, const EventType& type)
 {
     if (mProcessingEvents)
     {
@@ -75,19 +75,19 @@ bool EventSystem::RemoveListener(const EventListenerDelegate& eventDelegate, con
     }
 }
 
-void EventSystem::RemoveAllListeners(const EventListenerDelegate& eventDelegate)
+void EventSystem::removeAllListeners(const EventListenerDelegate& eventDelegate)
 {
     for (auto listenerPair : mEventListeners)
     {
-        RemoveListener(eventDelegate, listenerPair.first);
+        removeListener(eventDelegate, listenerPair.first);
     }
 }
 
-bool EventSystem::TriggerEvent(const EventDataPtr& eventData) const
+bool EventSystem::triggerEvent(const EventDataPtr& eventData) const
 {
     bool processed = false;
 
-    auto findIt = mEventListeners.find(eventData->GetEventType());
+    auto findIt = mEventListeners.find(eventData->getType());
     if (findIt != mEventListeners.end())
     {
         auto& eventListenerList = findIt->second;
@@ -101,7 +101,7 @@ bool EventSystem::TriggerEvent(const EventDataPtr& eventData) const
     return processed;
 }
 
-bool EventSystem::QueueEvent(const EventDataPtr& eventData)
+bool EventSystem::queueEvent(const EventDataPtr& eventData)
 {
     assert(mActiveQueue >= 0);
     assert(mActiveQueue < EVENTSYSTEM_NUM_QUEUES);
@@ -113,7 +113,7 @@ bool EventSystem::QueueEvent(const EventDataPtr& eventData)
         return false;
     }
 
-    auto findIt = mEventListeners.find(eventData->GetEventType());
+    auto findIt = mEventListeners.find(eventData->getType());
     if (findIt != mEventListeners.end())
     {
         mQueues[mActiveQueue].push_back(eventData);
@@ -125,7 +125,7 @@ bool EventSystem::QueueEvent(const EventDataPtr& eventData)
     }
 }
 
-bool EventSystem::AbortEvent(const EventType& type, bool allOfType /*= false*/)
+bool EventSystem::abortEvent(const EventType& type, bool allOfType /*= false*/)
 {
     assert(mActiveQueue >= 0);
     assert(mActiveQueue < EVENTSYSTEM_NUM_QUEUES);
@@ -146,7 +146,7 @@ bool EventSystem::AbortEvent(const EventType& type, bool allOfType /*= false*/)
             auto currentIt = it;
             ++it;
 
-            if ((*currentIt)->GetEventType() == type)
+            if ((*currentIt)->getType() == type)
             {
                 eventQueue.erase(currentIt);
                 success = true;
@@ -160,9 +160,9 @@ bool EventSystem::AbortEvent(const EventType& type, bool allOfType /*= false*/)
     return success;
 }
 
-bool EventSystem::Update(uint64_t maxMs /*= std::numeric_limits<uint64_t>::max()*/)
+bool EventSystem::update(uint64_t maxMs /*= std::numeric_limits<uint64_t>::max()*/)
 {
-    double now = time::Now();
+    double now = time::now();
     double maxTime = maxMs == std::numeric_limits<uint64_t>::max()
                          ? std::numeric_limits<double>::max()
                          : (now + static_cast<double>(maxMs) * 0.001);
@@ -179,7 +179,7 @@ bool EventSystem::Update(uint64_t maxMs /*= std::numeric_limits<uint64_t>::max()
         // Pop the front of the queue
         EventDataPtr eventData = mQueues[queueToProcess].front();
         mQueues[queueToProcess].pop_front();
-        const EventType& eventType = eventData->GetEventType();
+        const EventType& eventType = eventData->getType();
 
         // Find all the delegate functions registered for this event
         auto findIt = mEventListeners.find(eventType);
@@ -192,7 +192,7 @@ bool EventSystem::Update(uint64_t maxMs /*= std::numeric_limits<uint64_t>::max()
         }
 
         // Check to see if time ran out
-        now = time::Now();
+        now = time::now();
         if (maxMs != std::numeric_limits<uint64_t>::max() && now >= maxTime)
             break;
     }
@@ -217,14 +217,14 @@ bool EventSystem::Update(uint64_t maxMs /*= std::numeric_limits<uint64_t>::max()
     for (auto Listener : mAddedEventListeners)
     {
         for (auto delegateFunc : Listener.second)
-            AddListener(delegateFunc, Listener.first);
+            addListener(delegateFunc, Listener.first);
     }
     mAddedEventListeners.clear();
 
     for (auto Listener : mRemovedEventListeners)
     {
         for (auto delegateFunc : Listener.second)
-            RemoveListener(delegateFunc, Listener.first);
+            removeListener(delegateFunc, Listener.first);
     }
     mRemovedEventListeners.clear();
 

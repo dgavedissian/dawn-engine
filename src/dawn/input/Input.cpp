@@ -24,70 +24,70 @@ Input::~Input()
 {
 }
 
-void Input::SetViewportSize(const Vec2i& viewportSize)
+void Input::setViewportSize(const Vec2i& viewportSize)
 {
     mViewportSize = viewportSize;
 }
 
-void Input::LockCursor(bool relative)
+void Input::lockCursor(bool relative)
 {
     SDL_SetRelativeMouseMode((SDL_bool)relative);
 }
 
-void Input::PushInputBlock()
+void Input::pushInputBlock()
 {
     mInputBlock++;
 }
 
-void Input::PopInputBlock()
+void Input::popInputBlock()
 {
     if (mInputBlock > 0)
         mInputBlock--;
 }
 
-bool Input::IsInputBlocked() const
+bool Input::isInputBlocked() const
 {
     return mInputBlock > 0;
 }
 
-void Input::HandleSDLEvent(SDL_Event& e)
+void Input::handleSDLEvent(SDL_Event& e)
 {
     switch (e.type)
     {
     case SDL_KEYDOWN:
-        EventSystem::inst().QueueEvent(MakeShared<EvtData_KeyDown>(
+        EventSystem::inst().queueEvent(makeShared<EvtData_KeyDown>(
             e.key.keysym.sym, e.key.keysym.scancode, e.key.keysym.mod));
         break;
 
     case SDL_KEYUP:
-        EventSystem::inst().QueueEvent(
-            MakeShared<EvtData_KeyUp>(e.key.keysym.sym, e.key.keysym.scancode, e.key.keysym.mod));
+        EventSystem::inst().queueEvent(
+            makeShared<EvtData_KeyUp>(e.key.keysym.sym, e.key.keysym.scancode, e.key.keysym.mod));
         break;
 
     case SDL_TEXTINPUT:
-        EventSystem::inst().QueueEvent(MakeShared<EvtData_TextInput>(String(e.text.text)));
+        EventSystem::inst().queueEvent(makeShared<EvtData_TextInput>(String(e.text.text)));
         break;
 
     case SDL_MOUSEBUTTONDOWN:
-        EventSystem::inst().QueueEvent(MakeShared<EvtData_MouseDown>(e.button.button));
+        EventSystem::inst().queueEvent(makeShared<EvtData_MouseDown>(e.button.button));
         break;
 
     case SDL_MOUSEBUTTONUP:
-        EventSystem::inst().QueueEvent(MakeShared<EvtData_MouseUp>(e.button.button));
+        EventSystem::inst().queueEvent(makeShared<EvtData_MouseUp>(e.button.button));
         break;
 
     case SDL_MOUSEMOTION:
         {
             Vec2i pos(e.motion.x, e.motion.y);
             Vec2 posRel(pos.x / (float)mViewportSize.x, pos.y / (float)mViewportSize.y);
-            EventSystem::inst().QueueEvent(MakeShared<EvtData_MouseMove>(
+            EventSystem::inst().queueEvent(makeShared<EvtData_MouseMove>(
                 pos, posRel, Vec2i(e.motion.xrel, e.motion.yrel)));
         }
         break;
 
     case SDL_MOUSEWHEEL:
-        EventSystem::inst().QueueEvent(
-            MakeShared<EvtData_MouseWheel>(Vec2i(e.wheel.x, e.wheel.y)));
+        EventSystem::inst().queueEvent(
+            makeShared<EvtData_MouseWheel>(Vec2i(e.wheel.x, e.wheel.y)));
         break;
 
     default:
@@ -95,31 +95,31 @@ void Input::HandleSDLEvent(SDL_Event& e)
     }
 }
 
-bool Input::IsKeyDown(SDL_Keycode key) const
+bool Input::isKeyDown(SDL_Keycode key) const
 {
     const Uint8* state = SDL_GetKeyboardState(nullptr);
     return (bool)state[SDL_GetScancodeFromKey(key)];
 }
 
-bool Input::IsMouseButtonDown(uint button) const
+bool Input::isMouseButtonDown(uint button) const
 {
     return (bool)(SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON(button));
 }
 
-Vec2i Input::GetMousePosition() const
+Vec2i Input::getMousePosition() const
 {
     Vec2i pos;
     SDL_GetMouseState(&pos.x, &pos.y);
     return pos;
 }
 
-Vec2 Input::GetMousePositionRelative() const
+Vec2 Input::getMousePositionRel() const
 {
-    Vec2i mousePosition = GetMousePosition();
+    Vec2i mousePosition = getMousePosition();
     return Vec2((float)mousePosition.x / mViewportSize.x, (float)mousePosition.y / mViewportSize.y);
 }
 
-Vec3i Input::GetMouseMove() const
+Vec3i Input::getMouseMove() const
 {
     return Vec3i();
 }

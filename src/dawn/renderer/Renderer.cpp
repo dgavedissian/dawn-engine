@@ -34,9 +34,9 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
       mRTRootPosition(Position::origin)
 {
     // Read config file
-    Vec2i displayMode = Config::Get<Vec2i>("displaymode", Vec2i(1280, 800));
-    bool fullscreen = Config::Get<bool>("fullscreen", false);
-    bool vsync = Config::Get<bool>("vsync", true);
+    Vec2i displayMode = Config::get<Vec2i>("displaymode", Vec2i(1280, 800));
+    bool fullscreen = Config::get<bool>("fullscreen", false);
+    bool vsync = Config::get<bool>("vsync", true);
 
     // Set up Ogre's log manager
     mLogManager = new Ogre::LogManager();
@@ -49,7 +49,7 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
                 << OGRE_VERSION_PATCH << " " << OGRE_VERSION_NAME;
 
     // PLUGIN STAGE
-    LoadPlugins();
+    loadPlugins();
 
     // Set the render system to the first available renderer
     if (mRoot->getAvailableRenderers().empty())
@@ -66,7 +66,7 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     options["vsync"] = vsync ? "true" : "false";
     options["gamma"] = "true";
     options["title"] = windowTitle;
-    CreateSDLWindow(windowTitle, displayMode, fullscreen, options);
+    createSDLWindow(windowTitle, displayMode, fullscreen, options);
 
     // Initialise Ogre and use the SDL window
     mRoot->initialise(false, "", "");
@@ -74,8 +74,8 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     mRenderWindow->setVisible(true);
 
     // OGRE IS NOW READY, SET UP THE SCENE
-	InitResources(basePath);
-    InitScene();
+	initResources(basePath);
+    initScene();
 
     // Set up the raycast query object
     mRaySceneQuery = mSceneManager->createRayQuery(Ogre::Ray(), Ogre::SceneManager::WORLD_GEOMETRY_TYPE_MASK);
@@ -122,7 +122,7 @@ Renderer::~Renderer()
     SDL_DestroyWindow(mWindow);
 }
 
-void Renderer::RenderFrame(Camera* camera)
+void Renderer::renderFrame(Camera* camera)
 {
     // Pump Events
     SDL_Event e;
@@ -131,7 +131,7 @@ void Renderer::RenderFrame(Camera* camera)
         switch (e.type)
         {
         case SDL_QUIT:
-            EventSystem::inst().QueueEvent(MakeShared<EvtData_Exit>());
+            EventSystem::inst().queueEvent(makeShared<EvtData_Exit>());
             break;
 
         case SDL_WINDOWEVENT:
@@ -172,7 +172,7 @@ void Renderer::RenderFrame(Camera* camera)
             break;
 
         default:
-            mInputMgr->HandleSDLEvent(e);
+            mInputMgr->handleSDLEvent(e);
             break;
         }
     }
@@ -180,20 +180,20 @@ void Renderer::RenderFrame(Camera* camera)
     // Update ribbon trail root node
 	if (camera)
 	{
-		mRTRoot->setPosition(mRTRootPosition.ToCameraSpace(camera));
-		if (mViewport->getCamera() != camera->GetOgreCamera())
-			mViewport->setCamera(camera->GetOgreCamera());
+		mRTRoot->setPosition(mRTRootPosition.toCameraSpace(camera));
+		if (mViewport->getCamera() != camera->_getOgreCamera())
+			mViewport->setCamera(camera->_getOgreCamera());
 	}
 
     // Draw a frame
     mRoot->renderOneFrame();
 }
 
-void Renderer::HandleEvent(EventDataPtr eventData)
+void Renderer::handleEvent(EventDataPtr eventData)
 {
-    if (EventIs<EvtData_KeyDown>(eventData))
+    if (eventIs<EvtData_KeyDown>(eventData))
     {
-        auto castedEventData = CastEvent<EvtData_KeyDown>(eventData);
+        auto castedEventData = castEvent<EvtData_KeyDown>(eventData);
         switch (castedEventData->keycode)
         {
         case SDLK_F4:
@@ -218,7 +218,7 @@ void Renderer::HandleEvent(EventDataPtr eventData)
     }
 }
 
-void MergeBounds(Ogre::SceneNode* node, Ogre::SceneNode* rootNode,
+void mergeBounds(Ogre::SceneNode* node, Ogre::SceneNode* rootNode,
                   const Ogre::Matrix4& parentTransform, Ogre::AxisAlignedBox& aabb)
 {
     // Get this nodes current transform
@@ -243,72 +243,72 @@ void MergeBounds(Ogre::SceneNode* node, Ogre::SceneNode* rootNode,
     Ogre::SceneNode::ChildNodeIterator child = node->getChildIterator();
     while (child.hasMoreElements())
     {
-        MergeBounds(static_cast<Ogre::SceneNode*>(child.getNext()), rootNode, currentTransform, aabb);
+        mergeBounds(static_cast<Ogre::SceneNode*>(child.getNext()), rootNode, currentTransform, aabb);
     }
 }
 
-Ogre::AxisAlignedBox Renderer::CalculateBounds(Ogre::SceneNode* node)
+Ogre::AxisAlignedBox Renderer::calculateBounds(Ogre::SceneNode* node)
 {
     // As not all scene managers guarantee a hierarchal AABB, calculate this
     // ourselves using a recursive function
     Ogre::AxisAlignedBox aabb = Ogre::AxisAlignedBox::BOX_NULL;
-    MergeBounds(node, node, Ogre::Matrix4::IDENTITY, aabb);
+    mergeBounds(node, node, Ogre::Matrix4::IDENTITY, aabb);
     return aabb;
 }
 
-Ogre::MaterialPtr Renderer::GetMaterial(const String& name)
+Ogre::MaterialPtr Renderer::getMaterial(const String& name)
 {
     return Ogre::MaterialManager::getSingleton().getByName(name);
 }
 
-Ogre::MaterialPtr Renderer::GetMaterialCopy(const String& originalName, const String& newName)
+Ogre::MaterialPtr Renderer::getMaterialCopy(const String& originalName, const String& newName)
 {
-    Ogre::MaterialPtr material = GetMaterial(originalName);
+    Ogre::MaterialPtr material = getMaterial(originalName);
     if (material.isNull())
         return material;
     return material->clone(newName);
 }
 
-Vec2 Renderer::ProjectPoint(const Position& point, Camera* camera)
+Vec2 Renderer::projectPoint(const Position& point, Camera* camera)
 {
     // Convert to screen coords and discard depth
-    Vec3 screenPosition = ProjectPointDepth(point, camera);
+    Vec3 screenPosition = projectPointDepth(point, camera);
     return Vec2(screenPosition.x, screenPosition.y);
 }
 
-Vec3 Renderer::ProjectPointDepth(const Position& point, Camera* camera)
+Vec3 Renderer::projectPointDepth(const Position& point, Camera* camera)
 {
     // Transform point from world space to screen space
-    Vec3 cameraSpace = camera->GetViewMatrix().TransformPos(point.ToCameraSpace(camera));
-    Vec3 screenPosition = camera->GetProjMatrix().TransformPos(cameraSpace);
+    Vec3 cameraSpace = camera->getViewMatrix().TransformPos(point.toCameraSpace(camera));
+    Vec3 screenPosition = camera->getProjMatrix().TransformPos(cameraSpace);
 
     // Convert point from device coordinates to normalised coordinates
     return Vec3((screenPosition.x + 1.0f) * 0.5f, (1.0f - screenPosition.y) * 0.5f, cameraSpace.z);
 }
 
-Position Renderer::UnprojectPoint(const Vec2& screenPosition, float depth, Camera* camera)
+Position Renderer::unprojectPoint(const Vec2& screenPosition, float depth, Camera* camera)
 {
-    auto ray = camera->GetOgreCamera()->getCameraToViewportRay(screenPosition.x, screenPosition.y);
-    return Position::FromCameraSpace(camera, ray.getPoint(depth));
+    auto ray = camera->_getOgreCamera()->getCameraToViewportRay(screenPosition.x, screenPosition.y);
+    return Position::fromCameraSpace(camera, ray.getPoint(depth));
 }
 
-bool Renderer::InViewport(const Vec2& screenPosition)
+bool Renderer::inViewport(const Vec2& screenPosition)
 {
     return screenPosition.x >= 0.0f && screenPosition.x <= 1.0f && screenPosition.y >= 0.0f &&
            screenPosition.y <= 1.0f;
 }
 
-bool Renderer::InViewport(const Position& point, Camera* camera)
+bool Renderer::inViewport(const Position& point, Camera* camera)
 {
-    Vec3 screenPosition = ProjectPointDepth(point, camera);
-    return InViewport(Vec2(screenPosition.x, screenPosition.y)) && screenPosition.z < 0.0f;
+    Vec3 screenPosition = projectPointDepth(point, camera);
+    return inViewport(Vec2(screenPosition.x, screenPosition.y)) && screenPosition.z < 0.0f;
 }
 
-bool Renderer::RaycastPickScreen(const Vec2& screenPosition, float depth, Camera* camera,
+bool Renderer::rayPickScreen(const Vec2& screenPosition, float depth, Camera* camera,
                                      RendererRaycastResult& result)
 {
     // Set up the ray query object
-    Ogre::Camera* ogreCamera = camera->GetOgreCamera();
+    Ogre::Camera* ogreCamera = camera->_getOgreCamera();
     Ogre::Ray ray = ogreCamera->getCameraToViewportRay(screenPosition.x, screenPosition.y);
     mRaySceneQuery->setRay(ray);
     mRaySceneQuery->setQueryMask(~UNIVERSE_OBJECT);
@@ -323,7 +323,7 @@ bool Renderer::RaycastPickScreen(const Vec2& screenPosition, float depth, Camera
         {
             result.hit = true;
             result.entity = entity;
-            result.position = Position::FromCameraSpace(camera, ray.getPoint((*i).distance));
+            result.position = Position::fromCameraSpace(camera, ray.getPoint((*i).distance));
             result.normal = Vec3::zero;
             return true;
         }
@@ -332,12 +332,12 @@ bool Renderer::RaycastPickScreen(const Vec2& screenPosition, float depth, Camera
     // At this point - the ray didn't hit anything of interest
     result.hit = false;
     result.entity = nullptr;
-    result.position = Position::FromCameraSpace(camera, ray.getPoint(depth));
+    result.position = Position::fromCameraSpace(camera, ray.getPoint(depth));
     result.normal = Vec3::zero;
     return false;
 }
 
-bool Renderer::RaycastQueryAABB(const Vec3& start, const Vec3& end, Camera* camera,
+bool Renderer::rayQueryAabb(const Vec3& start, const Vec3& end, Camera* camera,
                                     RendererRaycastResult& result)
 {
     // Create the ray
@@ -358,7 +358,7 @@ bool Renderer::RaycastQueryAABB(const Vec3& start, const Vec3& end, Camera* came
         {
             result.hit = true;
             result.entity = entity;
-            result.position = Position::FromCameraSpace(camera, ray.getPoint((*i).distance));
+            result.position = Position::fromCameraSpace(camera, ray.getPoint((*i).distance));
             result.normal = Vec3::zero;
             return true;
         }
@@ -372,7 +372,7 @@ bool Renderer::RaycastQueryAABB(const Vec3& start, const Vec3& end, Camera* came
     return false;
 }
 
-bool Renderer::RaycastQueryGeometry(const Vec3& start, const Vec3& end, Camera* camera,
+bool Renderer::rayQueryGeometry(const Vec3& start, const Vec3& end, Camera* camera,
                                         RendererRaycastResult& result)
 {
     // Create the ray
@@ -393,7 +393,7 @@ bool Renderer::RaycastQueryGeometry(const Vec3& start, const Vec3& end, Camera* 
         {
             result.hit = true;
             result.entity = entity;
-            result.position = Position::FromCameraSpace(camera, ray.getPoint((*i).distance));
+            result.position = Position::fromCameraSpace(camera, ray.getPoint((*i).distance));
             result.normal = Vec3::zero;
             return true;
         }
@@ -402,27 +402,27 @@ bool Renderer::RaycastQueryGeometry(const Vec3& start, const Vec3& end, Camera* 
     // At this point - the ray didn't hit anything of interest
     result.hit = false;
     result.entity = nullptr;
-    result.position = camera->GetPosition();
+    result.position = camera->getPosition();
     result.normal = Vec3::zero;
     return false;
 }
 
-void Renderer::TogglePostEffect(const String& name, bool enabled)
+void Renderer::togglePostEffect(const String& name, bool enabled)
 {
     //Ogre::CompositorManager::getSingleton().setCompositorEnabled(mViewport, name, enabled);
 }
 
-void Renderer::SetRibbonTrailRootPosition(const Position& position)
+void Renderer::_setRibbonTrainPosition(const Position& position)
 {
     mRTRootPosition = position;
 }
 
-Ogre::SceneNode* Renderer::GetRibbonTrailRoot()
+Ogre::SceneNode* Renderer::_getRibbonTrailRoot()
 {
     return mRTRoot;
 }
 
-Vector<SDL_DisplayMode> Renderer::EnumerateDisplayModes() const
+Vector<SDL_DisplayMode> Renderer::getDeviceDisplayModes() const
 {
     // Enumerate available video modes
     Vector<SDL_DisplayMode> displayModes;
@@ -436,13 +436,13 @@ Vector<SDL_DisplayMode> Renderer::EnumerateDisplayModes() const
     return displayModes;
 }
 
-void Renderer::LoadPlugins()
+void Renderer::loadPlugins()
 {
 	mRenderSystemPlugin = new Ogre::GL3PlusPlugin();
 	mRoot->installPlugin(mRenderSystemPlugin);
 }
 
-void Renderer::CreateSDLWindow(const String& windowTitle, const Vec2i& displayMode,
+void Renderer::createSDLWindow(const String& windowTitle, const Vec2i& displayMode,
                                    bool fullscreen, Ogre::NameValuePairList& options)
 {
     // Create the window
@@ -496,7 +496,7 @@ void Renderer::CreateSDLWindow(const String& windowTitle, const Vec2i& displayMo
 #endif
 }
 
-void Renderer::InitResources(const String& basePath)
+void Renderer::initResources(const String& basePath)
 {
 	mResourceMgr = Ogre::ResourceGroupManager::getSingletonPtr();
 
@@ -524,7 +524,7 @@ void Renderer::InitResources(const String& basePath)
     LOG << "Initialised resources";
 }
 
-void Renderer::InitScene()
+void Renderer::initScene()
 {
     // Set up the scene manager
     mSceneManager = mRoot->createSceneManager(Ogre::ST_GENERIC);
@@ -536,7 +536,7 @@ void Renderer::InitScene()
     mViewport->setBackgroundColour(Ogre::ColourValue(0.0f, 0.0f, 0.0f));
 }
 
-void Renderer::FindClosestPolygon(Ogre::Entity* entity, float& closestDistance,
+void Renderer::findClosestPolygon(Ogre::Entity* entity, float& closestDistance,
                                        Ogre::Vector3& position, Ogre::Vector3& normal)
 {
     closestDistance = std::numeric_limits<float>::max();    // default value (means
@@ -655,7 +655,7 @@ void Renderer::FindClosestPolygon(Ogre::Entity* entity, float& closestDistance,
                 break;
 
             case 2:
-                RayToTriangleCheck(vertex1, vertex2, vertexPos, closestDistance, position, normal);
+                rayToTriangleCheck(vertex1, vertex2, vertexPos, closestDistance, position, normal);
                 break;
 
             default:
@@ -673,7 +673,7 @@ void Renderer::FindClosestPolygon(Ogre::Entity* entity, float& closestDistance,
     }
 }
 
-void Renderer::RayToTriangleCheck(Ogre::Vector3& corner1, Ogre::Vector3& corner2,
+void Renderer::rayToTriangleCheck(Ogre::Vector3& corner1, Ogre::Vector3& corner2,
                                        Ogre::Vector3& corner3, float& closestDistance,
                                        Ogre::Vector3& position, Ogre::Vector3& normal)
 {

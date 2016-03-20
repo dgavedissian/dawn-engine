@@ -20,10 +20,10 @@ public:
     ~DeferredLight();
 
     // Update the information from the light that matches this one
-    void UpdateFromParent();
+    void updateFromParent();
 
     // Update the information that is related to the camera
-    void UpdateFromCamera(Ogre::Camera* camera);
+    void updateFromCamera(Ogre::Camera* camera);
 
     // Inherited from Ogre::SimpleRenderable
     virtual bool getCastChadows() const;
@@ -34,16 +34,16 @@ public:
 
 protected:
     // Check if the camera is inside a light
-    bool IsCameraInside(Ogre::Camera* camera);
+    bool isCameraInside(Ogre::Camera* camera);
 
     // Set up geometry for this light
-    void SetupGeometry(float radius);
+    void setupGeometry(float radius);
 
     // Set constant, linear, quadratic Attenuation terms
-    void SetAttenuation(float c, float b, float a);
+    void setAttenuation(float c, float b, float a);
 
     // Set the specular colour
-    void SetSpecularColour(const Ogre::ColourValue& col);
+    void setSpecularColour(const Ogre::ColourValue& col);
 
     // Parent RenderOperation
     DeferredLightRenderOperation* mLightRenderOp;

@@ -6,7 +6,7 @@
 
 NAMESPACE_BEGIN
 
-class Vec3i
+class DW_API Vec3i
 {
 public:
     int x, y, z;
