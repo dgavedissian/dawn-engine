@@ -26,8 +26,8 @@ float decodeDepth(vec2 encodedDepth)
 
 void main()
 {
-    vec4 a0 = texture2D(gb0, oUv);
-    vec4 a1 = texture2D(gb1, oUv);
+    vec4 a0 = texture(gb0, oUv);
+    vec4 a1 = texture(gb1, oUv);
 
     float depth = decodeDepth(a1.ba);
 

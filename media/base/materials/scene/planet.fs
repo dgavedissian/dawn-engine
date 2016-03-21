@@ -21,7 +21,7 @@ void main()
 {
     // Calculate lighting factor the the surface
     float lighting = clamp(dot(sunDirection, oNormal), 0.0, 1.0);
-    vec4 surfaceSample = texture2D(surfaceTexture, oUv0);
+    vec4 surfaceSample = texture(surfaceTexture, oUv0);
 
     // Set up config parameters (very hacky - must be a better way to do this!)
     bool hasNightSide = config.x > 0.5;
@@ -34,7 +34,7 @@ void main()
     {
         // night = (1 - day)^4
         float nightLighting = pow(1.0 - lighting, 4.0);
-        vec4 nightSample = texture2D(nightTexture, oUv0);
+        vec4 nightSample = texture(nightTexture, oUv0);
         nightFactor = nightSample * nightLighting;
     }
 
@@ -63,7 +63,7 @@ void main()
         if (d > ringDimensions.x && d < ringDimensions.y)
         {
             float s = (d - ringDimensions.x) / ringDimensions.z;
-            ringShadow = 1.0 - texture2D(ringsTexture, vec2(s, 0.5)).a;
+            ringShadow = 1.0 - texture(ringsTexture, vec2(s, 0.5)).a;
         }
 
         // Apply the ring shadowing to the lighting

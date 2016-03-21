@@ -19,7 +19,7 @@ public:
     SandboxState(dw::Engine* engine);
     virtual ~SandboxState();
 
-    void HandleEvent(dw::EventDataPtr eventData);
+    void handleEvent(dw::EventDataPtr eventData);
 
     // Inherited from State
     virtual void enter();

@@ -20,7 +20,7 @@ material Post/ToneMap
 
             fragment_program_ref Post/ToneMap/FS
             {
-                param_named texture int 0
+                param_named hdrTexture int 0
                 param_named exposureLevel float 2.0
             }
 

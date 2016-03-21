@@ -12,7 +12,7 @@ fragment_program UI/Texture/FS glsl
     source UITexture.fs
     default_params
     {
-        param_named texture int 0
+        param_named uiTexture int 0
     }
 }
 

@@ -14,7 +14,7 @@ float decodeDepth(vec2 encodedDepth)
 void main()
 {
     // Get depth
-    vec4 depthTex = texture2D(gb1, oUv0);
+    vec4 depthTex = texture(gb1, oUv0);
     float depth = decodeDepth(depthTex.ba);
     if (depth < 1e-7)
         depth = 1.0;

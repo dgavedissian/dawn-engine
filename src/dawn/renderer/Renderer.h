@@ -105,7 +105,27 @@ public:
     DEPRECATED Ogre::RenderSystem* getOgreRenderSystem() const { return mRoot->getRenderSystem(); }
 
 	/// Access the Resource Manager
-	void addResourceLocation(const String& location) { mResourceMgr->addResourceLocation(location, "FileSystem"); }
+    // TODO: Move this into a seperate class
+	void addResourceLocation(const String& location) {
+        LOG << "Adding location: " << location;
+        mResourceMgr->addResourceLocation(location, "FileSystem");
+    }
+    void addResourcePrefix(const String& prefix) {
+        Vector<String> rl;
+        rl.push_back("fonts");
+        rl.push_back("materials/deferred");
+        rl.push_back("materials/explosions");
+        rl.push_back("materials/scene");
+        rl.push_back("materials");
+        rl.push_back("scripts");
+        rl.push_back("textures");
+        rl.push_back("ui");
+
+        // Add locations
+        for (String& location : rl)
+            addResourceLocation(prefix + "/" + location);
+	    mResourceMgr->initialiseAllResourceGroups();
+    }
 
 private:
     Input* mInputMgr;
@@ -151,7 +171,6 @@ private:
     void loadPlugins();
     void createSDLWindow(const String& windowTitle, const Vec2i& displayMode, bool fullscreen,
                          Ogre::NameValuePairList& options);
-    void initResources(const String& basePath);
     void initScene();
 
     // Needed for raycasting

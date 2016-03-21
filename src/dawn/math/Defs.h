@@ -66,10 +66,10 @@ inline float ceil(float value) { return ::ceilf(value); }
 inline float sign(float value) { return value > 0.0f ? 1.0f : (value < 0.0f ? -1.0f : 0.0f); }
 
 /// Fuzzy equals operator for floats.
-inline bool floatEq(float a, float b, float epsilon = M_EPSILON) { return abs(a - b) <= epsilon; }
+inline bool floatEq(float a, float b, float epsilon = M_EPSILON) { return ::fabs(a - b) <= epsilon; }
 
 /// Fuzzy equals operator for doubles.
-inline bool floatEq(double a, double b, double epsilon = M_EPSILON) { return abs(a - b) <= epsilon; }
+inline bool floatEq(double a, double b, double epsilon = M_EPSILON) { return ::fabs(a - b) <= epsilon; }
 
 /// Clamp a float to a range.
 inline float clamp(float value, float min, float max)

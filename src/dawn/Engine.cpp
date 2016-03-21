@@ -30,7 +30,7 @@ Engine::Engine(const String& game, const String& version)
     SDL_free(basePath);
 #if DW_PLATFORM == DW_WIN32
 	mBasePath += "..\\";
-#else
+#elif DW_PLATFORM == DW_LINUX
 	mBasePath += "../";
 #endif
 
@@ -41,7 +41,7 @@ Engine::Engine(const String& game, const String& version)
     SDL_free(prefPath);
 #if DW_PLATFORM == DW_WIN32
     mPrefPath.replace(mPrefPath.find("\\\\"), 2, "\\");
-#else
+#elif DW_PLATFORM == DW_LINUX
     mPrefPath.replace(mPrefPath.find("//"), 2, "/");
 #endif
 

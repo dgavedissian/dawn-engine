@@ -28,7 +28,7 @@ SandboxState::~SandboxState()
 	mEngine->setStarSystem(nullptr);
 }
 
-void SandboxState::HandleEvent(dw::EventDataPtr eventData)
+void SandboxState::handleEvent(dw::EventDataPtr eventData)
 {
     if (dw::eventIs<dw::EvtData_KeyDown>(eventData))
     {
@@ -66,7 +66,7 @@ void SandboxState::enter()
 	mCamera->toggleParticles(false);
 	mCamera->setMovementSpeed(10000.0f);
 
-    mData = mEngine->getUI()->LoadLayout("universe.rml");
+    mData = mEngine->getUI()->loadLayout("universe.rml");
 
 	// TODO: script this
     {

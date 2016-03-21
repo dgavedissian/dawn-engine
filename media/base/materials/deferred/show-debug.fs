@@ -26,17 +26,17 @@ void main()
 {
     if (oUv.x < 0.5 && oUv.y < 0.5)
     {
-        vec4 a0 = texture2D(gb0, oUv * 2.0);
+        vec4 a0 = texture(gb0, oUv * 2.0);
         colour = vec4(a0.rgb, 1.0);
     }
     else if (oUv.x >= 0.5 && oUv.y < 0.5)
     {
-        vec4 a1 = texture2D(gb1, (oUv - vec2(0.5, 0.0)) * 2.0);
+        vec4 a1 = texture(gb1, (oUv - vec2(0.5, 0.0)) * 2.0);
         colour = vec4((decodeNormal(a1.rg) + 1.0) * 0.5, 1.0);
     }
     else if (oUv.x < 0.5 && oUv.y >= 0.5)
     {
-        vec4 a1 = texture2D(gb1, (oUv - vec2(0.0, 0.5)) * 2.0);
+        vec4 a1 = texture(gb1, (oUv - vec2(0.0, 0.5)) * 2.0);
         float depth = pow(decodeDepth(a1.ba), 0.2);
         colour = vec4(depth, depth, depth, 1.0);
     }
