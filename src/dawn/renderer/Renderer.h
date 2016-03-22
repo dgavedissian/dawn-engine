@@ -117,6 +117,7 @@ public:
         rl.push_back("materials/explosions");
         rl.push_back("materials/scene");
         rl.push_back("materials");
+        rl.push_back("models");
         rl.push_back("scripts");
         rl.push_back("textures");
         rl.push_back("ui");

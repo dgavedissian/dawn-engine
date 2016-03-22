@@ -94,6 +94,10 @@ void SandboxState::enter()
         p.surfaceTexture = "planet.jpg";
         p.hasAtmosphere = true;
         p.atmosphere.radius = p.radius * 1.025f;
+        p.hasRings = true;
+        p.rings.minRadius = p.radius * 1.25f;
+        p.rings.maxRadius = p.radius * 2.65f;
+        p.rings.texture = "rings.png";
         planet = system->createPlanet(p);
         star->addSatellite(planet, dw::makeShared<dw::CircularOrbit>(
 			dw::convUnit(1.0f, dw::UNIT_AU), 400.0f));
