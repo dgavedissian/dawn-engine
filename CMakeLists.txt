@@ -83,9 +83,9 @@ function(add_game GAME_NAME)
         set(BUNDLE_DIR ${BIN_DIR}/${GAME_NAME}.app)
         set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)
         add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-            COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR})
+            COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR}/Dawn.framework)
         add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-            COMMAND cp ${LIB_DIR}/libirrklang.dylib ${BUNDLE_DIR}/Contents/MacOS)
+            COMMAND cp ${LIB_DIR}/libirrklang.dylib ${FRAMEWORKS_DIR})
     else()
         # TODO: Linux
     endif()

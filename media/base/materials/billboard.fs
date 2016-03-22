@@ -9,6 +9,6 @@ out vec4 colour;
 
 void main()
 {
-    colour = texture2D(billboardTex, oUv0) * oColour;
+    colour = texture(billboardTex, oUv0) * oColour;
     colour.a = pow(colour.a, 2.2);
 }

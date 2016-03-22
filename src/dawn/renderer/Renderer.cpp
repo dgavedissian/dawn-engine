@@ -47,6 +47,7 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     LOG << "Created Ogre Root";
     LOG << "\tVersion: " << OGRE_VERSION_MAJOR << "." << OGRE_VERSION_MINOR << "."
                 << OGRE_VERSION_PATCH << " " << OGRE_VERSION_NAME;
+	mResourceMgr = Ogre::ResourceGroupManager::getSingletonPtr();
 
     // PLUGIN STAGE
     loadPlugins();
@@ -74,7 +75,7 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     mRenderWindow->setVisible(true);
 
     // OGRE IS NOW READY, SET UP THE SCENE
-	initResources(basePath);
+    addResourcePrefix(basePath + "media/base");
     initScene();
 
     // Set up the raycast query object
@@ -489,39 +490,11 @@ void Renderer::createSDLWindow(const String& windowTitle, const Vec2i& displayMo
         break;
     }
 
-#if DW_PLATFORM == DW_WIN32
-    options["externalWindowHandle"] = winHandle;
-#else
+#if DW_PLATFORM == DW_LINUX
     options["parentWindowHandle"] = winHandle;
+#else
+    options["externalWindowHandle"] = winHandle;
 #endif
-}
-
-void Renderer::initResources(const String& basePath)
-{
-	mResourceMgr = Ogre::ResourceGroupManager::getSingletonPtr();
-
-    // Add all resource locations to the resource group manager
-    // TODO move resource manager to global class
-    Vector<String> rl;
-	rl.push_back("media/base/fonts");
-	rl.push_back("media/base/materials/deferred");
-	rl.push_back("media/base/materials/explosions/pu");
-	rl.push_back("media/base/materials/explosions");
-	rl.push_back("media/base/materials/scene");
-	rl.push_back("media/base/materials");
-	rl.push_back("media/base/scripts");
-	rl.push_back("media/base/textures");
-	rl.push_back("media/base/ui");
-    LOG << "Resource Locations:";
-    for (auto& resourceLocation : rl)
-    {
-        mResourceMgr->addResourceLocation(basePath + resourceLocation, "FileSystem", "General");
-        LOG << "\t" << resourceLocation;
-    }
-
-    // Initialise resources
-	mResourceMgr->initialiseAllResourceGroups();
-    LOG << "Initialised resources";
 }
 
 void Renderer::initScene()

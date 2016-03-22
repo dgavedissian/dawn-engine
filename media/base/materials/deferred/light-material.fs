@@ -17,7 +17,7 @@ float lookup(sampler2D shadowMap, vec2 shadowSampleTexCoord, float shadowFarClip
     if (shadowSampleTexCoord.s >= 0.0 && shadowSampleTexCoord.s <= 1.0
         && shadowSampleTexCoord.t >= 0.0 && shadowSampleTexCoord.t <= 1.0)
     {
-        float shadowDepth = texture2D(shadowMap, shadowSampleTexCoord).r;
+        float shadowDepth = texture(shadowMap, shadowSampleTexCoord).r;
         float shadowDistance = shadowDepth * shadowFarClip;
         if (distanceFromLight > shadowDistance && distanceFromLight < shadowFarClip)
             return 0.0;
@@ -142,8 +142,8 @@ void main()
     vec3 oRay = vec3(normProjPos.x, normProjPos.y * flip, 1.0) * farCorner;
 #endif
 
-    vec4 a0 = texture2D(gb0, oUv);
-    vec4 a1 = texture2D(gb1, oUv);
+    vec4 a0 = texture(gb0, oUv);
+    vec4 a1 = texture(gb1, oUv);
 
     // Attributes
     vec3 colour = a0.rgb;

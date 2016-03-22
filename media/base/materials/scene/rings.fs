@@ -40,7 +40,7 @@ void main()
     {
         float power = 3.0;
         float noiseFactor = pow(2.0, power) * clamp((distToPx - distanceThreshold.x) / (distanceThreshold.y - distanceThreshold.x), 0.0, 1.0);
-        float noiseSample = texture2D(noiseTexture, noiseTexCoord).r;
+        float noiseSample = texture(noiseTexture, noiseTexCoord).r;
         alpha = clamp(noiseSample + pow(noiseFactor, 1.0 / power) - 1.0, 0.0, 1.0);
     }
 
@@ -64,7 +64,7 @@ void main()
     }
 
     // Calculate texture coordinates and sample the texture then apply shadowing
-    vec4 ringsSample = texture2D(ringsTexture, vec2((distance - ringDimensions.x) / ringDimensions.z, 0.5));
+    vec4 ringsSample = texture(ringsTexture, vec2((distance - ringDimensions.x) / ringDimensions.z, 0.5));
     ringsSample.rgb *= shadowFactor;
     ringsSample.a *= alpha;
     colour = ringsSample;

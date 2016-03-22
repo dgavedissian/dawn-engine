@@ -8,5 +8,5 @@ out vec4 colour;
 
 void main()
 {
-    colour = texture2D(starfieldTexture, oUv * 4);
+    colour = texture(starfieldTexture, oUv * 4);
 }

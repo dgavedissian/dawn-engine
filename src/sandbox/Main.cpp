@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	engine->getRenderer()->addResourceLocation(engine->getBasePath() + "media/sandbox");
 
 	// Register the sandbox state and switch to it
-	engine->getStateMgr()->RegisterState(dw::makeShared<SandboxState>(engine));
+	engine->getStateMgr()->registerState(dw::makeShared<SandboxState>(engine));
 	engine->getStateMgr()->changeTo(S_SANDBOX);
 
 	// Run the engine
