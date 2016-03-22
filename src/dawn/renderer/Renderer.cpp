@@ -76,7 +76,6 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
 
     // OGRE IS NOW READY, SET UP THE SCENE
     addResourcePrefix(basePath + "media/base");
-    addResourcePrefix(basePath + "engine/media/base");
     initScene();
 
     // Set up the raycast query object
