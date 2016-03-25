@@ -14,7 +14,7 @@ ConfigNode ConvertFromYaml(const YAML::Node& node)
     switch (node.Type())
     {
     case YAML::NodeType::Scalar:
-        return ConfigNode(node.to<String>());
+        return ConfigNode(node.as<String>());
 
     case YAML::NodeType::Sequence:
         {
@@ -31,7 +31,7 @@ ConfigNode ConvertFromYaml(const YAML::Node& node)
         {
             ConfigNode m;
             for (auto i = node.begin(); i != node.end(); i++)
-                m.insert(make_pair(i.first().to<String>(), ConvertFromYaml(i.second())));
+                m.insert(make_pair(i->first.as<String>(), ConvertFromYaml(i->second)));
             return m;
         }
 
@@ -72,17 +72,11 @@ void EmitYaml(YAML::Emitter& out, const ConfigNode& node)
 
 std::istream& operator>>(std::istream& stream, ConfigNode &node)
 {
-    // Load and convert
     try
     {
-        YAML::Parser parser(stream);
-
-        // TODO: Don't just read the first filename
-        YAML::Node doc;
-        if (parser.GetNextDocument(doc))
-            node = ConvertFromYaml(doc);
+        node = ConvertFromYaml(YAML::Load(stream));
     }
-    catch (YAML::Exception& e)
+    catch (YAML::ParserException& e)
     {
         std::stringstream ss;
         ss << "YAML Parsing exception: " << e.what();
