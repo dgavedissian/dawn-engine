@@ -9,9 +9,12 @@ set(H_FILES
     core/Config.h
     core/ConfigNode.h
     core/ConfigNode.inl
+    core/Engine.h
+    core/EventSystem.h
     core/FixedMemoryPool.h
     core/Log.h
     core/Singleton.h
+    core/StateManager.h
     core/Utils.h
     input/Input.h
     math/Defs.h
@@ -53,11 +56,8 @@ set(H_FILES
     ui/Layout.h
     ui/RocketInterface.h
     ui/UI.h
-    StateManager.h
     Common.h
     DawnEngine.h
-    Engine.h
-    EventSystem.h
     Platform.h
     Prerequisites.h)
 
@@ -68,7 +68,10 @@ set(CPP_FILES
     audio/Track.cpp
     core/Config.cpp
     core/ConfigNode.cpp
+    core/Engine.cpp
+    core/EventSystem.cpp
     core/Log.cpp
+    core/StateManager.cpp
     core/Utils.cpp
     input/Input.cpp
     math/Noise.cpp
@@ -107,10 +110,7 @@ set(CPP_FILES
     ui/ImGuiInterface.cpp
     ui/Layout.cpp
     ui/RocketInterface.cpp
-    ui/UI.cpp
-    StateManager.cpp
-    Engine.cpp
-    EventSystem.cpp)
+    ui/UI.cpp)
 
 if(APPLE)
     set(H_FILES ${H_FILES} renderer/OSXGetNSView.h)

@@ -77,7 +77,7 @@ function(add_game GAME_NAME)
         add_custom_command(TARGET ${GAME_NAME} POST_BUILD
             COMMAND if exist ${LIB_DIR}/Dawn_d.dll ${CMAKE_COMMAND} -E copy ${LIB_DIR}/Dawn_d.dll ${BIN_DIR}
             COMMAND if exist ${LIB_DIR}/Dawn.dll ${CMAKE_COMMAND} -E copy ${LIB_DIR}/Dawn.dll ${BIN_DIR}
-            COMMAND  ${CMAKE_COMMAND} -E copy ${LIB_DIR}/irrKlang.dll ${BIN_DIR}
+            COMMAND ${CMAKE_COMMAND} -E copy ${LIB_DIR}/irrKlang.dll ${BIN_DIR}
             COMMAND ${CMAKE_COMMAND} -E copy ${LIB_DIR}/SDL2.dll ${BIN_DIR})
     elseif(APPLE)
         set(BUNDLE_DIR ${BIN_DIR}/${GAME_NAME}.app)
