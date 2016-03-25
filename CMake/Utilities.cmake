@@ -78,8 +78,8 @@ macro(enable_maximum_warnings)
         add_definitions(-D_SCL_SECURE_NO_WARNINGS)
         add_compile_options(/W4)
     elseif(UNIX)
-        add_compile_options(-Wall -Wextra -pedantic -Wuninitialized -Wfloat-equal -Woverloaded-virtual
-                            -Wno-deprecated-declarations -Wno-unused-parameter -Wdeprecated-declarations)
+        add_compile_options(-Wall -Wextra -pedantic -Wuninitialized -Wfloat-equal
+                            -Woverloaded-virtual -Wno-unused-parameter)
         if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             add_compile_options(-Wno-nested-anon-types -Wno-gnu-anonymous-struct)
         endif()
