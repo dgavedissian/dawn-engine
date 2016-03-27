@@ -4,6 +4,8 @@
  */
 #include "Common.h"
 
+#include "Config.h"
+
 dw::String dw::Config::filename;
 dw::ConfigNode dw::Config::root;
 

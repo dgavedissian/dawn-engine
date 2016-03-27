@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "math/Vec2i.h"
+
 NAMESPACE_BEGIN
 
 class DW_API Rect

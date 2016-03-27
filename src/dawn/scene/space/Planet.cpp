@@ -3,6 +3,7 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
+#include "core/Utils.h"
 #include "renderer/Renderer.h"
 #include "physics/PhysicsWorld.h"
 #include "StarSystem.h"

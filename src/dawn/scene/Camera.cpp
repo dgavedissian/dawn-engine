@@ -3,9 +3,10 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "Entity.h"
-#include "SceneManager.h"
-#include "Camera.h"
+#include "core/Utils.h"
+#include "scene/Entity.h"
+#include "scene/SceneManager.h"
+#include "scene/Camera.h"
 
 NAMESPACE_BEGIN
 

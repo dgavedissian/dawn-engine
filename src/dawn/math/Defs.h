@@ -5,7 +5,9 @@
 #pragma once
 
 #include <cmath>
-#undef M_PI
+#ifdef M_PI
+#	undef M_PI
+#endif
 
 NAMESPACE_BEGIN
 
@@ -18,6 +20,26 @@ static const float M_INFINITY = HUGE_VALF;
 static const float M_DEGTORAD = M_PI / 180.0f;
 static const float M_DEGTORAD_OVER_2 = M_PI / 360.0f;
 static const float M_RADTODEG = 1.0f / M_DEGTORAD;
+
+// Colour Value
+// TODO(David): Implement this ourselves instead of using ogres
+using Colour = Ogre::ColourValue;
+
+// Vectors
+using Vec2 = math::float2;
+using Vec3 = math::float3;
+using Vec4 = math::float4;
+
+// Matrices
+using Mat2 = math::float2x2;
+using Mat3 = math::float3x3;
+using Mat4 = math::float4x4;
+
+// Quaternion
+using Quat = math::Quat;
+
+// Plane
+using Plane = math::Plane;
 
 
 //// Floating point functions

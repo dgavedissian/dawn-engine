@@ -3,9 +3,10 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
+#include "core/Utils.h"
 #include "script/LuaState.h"
-#include "UI.h"
-#include "Console.h"
+#include "ui/Console.h"
+#include "ui/UI.h"
 
 NAMESPACE_BEGIN
 

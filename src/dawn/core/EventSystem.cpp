@@ -3,7 +3,8 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "EventSystem.h"
+#include "core/EventSystem.h"
+#include "core/Utils.h"
 
 NAMESPACE_BEGIN
 

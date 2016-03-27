@@ -3,10 +3,11 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
+#include "core/Config.h"
 #include "input/Input.h"
 #include "deferred/DeferredShadingManager.h"
 #include "scene/Camera.h"
-#include "Renderer.h"
+#include "renderer/Renderer.h"
 
 #if DW_PLATFORM == DW_MAC_OSX
 #include "OSXGetNSView.h"

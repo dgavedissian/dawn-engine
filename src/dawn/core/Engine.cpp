@@ -5,6 +5,9 @@
 #include "Common.h"
 #include "DawnEngine.h"
 
+#include "core/Config.h"
+#include "core/Utils.h"
+
 NAMESPACE_BEGIN
 
 Engine* gEngine = nullptr;

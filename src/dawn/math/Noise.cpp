@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "Noise.h"
+#include "math/Noise.h"
 
 #define B SAMPLE_SIZE
 #define BM (SAMPLE_SIZE - 1)
