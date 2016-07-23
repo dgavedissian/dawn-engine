@@ -3,7 +3,8 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "SpriteManager.h"
+#include "math/Rect.h"
+#include "renderer/SpriteManager.h"
 
 #define MIN_HARDWARE_BUFFER_SIZE 120
 #define WRITE_VERTEX(BUFFER, VERTEX) \

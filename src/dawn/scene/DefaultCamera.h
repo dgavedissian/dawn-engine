@@ -4,7 +4,8 @@
  */
 #pragma once
 
-#include "Camera.h"
+#include "math/Noise.h"
+#include "scene/Camera.h"
 
 NAMESPACE_BEGIN
 

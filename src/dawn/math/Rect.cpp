@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "Rect.h"
+#include "math/Rect.h"
 
 NAMESPACE_BEGIN
 

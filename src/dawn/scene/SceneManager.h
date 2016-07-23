@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "core/FixedMemoryPool.h"
+
 NAMESPACE_BEGIN
 
 class Entity;

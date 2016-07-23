@@ -4,6 +4,10 @@
  */
 #pragma once
 
+#include "math/Vec2i.h"
+#include "math/Vec3i.h"
+#include "math/Vec4i.h"
+
 NAMESPACE_BEGIN
 
 template <> struct Converter<bool>

@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "core/Singleton.h"
+
 NAMESPACE_BEGIN
 
 enum LogLevel

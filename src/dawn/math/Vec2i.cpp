@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "Vec2i.h"
+#include "math/Vec2i.h"
 
 NAMESPACE_BEGIN
 

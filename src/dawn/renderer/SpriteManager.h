@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "math/Rect.h"
+
 NAMESPACE_BEGIN
 
 enum SpriteOrigin

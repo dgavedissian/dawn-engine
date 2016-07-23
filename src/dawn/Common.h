@@ -90,26 +90,6 @@ using std::ifstream;
 using std::ofstream;
 using std::fstream;
 
-// Colour Value
-// TODO: Implement this ourselves instead of using ogres
-using Colour = Ogre::ColourValue;
-
-// Vectors
-using Vec2 = math::float2;
-using Vec3 = math::float3;
-using Vec4 = math::float4;
-
-// Matrices
-using Mat2 = math::float2x2;
-using Mat3 = math::float3x3;
-using Mat4 = math::float4x4;
-
-// Quaternion
-using Quat = math::Quat;
-
-// Plane
-using Plane = math::Plane;
-
 // Containers
 template <class T> using Vector = std::vector<T>;
 template <class T> using List = std::list<T>;
@@ -125,30 +105,8 @@ NAMESPACE_END
 #define ERROR_WARN(x) LOGWARN << (x)
 #define ERROR_FATAL(x) { LOGERR << (x); throw std::runtime_error(x); }
 
-// Math library
+// Common includes
 #include "math/Defs.h"
-#include "math/Noise.h"
-#include "math/Vec2i.h"
-#include "math/Vec3i.h"
-#include "math/Vec4i.h"
-#include "math/Rect.h"
-// TODO: Random number generators
-
-// Data structures
-#include "core/FixedMemoryPool.h"
-
-// Platform library
-// Thread
-// File
-
-// Position
 #include "scene/Position.h"
-
-// Core
-#include "core/Singleton.h"
 #include "core/Log.h"
-#include "core/Config.h"
-#include "core/Utils.h"
-
-// Event System
-#include "EventSystem.h"
+#include "core/EventSystem.h" // TODO(David): Event Data pointer only?

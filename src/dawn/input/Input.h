@@ -4,6 +4,9 @@
  */
 #pragma once
 
+#include "math/Vec2i.h"
+#include "math/Vec3i.h"
+
 NAMESPACE_BEGIN
 
 class DW_API Input
