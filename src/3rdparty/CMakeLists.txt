@@ -10,6 +10,7 @@ set(LIBS ${LIBS} ${SDL2_LIBRARIES})
 set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/FastDelegate
     ${CMAKE_CURRENT_SOURCE_DIR}/ImGui
+    ${CMAKE_CURRENT_SOURCE_DIR}/ontology/include
     ${CMAKE_CURRENT_SOURCE_DIR}/sol
     ${CMAKE_CURRENT_SOURCE_DIR}/YamlCpp/include)
 
@@ -150,6 +151,11 @@ add_library(ImGui ImGui/imgui.cpp)
 target_include_directories(ImGui PRIVATE ${INCLUDE_DIRS})
 set_target_properties(ImGui PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} ImGui)
+
+# ontology
+add_subdirectory(ontology)
+target_include_directories(ontology PRIVATE ${INCLUDE_DIRS})
+set(LIBS ${LIBS} ontology)
 
 # YamlCpp
 file(GLOB YAML_CPP_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} YamlCpp/src/*.cpp)
