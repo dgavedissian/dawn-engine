@@ -10,7 +10,7 @@ set(LIBS ${LIBS} ${SDL2_LIBRARIES})
 set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/FastDelegate
     ${CMAKE_CURRENT_SOURCE_DIR}/ImGui
-    ${CMAKE_CURRENT_SOURCE_DIR}/LuaBridge
+    ${CMAKE_CURRENT_SOURCE_DIR}/sol
     ${CMAKE_CURRENT_SOURCE_DIR}/YamlCpp/include)
 
 
@@ -133,44 +133,7 @@ else()
         optimized ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic.a)
 endif()
 
-# IrrKlang
-if(WIN32)
-    ExternalProject_Add(IrrKlang
-        PREFIX ${EXTERNAL_PREFIX}
-        URL http://www.ambiera.at/downloads/irrKlang-32bit-1.5.0.zip
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-        COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/irrKlang-1.5.0/bin/win32-visualStudio/irrKlang.dll ${EXTERNAL_INSTALL}/lib/
-        COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/irrKlang-1.5.0/lib/Win32-visualStudio/irrKlang.lib ${EXTERNAL_INSTALL}/lib/
-        COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/irrKlang-1.5.0/include ${EXTERNAL_INSTALL}/include)
-    set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/irrKlang.lib)
-else()
-    if(APPLE)
-        set(IRRKLANG_LIB_PREFIX bin/macosx-gcc)
-        set(IRRKLANG_LIBIRRKLANG libirrklang.dylib)
-        set(IRRKLANG_PATCH_COMMAND install_name_tool -id @rpath/libirrklang.dylib <SOURCE_DIR>/bin/macosx-gcc/libirrklang.dylib)
-    else()
-        set(IRRKLANG_LIB_PREFIX bin/linux-gcc-64)
-        set(IRRKLANG_LIBIRRKLANG libIrrKlang.so)
-    endif()
-    ExternalProject_Add(IrrKlang
-        PREFIX ${EXTERNAL_PREFIX}
-        URL http://www.ambiera.at/downloads/irrKlang-64bit-1.5.0.zip
-        PATCH_COMMAND ${IRRKLANG_PATCH_COMMAND}
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-        COMMAND ${IRRKLANG_WINDOWS_COPY_IMPORT_LIB}
-        COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/${IRRKLANG_LIB_PREFIX}/${IRRKLANG_LIBIRRKLANG} ${EXTERNAL_INSTALL}/lib/
-        COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${EXTERNAL_INSTALL}/include)
-    set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/${IRRKLANG_LIBIRRKLANG})
-endif()
-set_target_properties(IrrKlang PROPERTIES FOLDER "3rdparty")
-
-set(EXTERNAL_DEPS Bullet Ogre MathGeoLib Luajit LibRocket RakNet IrrKlang PARENT_SCOPE)
+set(EXTERNAL_DEPS Bullet MathGeoLib Luajit RakNet PARENT_SCOPE)
 
 
 ##############################################################
