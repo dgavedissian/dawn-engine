@@ -22,9 +22,6 @@
 
 NAMESPACE_BEGIN
 
-// Move luabridge to dw namespace
-using namespace luabridge;
-
 // Primitive types
 using uint = unsigned int;
 using int8 = int8_t;
@@ -83,6 +80,9 @@ template <class... T> inline Tuple<T...> makeTuple(T&&... args)
 {
     return std::tuple<T...>(std::forward<T>(args)...);
 }
+
+// Type info
+typedef std::type_info TypeInfo;
 
 // Files
 // TODO: Deprecated, use file class
