@@ -22,7 +22,7 @@ set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug)
 ###############################################
 
 include(Utilities)
-enable_cpp11()
+enable_cpp14()
 enable_maximum_warnings()
 
 

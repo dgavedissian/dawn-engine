@@ -56,21 +56,34 @@ macro(set_output_dir TARGET OUTDIR)
     endforeach()
 endmacro()
 
-# Macro to enable C++11 and on OS X enable libc++
+# Enable C++11
 macro(enable_cpp11)
     if(UNIX)
         add_compile_options(-std=c++11)
+        util_enable_libcpp()
+    endif()
+endmacro()
 
-        # If on OS X, use the libc++ standard library which is much more C++11 complete
-        if(APPLE)
-            add_compile_options(-stdlib=libc++)
-            if(XCODE)
-                set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
-                set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-            endif()
+# Enable C++14
+macro(enable_cpp14)
+    if(UNIX)
+        add_compile_options(-std=c++14)
+        util_enable_libcpp()
+    endif()
+endmacro()
+
+# If on macOS, enable the libc++ stdlib instead of the default one for more implementations of
+# C++11/14
+macro(util_enable_libcpp)
+    if(APPLE)
+        add_compile_options(-stdlib=libc++)
+        if(XCODE)
+            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
         endif()
     endif()
 endmacro()
+
 
 # Macro to enable maximum warnings
 macro(enable_maximum_warnings)
