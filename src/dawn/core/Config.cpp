@@ -14,14 +14,14 @@ NAMESPACE_BEGIN
 void Config::load(const String& filename)
 {
     Config::filename = filename;
-    ifstream file(filename);
+    InputFileStream file(filename);
     file >> Config::root;
     Config::dump();
 }
 
 void Config::save()
 {
-    ofstream file(Config::filename);
+    OutputFileStream file(Config::filename);
     file << Config::root;
 }
 

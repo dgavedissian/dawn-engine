@@ -11,7 +11,8 @@ set(H_FILES
     core/Object.h
     core/Singleton.h
     core/StateManager.h
-    core/Utils.h
+    core/StringUtils.h
+    core/Timer.h
     engine/Engine.h
     input/Input.h
     math/Defs.h
@@ -37,11 +38,11 @@ set(H_FILES
 set(CPP_FILES
     core/Config.cpp
     core/ConfigNode.cpp
-    core/Engine.cpp
     core/EventSystem.cpp
     core/Log.cpp
     core/StateManager.cpp
-    core/Utils.cpp
+    core/StringUtils.cpp
+    core/Timer.cpp
     engine/Engine.cpp
     input/Input.cpp
     math/Noise.cpp

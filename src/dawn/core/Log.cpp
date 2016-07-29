@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "core/Utils.h"
+#include "core/StringUtils.h"
 
 NAMESPACE_BEGIN
 
@@ -55,16 +55,17 @@ Log::~Log()
 void Log::write(const String& message, LogLevel level)
 {
     // Get the time of day
+    // TODO(David): Use time::format(...)
     time_t t = ::time(nullptr);
     tm* now = localtime(&t);
-    std::stringstream ss;
+    StringStream ss;
     ss << "[" << (now->tm_hour < 10 ? "0" : "") << now->tm_hour << ":"
        << (now->tm_min < 10 ? "0" : "") << now->tm_min << ":" << (now->tm_sec < 10 ? "0" : "")
        << now->tm_sec << "]";
     String timeStr = ss.str();
 
     Vector<String> lines;
-    splitString(message, '\n', lines);
+    str::split(message, '\n', lines);
 
     // TODO: threading - add lock here
     for (uint i = 0; i < lines.size(); ++i)

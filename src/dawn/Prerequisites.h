@@ -39,6 +39,7 @@
 #include <thread>
 #include <limits>
 #include <typeinfo>
+#include <chrono>
 
 
 //
@@ -48,35 +49,18 @@
 // Bullet
 #include <btBulletDynamicsCommon.h>
 
-// irrKlang
-#include <irrKlang.h>
-
 // Lua
 #include <lua.hpp>
-
-// Ogre
-#define OGRE_STATIC_LIB
-#include <Ogre.h>
-#include <RenderSystems/GL3Plus/OgreGL3PlusPlugin.h>
 
 // MathGeoLib
 #define MATH_ENABLE_STL_SUPPORT
 #define MATH_ENABLE_UNCOMMON_OPERATIONS
-#define MATH_OGRE_INTEROP
 #define MATH_BULLET_INTEROP
-#define MATH_IRRKLANG_INTEROP
 #define LOGGING_SUPPORT_DISABLED
 #include <MathGeoLib.h>
 #ifdef LOG
 #   undef LOG
 #endif
-
-// Rocket
-#define ROCKET_STATIC_LIB
-#include <Rocket/Core.h>
-#include <Rocket/Controls.h>
-#include <Rocket/Controls/DataSource.h>
-#include <Rocket/Debugger.h>
 
 // SDL
 #include <SDL.h>
@@ -97,12 +81,8 @@
 // Bundled Libraries
 //
 
-// Bullet/Ogre utility functions
-#include "BtOgreGP.h"
-#include "BtOgrePG.h"
-
 // Lua C++ interface
-#include "LuaBridge.h"
+#include "sol.hpp"
 
 // imgui debugging UI
 #include "imgui.h"

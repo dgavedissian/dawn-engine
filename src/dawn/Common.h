@@ -53,12 +53,7 @@ template <class T, class... Args> inline SharedPtr<T> makeShared(Args&&... args)
 }
 template <class T, class... Args> inline UniquePtr<T> makeUnique(Args&&... args)
 {
-    // C++14 feature
-#ifdef DW_MSVC
     return std::make_unique<T>(std::forward<Args>(args)...);
-#else
-    return UniquePtr<T>(new T(std::forward<Args>(args)...));
-#endif
 }
 template <class T1, class T2> inline SharedPtr<T1> staticPointerCast(const SharedPtr<T2>& other)
 {
@@ -82,13 +77,13 @@ template <class... T> inline Tuple<T...> makeTuple(T&&... args)
 }
 
 // Type info
-typedef std::type_info TypeInfo;
+using TypeInfo = std::type_info;
 
 // Files
 // TODO: Deprecated, use file class
-using std::ifstream;
-using std::ofstream;
-using std::fstream;
+using InputFileStream = std::ifstream;
+using OutputFileStream = std::ofstream;
+using FileStream = std::fstream;
 
 // Containers
 template <class T> using Vector = std::vector<T>;
@@ -106,6 +101,7 @@ NAMESPACE_END
 #define ERROR_FATAL(x) { LOGERR << (x); throw std::runtime_error(x); }
 
 // Common includes
+#include "core/Object.h"
 #include "math/Defs.h"
 #include "scene/Position.h"
 #include "core/Log.h"

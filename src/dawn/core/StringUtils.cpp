@@ -3,9 +3,10 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "core/Utils.h"
+#include "core/StringUtils.h"
 
 NAMESPACE_BEGIN
+namespace str {
 
 CommandLineArgs parseCommandArgs(int argc, char** argv)
 {
@@ -63,7 +64,7 @@ String padString(const String& str, uint length)
     return out;
 }
 
-Vector<String>& splitString(const String& s, char delim, Vector<String>& elems)
+Vector<String>& split(const String& s, char delim, Vector<String>& elems)
 {
     std::stringstream ss(s);
     String item;
@@ -72,7 +73,7 @@ Vector<String>& splitString(const String& s, char delim, Vector<String>& elems)
     return elems;
 }
 
-String concatStrings(const Vector<String>& vec, const String& delim)
+String concat(const Vector<String>& vec, const String& delim)
 {
     String out;
     for (uint i = 0; i < vec.size() - 1; ++i)
@@ -82,7 +83,7 @@ String concatStrings(const Vector<String>& vec, const String& delim)
     return out;
 }
 
-String replaceString(String subject, const String& search, const String& replace)
+String replace(String subject, const String& search, const String& replace)
 {
     size_t pos = 0;
     while ((pos = subject.find(search, pos)) != std::string::npos) {
@@ -90,6 +91,8 @@ String replaceString(String subject, const String& search, const String& replace
         pos += replace.length();
     }
     return subject;
+}
+
 }
 
 std::default_random_engine engine;
@@ -137,27 +140,6 @@ Vec4 randomVec4(const Vec4& min /*= Vec4(-1.0f)*/, const Vec4& max /*= Vec4(1.0f
 
 namespace time
 {
-    TimePoint now()
-    {
-        static Ogre::Timer timer;
-        return static_cast<TimePoint>(timer.getMicroseconds()) * 1e-6;
-    }
-
-    Duration getElapsed(TimePoint tp)
-    {
-        return now() - tp;
-    }
-
-    String format(time_t time, const String& formatString)
-    {
-#if DW_PLATFORM == DW_WIN32
-        std::stringstream out;
-        out << std::put_time(std::gmtime(&time), formatString.c_str());
-        return out.str();
-#else
-        return "";
-#endif
-    }
 }
 
 NAMESPACE_END

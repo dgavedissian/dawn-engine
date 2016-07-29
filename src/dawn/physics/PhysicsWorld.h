@@ -24,7 +24,7 @@ struct DW_API PhysicsRaycastResult
 class DW_API PhysicsWorld
 {
 public:
-    PhysicsWorld(Renderer* rs);
+    PhysicsWorld();
     ~PhysicsWorld();
 
     // Takes a step of dt seconds in the simulation
@@ -43,7 +43,6 @@ private:
     SharedPtr<btCollisionDispatcher> mDispatcher;
     SharedPtr<btConstraintSolver> mSolver;
     SharedPtr<btDynamicsWorld> mWorld;
-    SharedPtr<BtOgre::DebugDrawer> mDebugDrawer;
 
     List<btRigidBody*> mRigidBodyList;
 

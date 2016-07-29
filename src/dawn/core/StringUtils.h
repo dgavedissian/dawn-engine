@@ -5,6 +5,7 @@
 #pragma once
 
 NAMESPACE_BEGIN
+namespace str {
 
 //// Command Line
 
@@ -21,13 +22,14 @@ DW_API String generateName(const String& prefix = "Unnamed");
 DW_API String padString(const String& str, uint length);
 
 // Split a string
-DW_API Vector<String>& splitString(const String& s, char delim, Vector<String>& elems);
+DW_API Vector<String>& split(const String& s, char delim, Vector<String>& elems);
 
 // Join a vector of strings
-DW_API String concatStrings(const Vector<String>& vec, const String& delim);
+DW_API String concat(const Vector<String>& vec, const String& delim);
 
-DW_API String replaceString(String subject, const String& search, const String& replace);
+DW_API String replace(String subject, const String& search, const String& replace);
 
+}
 
 //// Random Number Generator
 
@@ -40,24 +42,5 @@ DW_API DEPRECATED Vec3 randomVec3(const Vec3& min = Vec3(-1.0f, -1.0f, -1.0f),
                                   const Vec3& max = Vec3(1.0f, 1.0f, 1.0f));
 DW_API DEPRECATED Vec4 randomVec4(const Vec4& min = Vec4(-1.0f, -1.0f, -1.0f, -1.0f),
                                   const Vec4& max = Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-
-//// Time
-
-namespace time
-{
-    typedef double TimePoint;
-    typedef double Duration;
-
-    // Get the current time - doesn't really matter when the timer starts as long as difference
-    // between time points can be used to measure time accurately
-    DW_API TimePoint now();
-
-    // Get the time elapsed since a certain time point
-    DW_API Duration getElapsed(TimePoint tp);
-
-    // Format time
-    DW_API String format(time_t time, const String& formatString);
-}
 
 NAMESPACE_END

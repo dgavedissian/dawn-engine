@@ -21,10 +21,6 @@ static const float M_DEGTORAD = M_PI / 180.0f;
 static const float M_DEGTORAD_OVER_2 = M_PI / 360.0f;
 static const float M_RADTODEG = 1.0f / M_DEGTORAD;
 
-// Colour Value
-// TODO(David): Implement this ourselves instead of using ogres
-using Colour = Ogre::ColourValue;
-
 // Vectors
 using Vec2 = math::float2;
 using Vec3 = math::float3;

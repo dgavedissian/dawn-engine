@@ -3,14 +3,13 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "renderer/Renderer.h"
 #include "input/Input.h"
 #include "scene/RigidEntity.h"
 #include "PhysicsWorld.h"
 
 NAMESPACE_BEGIN
 
-PhysicsWorld::PhysicsWorld(Renderer* rs)
+PhysicsWorld::PhysicsWorld()
 {
     LOG << "Bullet Version " << (btGetVersion() / 100) << "." << (btGetVersion() % 100);
 
@@ -20,7 +19,6 @@ PhysicsWorld::PhysicsWorld(Renderer* rs)
     mSolver.reset(new btSequentialImpulseConstraintSolver);
     mWorld.reset(new btDiscreteDynamicsWorld(mDispatcher.get(), mBroadphase.get(), mSolver.get(),
                                              mCollisionConfig.get()));
-    mDebugDrawer.reset(new BtOgre::DebugDrawer(rs->getRootSceneNode(), mWorld.get()));
 
     // Set the properties of the world
     mWorld->setGravity(btVector3(0.0f, 0.0f, 0.0f));

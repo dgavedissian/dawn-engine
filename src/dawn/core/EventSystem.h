@@ -94,7 +94,7 @@ public:
     //
     // returns true if all messages ready for processing were completed, false
     // otherwise (e.g. timeout)
-    bool update(uint64_t maxMs = std::numeric_limits<uint64_t>::max());
+    bool update(double maxDuration);
 
 private:
     Map<EventType, List<EventListenerDelegate>> mEventListeners;

@@ -4,7 +4,7 @@
  */
 #include "Common.h"
 #include "core/EventSystem.h"
-#include "core/Utils.h"
+#include "core/Timer.h"
 
 NAMESPACE_BEGIN
 
@@ -161,12 +161,9 @@ bool EventSystem::abortEvent(const EventType& type, bool allOfType /*= false*/)
     return success;
 }
 
-bool EventSystem::update(uint64_t maxMs /*= std::numeric_limits<uint64_t>::max()*/)
+bool EventSystem::update(double maxDuration)
 {
-    double now = time::now();
-    double maxTime = maxMs == std::numeric_limits<uint64_t>::max()
-                         ? std::numeric_limits<double>::max()
-                         : (now + static_cast<double>(maxMs) * 0.001);
+    time::TimePoint now = time::beginTiming();
 
     // swap active queues and clear the new queue after the swap
     int queueToProcess = mActiveQueue;
@@ -193,8 +190,7 @@ bool EventSystem::update(uint64_t maxMs /*= std::numeric_limits<uint64_t>::max()
         }
 
         // Check to see if time ran out
-        now = time::now();
-        if (maxMs != std::numeric_limits<uint64_t>::max() && now >= maxTime)
+        if (time::elapsed(now) >= maxDuration)
             break;
     }
 
