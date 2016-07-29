@@ -8,7 +8,7 @@
 #include <Rocket/Core/RenderInterface.h>
 #include <Rocket/Core/SystemInterface.h>
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Renderer;
 
@@ -95,4 +95,4 @@ private:
 
 };
 
-NAMESPACE_END
+}

@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // Caching, on-the-fly material generator. This is a class that automatically generates and stores
 // different permutations of a material, and its shaders. It can be used if you have a material that
@@ -56,4 +56,4 @@ protected:
     MaterialMap mTemplateMatMap, mMaterials;
 };
 
-NAMESPACE_END
+}

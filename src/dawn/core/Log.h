@@ -6,7 +6,7 @@
 
 #include "core/Singleton.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 enum LogLevel
 {
@@ -90,7 +90,7 @@ template <> inline Log::Stream& Log::Stream::operator<<<String>(String val)
     return *this;
 }
 
-NAMESPACE_END
+}
 
 // Macros
 #define LOG Log::inst().getStream(LOG_INFO)

@@ -6,7 +6,7 @@
 #include "Common.h"
 #include "Input.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 const EventType EvtData_KeyDown::eventType(0xe135f7e7);
 const EventType EvtData_KeyUp::eventType(0x3d00cddc);
@@ -124,4 +124,4 @@ Vec3i Input::getMouseMove() const
     return Vec3i();
 }
 
-NAMESPACE_END
+}

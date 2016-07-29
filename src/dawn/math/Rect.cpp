@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "math/Rect.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Rect::Rect() : begin(), end()
 {
@@ -28,4 +28,4 @@ Rect& Rect::merge(const Rect& other)
     return *this;
 }
 
-NAMESPACE_END
+}

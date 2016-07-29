@@ -6,7 +6,7 @@
 
 #include "math/Rect.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 enum SpriteOrigin
 {
@@ -93,4 +93,4 @@ private:
     Map<String, Vector<SpriteChunk>> mChunks;
 };
 
-NAMESPACE_END
+}

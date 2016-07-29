@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 /// Class used to keep track of entities being updated
 class DW_API SceneManager
@@ -27,4 +27,4 @@ private:
 
 };
 
-NAMESPACE_END
+}

@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // This Singleton design is based off:
 // https://github.com/nandor/MAZE/blob/master/maze/MZSingleton.h
@@ -90,4 +90,4 @@ typename Singleton<T>::Holder Singleton<T>::mHolder;
 template <class T>
 T* Singleton<T>::mInstance = nullptr;
 
-NAMESPACE_END
+}

@@ -9,7 +9,7 @@
 #	undef M_PI
 #endif
 
-NAMESPACE_BEGIN
+namespace dw {
 
 static const float M_PI = 3.14159265358979323846264338327950288f;
 static const float M_HALF_PI = M_PI * 0.5f;
@@ -324,4 +324,4 @@ T convUnit(T input, MassUnits outUnit, MassUnits inUnit = UNIT_KG)
 }
 
 
-NAMESPACE_END
+}

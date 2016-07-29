@@ -10,17 +10,13 @@
 // Determine platform
 #include "Platform.h"
 
-// Module macros
-#define NAMESPACE_BEGIN namespace dw {
-#define NAMESPACE_END }
-
 // Version Information
 #define DW_VERSION_MAJOR 0
 #define DW_VERSION_MINOR 1
 #define DW_VERSION_PATCH 0
 #define DW_VERSION_STR "0.1.0"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // Primitive types
 using uint = unsigned int;
@@ -91,7 +87,7 @@ template <class T> using List = std::list<T>;
 template <class K, class T> using Map = std::map<K, T>;
 template <class K, class T> using HashMap = std::unordered_map<K, T>;
 
-NAMESPACE_END
+}
 
 // Safe delete macros
 #define SAFE_DELETE(x) if (x) { delete (x); x = nullptr; }

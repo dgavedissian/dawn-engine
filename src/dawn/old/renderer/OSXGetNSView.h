@@ -6,9 +6,9 @@
 
 #include <SDL_syswm.h>
 
-NAMESPACE_BEGIN
+namespace dw {
 
 uintptr_t getWindowContentViewHandle(SDL_SysWMinfo &info);
 
-NAMESPACE_END
+}
 

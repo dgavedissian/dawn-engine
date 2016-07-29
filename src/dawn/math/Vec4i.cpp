@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "math/Vec4i.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Vec4i::Vec4i() : x(0), y(0), z(0), w(0)
 {
@@ -89,4 +89,4 @@ const Vec4i Vec4i::operator/(int scalar) const
     return Vec4i(x / scalar, y / scalar, z / scalar, w / scalar);
 }
 
-NAMESPACE_END
+}

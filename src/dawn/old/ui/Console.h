@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class UI;
 class LuaState;
@@ -47,4 +47,4 @@ private:
     String mOutput;
 };
 
-NAMESPACE_END
+}

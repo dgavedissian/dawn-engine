@@ -8,7 +8,7 @@
 
 #define RING_DETAIL_MAX_LEVEL 14
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Renderer;
 class StarSystem;
@@ -165,4 +165,4 @@ private:
     SharedPtr<Rings> mRingSystem;
 };
 
-NAMESPACE_END
+}

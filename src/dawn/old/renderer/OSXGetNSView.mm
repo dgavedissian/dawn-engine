@@ -7,7 +7,7 @@
 
 #import <AppKit/NSWindow.h>
 
-NAMESPACE_BEGIN
+namespace dw {
 
 uintptr_t getWindowContentViewHandle(SDL_SysWMinfo &info)
 {
@@ -16,5 +16,5 @@ uintptr_t getWindowContentViewHandle(SDL_SysWMinfo &info)
     return (uintptr_t)view;
 }
 
-NAMESPACE_END
+}
 

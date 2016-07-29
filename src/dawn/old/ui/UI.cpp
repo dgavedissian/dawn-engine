@@ -10,7 +10,7 @@
 #include "RocketInterface.h"
 #include "ImGuiInterface.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 #define INTERFACE_RENDER_QUEUE (Ogre::RENDER_QUEUE_OVERLAY)
 
@@ -265,4 +265,4 @@ void UI::buildProjMatrix(Ogre::Matrix4& projectionMatrix)
     projectionMatrix[3][3] = 1.0f;
 }
 
-NAMESPACE_END
+}

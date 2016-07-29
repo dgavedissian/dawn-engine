@@ -6,7 +6,7 @@
 #include "LightMaterialGenerator.h"
 #include "DeferredLight.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 LightMaterialGenerator::LightMaterialGenerator()
 {
@@ -160,4 +160,4 @@ void LightMaterialGenerator::SetupBaseParameters(const Ogre::GpuProgramParameter
     }
 }
 
-NAMESPACE_END
+}

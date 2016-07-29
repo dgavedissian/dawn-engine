@@ -8,7 +8,7 @@
 #include "core/Config.h"
 #include "core/Utils.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Engine* gEngine = nullptr;
 
@@ -227,4 +227,4 @@ void Engine::handleEvent(EventDataPtr eventData)
     mRunning = false;
 }
 
-NAMESPACE_END
+}

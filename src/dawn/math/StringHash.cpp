@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 const StringHash StringHash::ZERO;
 
@@ -89,5 +89,5 @@ uint32_t StringHash::calculate(const char* str)
     return hash;
 }
 
-NAMESPACE_END
+}
 

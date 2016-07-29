@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "GeometryUtils.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Ogre::MeshPtr createSphere(const String& name, float radius, int rings, int segments, bool normals,
                            bool texCoords)
@@ -243,4 +243,4 @@ void createQuad(Ogre::VertexData* vertexData)
     vbuf->writeData(0, sizeof(data), data, true);
 }
 
-NAMESPACE_END
+}

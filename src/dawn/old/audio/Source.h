@@ -4,6 +4,6 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
-NAMESPACE_END
+}

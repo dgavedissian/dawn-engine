@@ -8,7 +8,7 @@
 #include "GBufferSchemeHandler.h"
 #include "OgreCompositorLogic.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 const Ogre::uint8 DeferredShadingManager::PRE_GBUFFER_RENDER_QUEUE = Ogre::RENDER_QUEUE_1;
 const Ogre::uint8 DeferredShadingManager::POST_GBUFFER_RENDER_QUEUE = Ogre::RENDER_QUEUE_8;
@@ -295,4 +295,4 @@ void DeferredShadingManager::SetActive(bool active)
     }
 }
 
-NAMESPACE_END
+}

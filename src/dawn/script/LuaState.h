@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // Manages the Lua virtual machine and provides some helper functions
 class DW_API LuaState
@@ -32,4 +32,4 @@ private:
     lua_State* mL;
 };
 
-NAMESPACE_END
+}

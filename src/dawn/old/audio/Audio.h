@@ -7,7 +7,7 @@
 #include "Sound.h"
 #include "Track.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Camera;
 
@@ -88,4 +88,4 @@ private:
 
 };
 
-NAMESPACE_END
+}

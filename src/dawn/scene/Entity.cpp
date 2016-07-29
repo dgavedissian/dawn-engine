@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "Entity.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Entity::Entity(SceneManager* sceneMgr)
     : mSceneMgr(sceneMgr),
@@ -52,4 +52,4 @@ const Quat& Entity::getOrientation() const
     return mOrientation;
 }
 
-NAMESPACE_END
+}

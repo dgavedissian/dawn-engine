@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class MemoryPool
 {
@@ -68,4 +68,4 @@ private:
     List<T*> mFreeList;
 };
 
-NAMESPACE_END
+}

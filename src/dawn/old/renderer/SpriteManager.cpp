@@ -31,7 +31,7 @@
     WRITE_VERTEX(BUFFER, SPRITE.vertex[V1])        \
     WRITE_VERTEX(BUFFER, SPRITE.vertex[V2])
 
-NAMESPACE_BEGIN
+namespace dw {
 
 SpriteManager::SpriteManager(Ogre::Viewport* viewport, Ogre::SceneManager* sceneMgr)
     : mRenderSystem(Ogre::Root::getSingleton().getRenderSystem()),
@@ -324,4 +324,4 @@ Vec2 SpriteManager::toScreenCoord(const Vec2& pos)
     return Vec2(pos.x / vpHalfWidth - 1.0f, 1.0f - pos.y / vpHalfHeight);
 }
 
-NAMESPACE_END
+}

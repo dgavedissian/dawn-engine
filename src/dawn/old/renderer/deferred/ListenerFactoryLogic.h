@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // The simple types of compositor logics will all do the same thing - Attach a Listener to the
 // created compositor
@@ -34,4 +34,4 @@ private:
     ListenerMap mListeners;
 };
 
-NAMESPACE_END
+}

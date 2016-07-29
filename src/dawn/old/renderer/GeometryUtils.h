@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // Create a sphere mesh with a given name, radius, number of rings and number of segments
 DW_API Ogre::MeshPtr createSphere(const String& name, float radius, int rings, int segments,
@@ -27,4 +27,4 @@ DW_API void createCone(Ogre::VertexData* vertexData, Ogre::IndexData* indexData,
 // Fill up a fresh copy of VertexData with a normalized quad
 DW_API void createQuad(Ogre::VertexData* vertexData);
 
-NAMESPACE_END
+}

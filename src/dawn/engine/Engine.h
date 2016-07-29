@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class EventSystem;
 class LuaState;
@@ -107,4 +107,4 @@ private:
 
 };
 
-NAMESPACE_END
+}

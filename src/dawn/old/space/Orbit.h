@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // Interface for different orbit types
 class DW_API Orbit
@@ -41,4 +41,4 @@ private:
 // Hyperbolic
 // e > 1
 
-NAMESPACE_END
+}

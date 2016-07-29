@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class UI;
 
@@ -60,4 +60,4 @@ private:
     List<std::tuple<String, String, Rocket::Core::EventListener*>> mListeners;
 };
 
-NAMESPACE_END
+}

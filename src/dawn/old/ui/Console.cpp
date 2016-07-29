@@ -8,7 +8,7 @@
 #include "ui/Console.h"
 #include "ui/UI.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Console::Console(UI* im, LuaState* ls)
     : mInterfaceMgr(im),
@@ -106,4 +106,4 @@ void Console::ProcessEvent(Rocket::Core::Event& event)
     }
 }
 
-NAMESPACE_END
+}

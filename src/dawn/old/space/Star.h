@@ -6,7 +6,7 @@
 
 #include "SystemBody.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Renderer;
 class StarSystem;
@@ -64,4 +64,4 @@ private:
     Ogre::Light* mLight;
 };
 
-NAMESPACE_END
+}

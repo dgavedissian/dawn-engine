@@ -7,7 +7,7 @@
 #include "Orbit.h"
 #include "AsteroidBelt.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 class Renderer;
 
 
@@ -64,4 +64,4 @@ protected:
     Position mPosition;
 };
 
-NAMESPACE_END
+}

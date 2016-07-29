@@ -6,7 +6,7 @@
 
 #include "SystemBody.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // A body that only serves as an empty point where other bodies orbit around
 class DW_API Barycentre : public SystemBody
@@ -16,4 +16,4 @@ public:
     virtual ~Barycentre();
 };
 
-NAMESPACE_END
+}

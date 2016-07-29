@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class GBufferSchemeHandler;
 class NoGBufferSchemeHandler;
@@ -53,4 +53,4 @@ protected:
     bool mDebug;
 };
 
-NAMESPACE_END
+}

@@ -14,7 +14,7 @@
 #define REMOVE_ALL_LISTENERS(LISTENER) \
     dw::EventSystem::inst().removeAllListeners(fastdelegate::MakeDelegate(this, &LISTENER::handleEvent))
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // Event type ID
 typedef uint EventType;
@@ -147,4 +147,4 @@ public:
     String message;
 };
 
-NAMESPACE_END
+}

@@ -10,7 +10,7 @@
 #include "Planet.h"
 #include "Star.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 PlanetDesc::PlanetDesc()
 {
@@ -651,4 +651,4 @@ void Planet::RingNode::join()
     mHasChildren = false;
 }
 
-NAMESPACE_END
+}

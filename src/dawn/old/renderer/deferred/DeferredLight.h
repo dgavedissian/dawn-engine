@@ -7,7 +7,7 @@
 #include "OgreSimpleRenderable.h"
 #include "MaterialGenerator.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class DeferredLightRenderOperation;
 
@@ -65,4 +65,4 @@ protected:
     Ogre::uint32 mPermutation;
 };
 
-NAMESPACE_END
+}

@@ -6,7 +6,7 @@
 
 #include "ConfigNode.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // Global config file state
 // TODO: Merge this into Engine class
@@ -46,4 +46,4 @@ struct DW_API Config
     static ConfigNode root;
 };
 
-NAMESPACE_END
+}

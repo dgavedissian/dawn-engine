@@ -7,7 +7,7 @@
 #include "SpriteManager.h"
 #include "GeometryUtils.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 enum QueryMasks
 {
@@ -182,4 +182,4 @@ private:
                             Ogre::Vector3& normal);
 };
 
-NAMESPACE_END
+}

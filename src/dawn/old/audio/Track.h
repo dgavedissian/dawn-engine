@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class DW_API Track
 {
@@ -34,4 +34,4 @@ private:
     irrklang::ISound* mTrack;
 };
 
-NAMESPACE_END
+}

@@ -6,7 +6,7 @@
 
 #include "GBufferMaterialGenerator.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // Class for handling materials who did not specify techniques for rendering themselves into the
 // GBuffer. This class allows deferred shading to be used, without having to specify new techniques
@@ -70,4 +70,4 @@ public:
     }
 };
 
-NAMESPACE_END
+}

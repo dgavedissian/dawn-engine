@@ -11,7 +11,7 @@
 #include "MaterialGenerator.h"
 #include "AmbientLight.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // The render operation that will be called each frame in the custom composition pass. This is the
 // class that will send the actual render calls of the spheres (point lights), cones (spotlights)
@@ -69,4 +69,4 @@ protected:
     }
 };
 
-NAMESPACE_END
+}

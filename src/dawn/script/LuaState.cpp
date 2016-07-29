@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "LuaState.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 void l_logWrite(const String& s)
 {
@@ -77,4 +77,4 @@ lua_State* LuaState::getState()
     return mL;
 }
 
-NAMESPACE_END
+}

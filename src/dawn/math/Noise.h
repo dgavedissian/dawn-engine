@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 #define SAMPLE_SIZE 1024
 class DW_API PerlinNoise
@@ -43,4 +43,4 @@ private:
     bool mStart;
 };
 
-NAMESPACE_END
+}

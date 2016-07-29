@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 enum ConfigNodeType
 {
@@ -99,5 +99,5 @@ private:
     ConfigNodeData mData;
 };
 
-NAMESPACE_END
+}
 #include "ConfigNode.inl"

@@ -6,7 +6,7 @@
 #include "Camera.h"
 #include "Position.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 const Position Position::origin;
 
@@ -143,4 +143,4 @@ const Position Position::operator/(float scalar) const
     return *this * (1.0f / scalar);
 }
 
-NAMESPACE_END
+}

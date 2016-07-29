@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Renderer;
 class RigidEntity;
@@ -59,5 +59,5 @@ private:
     friend class RigidEntity;
 };
 
-NAMESPACE_END
+}
 // TODO physics events

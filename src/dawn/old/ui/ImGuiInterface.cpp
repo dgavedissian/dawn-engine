@@ -7,7 +7,7 @@
 #include "input/Input.h"
 #include "ImGuiInterface.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 ImGuiInterface* gCurrentImGuiInterface = nullptr;
 
@@ -254,4 +254,4 @@ void ImGuiInterface::renderDrawListsCallback(ImDrawData* drawData)
     gCurrentImGuiInterface->renderDrawLists(drawData);
 }
 
-NAMESPACE_END
+}

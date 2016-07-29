@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "Barycentre.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Barycentre::Barycentre(Renderer* rs) : SystemBody(rs)
 {
@@ -15,4 +15,4 @@ Barycentre::~Barycentre()
 {
 }
 
-NAMESPACE_END
+}

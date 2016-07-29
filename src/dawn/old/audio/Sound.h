@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Camera;
 
@@ -50,4 +50,4 @@ private:
     Position mOldPosition;
 };
 
-NAMESPACE_END
+}

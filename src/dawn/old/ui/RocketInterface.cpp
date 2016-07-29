@@ -7,7 +7,7 @@
 #include "renderer/Renderer.h"
 #include "ui/RocketInterface.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // The structure created for each texture loaded by Rocket for Ogre
 struct RocketOgreTexture
@@ -464,4 +464,4 @@ void RocketInterface::setupKeymap()
     mKeyMap[SDLK_RGUI] = KI_RMETA;
 }
 
-NAMESPACE_END
+}

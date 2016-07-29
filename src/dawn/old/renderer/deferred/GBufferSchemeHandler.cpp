@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "GBufferSchemeHandler.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 const String GBufferSchemeHandler::NORMAL_MAP_PATTERN = "normal";
 
@@ -206,4 +206,4 @@ void GBufferSchemeHandler::FillPass(Ogre::Pass* gBufferPass, Ogre::Pass* origina
     gBufferPass->setLightingEnabled(false);
 }
 
-NAMESPACE_END
+}

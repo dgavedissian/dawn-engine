@@ -15,7 +15,7 @@
 
 #include <SDL_syswm.h>
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Renderer::Renderer(const String& basePath, const String& prefPath,
                    Input* inputMgr, const String& windowTitle)
@@ -669,4 +669,4 @@ void Renderer::rayToTriangleCheck(Ogre::Vector3& corner1, Ogre::Vector3& corner2
     }
 }
 
-NAMESPACE_END
+}

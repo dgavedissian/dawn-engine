@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "Orbit.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 CircularOrbit::CircularOrbit(float radius, float period, float phaseDifference /*= 0.0f*/)
     : mRadius(radius), mPeroid(period), mPhaseDiff(phaseDifference)
@@ -29,4 +29,4 @@ Position CircularOrbit::calculatePosition(double time)
     }
 }
 
-NAMESPACE_END
+}

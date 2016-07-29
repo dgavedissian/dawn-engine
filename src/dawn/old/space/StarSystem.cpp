@@ -8,7 +8,7 @@
 #include "script/LuaState.h"
 #include "StarSystem.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 StarSystem::StarSystem(Renderer* rs, PhysicsWorld* pm)
     : mRenderSystem(rs),
@@ -136,4 +136,4 @@ Ogre::SceneNode* StarSystem::getRootSceneNode()
     return mBackgroundSceneNode;
 }
 
-NAMESPACE_END
+}

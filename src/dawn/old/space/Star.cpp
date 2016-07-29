@@ -9,7 +9,7 @@
 #include "StarSystem.h"
 #include "Star.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // TODO: Lens flares:
 // http://www.ogre3d.org/forums/viewtopic.php?f=11&t=65630
@@ -164,4 +164,4 @@ void Star::preRender(Camera* camera)
     SystemBody::preRender(camera);
 }
 
-NAMESPACE_END
+}

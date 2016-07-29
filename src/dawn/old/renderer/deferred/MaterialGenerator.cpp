@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "MaterialGenerator.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 MaterialGenerator::MaterialGenerator() : mVsMask(0), mFsMask(0), mMatMask(0)
 {
@@ -91,4 +91,4 @@ const Ogre::MaterialPtr& MaterialGenerator::GetTemplateMaterial(Perm permutation
     }
 }
 
-NAMESPACE_END
+}

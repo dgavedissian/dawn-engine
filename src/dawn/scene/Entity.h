@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Camera;
 class SceneManager;
@@ -48,4 +48,4 @@ protected:
     Quat mOrientation;
 };
 
-NAMESPACE_END
+}

@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "core/StringUtils.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 namespace str {
 
 CommandLineArgs parseCommandArgs(int argc, char** argv)
@@ -142,4 +142,4 @@ namespace time
 {
 }
 
-NAMESPACE_END
+}

@@ -7,7 +7,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-NAMESPACE_BEGIN
+namespace dw {
 
 ConfigNode ConvertFromYaml(const YAML::Node& node)
 {
@@ -232,4 +232,4 @@ Map<String, ConfigNode>::const_iterator ConfigNode::map_end() const
     return mData.keymap.end();
 }
 
-NAMESPACE_END
+}

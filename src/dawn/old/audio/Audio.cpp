@@ -6,7 +6,7 @@
 #include "scene/Camera.h"
 #include "Audio.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Audio::Audio() : mSoundEngine(nullptr), mCurrentTrack(nullptr), mLastCameraPosition()
 {
@@ -154,4 +154,4 @@ void Audio::destroySound(Sound* sound)
     }
 }
 
-NAMESPACE_END
+}

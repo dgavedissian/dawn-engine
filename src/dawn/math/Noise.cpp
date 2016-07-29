@@ -20,7 +20,7 @@
     r0 = t - (int)t;             \
     r1 = r0 - 1.0f;
 
-NAMESPACE_BEGIN
+namespace dw {
 
 PerlinNoise::PerlinNoise(int octaves, float freq, float amp, int seed)
 {
@@ -313,4 +313,4 @@ void PerlinNoise::normalise3(float v[3])
     v[2] = v[2] * s;
 }
 
-NAMESPACE_END
+}

@@ -6,7 +6,7 @@
 #include "input/Input.h"
 #include "StateManager.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 StateManager::StateManager()
 {
@@ -113,4 +113,4 @@ SharedPtr<State> StateManager::getStateById(uint id)
     return (*it).second;
 }
 
-NAMESPACE_END
+}

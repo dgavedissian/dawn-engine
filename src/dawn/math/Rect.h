@@ -6,7 +6,7 @@
 
 #include "math/Vec2i.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class DW_API Rect
 {
@@ -23,4 +23,4 @@ public:
 
 };
 
-NAMESPACE_END
+}

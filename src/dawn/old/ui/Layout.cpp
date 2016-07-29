@@ -6,7 +6,7 @@
 #include "UI.h"
 #include "Layout.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Layout::Layout(UI* im, Rocket::Core::ElementDocument* document)
     : mInterfaceMgr(im),
@@ -107,4 +107,4 @@ Rocket::Core::ElementDocument* Layout::getDocument()
     return mDocument;
 }
 
-NAMESPACE_END
+}

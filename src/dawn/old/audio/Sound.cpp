@@ -6,7 +6,7 @@
 #include "Audio.h"
 #include "Sound.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Sound::Sound(const String& filename, bool looped, irrklang::ISoundEngine* engine)
     : mIs3D(false), mPosition(Position::origin), mOldPosition(Position::origin)
@@ -90,4 +90,4 @@ float Sound::getVolume() const
     return mSound->getVolume();
 }
 
-NAMESPACE_END
+}

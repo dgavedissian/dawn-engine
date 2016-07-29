@@ -14,7 +14,7 @@
 #define SCALE_FACTOR 4.0f
 #define INITIAL_SIZE 6.0f
 
-NAMESPACE_BEGIN
+namespace dw {
 
 AsteroidBelt::AsteroidBelt(Renderer* rs, float minRadius, float maxRadius, float height)
     : mMinRadius(minRadius), mMaxRadius(maxRadius), mHeight(height)
@@ -109,4 +109,4 @@ void AsteroidBelt::setParent(SystemBody* parent)
     mParent = parent;
 }
 
-NAMESPACE_END
+}

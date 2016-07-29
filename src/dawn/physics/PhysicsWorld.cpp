@@ -7,7 +7,7 @@
 #include "scene/RigidEntity.h"
 #include "PhysicsWorld.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 PhysicsWorld::PhysicsWorld()
 {
@@ -111,4 +111,4 @@ void PhysicsWorld::BulletTickCallback(btDynamicsWorld* world, btScalar timestep)
 {
 }
 
-NAMESPACE_END
+}

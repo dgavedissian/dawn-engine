@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Renderer;
 class Input;
@@ -53,5 +53,5 @@ private:
     static void renderDrawListsCallback(ImDrawData* drawData);
 };
 
-NAMESPACE_END
+}
 

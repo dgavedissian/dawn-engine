@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "Track.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Track::Track(const String& filename, irrklang::ISoundEngine* engine)
 {
@@ -52,4 +52,4 @@ void Track::setVolume(float volume)
     mTrack->setVolume(volume);
 }
 
-NAMESPACE_END
+}

@@ -16,7 +16,7 @@
 // XXX Could make this a singleton/make it private to the DeferredShadingSystem
 // e.g.
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class DW_API AmbientLight : public Ogre::SimpleRenderable
 {
@@ -36,4 +36,4 @@ protected:
     Ogre::MaterialPtr mMaterialPtr;
 };
 
-NAMESPACE_END
+}

@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 namespace str {
 
 //// Command Line
@@ -43,4 +43,4 @@ DW_API DEPRECATED Vec3 randomVec3(const Vec3& min = Vec3(-1.0f, -1.0f, -1.0f),
 DW_API DEPRECATED Vec4 randomVec4(const Vec4& min = Vec4(-1.0f, -1.0f, -1.0f, -1.0f),
                                   const Vec4& max = Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-NAMESPACE_END
+}

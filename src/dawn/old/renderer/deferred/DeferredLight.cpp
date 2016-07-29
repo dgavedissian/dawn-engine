@@ -10,7 +10,7 @@
 #define ENABLE_BIT(mask, flag) (mask) |= (flag)
 #define DISABLE_BIT(mask, flag) (mask) &= ~(flag)
 
-NAMESPACE_BEGIN
+namespace dw {
 
 DeferredLight::DeferredLight(MaterialGenerator* sys, Ogre::Light* parentLight,
                              DeferredLightRenderOperation* renderOp)
@@ -296,4 +296,4 @@ void DeferredLight::updateFromCamera(Ogre::Camera* camera)
     }
 }
 
-NAMESPACE_END
+}

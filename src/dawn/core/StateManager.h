@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // Internal game states
 enum
@@ -91,4 +91,4 @@ private:
     Vector<SharedPtr<State>> mStateStack;
 };
 
-NAMESPACE_END
+}

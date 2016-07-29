@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "GBufferMaterialGenerator.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // Use this directive to control whether you are writing projective (regular) or linear depth.
 #define WRITE_LINEAR_DEPTH
@@ -263,4 +263,4 @@ Ogre::MaterialPtr GBufferMaterialGenerator::GenerateTemplateMaterial(
     return matPtr;
 }
 
-NAMESPACE_END
+}

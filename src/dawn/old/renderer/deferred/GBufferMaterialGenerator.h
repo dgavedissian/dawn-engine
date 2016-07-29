@@ -6,7 +6,7 @@
 
 #include "MaterialGenerator.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 // Class for generating materials for objects to render themselves to the GBuffer
 class DW_API GBufferMaterialGenerator : public MaterialGenerator
@@ -57,4 +57,4 @@ private:
     virtual Ogre::MaterialPtr GenerateTemplateMaterial(MaterialGenerator::Perm permutation) override;
 };
 
-NAMESPACE_END
+}

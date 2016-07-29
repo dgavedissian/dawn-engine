@@ -6,7 +6,7 @@
 #include "core/EventSystem.h"
 #include "core/Timer.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 const EventType EvtData_Exit::eventType(0x98aceab8);
 const EventType EvtData_SendMessage::eventType(0x244cec1b);
@@ -228,4 +228,4 @@ bool EventSystem::update(double maxDuration)
     return queueFlushed;
 }
 
-NAMESPACE_END
+}

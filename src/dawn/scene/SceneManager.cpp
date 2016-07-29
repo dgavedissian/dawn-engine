@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "SceneManager.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 SceneManager::SceneManager()
 {
@@ -23,4 +23,4 @@ void SceneManager::preRender(Camera* camera)
 {
 }
 
-NAMESPACE_END
+}

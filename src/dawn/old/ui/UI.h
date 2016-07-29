@@ -7,7 +7,7 @@
 #include "Layout.h"
 #include "Console.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Renderer;
 class Input;
@@ -113,4 +113,4 @@ public:
     Parameters parameters;
 };
 
-NAMESPACE_END
+}

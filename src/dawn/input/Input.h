@@ -7,7 +7,7 @@
 #include "math/Vec2i.h"
 #include "math/Vec3i.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class DW_API Input
 {
@@ -184,4 +184,4 @@ public:
     Vec2i motion;
 };
 
-NAMESPACE_END
+}

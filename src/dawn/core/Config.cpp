@@ -9,7 +9,7 @@
 dw::String dw::Config::filename;
 dw::ConfigNode dw::Config::root;
 
-NAMESPACE_BEGIN
+namespace dw {
 
 void Config::load(const String& filename)
 {
@@ -30,4 +30,4 @@ void Config::dump()
     LOG << Config::root;
 }
 
-NAMESPACE_END
+}

@@ -8,7 +8,7 @@
 #include "Planet.h"
 #include "Star.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 SystemBody::SystemBody(Renderer* rs)
     : mRenderSystem(rs),
@@ -117,4 +117,4 @@ void SystemBody::calculatePosition(double time)
         (*i)->calculatePosition(time);
 }
 
-NAMESPACE_END
+}

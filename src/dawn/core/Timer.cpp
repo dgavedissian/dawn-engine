@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "core/Timer.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 namespace time {
 
 TimePoint beginTiming()
@@ -32,4 +32,4 @@ String format(SystemTimePoint time, const String& format)
 }
 
 }
-NAMESPACE_END
+}

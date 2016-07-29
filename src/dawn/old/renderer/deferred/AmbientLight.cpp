@@ -6,7 +6,7 @@
 #include "../GeometryUtils.h"
 #include "AmbientLight.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 AmbientLight::AmbientLight()
 {
@@ -78,4 +78,4 @@ void AmbientLight::updateFromCamera(Ogre::Camera* camera)
     }
 }
 
-NAMESPACE_END
+}

@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Camera;
 
@@ -89,4 +89,4 @@ inline Position estimateHit(const Position& position, float speed,
 }
 
 
-NAMESPACE_END
+}

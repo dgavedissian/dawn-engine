@@ -8,7 +8,7 @@
 #include "math/Vec3i.h"
 #include "math/Vec4i.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 template <> struct Converter<bool>
 {
@@ -315,4 +315,4 @@ template <> struct Converter<Vec4i>
     }
 };
 
-NAMESPACE_END
+}

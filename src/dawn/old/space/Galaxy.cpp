@@ -5,6 +5,6 @@
 #include "Common.h"
 #include "Galaxy.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
-NAMESPACE_END
+}

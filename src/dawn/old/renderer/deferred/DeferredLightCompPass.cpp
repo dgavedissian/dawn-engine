@@ -7,7 +7,7 @@
 #include "DeferredLightCompPass.h"
 #include "LightMaterialGenerator.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 DeferredLightRenderOperation::DeferredLightRenderOperation(Ogre::CompositorInstance* instance,
                                                            const Ogre::CompositionPass* pass)
@@ -135,4 +135,4 @@ void DeferredLightRenderOperation::execute(Ogre::SceneManager* sm, Ogre::RenderS
     }
 }
 
-NAMESPACE_END
+}

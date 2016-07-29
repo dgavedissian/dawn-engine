@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "math/Vec2i.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 Vec2i::Vec2i() : x(0), y(0)
 {
@@ -79,4 +79,4 @@ const Vec2i Vec2i::operator/(int scalar) const
     return Vec2i(x / scalar, y / scalar);
 }
 
-NAMESPACE_END
+}

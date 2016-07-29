@@ -16,7 +16,7 @@
 #define FRONT_RINGS_RENDER_QUEUE (BACKGROUND_RENDER_QUEUE + 4)
 #define NEBULA_RENDER_QUEUE (BACKGROUND_RENDER_QUEUE + 5)
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Renderer;
 class PhysicsWorld;
@@ -84,4 +84,4 @@ private:
     Ogre::Entity* mNebula;
 };
 
-NAMESPACE_END
+}

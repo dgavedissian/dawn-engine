@@ -6,7 +6,7 @@
 
 #include "StarSystem.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class DW_API Galaxy
 {
@@ -23,4 +23,4 @@ public:
 
 };
 
-NAMESPACE_END
+}

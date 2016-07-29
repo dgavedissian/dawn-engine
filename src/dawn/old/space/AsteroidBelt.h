@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Renderer;
 class SystemBody;
@@ -41,4 +41,4 @@ private:
     SystemBody* mParent;
 };
 
-NAMESPACE_END
+}

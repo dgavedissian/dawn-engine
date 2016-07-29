@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "core/StringUtils.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
 LogListener::LogListener()
 {
@@ -131,4 +131,4 @@ const Vector<String>& Log::getBuffer() const
     return mLogBuffer;
 }
 
-NAMESPACE_END
+}
