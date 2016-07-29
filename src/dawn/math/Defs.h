@@ -27,9 +27,15 @@ using Vec3 = math::float3;
 using Vec4 = math::float4;
 
 // Matrices
-using Mat2 = math::float2x2;
-using Mat3 = math::float3x3;
-using Mat4 = math::float4x4;
+using Mat22 = math::float2x2;
+using Mat23 = math::float2x3;
+using Mat24 = math::float2x3;
+using Mat33 = math::float3x3;
+using Mat34 = math::float3x4;
+using Mat44 = math::float4x4;
+using Mat2 = Mat22;
+using Mat3 = Mat33;
+using Mat4 = Mat44;
 
 // Quaternion
 using Quat = math::Quat;
