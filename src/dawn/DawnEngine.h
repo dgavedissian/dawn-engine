@@ -6,9 +6,9 @@
 
 // Include everything
 #include "Common.h"
-#include "core/ConfigNode.h"
 #include "core/StateManager.h"
 #include "core/StringUtils.h"
+#include "engine/Config.h"
 #include "engine/Engine.h"
 #include "math/Defs.h"
 #include "math/Noise.h"

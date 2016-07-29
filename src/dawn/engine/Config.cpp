@@ -3,8 +3,7 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-
-#include "Config.h"
+#include "engine/Config.h"
 
 dw::String dw::Config::filename;
 dw::ConfigNode dw::Config::root;

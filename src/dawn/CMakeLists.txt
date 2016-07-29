@@ -2,9 +2,6 @@
 # Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
 
 set(H_FILES
-    core/Config.h
-    core/ConfigNode.h
-    core/ConfigNode.inl
     core/EventSystem.h
     core/FixedMemoryPool.h
     core/Log.h
@@ -13,6 +10,9 @@ set(H_FILES
     core/StateManager.h
     core/StringUtils.h
     core/Timer.h
+    engine/Config.h
+    engine/ConfigNode.h
+    engine/ConfigNode.inl
     engine/Engine.h
     input/Input.h
     math/Defs.h
@@ -23,11 +23,7 @@ set(H_FILES
     math/Vec3i.h
     math/Vec4i.h
     physics/PhysicsWorld.h
-    scene/Camera.h
-    scene/DefaultCamera.h
-    scene/Entity.h
     scene/Position.h
-    scene/RigidEntity.h
     scene/SceneManager.h
     script/LuaState.h
     Common.h
@@ -36,13 +32,13 @@ set(H_FILES
     Prerequisites.h)
 
 set(CPP_FILES
-    core/Config.cpp
-    core/ConfigNode.cpp
     core/EventSystem.cpp
     core/Log.cpp
     core/StateManager.cpp
     core/StringUtils.cpp
     core/Timer.cpp
+    engine/Config.cpp
+    engine/ConfigNode.cpp
     engine/Engine.cpp
     input/Input.cpp
     math/Noise.cpp
@@ -52,11 +48,7 @@ set(CPP_FILES
     math/Vec3i.cpp
     math/Vec4i.cpp
     physics/PhysicsWorld.cpp
-    scene/Camera.cpp
-    scene/DefaultCamera.cpp
-    scene/Entity.cpp
     scene/Position.cpp
-    scene/RigidEntity.cpp
     scene/SceneManager.cpp
     script/LuaState.cpp)
 

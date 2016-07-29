@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "ConfigNode.h"
+#include "engine/ConfigNode.h"
 
 namespace dw {
 
