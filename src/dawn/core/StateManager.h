@@ -49,10 +49,12 @@ enum StateModality
 };
 
 // Manages the games states
-class DW_API StateManager
+class DW_API StateManager : public Object
 {
 public:
-    StateManager();
+    DW_OBJECT(Object)
+
+    StateManager(Context* context);
     ~StateManager();
 
     // Registers a new state

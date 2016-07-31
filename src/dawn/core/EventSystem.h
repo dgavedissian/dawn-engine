@@ -26,10 +26,6 @@ public:
     virtual ~EventData() {}
     virtual const EventType& getType() const = 0;
     virtual const String getName() const = 0;
-
-    // Serialisation for network input/output
-    virtual void serialise(std::ostream& out) const {}
-    virtual void deserialise(std::istream& in) {}
 };
 
 typedef SharedPtr<EventData> EventDataPtr;

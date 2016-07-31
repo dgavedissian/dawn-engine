@@ -97,8 +97,9 @@ template <class K, class T> using HashMap = std::unordered_map<K, T>;
 #define ERROR_FATAL(x) { LOGERR << (x); throw std::runtime_error(x); }
 
 // Common includes
+#include "core/Context.h"
 #include "core/Object.h"
+#include "core/Log.h"
 #include "math/Defs.h"
 #include "scene/Position.h"
-#include "core/Log.h"
 #include "core/EventSystem.h" // TODO(David): Event Data pointer only?

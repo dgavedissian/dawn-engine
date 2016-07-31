@@ -12,8 +12,7 @@ public:
     StringHash();
     explicit StringHash(uint32_t value);
     StringHash(const char* str);
-    StringHash(const String& str)
-        ;
+    StringHash(const String& str);
     StringHash operator +(const StringHash& rhs) const;
     StringHash& operator +=(const StringHash& rhs);
     bool operator ==(const StringHash& rhs) const;
@@ -24,7 +23,7 @@ public:
 
     uint32_t value() const;
     String toString() const;
-    
+
     static uint32_t calculate(const char* str);
 
     static const StringHash ZERO;

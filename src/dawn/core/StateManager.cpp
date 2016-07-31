@@ -8,7 +8,8 @@
 
 namespace dw {
 
-StateManager::StateManager()
+StateManager::StateManager(Context* context) :
+    Object(context)
 {
     ADD_LISTENER(StateManager, EvtData_KeyDown);
 }
