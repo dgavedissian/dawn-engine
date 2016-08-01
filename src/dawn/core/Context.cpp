@@ -7,7 +7,7 @@
 
 namespace dw {
 
-Context::Context() {
+Context::Context(String basePath, String prefPath) : mBasePath(basePath), mPrefPath(prefPath) {
 }
 
 Context::~Context() {
@@ -16,4 +16,5 @@ Context::~Context() {
 void Context::addSubsystem(SharedPtr<Object> subsystem) {
     mSubsystems[subsystem->getType()] = subsystem;
 }
+
 }

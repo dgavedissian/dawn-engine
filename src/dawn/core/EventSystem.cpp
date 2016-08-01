@@ -12,7 +12,7 @@ const EventType EvtData_Exit::eventType(0x98aceab8);
 const EventType EvtData_SendMessage::eventType(0x244cec1b);
 const EventType EvtData_Message::eventType(0x8d859562);
 
-EventSystem::EventSystem() : mActiveQueue(0), mProcessingEvents(false) {
+EventSystem::EventSystem(Context* context) : mActiveQueue(0), mProcessingEvents(false) {
 }
 
 EventSystem::~EventSystem() {

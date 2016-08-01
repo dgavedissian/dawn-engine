@@ -2,6 +2,7 @@
 # Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
 
 set(H_FILES
+    core/Context.h
     core/EventSystem.h
     core/FixedMemoryPool.h
     core/Log.h
@@ -33,6 +34,7 @@ set(H_FILES
     Prerequisites.h)
 
 set(CPP_FILES
+    core/Context.cpp
     core/EventSystem.cpp
     core/Log.cpp
     core/StateManager.cpp
@@ -63,16 +65,8 @@ set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)
 get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
-if(WIN32)
-    add_custom_command(TARGET Dawn POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${DEPS_DIR}/irrKlang.dll ${LIB_DIR})
-    # TODO: Use SDL2_LIBRARIES
-    add_custom_command(TARGET Dawn POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_INCLUDE_DIR}/../lib/x86/SDL2.dll ${LIB_DIR})
-elseif(APPLE)
+if(APPLE)
     set_target_properties(Dawn PROPERTIES FRAMEWORK TRUE)
-    add_custom_command(TARGET Dawn POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${DEPS_DIR}/libirrklang.dylib ${LIB_DIR})
 endif()
 
 # Cotire

@@ -4,9 +4,10 @@
  */
 #pragma once
 
-namespace dw {
+#include "core/Context.h"
+#include "math/StringHash.h"
 
-class Context;
+namespace dw {
 
 class TypeInfo {
 public:
@@ -19,7 +20,8 @@ public:
 private:
     StringHash mType;
     String mTypeName;
-}
+};
+
 #define DW_OBJECT(type)                                \
     typedef type Type;                                 \
     virtual StringHash getType() const {               \
@@ -43,18 +45,22 @@ private:
     }
 
 class Object {
-
 public:
     Object(Context* context);
     virtual ~Object();
 
     Context* getContext() const;
 
+    // Convenient access to context methods
+    template <class T> T* getSubsystem() {
+        return mContext->getSubsystem<T>();
+    }
+
     virtual StringHash getType() const = 0;
     virtual String getTypeName() const = 0;
     virtual TypeInfo getTypeInfo() const = 0;
 
-private:
+protected:
     Context* mContext;
 };
 }

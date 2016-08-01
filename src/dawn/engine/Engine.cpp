@@ -5,31 +5,22 @@
 #include "Common.h"
 #include "DawnEngine.h"
 
-#include "engine/Config.h"
-//#include "core/StringUtils.h"
-
 namespace dw {
-
-Engine* gEngine = nullptr;
 
 // Application entry point
 Engine::Engine(const String& game, const String& version)
-    : mInitialised(false),
+    : Object(nullptr),
+      mInitialised(false),
       mRunning(true),
       mSaveConfigOnExit(true),
       mGameName(game),
       mGameVersion(version),
-      mBasePath(""),
-      mPrefPath(""),
       mLogFile("engine.log"),
-      mConfigFile("engine.cfg"),
-      mMainCamera(nullptr) {
-    gEngine = this;
-
+      mConfigFile("engine.cfg") {
     // Get the base path
-    char* basePath = SDL_GetBasePath();
-    mBasePath = basePath;
-    SDL_free(basePath);
+    char* basePathPtr = SDL_GetBasePath();
+    String basePath = basePathPtr;
+    SDL_free(basePathPtr);
 #if DW_PLATFORM == DW_WIN32
     mBasePath += "..\\";
 #elif DW_PLATFORM == DW_LINUX
@@ -38,9 +29,9 @@ Engine::Engine(const String& game, const String& version)
 
     // Get the preferences path
     // Having an empty org will leave a double slash in the path so replace with a single slash.
-    char* prefPath = SDL_GetPrefPath("", mGameName.c_str());
-    mPrefPath = prefPath;
-    SDL_free(prefPath);
+    char* prefPathPtr = SDL_GetPrefPath("", mGameName.c_str());
+    String prefPath = prefPathPtr;
+    SDL_free(prefPathPtr);
 #if DW_PLATFORM == DW_WIN32
     mPrefPath.replace(mPrefPath.find("\\\\"), 2, "\\");
 #elif DW_PLATFORM == DW_LINUX
@@ -51,11 +42,14 @@ Engine::Engine(const String& game, const String& version)
 #if DW_PLATFORM == DW_WIN32
     SetCurrentDirectoryA(mBasePath.c_str());
 #else
-    chdir(mBasePath.c_str());
+    chdir(basePath.c_str());
 #endif
 
+    // Create context
+    mContext = new Context(basePath, prefPath);
+
     // Initialise logging
-    new Log(mPrefPath + mLogFile);
+    new Log(prefPath + mLogFile);
     LOG << "Starting " << mGameName << " " << mGameVersion;
 #ifdef DW_DEBUG
     LOGWARN << "This is a debug build!";
@@ -74,12 +68,13 @@ void Engine::setup() {
 
     // Create EventSystem
     mEventSystem = new EventSystem;
+    mContext->addSubsystem(makeShared<EventSystem>(mContext));
 
     // Load configuration
     Config::load(mPrefPath + mConfigFile);
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
-    mLuaState = new LuaState;
+    getContext()->addSubsystem(makeShared<LuaState>());
     bindToLua();
 
     // Build window title
@@ -91,15 +86,17 @@ void Engine::setup() {
 #endif
 
     // Create the engine systems
-    mInput = new Input;
-    mRenderer = new Renderer(mBasePath, mPrefPath, mInput, gameTitle);
-    mUI = new UI(mRenderer, mInput, mLuaState);
+    mContext->addSubsystem(makeShared<Input>(mContext));
+    mContext->addSubsystem(makeShared<Renderer>(mContext, gameTitle));
+    //mUI = new UI(mRenderer, mInput, mLuaState);
+    //mAudio = new Audio;
+    //mPhysicsWorld = new PhysicsWorld(mRenderer);
+    //mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->getSceneMgr());
+    //mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
+    mContext->addSubsystem(makeShared<StateManager>(mContext));
+
+    // Set input viewport size
     mInput->setViewportSize(mRenderer->getViewportSize());
-    mAudio = new Audio;
-    mPhysicsWorld = new PhysicsWorld(mRenderer);
-    mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->getSceneMgr());
-    mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
-    mStateMgr = new StateManager;
 
     // Enumerate available video modes
     Vector<SDL_DisplayMode> displayModes = mRenderer->getDeviceDisplayModes();

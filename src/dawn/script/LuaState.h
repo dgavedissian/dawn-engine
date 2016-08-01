@@ -7,27 +7,11 @@
 namespace dw {
 
 // Manages the Lua virtual machine and provides some helper functions
-class DW_API LuaState {
+class DW_API LuaState : public Object {
 public:
-    LuaState();
+    LuaState(Context* context);
     virtual ~LuaState();
 
-    // Execute a string
-    void executeString(const String& str);
-
-    // Execute a file
-    void executeFile(const String& filename);
-
-    // Get an object from the global namespace
-    LuaRef getGlobal(const String& name);
-
-    // Get the global namespace and begin binding
-    Namespace bind();
-
-    // Accessors
-    lua_State* getState();
-
 private:
-    lua_State* mL;
 };
 }

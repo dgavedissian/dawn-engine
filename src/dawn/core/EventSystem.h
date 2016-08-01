@@ -47,9 +47,9 @@ template <class T> SharedPtr<T> castEvent(const EventDataPtr eventData) {
     return staticPointerCast<T>(eventData);
 }
 
-class DW_API EventSystem : public Singleton<EventSystem> {
+class DW_API EventSystem : public Singleton<EventSystem>, public Object {
 public:
-    EventSystem();
+    EventSystem(Context* context);
     virtual ~EventSystem();
 
     // Registers a delegate function that will get called when the event type is triggered
