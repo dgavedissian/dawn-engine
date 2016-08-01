@@ -7,12 +7,9 @@
 
 namespace dw {
 
-Barycentre::Barycentre(Renderer* rs) : SystemBody(rs)
-{
+Barycentre::Barycentre(Renderer* rs) : SystemBody(rs) {
 }
 
-Barycentre::~Barycentre()
-{
+Barycentre::~Barycentre() {
 }
-
 }

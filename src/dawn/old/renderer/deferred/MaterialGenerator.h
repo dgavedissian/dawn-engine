@@ -12,8 +12,7 @@ namespace dw {
 // mapping and other options. Writing all these out is a tedious job. Of course it is possible to
 // always use the material with all features, but that might result in large, slow shader programs.
 // This class provides an efficient solution to that.
-class DW_API MaterialGenerator
-{
+class DW_API MaterialGenerator {
 public:
     // Bitfield used to signify a material permutations
     typedef uint32_t Perm;
@@ -55,5 +54,4 @@ protected:
     ProgramMap mVsMap, mFsMap;
     MaterialMap mTemplateMatMap, mMaterials;
 };
-
 }

@@ -8,33 +8,22 @@
 
 namespace dw {
 
-enum SpriteOrigin
-{
-    SO_TOP_LEFT,
-    SO_TOP_RIGHT,
-    SO_BOTTOM_LEFT,
-    SO_BOTTOM_RIGHT,
-    SO_CENTRE
-};
+enum SpriteOrigin { SO_TOP_LEFT, SO_TOP_RIGHT, SO_BOTTOM_LEFT, SO_BOTTOM_RIGHT, SO_CENTRE };
 
-struct SpriteChunk
-{
-    struct Vertex
-    {
+struct SpriteChunk {
+    struct Vertex {
         Vec2 p;
         Colour c;
         Vec2 tc;
     } vertex[4];
 };
 
-struct VertexChunk
-{
+struct VertexChunk {
     Ogre::Pass* pass;
     uint vertexCount;
 };
 
-struct SpriteDesc
-{
+struct SpriteDesc {
     String textureName;
     Vec2 position, size, origin;
     Rect uv;
@@ -42,8 +31,7 @@ struct SpriteDesc
     float angle;
 };
 
-class DW_API SpriteManager : public Ogre::RenderQueueListener
-{
+class DW_API SpriteManager : public Ogre::RenderQueueListener {
 private:
 public:
     SpriteManager(Ogre::Viewport* viewport, Ogre::SceneManager* sceneMgr);
@@ -92,5 +80,4 @@ private:
     uint mSpriteCount;
     Map<String, Vector<SpriteChunk>> mChunks;
 };
-
 }

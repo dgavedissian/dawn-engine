@@ -5,14 +5,15 @@
 #pragma once
 
 // Macros to make adding/removing event Listeners more sane
-#define ADD_LISTENER(LISTENER, EVENT) \
+#define ADD_LISTENER(LISTENER, EVENT)                                                             \
     dw::EventSystem::inst().addListener(fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), \
-                                    EVENT::eventType);
-#define REMOVE_LISTENER(LISTENER, EVENT) \
-    dw::EventSystem::inst().removeListener(fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), \
-                                       EVENT::eventType);
-#define REMOVE_ALL_LISTENERS(LISTENER) \
-    dw::EventSystem::inst().removeAllListeners(fastdelegate::MakeDelegate(this, &LISTENER::handleEvent))
+                                        EVENT::eventType);
+#define REMOVE_LISTENER(LISTENER, EVENT)    \
+    dw::EventSystem::inst().removeListener( \
+        fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), EVENT::eventType);
+#define REMOVE_ALL_LISTENERS(LISTENER)          \
+    dw::EventSystem::inst().removeAllListeners( \
+        fastdelegate::MakeDelegate(this, &LISTENER::handleEvent))
 
 namespace dw {
 
@@ -20,10 +21,10 @@ namespace dw {
 typedef uint EventType;
 
 // Event data interface
-class DW_API EventData
-{
+class DW_API EventData {
 public:
-    virtual ~EventData() {}
+    virtual ~EventData() {
+    }
     virtual const EventType& getType() const = 0;
     virtual const String getName() const = 0;
 };
@@ -32,25 +33,21 @@ typedef SharedPtr<EventData> EventDataPtr;
 typedef fastdelegate::FastDelegate1<SharedPtr<EventData>> EventListenerDelegate;
 
 // Event listener interface
-class DW_API EventListener
-{
+class DW_API EventListener {
     virtual void handleEvent(EventDataPtr eventData) = 0;
 };
 
 #define EVENTSYSTEM_NUM_QUEUES 2
 
-template <class T> bool eventIs(const EventDataPtr eventData)
-{
+template <class T> bool eventIs(const EventDataPtr eventData) {
     return eventData->getType() == T::eventType;
 }
 
-template <class T> SharedPtr<T> castEvent(const EventDataPtr eventData)
-{
+template <class T> SharedPtr<T> castEvent(const EventDataPtr eventData) {
     return staticPointerCast<T>(eventData);
 }
 
-class DW_API EventSystem : public Singleton<EventSystem>
-{
+class DW_API EventSystem : public Singleton<EventSystem> {
 public:
     EventSystem();
     virtual ~EventSystem();
@@ -107,40 +104,51 @@ private:
 };
 
 // Some bog-standard events
-class DW_API EvtData_Exit : public EventData
-{
+class DW_API EvtData_Exit : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_Exit() { }
-    virtual const EventType& getType() const override { return eventType; }
-    virtual const String getName() const override { return "EvtData_ExitEvent"; }
+    EvtData_Exit() {
+    }
+    virtual const EventType& getType() const override {
+        return eventType;
+    }
+    virtual const String getName() const override {
+        return "EvtData_ExitEvent";
+    }
 };
 
-class DW_API EvtData_SendMessage : public EventData
-{
+class DW_API EvtData_SendMessage : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_SendMessage(const String& s, const String& m) : sender(s), message(m) {}
-    virtual const EventType& getType() const override { return eventType; }
-    virtual const String getName() const override { return "EvtData_SendMessage"; }
+    EvtData_SendMessage(const String& s, const String& m) : sender(s), message(m) {
+    }
+    virtual const EventType& getType() const override {
+        return eventType;
+    }
+    virtual const String getName() const override {
+        return "EvtData_SendMessage";
+    }
 
     String sender;
     String message;
 };
 
-class DW_API EvtData_Message : public EventData
-{
+class DW_API EvtData_Message : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_Message(const String& s, const String& m) : sender(s), message(m) {}
-    virtual const EventType& getType() const override { return eventType; }
-    virtual const String getName() const override { return "EvtData_Message"; }
+    EvtData_Message(const String& s, const String& m) : sender(s), message(m) {
+    }
+    virtual const EventType& getType() const override {
+        return eventType;
+    }
+    virtual const String getName() const override {
+        return "EvtData_Message";
+    }
 
     String sender;
     String message;
 };
-
 }

@@ -10,8 +10,7 @@ class Renderer;
 class SystemBody;
 
 // Attached to a SystemBody - if the camera is located inside the belt then render asteroids
-class DW_API AsteroidBelt
-{
+class DW_API AsteroidBelt {
 public:
     AsteroidBelt(Renderer* rs, float minRadius, float maxRadius, float height);
     ~AsteroidBelt();
@@ -30,8 +29,7 @@ private:
     float mMaxRadius;
     float mHeight;
 
-    struct Asteroid
-    {
+    struct Asteroid {
         Ogre::SceneNode* node;
         Position position;
     };
@@ -40,5 +38,4 @@ private:
 
     SystemBody* mParent;
 };
-
 }

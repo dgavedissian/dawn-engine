@@ -9,17 +9,13 @@
 
 namespace dw {
 
-enum QueryMasks
-{
-    UNIVERSE_OBJECT = 1 << 0
-};
+enum QueryMasks { UNIVERSE_OBJECT = 1 << 0 };
 
 class Camera;
 class DeferredShadingManager;
 class Input;
 
-struct DW_API RendererRaycastResult
-{
+struct DW_API RendererRaycastResult {
     bool hit;
     Ogre::Entity* entity;
     Position position;
@@ -27,11 +23,10 @@ struct DW_API RendererRaycastResult
 };
 
 // Manages the Ogre rendering library and provides some helper functions
-class DW_API Renderer
-{
+class DW_API Renderer {
 public:
     Renderer(const String& basePath, const String& prefPath, Input* inputMgr,
-                 const String& windowTitle);
+             const String& windowTitle);
     ~Renderer();
 
     // Render one frame
@@ -69,14 +64,17 @@ public:
     // Perform a raycast query against the scene bounding boxes by projecting from the camera to the
     // depth specified
     // Screen position in the range [0..1]
-    bool rayPickScreen(const Vec2& screenPosition, float depth, Camera* camera, RendererRaycastResult& result);
+    bool rayPickScreen(const Vec2& screenPosition, float depth, Camera* camera,
+                       RendererRaycastResult& result);
 
     // Perform a raycast query against the scene bounding boxes between two points
-    bool rayQueryAabb(const Vec3& start, const Vec3& end, Camera* camera, RendererRaycastResult& result);
+    bool rayQueryAabb(const Vec3& start, const Vec3& end, Camera* camera,
+                      RendererRaycastResult& result);
 
     // Perform a raycast query against the scene geometry between two points
     // Be warned that this is quite an expensive operation
-    bool rayQueryGeometry(const Vec3& start, const Vec3& end, Camera* camera, RendererRaycastResult& result);
+    bool rayQueryGeometry(const Vec3& start, const Vec3& end, Camera* camera,
+                          RendererRaycastResult& result);
 
     /// Post process effects
     DEPRECATED void togglePostEffect(const String& name, bool enabled);
@@ -92,21 +90,43 @@ public:
     Vector<SDL_DisplayMode> getDeviceDisplayModes() const;
 
     // Accessors
-    uint getWidth() const { return mViewport->getActualWidth(); }
-    uint getHeight() const { return mViewport->getActualHeight(); }
-    Vec2i getViewportSize() const { return Vec2i(getWidth(), getHeight()); }
-    float getAspectRatio() const { return (float)getWidth() / (float)getHeight(); }
-    SpriteManager* getSpriteMgr() { return mSpriteManager; }
-    DEPRECATED Ogre::SceneManager* getSceneMgr() { return mSceneManager; }
-    DEPRECATED Ogre::SceneNode* getRootSceneNode() { return mRootNode; }
-    DEPRECATED Ogre::RenderWindow* getWindow() { return mRenderWindow; }
-    DEPRECATED Ogre::Viewport* getViewport() { return mViewport; }
-    DEPRECATED DeferredShadingManager* getDeferredShadingMgr() { return mDeferredShadingMgr; }
-    DEPRECATED Ogre::RenderSystem* getOgreRenderSystem() const { return mRoot->getRenderSystem(); }
+    uint getWidth() const {
+        return mViewport->getActualWidth();
+    }
+    uint getHeight() const {
+        return mViewport->getActualHeight();
+    }
+    Vec2i getViewportSize() const {
+        return Vec2i(getWidth(), getHeight());
+    }
+    float getAspectRatio() const {
+        return (float)getWidth() / (float)getHeight();
+    }
+    SpriteManager* getSpriteMgr() {
+        return mSpriteManager;
+    }
+    DEPRECATED Ogre::SceneManager* getSceneMgr() {
+        return mSceneManager;
+    }
+    DEPRECATED Ogre::SceneNode* getRootSceneNode() {
+        return mRootNode;
+    }
+    DEPRECATED Ogre::RenderWindow* getWindow() {
+        return mRenderWindow;
+    }
+    DEPRECATED Ogre::Viewport* getViewport() {
+        return mViewport;
+    }
+    DEPRECATED DeferredShadingManager* getDeferredShadingMgr() {
+        return mDeferredShadingMgr;
+    }
+    DEPRECATED Ogre::RenderSystem* getOgreRenderSystem() const {
+        return mRoot->getRenderSystem();
+    }
 
-	/// Access the Resource Manager
+    /// Access the Resource Manager
     // TODO: Move this into a seperate class
-	void addResourceLocation(const String& location) {
+    void addResourceLocation(const String& location) {
         LOG << "Adding location: " << location;
         mResourceMgr->addResourceLocation(location, "FileSystem");
     }
@@ -125,7 +145,7 @@ public:
         // Add locations
         for (String& location : rl)
             addResourceLocation(prefix + "/" + location);
-	    mResourceMgr->initialiseAllResourceGroups();
+        mResourceMgr->initialiseAllResourceGroups();
     }
 
 private:
@@ -143,15 +163,15 @@ private:
     Ogre::SceneManager* mSceneManager;
     Ogre::SceneNode* mRootNode;
     Ogre::RenderWindow* mRenderWindow;
-	Ogre::ResourceGroupManager* mResourceMgr;
+    Ogre::ResourceGroupManager* mResourceMgr;
 
     Ogre::Viewport* mViewport;
     Ogre::Camera* mDefaultCamera;
 
     Ogre::RaySceneQuery* mRaySceneQuery;
 
-	// Ogre Plugins
-	Ogre::GL3PlusPlugin* mRenderSystemPlugin;
+    // Ogre Plugins
+    Ogre::GL3PlusPlugin* mRenderSystemPlugin;
 
     // Deferred Shading Pipeline
     DeferredShadingManager* mDeferredShadingMgr;
@@ -178,8 +198,6 @@ private:
     void findClosestPolygon(Ogre::Entity* entity, float& closestDistance, Ogre::Vector3& position,
                             Ogre::Vector3& normal);
     void rayToTriangleCheck(Ogre::Vector3& corner1, Ogre::Vector3& corner2, Ogre::Vector3& corner3,
-                            float& closestDistance, Ogre::Vector3& position,
-                            Ogre::Vector3& normal);
+                            float& closestDistance, Ogre::Vector3& position, Ogre::Vector3& normal);
 };
-
 }

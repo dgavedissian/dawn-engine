@@ -6,8 +6,7 @@
 
 namespace dw {
 
-class DW_API Vec2i
-{
+class DW_API Vec2i {
 public:
     int x, y;
 
@@ -28,5 +27,4 @@ public:
     const Vec2i operator*(int scalar) const;
     const Vec2i operator/(int scalar) const;
 };
-
 }

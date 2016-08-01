@@ -8,23 +8,15 @@ namespace dw {
 
 class UI;
 
-enum ShowType
-{
+enum ShowType {
     None = Rocket::Core::ElementDocument::NONE,
     Focus = Rocket::Core::ElementDocument::FOCUS,
     Modal = Rocket::Core::ElementDocument::MODAL
 };
 
-enum UIEvent
-{
-    UI_MOUSE_ENTER,
-    UI_MOUSE_LEAVE,
-    UI_CLICK,
-    UI_SUBMIT
-};
+enum UIEvent { UI_MOUSE_ENTER, UI_MOUSE_LEAVE, UI_CLICK, UI_SUBMIT };
 
-class DW_API Layout
-{
+class DW_API Layout {
 public:
     Layout(UI* im, Rocket::Core::ElementDocument* document);
     ~Layout();
@@ -59,5 +51,4 @@ private:
     Rocket::Core::ElementDocument* mDocument;
     List<std::tuple<String, String, Rocket::Core::EventListener*>> mListeners;
 };
-
 }

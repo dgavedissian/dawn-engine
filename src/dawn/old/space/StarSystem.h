@@ -24,8 +24,7 @@ class PhysicsWorld;
 // TODO: Merge this into Galaxy?
 
 // Handles a planetary system
-class DW_API StarSystem
-{
+class DW_API StarSystem {
 public:
     StarSystem(Renderer* rs, PhysicsWorld* pm);
     ~StarSystem();
@@ -83,5 +82,4 @@ private:
     Ogre::SceneNode* mNebulaSceneNode;
     Ogre::Entity* mNebula;
 };
-
 }

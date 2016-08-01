@@ -9,6 +9,4 @@
 namespace dw {
 
 uintptr_t getWindowContentViewHandle(SDL_SysWMinfo &info);
-
 }
-

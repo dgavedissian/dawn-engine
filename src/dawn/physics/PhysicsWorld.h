@@ -12,8 +12,7 @@ class Camera;
 
 // Structure to hold the result of a raycast
 // TODO: merge this with RendererRaycastResult
-struct DW_API PhysicsRaycastResult
-{
+struct DW_API PhysicsRaycastResult {
     RigidEntity* body;
     Position position;
     Vec3 normal;
@@ -21,8 +20,7 @@ struct DW_API PhysicsRaycastResult
 };
 
 // Manages the Bullet physics library and provides some helper functions.
-class DW_API PhysicsWorld
-{
+class DW_API PhysicsWorld {
 public:
     PhysicsWorld();
     ~PhysicsWorld();
@@ -35,7 +33,7 @@ public:
 
     // Performs a raycast query
     bool rayQuery(const Position& start, const Position& end, Camera* camera,
-                      PhysicsRaycastResult& result);
+                  PhysicsRaycastResult& result);
 
 private:
     SharedPtr<btBroadphaseInterface> mBroadphase;
@@ -58,6 +56,5 @@ private:
     // Grant RigidEntity access to AddToWorld/RemoveFromWorld
     friend class RigidEntity;
 };
-
 }
 // TODO physics events

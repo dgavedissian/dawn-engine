@@ -8,63 +8,52 @@
 
 namespace dw {
 
-Audio::Audio() : mSoundEngine(nullptr), mCurrentTrack(nullptr), mLastCameraPosition()
-{
+Audio::Audio() : mSoundEngine(nullptr), mCurrentTrack(nullptr), mLastCameraPosition() {
     mSoundEngine = irrklang::createIrrKlangDevice(
         irrklang::ESOD_AUTO_DETECT, irrklang::ESEO_MULTI_THREADED | irrklang::ESEO_LOAD_PLUGINS |
                                         irrklang::ESEO_USE_3D_BUFFERS);
 }
 
-Audio::~Audio()
-{
+Audio::~Audio() {
     mSounds.clear();
     mTracks.clear();
     mSoundEngine->drop();
 }
 
-void Audio::playTrack(const String& filename)
-{
-    if (mCurrentTrack)
-    {
+void Audio::playTrack(const String& filename) {
+    if (mCurrentTrack) {
         destroyTrack(mCurrentTrack);
     }
 
     // Attempt to play the next track
-    try
-    {
+    try {
         mCurrentTrack = createTrack(filename);
         mCurrentTrack->play();
-    }
-    catch (std::runtime_error& e)
-    {
+    } catch (std::runtime_error& e) {
         LOG << "Runtime Error: " << e.what();
         destroyTrack(mCurrentTrack);
         mCurrentTrack = nullptr;
     }
 }
 
-void Audio::playSound(const String& filename)
-{
+void Audio::playSound(const String& filename) {
     Sound* sound = createSound(filename);
     sound->play();
     mImmediateSounds.push_back(sound);
 }
 
 void Audio::playSound(const String& filename, const Position& position, float minDistance,
-                             float attenuation /*= 0.5f*/)
-{
+                      float attenuation /*= 0.5f*/) {
     Sound* sound = createSound(filename, position);
     sound->setMinDistance(minDistance);
     sound->play();
     mImmediateSounds.push_back(sound);
 }
 
-void Audio::update(float dt, Camera* listener)
-{
+void Audio::update(float dt, Camera* listener) {
     // Calculate velocity
-    Vec3 velocity = dt > M_EPSILON
-                        ? listener->getPosition().getRelativeTo(mLastCameraPosition) / dt
-                        : Vec3(0.0f, 0.0f, 0.0f);
+    Vec3 velocity = dt > M_EPSILON ? listener->getPosition().getRelativeTo(mLastCameraPosition) / dt
+                                   : Vec3(0.0f, 0.0f, 0.0f);
     mLastCameraPosition = listener->getPosition();
 
     // Update Listener orientation
@@ -74,15 +63,11 @@ void Audio::update(float dt, Camera* listener)
 
     // Clear immediate sounds
     auto i = mImmediateSounds.begin();
-    while (i != mImmediateSounds.end())
-    {
-        if ((*i)->isFinished())
-        {
+    while (i != mImmediateSounds.end()) {
+        if ((*i)->isFinished()) {
             destroySound(*i);
             i = mImmediateSounds.erase(i);
-        }
-        else
-        {
+        } else {
             i++;
         }
     }
@@ -92,26 +77,21 @@ void Audio::update(float dt, Camera* listener)
         snd->update(listener, dt);
 }
 
-irrklang::ISoundEngine* Audio::getSoundEngine()
-{
+irrklang::ISoundEngine* Audio::getSoundEngine() {
     return mSoundEngine;
 }
 
-Track* Audio::createTrack(const String& filename)
-{
+Track* Audio::createTrack(const String& filename) {
     SharedPtr<Track> track = makeShared<Track>("Media/Sounds/" + filename, mSoundEngine);
     mTracks.push_back(track);
     return track.get();
 }
 
-void Audio::destroyTrack(Track* track)
-{
+void Audio::destroyTrack(Track* track) {
     // Swap and pop
     auto i = mTracks.begin();
-    while (i != mTracks.end())
-    {
-        if ((*i).get() == track)
-        {
+    while (i != mTracks.end()) {
+        if ((*i).get() == track) {
             *i = std::move(mTracks.back());
             mTracks.pop_back();
             break;
@@ -121,30 +101,25 @@ void Audio::destroyTrack(Track* track)
     }
 }
 
-Sound* Audio::createSound(const String& filename, bool looped /*= false*/)
-{
+Sound* Audio::createSound(const String& filename, bool looped /*= false*/) {
     SharedPtr<Sound> sound = makeShared<Sound>("media/sounds/" + filename, looped, mSoundEngine);
     mSounds.push_back(sound);
     return sound.get();
 }
 
 Sound* Audio::createSound(const String& filename, const Position& position,
-                                 bool looped /*= false*/)
-{
+                          bool looped /*= false*/) {
     SharedPtr<Sound> sound =
         makeShared<Sound>("media/sounds/" + filename, position, looped, mSoundEngine);
     mSounds.push_back(sound);
     return sound.get();
 }
 
-void Audio::destroySound(Sound* sound)
-{
+void Audio::destroySound(Sound* sound) {
     // Swap and pop
     auto i = mSounds.begin();
-    while (i != mSounds.end())
-    {
-        if ((*i).get() == sound)
-        {
+    while (i != mSounds.end()) {
+        if ((*i).get() == sound) {
             *i = std::move(mSounds.back());
             mSounds.pop_back();
             break;
@@ -153,5 +128,4 @@ void Audio::destroySound(Sound* sound)
         i++;
     }
 }
-
 }

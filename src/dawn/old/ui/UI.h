@@ -15,8 +15,7 @@ class RocketInterface;
 class ImGuiInterface;
 
 // Handles the graphical user interface
-class DW_API UI : public Rocket::Core::EventListener, public Ogre::RenderQueueListener
-{
+class DW_API UI : public Rocket::Core::EventListener, public Ogre::RenderQueueListener {
 public:
     UI(Renderer* rs, Input* im, LuaState* ls);
     ~UI();
@@ -36,12 +35,14 @@ public:
     void handleEvent(EventDataPtr eventData);
 
     // Inherited from Rocket::Core::EventListener
-	virtual void ProcessEvent(Rocket::Core::Event& event) override;
+    virtual void ProcessEvent(Rocket::Core::Event& event) override;
 
     // Inherited from Ogre::RenderQueueListener
     virtual void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String&, bool&) override;
 
-    RocketInterface* getRocketInterface() { return mRocketInterface.get(); }
+    RocketInterface* getRocketInterface() {
+        return mRocketInterface.get();
+    }
 
 private:
     Renderer* mRenderSystem;
@@ -58,59 +59,73 @@ private:
 
 private:
     void buildProjMatrix(Ogre::Matrix4& projectionMatrix);
-
 };
 
-class DW_API EvtData_UIMouseEnter : public EventData
-{
+class DW_API EvtData_UIMouseEnter : public EventData {
 public:
     typedef Map<String, String> Parameters;
     static const EventType eventType;
-    EvtData_UIMouseEnter(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
-    const EventType& getType() const override { return eventType; }
-    const String getName() const override { return "EvtData_UIMouseOver"; }
+    EvtData_UIMouseEnter(const String& _id, const Parameters& p) : id(_id), parameters(p) {
+    }
+    const EventType& getType() const override {
+        return eventType;
+    }
+    const String getName() const override {
+        return "EvtData_UIMouseOver";
+    }
 
     String id;
     Parameters parameters;
 };
 
-class DW_API EvtData_UIMouseLeave : public EventData
-{
+class DW_API EvtData_UIMouseLeave : public EventData {
 public:
     typedef Map<String, String> Parameters;
     static const EventType eventType;
-    EvtData_UIMouseLeave(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
-    const EventType& getType() const override { return eventType; }
-    const String getName() const override { return "EvtData_UIMouseLeave"; }
+    EvtData_UIMouseLeave(const String& _id, const Parameters& p) : id(_id), parameters(p) {
+    }
+    const EventType& getType() const override {
+        return eventType;
+    }
+    const String getName() const override {
+        return "EvtData_UIMouseLeave";
+    }
 
     String id;
     Parameters parameters;
 };
 
-class DW_API EvtData_UIClick : public EventData
-{
+class DW_API EvtData_UIClick : public EventData {
 public:
     typedef Map<String, String> Parameters;
     static const EventType eventType;
-    EvtData_UIClick(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
-    const EventType& getType() const override { return eventType; }
-    const String getName() const override { return "EvtData_UIClick"; }
+    EvtData_UIClick(const String& _id, const Parameters& p) : id(_id), parameters(p) {
+    }
+    const EventType& getType() const override {
+        return eventType;
+    }
+    const String getName() const override {
+        return "EvtData_UIClick";
+    }
 
     String id;
     Parameters parameters;
 };
 
-class DW_API EvtData_UISubmit : public EventData
-{
+class DW_API EvtData_UISubmit : public EventData {
 public:
     typedef Map<String, String> Parameters;
     static const EventType eventType;
-    EvtData_UISubmit(const String& _id, const Parameters& p) : id(_id), parameters(p) {}
-    const EventType& getType() const override { return eventType; }
-    const String getName() const override { return "EvtData_UISubmit"; }
+    EvtData_UISubmit(const String& _id, const Parameters& p) : id(_id), parameters(p) {
+    }
+    const EventType& getType() const override {
+        return eventType;
+    }
+    const String getName() const override {
+        return "EvtData_UISubmit";
+    }
 
     String id;
     Parameters parameters;
 };
-
 }

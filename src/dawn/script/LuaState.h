@@ -7,8 +7,7 @@
 namespace dw {
 
 // Manages the Lua virtual machine and provides some helper functions
-class DW_API LuaState
-{
+class DW_API LuaState {
 public:
     LuaState();
     virtual ~LuaState();
@@ -31,5 +30,4 @@ public:
 private:
     lua_State* mL;
 };
-
 }

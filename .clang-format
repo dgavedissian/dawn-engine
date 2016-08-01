@@ -1,0 +1,10 @@
+---
+BasedOnStyle: Google
+AccessModifierOffset: '-4'
+AlwaysBreakTemplateDeclarations: 'false'
+AllowShortFunctionsOnASingleLine: 'None'
+AllowShortLoopsOnASingleLine: 'false'
+ColumnLimit: '100'
+IndentWidth: '4'
+SortIncludes: 'false'
+...

@@ -5,6 +5,4 @@
 #include "Common.h"
 #include "Galaxy.h"
 
-namespace dw {
-
-}
+namespace dw {}

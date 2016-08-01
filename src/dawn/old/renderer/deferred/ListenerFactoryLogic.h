@@ -8,18 +8,15 @@ namespace dw {
 
 // The simple types of compositor logics will all do the same thing - Attach a Listener to the
 // created compositor
-class DW_API ListenerFactoryLogic : public Ogre::CompositorLogic
-{
+class DW_API ListenerFactoryLogic : public Ogre::CompositorLogic {
 public:
-    virtual void compositorInstanceCreated(Ogre::CompositorInstance* newInstance)
-    {
+    virtual void compositorInstanceCreated(Ogre::CompositorInstance* newInstance) {
         Ogre::CompositorInstance::Listener* Listener = CreateListener(newInstance);
         newInstance->addListener(Listener);
         mListeners[newInstance] = Listener;
     }
 
-    virtual void compositorInstanceDestroyed(Ogre::CompositorInstance* destroyedInstance)
-    {
+    virtual void compositorInstanceDestroyed(Ogre::CompositorInstance* destroyedInstance) {
         delete mListeners[destroyedInstance];
         mListeners.erase(destroyedInstance);
     }
@@ -33,5 +30,4 @@ private:
     typedef Map<Ogre::CompositorInstance*, Ogre::CompositorInstance::Listener*> ListenerMap;
     ListenerMap mListeners;
 };
-
 }

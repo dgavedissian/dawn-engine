@@ -10,10 +10,8 @@
 namespace dw {
 class Renderer;
 
-
 // Base class for any bodies inside a planetary system
-class DW_API SystemBody : public EnableSharedFromThis<SystemBody>
-{
+class DW_API SystemBody : public EnableSharedFromThis<SystemBody> {
 public:
     SystemBody(Renderer* rs);
     virtual ~SystemBody();
@@ -63,5 +61,4 @@ protected:
 
     Position mPosition;
 };
-
 }

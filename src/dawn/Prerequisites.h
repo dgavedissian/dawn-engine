@@ -8,11 +8,10 @@
 
 // Mark this header as a system header
 #if defined(DW_GCC) || defined(DW_CLANG)
-#   pragma GCC system_header
+#pragma GCC system_header
 #elif defined(DW_MSVC)
-#   pragma warning(push, 0)
+#pragma warning(push, 0)
 #endif
-
 
 //
 // Standard library
@@ -41,7 +40,6 @@
 #include <typeinfo>
 #include <chrono>
 
-
 //
 // External Libraries
 //
@@ -59,7 +57,7 @@
 #define LOGGING_SUPPORT_DISABLED
 #include <MathGeoLib.h>
 #ifdef LOG
-#   undef LOG
+#undef LOG
 #endif
 
 // SDL
@@ -67,15 +65,14 @@
 
 // Undefine conflicting names define by stupid platform SDKs
 #ifdef PlaySound
-#   undef PlaySound
+#undef PlaySound
 #endif
 #ifdef None
-#   undef None
+#undef None
 #endif
 #ifdef Nil
-#   undef Nil
+#undef Nil
 #endif
-
 
 //
 // Bundled Libraries
@@ -90,8 +87,7 @@
 // FastDelegate
 #include "FastDelegate.h"
 
-
 // Re-enable warnings
 #if defined(DW_MSVC)
-#   pragma warning(pop)
+#pragma warning(pop)
 #endif

@@ -6,8 +6,7 @@
 
 namespace dw {
 
-class Renderer : public Object
-{
+class Renderer : public Object {
 public:
     DW_OBJECT(Renderer);
 
@@ -16,7 +15,5 @@ public:
 
     void setup(int width, int height);
     void shutdown();
-
 }
-
 }

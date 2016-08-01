@@ -8,9 +8,8 @@
 
 namespace dw {
 
-AmbientLight::AmbientLight()
-{
-    //setRenderQueueGroup(Ogre::RENDER_QUEUE_2);
+AmbientLight::AmbientLight() {
+    // setRenderQueueGroup(Ogre::RENDER_QUEUE_2);
 
     mRenderOp.vertexData = new Ogre::VertexData();
     mRenderOp.indexData = nullptr;
@@ -21,7 +20,8 @@ AmbientLight::AmbientLight()
     mRenderOp.useIndexes = false;
 
     // Set bounding
-    setBoundingBox(Ogre::AxisAlignedBox(-10000000000, -10000000000, -10000000000, 10000000000, 10000000000, 10000000000));
+    setBoundingBox(Ogre::AxisAlignedBox(-10000000000, -10000000000, -10000000000, 10000000000,
+                                        10000000000, 10000000000));
     mRadius = 15000;
 
     mMaterialPtr = Ogre::MaterialManager::getSingleton().getByName("DeferredShading/AmbientLight");
@@ -29,40 +29,33 @@ AmbientLight::AmbientLight()
     mMaterialPtr->load();
 }
 
-AmbientLight::~AmbientLight()
-{
+AmbientLight::~AmbientLight() {
     // need to release IndexData and vertexData created for renderable
     delete mRenderOp.indexData;
     delete mRenderOp.vertexData;
 }
 
-Ogre::Real AmbientLight::getBoundingRadius() const
-{
+Ogre::Real AmbientLight::getBoundingRadius() const {
     return mRadius;
 }
 
-Ogre::Real AmbientLight::getSquaredViewDepth(const Ogre::Camera*) const
-{
+Ogre::Real AmbientLight::getSquaredViewDepth(const Ogre::Camera*) const {
     return 0.0;
 }
 
-const Ogre::MaterialPtr& AmbientLight::getMaterial() const
-{
+const Ogre::MaterialPtr& AmbientLight::getMaterial() const {
     return mMaterialPtr;
 }
 
-void AmbientLight::getWorldTransforms(Ogre::Matrix4* xform) const
-{
+void AmbientLight::getWorldTransforms(Ogre::Matrix4* xform) const {
     *xform = Ogre::Matrix4::IDENTITY;
 }
 
-void AmbientLight::updateFromCamera(Ogre::Camera* camera)
-{
+void AmbientLight::updateFromCamera(Ogre::Camera* camera) {
     Ogre::Technique* tech = getMaterial()->getBestTechnique();
     Ogre::Vector3 farCorner = camera->getViewMatrix(true) * camera->getWorldSpaceCorners()[4];
 
-    for (unsigned short i = 0; i < tech->getNumPasses(); i++)
-    {
+    for (unsigned short i = 0; i < tech->getNumPasses(); i++) {
         Ogre::Pass* pass = tech->getPass(i);
 
         // Get the vertex shader parameters
@@ -77,5 +70,4 @@ void AmbientLight::updateFromCamera(Ogre::Camera* camera)
             params->setNamedConstant("farCorner", farCorner);
     }
 }
-
 }

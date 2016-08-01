@@ -22,8 +22,7 @@
 
 namespace dw {
 
-PerlinNoise::PerlinNoise(int octaves, float freq, float amp, int seed)
-{
+PerlinNoise::PerlinNoise(int octaves, float freq, float amp, int seed) {
     mOctaves = octaves;
     mFrequency = freq;
     mAmplitude = amp;
@@ -31,21 +30,18 @@ PerlinNoise::PerlinNoise(int octaves, float freq, float amp, int seed)
     mStart = true;
 }
 
-float PerlinNoise::noise(float x)
-{
+float PerlinNoise::noise(float x) {
     return perlin1(x);
 }
 
-float PerlinNoise::noise(float x, float y)
-{
+float PerlinNoise::noise(float x, float y) {
     float vec[2];
     vec[0] = x;
     vec[1] = y;
     return perlin2(vec);
 }
 
-float PerlinNoise::noise(float x, float y, float z)
-{
+float PerlinNoise::noise(float x, float y, float z) {
     float vec[3];
     vec[0] = x;
     vec[1] = y;
@@ -53,64 +49,54 @@ float PerlinNoise::noise(float x, float y, float z)
     return perlin3(vec);
 }
 
-void PerlinNoise::init()
-{
+void PerlinNoise::init() {
     int i, j, k;
 
-    for (i = 0; i < B; i++)
-    {
+    for (i = 0; i < B; i++) {
         p[i] = i;
         g1[i] = (float)((rand() % (B + B)) - B) / B;
 
-        for (j = 0; j < 2; j++)
-        {
+        for (j = 0; j < 2; j++) {
             g2[i][j] = (float)((rand() % (B + B)) - B) / B;
         }
 
         normalise2(g2[i]);
 
-        for (j = 0; j < 3; j++)
-        {
+        for (j = 0; j < 3; j++) {
             g3[i][j] = (float)((rand() % (B + B)) - B) / B;
         }
 
         normalise3(g3[i]);
     }
 
-    while (--i)
-    {
+    while (--i) {
         k = p[i];
         p[i] = p[j = rand() % B];
         p[j] = k;
     }
 
-    for (i = 0; i < B + 2; i++)
-    {
+    for (i = 0; i < B + 2; i++) {
         p[B + i] = p[i];
         g1[B + i] = g1[i];
 
-        for (j = 0; j < 2; j++)
-        {
+        for (j = 0; j < 2; j++) {
             g2[B + i][j] = g2[i][j];
         }
 
-        for (j = 0; j < 3; j++)
-        {
+        for (j = 0; j < 3; j++) {
             g3[B + i][j] = g3[i][j];
         }
     }
 }
 
-float PerlinNoise::perlin1(float arg)
-{
+float PerlinNoise::perlin1(float arg) {
     int terms = mOctaves;
     float result = 0.0f;
     float amp = mAmplitude;
 
     arg *= mFrequency;
 
-    for (int i = 0; i < terms; i++)
-    {
+    for (int i = 0; i < terms; i++) {
         result += noise1(arg) * amp;
         arg *= 2.0f;
         amp *= 0.5f;
@@ -119,8 +105,7 @@ float PerlinNoise::perlin1(float arg)
     return result;
 }
 
-float PerlinNoise::perlin2(float vec[2])
-{
+float PerlinNoise::perlin2(float vec[2]) {
     int terms = mOctaves;
     float result = 0.0f;
     float amp = mAmplitude;
@@ -128,8 +113,7 @@ float PerlinNoise::perlin2(float vec[2])
     vec[0] *= mFrequency;
     vec[1] *= mFrequency;
 
-    for (int i = 0; i < terms; i++)
-    {
+    for (int i = 0; i < terms; i++) {
         result += noise2(vec) * amp;
         vec[0] *= 2.0f;
         vec[1] *= 2.0f;
@@ -139,8 +123,7 @@ float PerlinNoise::perlin2(float vec[2])
     return result;
 }
 
-float PerlinNoise::perlin3(float vec[3])
-{
+float PerlinNoise::perlin3(float vec[3]) {
     int terms = mOctaves;
     float result = 0.0f;
     float amp = mAmplitude;
@@ -149,8 +132,7 @@ float PerlinNoise::perlin3(float vec[3])
     vec[1] *= mFrequency;
     vec[2] *= mFrequency;
 
-    for (int i = 0; i < terms; i++)
-    {
+    for (int i = 0; i < terms; i++) {
         result += noise3(vec) * amp;
         vec[0] *= 2.0f;
         vec[1] *= 2.0f;
@@ -161,15 +143,13 @@ float PerlinNoise::perlin3(float vec[3])
     return result;
 }
 
-float PerlinNoise::noise1(float arg)
-{
+float PerlinNoise::noise1(float arg) {
     int bx0, bx1;
     float rx0, rx1, sx, t, u, v, vec[1];
 
     vec[0] = arg;
 
-    if (mStart)
-    {
+    if (mStart) {
         srand(mSeed);
         mStart = false;
         init();
@@ -185,14 +165,12 @@ float PerlinNoise::noise1(float arg)
     return math::Lerp(sx, u, v);
 }
 
-float PerlinNoise::noise2(float vec[2])
-{
+float PerlinNoise::noise2(float vec[2]) {
     int bx0, bx1, by0, by1, b00, b10, b01, b11;
     float rx0, rx1, ry0, ry1, *q, sx, sy, a, b, t, u, v;
     int i, j;
 
-    if (mStart)
-    {
+    if (mStart) {
         srand(mSeed);
         mStart = false;
         init();
@@ -229,14 +207,12 @@ float PerlinNoise::noise2(float vec[2])
     return math::Lerp(sy, a, b);
 }
 
-float PerlinNoise::noise3(float vec[3])
-{
+float PerlinNoise::noise3(float vec[3]) {
     int bx0, bx1, by0, by1, bz0, bz1, b00, b10, b01, b11;
     float rx0, rx1, ry0, ry1, rz0, rz1, *q, sy, sz, a, b, c, d, t, u, v;
     int i, j;
 
-    if (mStart)
-    {
+    if (mStart) {
         srand(mSeed);
         mStart = false;
         init();
@@ -291,8 +267,7 @@ float PerlinNoise::noise3(float vec[3])
     return math::Lerp(sz, c, d);
 }
 
-void PerlinNoise::normalise2(float v[2])
-{
+void PerlinNoise::normalise2(float v[2]) {
     float s;
 
     s = (float)sqrt(v[0] * v[0] + v[1] * v[1]);
@@ -301,8 +276,7 @@ void PerlinNoise::normalise2(float v[2])
     v[1] = v[1] * s;
 }
 
-void PerlinNoise::normalise3(float v[3])
-{
+void PerlinNoise::normalise3(float v[3]) {
     float s;
 
     s = (float)sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
@@ -312,5 +286,4 @@ void PerlinNoise::normalise3(float v[3])
     v[1] = v[1] * s;
     v[2] = v[2] * s;
 }
-
 }

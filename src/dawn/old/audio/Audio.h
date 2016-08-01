@@ -12,8 +12,7 @@ namespace dw {
 class Camera;
 
 // Manages IrrKlang and provides some helper functions
-class DW_API Audio
-{
+class DW_API Audio {
 public:
     Audio();
     ~Audio();
@@ -36,7 +35,7 @@ public:
     /// @param filename The filename of the sound to be played
     /// @param filename The filename of the sound to be played
     DEPRECATED void playSound(const String& filename, const Position& position, float minDistance,
-                   float attenuation = 0.5f);
+                              float attenuation = 0.5f);
 
     // ---------------------------------------------------
 
@@ -85,7 +84,5 @@ private:
 
     // Camera velocity
     Position mLastCameraPosition;
-
 };
-
 }

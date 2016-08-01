@@ -12,8 +12,7 @@
 
 namespace dw {
 
-PlanetDesc::PlanetDesc()
-{
+PlanetDesc::PlanetDesc() {
     radius = 0.0f;
     rotationPeriod = 0.0f;
     axialTilt = 0.0f;
@@ -35,18 +34,16 @@ Planet::Planet(Renderer* renderSystem, StarSystem* starSystem, PlanetDesc& desc)
       mSurfaceEntity(nullptr),
       mSurfaceNode(nullptr),
       mAtmosphereEntity(nullptr),
-      mAtmosphereNode(nullptr)
-{
+      mAtmosphereNode(nullptr) {
     assert(desc.radius > 0.0f);
 
     // Create the surface
-    mSurfaceMesh =
-        createSphere(generateName("Sphere"), desc.radius, 64, 64, true, true);
+    mSurfaceMesh = createSphere(generateName("Sphere"), desc.radius, 64, 64, true, true);
     mSurfaceMaterial =
         renderSystem->getMaterialCopy("Scene/Planet", generateName("planetMaterial"));
     mSurfaceEntity = renderSystem->getSceneMgr()->createEntity(mSurfaceMesh);
     mSurfaceEntity->setMaterial(mSurfaceMaterial);
-    //mSurfaceEntity->setRenderQueueGroup(PLANET_SURFACE_RENDER_QUEUE);
+    // mSurfaceEntity->setRenderQueueGroup(PLANET_SURFACE_RENDER_QUEUE);
     mSurfaceEntity->setQueryFlags(UNIVERSE_OBJECT);
     mSurfaceSubEntity = mSurfaceEntity->getSubEntity(0);
     mSurfaceNode = renderSystem->getRootSceneNode()->createChildSceneNode();
@@ -60,12 +57,11 @@ Planet::Planet(Renderer* renderSystem, StarSystem* starSystem, PlanetDesc& desc)
     pass->getTextureUnitState("night")->setHardwareGammaEnabled(true);
 
     // Create the atmosphere
-    if (desc.hasAtmosphere)
-    {
-        mAtmosphereMesh = createSphere(generateName("Sphere"), desc.atmosphere.radius,
-                                              80, 80, true, true);
-        mAtmosphereMaterial = renderSystem->getMaterialCopy(
-            "Scene/Atmosphere", generateName("atmosphereMaterial"));
+    if (desc.hasAtmosphere) {
+        mAtmosphereMesh =
+            createSphere(generateName("Sphere"), desc.atmosphere.radius, 80, 80, true, true);
+        mAtmosphereMaterial =
+            renderSystem->getMaterialCopy("Scene/Atmosphere", generateName("atmosphereMaterial"));
         mAtmosphereEntity = renderSystem->getSceneMgr()->createEntity(mAtmosphereMesh);
         mAtmosphereEntity->setMaterial(mAtmosphereMaterial);
         mAtmosphereEntity->setRenderQueueGroup(ATMOSPHERE_RENDER_QUEUE);
@@ -75,30 +71,35 @@ Planet::Planet(Renderer* renderSystem, StarSystem* starSystem, PlanetDesc& desc)
         mAtmosphereNode->attachObject(mAtmosphereEntity);
 
         // Compute and set shader constants
-        Vec3 wavelength(0.65f, 0.57f, 0.475f);    // 650nm for red, 570mn for green, 475nm for blue
+        Vec3 wavelength(0.65f, 0.57f, 0.475f);  // 650nm for red, 570mn for green, 475nm for blue
         Vec3 invWavelength(1.0f / pow(wavelength.x, 4.0f), 1.0f / pow(wavelength.y, 4.0f),
                            1.0f / pow(wavelength.z, 4.0f));
         float Kr = 0.0025f, Km = 0.0015f, ESun = 15.0f,
               scale = 1.0f / (desc.atmosphere.radius - desc.radius), scaleDepth = 0.25f, g = -0.95f;
-        mSurfaceSubEntity->setCustomParameter(5, Ogre::Vector4(invWavelength.x, invWavelength.y, invWavelength.z, 0.0f));
-        mSurfaceSubEntity->setCustomParameter(6, Ogre::Vector4(desc.radius, desc.radius * desc.radius, desc.atmosphere.radius,
+        mSurfaceSubEntity->setCustomParameter(
+            5, Ogre::Vector4(invWavelength.x, invWavelength.y, invWavelength.z, 0.0f));
+        mSurfaceSubEntity->setCustomParameter(
+            6, Ogre::Vector4(desc.radius, desc.radius * desc.radius, desc.atmosphere.radius,
                              desc.atmosphere.radius * desc.atmosphere.radius));
         mSurfaceSubEntity->setCustomParameter(
             7, Ogre::Vector4(Kr * ESun, Kr * 4.0f * math::pi, Km * ESun, Km * 4.0f * math::pi));
-        mSurfaceSubEntity
-            ->setCustomParameter(8, Ogre::Vector4(scale, scaleDepth, scale / scaleDepth, 0.0f));
+        mSurfaceSubEntity->setCustomParameter(
+            8, Ogre::Vector4(scale, scaleDepth, scale / scaleDepth, 0.0f));
 
-        mAtmosphereSubEntity->setCustomParameter(0, Ogre::Vector4(invWavelength.x, invWavelength.y, invWavelength.z, 0.0f));
-        mAtmosphereSubEntity->setCustomParameter(1, Ogre::Vector4(desc.radius, desc.radius * desc.radius, desc.atmosphere.radius,
-                                                desc.atmosphere.radius * desc.atmosphere.radius));
-        mAtmosphereSubEntity->setCustomParameter(2, Ogre::Vector4(Kr * ESun, Kr * 4.0f * math::pi, Km * ESun, Km * 4.0f * math::pi));
-        mAtmosphereSubEntity->setCustomParameter(3, Ogre::Vector4(scale, scaleDepth, scale / scaleDepth, 0.0f));
+        mAtmosphereSubEntity->setCustomParameter(
+            0, Ogre::Vector4(invWavelength.x, invWavelength.y, invWavelength.z, 0.0f));
+        mAtmosphereSubEntity->setCustomParameter(
+            1, Ogre::Vector4(desc.radius, desc.radius * desc.radius, desc.atmosphere.radius,
+                             desc.atmosphere.radius * desc.atmosphere.radius));
+        mAtmosphereSubEntity->setCustomParameter(
+            2, Ogre::Vector4(Kr * ESun, Kr * 4.0f * math::pi, Km * ESun, Km * 4.0f * math::pi));
+        mAtmosphereSubEntity->setCustomParameter(
+            3, Ogre::Vector4(scale, scaleDepth, scale / scaleDepth, 0.0f));
         mAtmosphereSubEntity->setCustomParameter(7, Ogre::Vector4(g, g * g, 0.0f, 0.0f));
     }
 
     // Create the ring system
-    if (desc.hasRings)
-    {
+    if (desc.hasRings) {
         mRingSystem.reset(new Rings(desc, this));
 
         // Set ring system properties on the surface shader
@@ -111,16 +112,15 @@ Planet::Planet(Renderer* renderSystem, StarSystem* starSystem, PlanetDesc& desc)
     }
 
     // Configure planet shader
-    mSurfaceSubEntity->setCustomParameter(0, Ogre::Vector4(desc.nightTexture.length() > 0 ? 1.0f : 0.0f,
-                                         desc.hasAtmosphere, desc.hasRings, 0.0f));
+    mSurfaceSubEntity->setCustomParameter(
+        0, Ogre::Vector4(desc.nightTexture.length() > 0 ? 1.0f : 0.0f, desc.hasAtmosphere,
+                         desc.hasRings, 0.0f));
 }
 
-Planet::~Planet()
-{
+Planet::~Planet() {
     mRingSystem.reset();
 
-    if (mAtmosphereEntity)
-    {
+    if (mAtmosphereEntity) {
         mRenderSystem->getSceneMgr()->destroySceneNode(mAtmosphereNode);
         mRenderSystem->getSceneMgr()->destroyEntity(mAtmosphereEntity);
         mAtmosphereMaterial.setNull();
@@ -131,24 +131,20 @@ Planet::~Planet()
     mRenderSystem->getSceneMgr()->destroyEntity(mSurfaceEntity);
 }
 
-Ogre::SceneNode* Planet::getSurfaceNode()
-{
+Ogre::SceneNode* Planet::getSurfaceNode() {
     return mSurfaceNode;
 }
 
-void Planet::preRender(Camera* camera)
-{
+void Planet::preRender(Camera* camera) {
     Vec3 cameraSpacePosition = mPosition.toCameraSpace(camera);
 
     // Scale the surface and atmosphere
     mSurfaceNode->setPosition(cameraSpacePosition);
-    if (mDesc.hasAtmosphere)
-        mAtmosphereNode->setPosition(mSurfaceNode->getPosition());
+    if (mDesc.hasAtmosphere) mAtmosphereNode->setPosition(mSurfaceNode->getPosition());
 
     // Detect a sun object
     // TODO support multiple stars
-    if (mStarSystem->getStars().size() > 0)
-    {
+    if (mStarSystem->getStars().size() > 0) {
         Position sunPosition = (*mStarSystem->getStars().begin())->getPosition();
         Vec3 sunDirection = -mPosition.getRelativeTo(sunPosition).Normalized();
         Vec3 localSunDirection = mAxialTilt.Inverted() * sunDirection;
@@ -164,8 +160,7 @@ void Planet::preRender(Camera* camera)
                 4, Ogre::Vector4(sunDirection.x, sunDirection.y, sunDirection.z, 0.0f));
 
         // Update ring shader parameters
-        if (mRingSystem)
-        {
+        if (mRingSystem) {
             // Update ring dimensions
             Ogre::Vector4 ringDimensions(
                 Ogre::Vector3(mDesc.rings.minRadius, mDesc.rings.maxRadius,
@@ -198,37 +193,38 @@ void Planet::preRender(Camera* camera)
         mRingSystem->update(mSurfaceNode->getOrientation().Inverse() * localCameraPosition);
 
     // Update atmosphere shader
-    if (mDesc.hasAtmosphere)
-    {
+    if (mDesc.hasAtmosphere) {
         float camHeight = localCameraPosition.Length();
-        mSurfaceSubEntity->setCustomParameter(10, Ogre::Vector4(localCameraPosition.x, localCameraPosition.y,
-                                              localCameraPosition.z, 0.0f));
-        mSurfaceSubEntity->setCustomParameter(11, Ogre::Vector4(camHeight, camHeight * camHeight, 0.0f, 0.0f));
-        mAtmosphereSubEntity->setCustomParameter(5, Ogre::Vector4(localCameraPosition.x, localCameraPosition.y,
-                                                 localCameraPosition.z, 0.0f));
-        mAtmosphereSubEntity->setCustomParameter(6, Ogre::Vector4(camHeight, camHeight * camHeight, 0.0f, 0.0f));
+        mSurfaceSubEntity->setCustomParameter(
+            10, Ogre::Vector4(localCameraPosition.x, localCameraPosition.y, localCameraPosition.z,
+                              0.0f));
+        mSurfaceSubEntity->setCustomParameter(
+            11, Ogre::Vector4(camHeight, camHeight * camHeight, 0.0f, 0.0f));
+        mAtmosphereSubEntity->setCustomParameter(
+            5, Ogre::Vector4(localCameraPosition.x, localCameraPosition.y, localCameraPosition.z,
+                             0.0f));
+        mAtmosphereSubEntity->setCustomParameter(
+            6, Ogre::Vector4(camHeight, camHeight * camHeight, 0.0f, 0.0f));
     }
 
     // Pre-render
     SystemBody::preRender(camera);
 }
 
-void Planet::calculatePosition(double time)
-{
+void Planet::calculatePosition(double time) {
     // TODO Rotating the planet causes issues with the atmosphere shader
-    //mSurfaceNode->setOrientation(mAxialTilt * Quat(Vec3::unitY, time / mDesc.rotationPeriod * 2.0f * math::pi));
+    // mSurfaceNode->setOrientation(mAxialTilt * Quat(Vec3::unitY, time / mDesc.rotationPeriod *
+    // 2.0f * math::pi));
     SystemBody::calculatePosition(time);
 }
 
 Planet::Rings::Rings(PlanetDesc& desc, Planet* parent)
-    : mMinRadius(desc.rings.minRadius), mMaxRadius(desc.rings.maxRadius), mParent(parent)
-{
+    : mMinRadius(desc.rings.minRadius), mMaxRadius(desc.rings.maxRadius), mParent(parent) {
     String ringMeshName = generateName("ringsMesh");
 
     // Generate the LOD look up table
     mLodDistanceTable[0] = pow(mMaxRadius * 2.0f, 2);
-    for (int i = 1; i < RING_DETAIL_MAX_LEVEL; i++)
-    {
+    for (int i = 1; i < RING_DETAIL_MAX_LEVEL; i++) {
         mLodDistanceTable[i] = mLodDistanceTable[i - 1] * 0.25f;
     }
 
@@ -238,8 +234,7 @@ Planet::Rings::Rings(PlanetDesc& desc, Planet* parent)
     float offset = math::Cos(math::pi / static_cast<float>(detail));
     float maxRadius = desc.rings.maxRadius / offset;
     float minRadius = desc.rings.minRadius * offset;
-    for (uint16_t i = 0; i < detail; ++i)
-    {
+    for (uint16_t i = 0; i < detail; ++i) {
         float angle = ((float)i / (float)detail) * math::pi * 2.0f;
         Vec2 pos(sin(angle), cos(angle));
         vertices.push_back(pos * maxRadius);
@@ -252,28 +247,23 @@ Planet::Rings::Rings(PlanetDesc& desc, Planet* parent)
     ringMesh->begin("");
 
     // Add the vertices
-    for (uint i = 0; i < vertices.size(); ++i)
-    {
+    for (uint i = 0; i < vertices.size(); ++i) {
         Ogre::Vector3 transformedPoint(vertices[i].x, 0.0f, vertices[i].y);
         ringMesh->position(transformedPoint);
     }
 
     // Add the indices
-    for (uint i = 0; i < detail; ++i)
-    {
+    for (uint i = 0; i < detail; ++i) {
         int startIndex = i * 2;
 
-        if (i < (detail - 1))
-        {
+        if (i < (detail - 1)) {
             ringMesh->index(startIndex);
             ringMesh->index(startIndex + 2);
             ringMesh->index(startIndex + 1);
             ringMesh->index(startIndex + 2);
             ringMesh->index(startIndex + 3);
             ringMesh->index(startIndex + 1);
-        }
-        else
-        {
+        } else {
             ringMesh->index(startIndex);
             ringMesh->index(0);
             ringMesh->index(startIndex + 1);
@@ -306,16 +296,16 @@ Planet::Rings::Rings(PlanetDesc& desc, Planet* parent)
 
     // Update shader parameters
     float minDistance = sqrt(mLodDistanceTable[RING_DETAIL_MAX_LEVEL - 6]);
-    mRingEntity->getSubEntity(0)
-        ->setCustomParameter(0, Ogre::Vector4(desc.radius, 0.0f, 0.0f, 0.0f));
-    mRingEntity->getSubEntity(0)
-        ->setCustomParameter(1, Ogre::Vector4(desc.rings.minRadius, desc.rings.maxRadius,
-                                              desc.rings.maxRadius - desc.rings.minRadius, 0.0f));
+    mRingEntity->getSubEntity(0)->setCustomParameter(0,
+                                                     Ogre::Vector4(desc.radius, 0.0f, 0.0f, 0.0f));
+    mRingEntity->getSubEntity(0)->setCustomParameter(
+        1, Ogre::Vector4(desc.rings.minRadius, desc.rings.maxRadius,
+                         desc.rings.maxRadius - desc.rings.minRadius, 0.0f));
     mRingEntity->getSubEntity(0)->setCustomParameter(
         3, Ogre::Vector4(1.0f / (desc.atmosphere.radius - desc.radius), 0.0f, 0.0f, 0.0f));
     mRingEntity->getSubEntity(0)->setCustomParameter(4, Ogre::Vector4(1.0f, 0.0f, 0.0f, 0.0f));
-    mRingEntity->getSubEntity(0)
-        ->setCustomParameter(7, Ogre::Vector4(minDistance * 0.03125f, minDistance, 0.0f, 0.0f));
+    mRingEntity->getSubEntity(0)->setCustomParameter(
+        7, Ogre::Vector4(minDistance * 0.03125f, minDistance, 0.0f, 0.0f));
 
     // Set up the random number generator - doesn't matter what this value is as long as it never
     // changes
@@ -337,34 +327,29 @@ Planet::Rings::Rings(PlanetDesc& desc, Planet* parent)
     // |        |  width & height = maxRadius * 2
     // |        |
     // x--------x
-    mDetailRootNode = new RingNode(Vec2(-mMaxRadius, mMaxRadius), Vec2(mMaxRadius, -mMaxRadius), 0,
-                                   this);
+    mDetailRootNode =
+        new RingNode(Vec2(-mMaxRadius, mMaxRadius), Vec2(mMaxRadius, -mMaxRadius), 0, this);
 }
 
-Planet::Rings::~Rings()
-{
+Planet::Rings::~Rings() {
     delete mDetailRootNode;
 }
 
-void Planet::Rings::update(const Vec3& cameraPosition)
-{
+void Planet::Rings::update(const Vec3& cameraPosition) {
     mDetailRootNode->update(cameraPosition);
 }
 
-float Planet::Rings::getLodDistance(uint level) const
-{
+float Planet::Rings::getLodDistance(uint level) const {
     assert(level < RING_DETAIL_MAX_LEVEL);
     return mLodDistanceTable[level];
 }
 
-Colour Planet::Rings::getColour(const Vec2& position) const
-{
+Colour Planet::Rings::getColour(const Vec2& position) const {
     float distance = position.Length();
     float index = (distance - mMinRadius) / (mMaxRadius - mMinRadius);
 
     // Trim the outer parts of the ring.
-    if (index < 0.0f || index > 1.0f)
-    {
+    if (index < 0.0f || index > 1.0f) {
         return Colour::Black;
     }
 
@@ -374,14 +359,12 @@ Colour Planet::Rings::getColour(const Vec2& position) const
     return colour;
 }
 
-float Planet::Rings::getDensity(const Vec2& position) const
-{
+float Planet::Rings::getDensity(const Vec2& position) const {
     float distance = position.Length();
     float index = (distance - mMinRadius) / (mMaxRadius - mMinRadius);
 
     // Trim the outer parts of the ring.
-    if (index < 0.0f || index > 1.0f)
-    {
+    if (index < 0.0f || index > 1.0f) {
         return 0.0f;
     }
 
@@ -389,8 +372,7 @@ float Planet::Rings::getDensity(const Vec2& position) const
     return mRingTexture.getColourAt(scaledIndex, 0, 0).a;
 }
 
-float Planet::Rings::getThickness() const
-{
+float Planet::Rings::getThickness() const {
     return 1500.0f;
 }
 
@@ -400,32 +382,26 @@ Planet::RingNode::RingNode(const Vec2& min, const Vec2& max, uint level, Rings* 
       mCentre((min + max) * 0.5f),
       mLevel(level),
       mParentRingSystem(parent),
-      mHasChildren(false)
-{
+      mHasChildren(false) {
     cache();
 }
 
-Planet::RingNode::~RingNode()
-{
+Planet::RingNode::~RingNode() {
     free();
 }
 
-void Planet::RingNode::update(const Vec3& cameraPosition)
-{
+void Planet::RingNode::update(const Vec3& cameraPosition) {
     // Squared distance
     Vec3 diff = cameraPosition - Vec3(mCentre.x, 0.0f, mCentre.y);
     float distance = diff.Dot(diff);
 
     // Swap between billboards and meshes if they're within the right distance
-    for (auto i = mAsteroidList.begin(); i != mAsteroidList.end(); i++)
-    {
+    for (auto i = mAsteroidList.begin(); i != mAsteroidList.end(); i++) {
         Vec3 nodeDiff = cameraPosition - (*i).node->getPosition();
         float sqDistance = nodeDiff.Dot(nodeDiff);
 
-        if (sqDistance < mParentRingSystem->getLodDistance(RING_DETAIL_MAX_LEVEL - 1))
-        {
-            if (!(*i).node->isInSceneGraph())
-            {
+        if (sqDistance < mParentRingSystem->getLodDistance(RING_DETAIL_MAX_LEVEL - 1)) {
+            if (!(*i).node->isInSceneGraph()) {
                 mParentRingSystem->mParent->getSurfaceNode()->addChild((*i).node);
                 mParentRingSystem->mParticlesLarge->removeBillboard((*i).billboard);
 
@@ -437,11 +413,8 @@ void Planet::RingNode::update(const Vec3& cameraPosition)
                 xform.setRotation(Quat((*i).node->_getDerivedOrientation()));
                 */
             }
-        }
-        else
-        {
-            if ((*i).node->isInSceneGraph())
-            {
+        } else {
+            if ((*i).node->isInSceneGraph()) {
                 // PhysicsSystem::inst()._removeFromWorld((*i).rigidBody);
                 mParentRingSystem->mParent->getSurfaceNode()->removeChild((*i).node);
                 (*i).billboard = mParentRingSystem->mParticlesLarge->createBillboard(
@@ -451,43 +424,33 @@ void Planet::RingNode::update(const Vec3& cameraPosition)
         }
     }
 
-    if (mHasChildren)
-    {
+    if (mHasChildren) {
         // Combine the node if it has children if the distance is too far
-        if (distance > mParentRingSystem->getLodDistance(mLevel))
-        {
+        if (distance > mParentRingSystem->getLodDistance(mLevel)) {
             join();
-        }
-        else
-        {
+        } else {
             // Otherwise update...
-            for (int i = 0; i < 4; i++)
-            {
+            for (int i = 0; i < 4; i++) {
                 mChildren[i]->update(cameraPosition);
             }
         }
-    }
-    else
-    {
+    } else {
         // Split the node into 4 children if the distance threshold is reached
         if (distance < mParentRingSystem->getLodDistance(mLevel) &&
-            mLevel < (RING_DETAIL_MAX_LEVEL - 1))
-        {
+            mLevel < (RING_DETAIL_MAX_LEVEL - 1)) {
             split();
 
             // Update those children in case the camera has moved VERY quickly
             assert(mHasChildren == true);
 
-            for (int i = 0; i < 4; i++)
-            {
+            for (int i = 0; i < 4; i++) {
                 mChildren[i]->update(cameraPosition);
             }
         }
     }
 }
 
-void Planet::RingNode::cache()
-{
+void Planet::RingNode::cache() {
     std::uniform_real_distribution<float> uniformDist(0.0f, 1.0f);
     std::uniform_int_distribution<int> asteroidTypeDistribution(1, 3);
     std::uniform_real_distribution<float> asteroidRotationDistribution(0.0f, math::pi);
@@ -495,14 +458,12 @@ void Planet::RingNode::cache()
     std::normal_distribution<float> dustDistribution(0.0f, 0.1f);
 
     // Generate asteroids
-    if (mLevel > 6)
-    {
+    if (mLevel > 6) {
         int noAsteroids = static_cast<int>(math::Pow(1.7f, static_cast<float>(mLevel - 6))) * 2;
         float asteroidSize =
             mParentRingSystem->getThickness() * 0.4f / static_cast<float>(mLevel - 6);
 
-        for (int i = 0; i < noAsteroids; i++)
-        {
+        for (int i = 0; i < noAsteroids; i++) {
             // Generate position
             Vec3 position(
                 math::Lerp(mMin.x, mMax.x, uniformDist(mParentRingSystem->mRandomGenerator)),
@@ -514,25 +475,26 @@ void Planet::RingNode::cache()
             // less
             // than the density probability then spawn an asteroid there
             if (uniformDist(mParentRingSystem->mRandomGenerator) <
-                mParentRingSystem->getDensity(Vec2(position.x, position.z)))
-            {
+                mParentRingSystem->getDensity(Vec2(position.x, position.z))) {
                 RingAsteroid asteroid;
                 asteroid.size = asteroidSize;
 
                 // Create a billboard
                 asteroid.colour = mParentRingSystem->getColour(Vec2(position.x, position.z));
-                asteroid.billboard = mParentRingSystem->mParticlesLarge->createBillboard(
-                    position, asteroid.colour);
+                asteroid.billboard =
+                    mParentRingSystem->mParticlesLarge->createBillboard(position, asteroid.colour);
                 asteroid.billboard->setDimensions(asteroidSize, asteroidSize);
 
                 // Create the entity
                 asteroid.node = nullptr;
-                Ogre::Entity* entity = mParentRingSystem->mParent->mRenderSystem->getSceneMgr()->createEntity(
-                    "scene-asteroid" +
-                    std::to_string(asteroidTypeDistribution(mParentRingSystem->mRandomGenerator)) +
-                    ".mesh");
+                Ogre::Entity* entity =
+                    mParentRingSystem->mParent->mRenderSystem->getSceneMgr()->createEntity(
+                        "scene-asteroid" + std::to_string(asteroidTypeDistribution(
+                                               mParentRingSystem->mRandomGenerator)) +
+                        ".mesh");
                 entity->setMaterialName("Scene/Rings/Asteroid");
-                asteroid.node = mParentRingSystem->mParent->mRenderSystem->getSceneMgr()->createSceneNode();
+                asteroid.node =
+                    mParentRingSystem->mParent->mRenderSystem->getSceneMgr()->createSceneNode();
                 asteroid.node->attachObject(entity);
                 asteroid.node->setPosition(position);
                 //        asteroid.node->setOrientation(
@@ -594,18 +556,14 @@ void Planet::RingNode::cache()
     }*/
 }
 
-void Planet::RingNode::free()
-{
+void Planet::RingNode::free() {
     // Destroy billboards and meshes
-    for (auto i = mAsteroidList.begin(); i != mAsteroidList.end(); i++)
-    {
+    for (auto i = mAsteroidList.begin(); i != mAsteroidList.end(); i++) {
         // Only remove the billboard if it's being used instead of the mesh
-        if (!(*i).node->isInSceneGraph())
-        {
+        if (!(*i).node->isInSceneGraph()) {
             mParentRingSystem->mParticlesLarge->removeBillboard((*i).billboard);
-        }
-        else
-            ;    // PhysicsSystem::inst()._removeFromWorld((*i).rigidBody);
+        } else
+            ;  // PhysicsSystem::inst()._removeFromWorld((*i).rigidBody);
 
         mParentRingSystem->mParent->mRenderSystem->getSceneMgr()->destroyEntity(
             static_cast<Ogre::Entity*>((*i).node->getAttachedObject(0)));
@@ -614,8 +572,7 @@ void Planet::RingNode::free()
         // PhysicsSystem::inst().destroyRigidBody((*i).rigidBody);
     }
 
-    for (auto i = mDustList.begin(); i != mDustList.end(); i++)
-    {
+    for (auto i = mDustList.begin(); i != mDustList.end(); i++) {
         mParentRingSystem->mParticlesSmall->removeBillboard((*i));
     }
 
@@ -623,32 +580,27 @@ void Planet::RingNode::free()
     mDustList.clear();
 
     // Destroy children
-    if (mHasChildren)
-    {
+    if (mHasChildren) {
         join();
     }
 }
 
-void Planet::RingNode::split()
-{
+void Planet::RingNode::split() {
     // TODO - pool RingNode's to save all these allocations!
     mChildren[0] = new RingNode(mMin, mCentre, mLevel + 1, mParentRingSystem);
-    mChildren[1] = new RingNode(Vec2(mCentre.x, mMin.y), Vec2(mMax.x, mCentre.y),
-                                                  mLevel + 1, mParentRingSystem);
-    mChildren[2] = new RingNode(Vec2(mMin.x, mCentre.y), Vec2(mCentre.x, mMax.y),
-                                                  mLevel + 1, mParentRingSystem);
+    mChildren[1] = new RingNode(Vec2(mCentre.x, mMin.y), Vec2(mMax.x, mCentre.y), mLevel + 1,
+                                mParentRingSystem);
+    mChildren[2] = new RingNode(Vec2(mMin.x, mCentre.y), Vec2(mCentre.x, mMax.y), mLevel + 1,
+                                mParentRingSystem);
     mChildren[3] = new RingNode(mCentre, mMax, mLevel + 1, mParentRingSystem);
     mHasChildren = true;
 }
 
-void Planet::RingNode::join()
-{
-    for (int i = 0; i < 4; i++)
-    {
+void Planet::RingNode::join() {
+    for (int i = 0; i < 4; i++) {
         delete mChildren[i];
     }
 
     mHasChildren = false;
 }
-
 }

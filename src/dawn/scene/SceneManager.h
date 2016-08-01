@@ -7,8 +7,7 @@
 namespace dw {
 
 /// Class used to keep track of entities being updated
-class DW_API SceneManager
-{
+class DW_API SceneManager {
 public:
     SceneManager();
     ~SceneManager();
@@ -21,10 +20,10 @@ public:
     void preRender(Camera* camera);
 
     /// Gets the physics manager associated with this scene manager
-    PhysicsWorld* getPhysicsWorld() { return mPhysicsWorld; }
+    PhysicsWorld* getPhysicsWorld() {
+        return mPhysicsWorld;
+    }
 
 private:
-
 };
-
 }

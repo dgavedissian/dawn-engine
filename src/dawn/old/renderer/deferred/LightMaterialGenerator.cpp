@@ -8,8 +8,7 @@
 
 namespace dw {
 
-LightMaterialGenerator::LightMaterialGenerator()
-{
+LightMaterialGenerator::LightMaterialGenerator() {
     mVsMask = 0x00000004;
     mFsMask = 0x0000003F;
     mMatMask = LightMaterialGenerator::MI_DIRECTIONAL | LightMaterialGenerator::MI_SHADOW_CASTER;
@@ -18,12 +17,10 @@ LightMaterialGenerator::LightMaterialGenerator()
     mBaseName = mMaterialBaseName;
 }
 
-LightMaterialGenerator::~LightMaterialGenerator()
-{
+LightMaterialGenerator::~LightMaterialGenerator() {
 }
 
-Ogre::GpuProgramPtr LightMaterialGenerator::GenerateVertexShader(Perm permutation)
-{
+Ogre::GpuProgramPtr LightMaterialGenerator::GenerateVertexShader(Perm permutation) {
     String programName;
     if (permutation & LightMaterialGenerator::MI_DIRECTIONAL)
         programName = "Post/QuadRay/VS";
@@ -36,15 +33,12 @@ Ogre::GpuProgramPtr LightMaterialGenerator::GenerateVertexShader(Perm permutatio
     return ptr;
 }
 
-Ogre::GpuProgramPtr LightMaterialGenerator::GenerateFragmentShader(Perm permutation)
-{
+Ogre::GpuProgramPtr LightMaterialGenerator::GenerateFragmentShader(Perm permutation) {
     // Create shader
-    if (mMasterSource.empty())
-    {
+    if (mMasterSource.empty()) {
         Ogre::DataStreamPtr ptrMasterSource =
             Ogre::ResourceGroupManager::getSingleton().openResource(
-                    "light-material.fs",
-                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+                "light-material.fs", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
         assert(ptrMasterSource.isNull() == false);
         mMasterSource = ptrMasterSource->getAsString();
@@ -81,8 +75,7 @@ Ogre::GpuProgramPtr LightMaterialGenerator::GenerateFragmentShader(Perm permutat
     return Ogre::GpuProgramPtr(ptrProgram);
 }
 
-Ogre::MaterialPtr LightMaterialGenerator::GenerateTemplateMaterial(Perm permutation)
-{
+Ogre::MaterialPtr LightMaterialGenerator::GenerateTemplateMaterial(Perm permutation) {
     String materialName = mBaseName;
 
     if (permutation & LightMaterialGenerator::MI_DIRECTIONAL)
@@ -90,14 +83,12 @@ Ogre::MaterialPtr LightMaterialGenerator::GenerateTemplateMaterial(Perm permutat
     else
         materialName += "Geometry";
 
-    if (permutation & LightMaterialGenerator::MI_SHADOW_CASTER)
-        materialName += "Shadow";
+    if (permutation & LightMaterialGenerator::MI_SHADOW_CASTER) materialName += "Shadow";
 
     return Ogre::MaterialManager::getSingleton().getByName(materialName);
 }
 
-String LightMaterialGenerator::GetPPDefines(Perm permutation)
-{
+String LightMaterialGenerator::GetPPDefines(Perm permutation) {
     String strPPD;
 
     // Get the type of light
@@ -114,24 +105,20 @@ String LightMaterialGenerator::GetPPDefines(Perm permutation)
     strPPD += "LIGHT_TYPE=" + Ogre::StringConverter::toString(lightType);
 
     // Optional parameters
-    if (permutation & LightMaterialGenerator::MI_SPECULAR)
-        strPPD += ",IS_SPECULAR=1";
+    if (permutation & LightMaterialGenerator::MI_SPECULAR) strPPD += ",IS_SPECULAR=1";
 
-    if (permutation & LightMaterialGenerator::MI_ATTENUATED)
-        strPPD += ",IS_ATTENUATED=1";
+    if (permutation & LightMaterialGenerator::MI_ATTENUATED) strPPD += ",IS_ATTENUATED=1";
 
-    if (permutation & LightMaterialGenerator::MI_SHADOW_CASTER)
-        strPPD += ",IS_SHADOW_CASTER=1";
+    if (permutation & LightMaterialGenerator::MI_SHADOW_CASTER) strPPD += ",IS_SHADOW_CASTER=1";
 
     return strPPD;
 }
 
-void LightMaterialGenerator::SetupBaseParameters(const Ogre::GpuProgramParametersSharedPtr& params)
-{
+void LightMaterialGenerator::SetupBaseParameters(
+    const Ogre::GpuProgramParametersSharedPtr& params) {
     assert(params.isNull() == false);
 
-    struct AutoParamPair
-    {
+    struct AutoParamPair {
         String name;
         Ogre::GpuProgramParameters::AutoConstantType type;
     };
@@ -153,11 +140,9 @@ void LightMaterialGenerator::SetupBaseParameters(const Ogre::GpuProgramParameter
         {"farClipDistance", Ogre::GpuProgramParameters::ACT_FAR_CLIP_DISTANCE},
         {"shadowViewProjMat", Ogre::GpuProgramParameters::ACT_TEXTURE_VIEWPROJ_MATRIX}};
     int numParams = sizeof(AUTO_PARAMS) / sizeof(AutoParamPair);
-    for (int i = 0; i < numParams; i++)
-    {
+    for (int i = 0; i < numParams; i++) {
         if (params->_findNamedConstantDefinition(AUTO_PARAMS[i].name))
             params->setNamedAutoConstant(AUTO_PARAMS[i].name, AUTO_PARAMS[i].type);
     }
 }
-
 }

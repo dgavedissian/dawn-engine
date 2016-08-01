@@ -8,8 +8,7 @@ namespace dw {
 
 class Context;
 
-class TypeInfo
-{
+class TypeInfo {
 public:
     TypeInfo(std::type_info t);
     ~TypeInfo();
@@ -21,18 +20,30 @@ private:
     StringHash mType;
     String mTypeName;
 }
+#define DW_OBJECT(type)                                \
+    typedef type Type;                                 \
+    virtual StringHash getType() const {               \
+        return getTypeInfo().getType();                \
+    }                                                  \
+    virtual String getTypeName() const {               \
+        return getTypeInfo().getTypeName();            \
+    }                                                  \
+    virtual TypeInfo getTypeInfo() const {             \
+        return getTypeInfoStatic();                    \
+    }                                                  \
+    static StringHash getTypeStatic() {                \
+        return getTypeInfoStatic().getType();          \
+    }                                                  \
+    static String getTypeNameStatic() {                \
+        return getTypeInfoStatic().getTypeName();      \
+    }                                                  \
+    static const TypeInfo& getTypeInfoStatic() const { \
+        static TypeInfo ti(typeid(type));              \
+        return ti;                                     \
+    }
 
-#define DW_OBJECT(type) \
-    typedef type Type;
-    virtual StringHash getType() const { return getTypeInfo().getType(); }
-    virtual String getTypeName() const { return getTypeInfo().getTypeName(); }
-    virtual TypeInfo getTypeInfo() const { return getTypeInfoStatic(); }
-    static StringHash getTypeStatic() { return getTypeInfoStatic().getType(); }
-    static String getTypeNameStatic() { return getTypeInfoStatic().getTypeName(); }
-    static const TypeInfo& getTypeInfoStatic() const { static TypeInfo ti(typeid(type)); return ti; }
+class Object {
 
-class Object
-{
 public:
     Object(Context* context);
     virtual ~Object();
@@ -46,5 +57,4 @@ public:
 private:
     Context* mContext;
 };
-
 }

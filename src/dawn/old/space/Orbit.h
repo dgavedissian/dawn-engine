@@ -7,8 +7,7 @@
 namespace dw {
 
 // Interface for different orbit types
-class DW_API Orbit
-{
+class DW_API Orbit {
 public:
     virtual ~Orbit(){};
 
@@ -18,8 +17,7 @@ public:
 
 // Circular Orbit
 // e = 0
-class DW_API CircularOrbit : public Orbit
-{
+class DW_API CircularOrbit : public Orbit {
 public:
     CircularOrbit(float radius, float period, float phaseDifference = 0.0f);
     virtual ~CircularOrbit();
@@ -40,5 +38,4 @@ private:
 
 // Hyperbolic
 // e > 1
-
 }

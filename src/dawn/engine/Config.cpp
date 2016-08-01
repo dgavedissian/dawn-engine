@@ -10,23 +10,19 @@ dw::ConfigNode dw::Config::root;
 
 namespace dw {
 
-void Config::load(const String& filename)
-{
+void Config::load(const String& filename) {
     Config::filename = filename;
     InputFileStream file(filename);
     file >> Config::root;
     Config::dump();
 }
 
-void Config::save()
-{
+void Config::save() {
     OutputFileStream file(Config::filename);
     file << Config::root;
 }
 
-void Config::dump()
-{
+void Config::dump() {
     LOG << Config::root;
 }
-
 }

@@ -6,19 +6,18 @@
 
 namespace dw {
 
-class DW_API StringHash
-{
+class DW_API StringHash {
 public:
     StringHash();
     explicit StringHash(uint32_t value);
     StringHash(const char* str);
     StringHash(const String& str);
-    StringHash operator +(const StringHash& rhs) const;
-    StringHash& operator +=(const StringHash& rhs);
-    bool operator ==(const StringHash& rhs) const;
-    bool operator !=(const StringHash& rhs) const;
-    bool operator <(const StringHash& rhs) const;
-    bool operator >(const StringHash& rhs) const;
+    StringHash operator+(const StringHash& rhs) const;
+    StringHash& operator+=(const StringHash& rhs);
+    bool operator==(const StringHash& rhs) const;
+    bool operator!=(const StringHash& rhs) const;
+    bool operator<(const StringHash& rhs) const;
+    bool operator>(const StringHash& rhs) const;
     operator bool() const;
 
     uint32_t value() const;
@@ -30,8 +29,6 @@ public:
 
 private:
     uint32_t mValue;
-
 };
 
 END_NAMESPACE
-

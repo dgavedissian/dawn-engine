@@ -10,8 +10,7 @@ namespace dw {
 // Use this directive to control whether you are writing projective (regular) or linear depth.
 #define WRITE_LINEAR_DEPTH
 
-GBufferMaterialGenerator::GBufferMaterialGenerator()
-{
+GBufferMaterialGenerator::GBufferMaterialGenerator() {
     mVsMask = VS_MASK;
     mFsMask = FS_MASK;
     mMatMask = MAT_MASK;
@@ -20,8 +19,7 @@ GBufferMaterialGenerator::GBufferMaterialGenerator()
 }
 
 Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateVertexShader(
-    MaterialGenerator::Perm permutation)
-{
+    MaterialGenerator::Perm permutation) {
     std::stringstream ss;
 
     // Version information
@@ -50,8 +48,7 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateVertexShader(
 #endif
     ss << "out vec3 oNormal;" << std::endl;
 
-    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP)
-    {
+    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP) {
         ss << "out vec3 oTangent;" << std::endl;
         ss << "out vec3 oBiNormal;" << std::endl;
     }
@@ -65,8 +62,7 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateVertexShader(
     ss << "	gl_Position = worldViewProjMatrix * vertex;" << std::endl;
     ss << "	oNormal = (worldViewMatrix * vec4(normal,0)).xyz;" << std::endl;
 
-    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP)
-    {
+    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP) {
         ss << "	oTangent = (worldViewMatrix * vec4(tangent,0)).xyz;" << std::endl;
         ss << "	oBiNormal = cross(oNormal, oTangent);" << std::endl;
     }
@@ -87,7 +83,7 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateVertexShader(
 
 #if OGRE_DEBUG_MODE
     Ogre::LogManager::getSingleton().getDefaultLog()->logMessage(programName + String("\n") +
-                                                           programSource);
+                                                                 programSource);
 #endif
 
     // Create shader object
@@ -100,15 +96,15 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateVertexShader(
     const Ogre::GpuProgramParametersSharedPtr& params = ptrProgram->getDefaultParameters();
     params->setNamedAutoConstant("worldViewProjMatrix",
                                  Ogre::GpuProgramParameters::ACT_WORLDVIEWPROJ_MATRIX);
-    params->setNamedAutoConstant("worldViewMatrix", Ogre::GpuProgramParameters::ACT_WORLDVIEW_MATRIX);
+    params->setNamedAutoConstant("worldViewMatrix",
+                                 Ogre::GpuProgramParameters::ACT_WORLDVIEW_MATRIX);
     ptrProgram->load();
 
     return Ogre::GpuProgramPtr(ptrProgram);
 }
 
 Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateFragmentShader(
-    MaterialGenerator::Perm permutation)
-{
+    MaterialGenerator::Perm permutation) {
     std::stringstream ss;
 
     // Version information
@@ -138,8 +134,7 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateFragmentShader(
 #endif
     ss << "in vec3 oNormal;" << std::endl;
 
-    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP)
-    {
+    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP) {
         ss << "in vec3 oTangent;" << std::endl;
         ss << "in vec3 oBiNormal;" << std::endl;
     }
@@ -169,28 +164,23 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateFragmentShader(
 
     ss << "void main() {" << std::endl;
 
-    if (numTexCoords > 0 && numTextures > 0)
-    {
+    if (numTexCoords > 0 && numTextures > 0) {
         ss << "gbuffer0.rgb = texture2D(sTex0, oUv0).rgb;" << std::endl;
         if (permutation & GBufferMaterialGenerator::GBP_HAS_DIFFUSE_COLOUR)
             ss << "gbuffer0.rgb *= cDiffuseColour.rgb;" << std::endl;
-    }
-    else
-    {
+    } else {
         ss << "gbuffer0.rgb = cDiffuseColour.rgb;" << std::endl;
     }
 
     ss << "gbuffer0.a = cSpecularity;" << std::endl;
 
-    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP)
-    {
+    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP) {
         ss << "vec3 texNormal = (texture2D(sNormalMap, oUv0).rgb - 0.5) * 2.0;" << std::endl;
         ss << "mat3 normalRotation = mat3(oTangent, oBiNormal, oNormal);" << std::endl;
         ss << "gbuffer1.rg = encodeNormal(normalize(texNormal * "
-              "normalRotation));" << std::endl;
-    }
-    else
-    {
+              "normalRotation));"
+           << std::endl;
+    } else {
         ss << "gbuffer1.rg = encodeNormal(normalize(oNormal));" << std::endl;
     }
 
@@ -219,8 +209,7 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateFragmentShader(
     const Ogre::GpuProgramParametersSharedPtr& params = ptrProgram->getDefaultParameters();
     params->setNamedAutoConstant("cSpecularity", Ogre::GpuProgramParameters::ACT_SURFACE_SHININESS);
 
-    if (numTextures == 0 || permutation & GBufferMaterialGenerator::GBP_HAS_DIFFUSE_COLOUR)
-    {
+    if (numTextures == 0 || permutation & GBufferMaterialGenerator::GBP_HAS_DIFFUSE_COLOUR) {
         params->setNamedAutoConstant("cDiffuseColour",
                                      Ogre::GpuProgramParameters::ACT_SURFACE_DIFFUSE_COLOUR);
     }
@@ -243,8 +232,7 @@ Ogre::GpuProgramPtr GBufferMaterialGenerator::GenerateFragmentShader(
 }
 
 Ogre::MaterialPtr GBufferMaterialGenerator::GenerateTemplateMaterial(
-    MaterialGenerator::Perm permutation)
-{
+    MaterialGenerator::Perm permutation) {
     String matName = mBaseName + "Mat_" + Ogre::StringConverter::toString(permutation);
 
     Ogre::MaterialPtr matPtr = Ogre::MaterialManager::getSingleton().create(
@@ -253,8 +241,7 @@ Ogre::MaterialPtr GBufferMaterialGenerator::GenerateTemplateMaterial(
     pass->setName(mBaseName + "Pass_" + Ogre::StringConverter::toString(permutation));
     pass->setLightingEnabled(false);
 
-    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP)
-        pass->createTextureUnitState();
+    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP) pass->createTextureUnitState();
 
     uint32 numTextures = permutation & GBufferMaterialGenerator::GBP_TEXTURE_MASK;
     for (uint32 i = 0; i < numTextures; i++)
@@ -262,5 +249,4 @@ Ogre::MaterialPtr GBufferMaterialGenerator::GenerateTemplateMaterial(
 
     return matPtr;
 }
-
 }

@@ -9,8 +9,7 @@ namespace dw {
 class Camera;
 
 // Handles a single sound object - can share sound buffers between instances
-class DW_API Sound
-{
+class DW_API Sound {
 public:
     Sound(const String& filename, bool looped, irrklang::ISoundEngine* engine);
     Sound(const String& filename, const Position& position, bool looped,
@@ -38,7 +37,7 @@ public:
     void update(Camera* camera, float dt);
 
     // Volume
-    void setVolume(float volume);    // must be in the range [0;1]
+    void setVolume(float volume);  // must be in the range [0;1]
     float getVolume() const;
 
 private:
@@ -49,5 +48,4 @@ private:
     Position mPosition;
     Position mOldPosition;
 };
-
 }

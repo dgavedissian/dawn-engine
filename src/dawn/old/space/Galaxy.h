@@ -8,8 +8,7 @@
 
 namespace dw {
 
-class DW_API Galaxy
-{
+class DW_API Galaxy {
 public:
     Galaxy();
     ~Galaxy();
@@ -20,7 +19,5 @@ public:
     /// Load a star system from a config file
     /// @param config Config filename
     StarSystem* loadStarSystem(const String& config);
-
 };
-
 }

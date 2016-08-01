@@ -12,8 +12,7 @@ class EvtData_KeyDown;
 class Layout;
 
 // An object that sits in the top half of the screen
-class DW_API Console : public LogListener, public Rocket::Core::EventListener
-{
+class DW_API Console : public LogListener, public Rocket::Core::EventListener {
 public:
     Console(UI* im, LuaState* ls);
     virtual ~Console();
@@ -46,5 +45,4 @@ private:
 
     String mOutput;
 };
-
 }

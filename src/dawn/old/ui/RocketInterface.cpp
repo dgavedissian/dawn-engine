@@ -10,16 +10,15 @@
 namespace dw {
 
 // The structure created for each texture loaded by Rocket for Ogre
-struct RocketOgreTexture
-{
-    RocketOgreTexture(Ogre::TexturePtr _texture) : texture(_texture) {}
+struct RocketOgreTexture {
+    RocketOgreTexture(Ogre::TexturePtr _texture) : texture(_texture) {
+    }
     Ogre::TexturePtr texture;
 };
 
 // The structure created for each set of geometry that Rocket compiles. It stores the vertex and
 // index buffers and the texture associated with the geometry, if one was specified
-struct RocketOgreGeometry
-{
+struct RocketOgreGeometry {
     Ogre::RenderOperation renderOp;
     RocketOgreTexture* texture;
 };
@@ -29,8 +28,7 @@ RocketInterface::RocketInterface(Renderer* rs, Ogre::MaterialPtr uiMaterial,
     : mRenderSystem(rs->getOgreRenderSystem()),
       mSceneMgr(rs->getSceneMgr()),
       mUIMaterial(uiMaterial),
-      mProjection(projection)
-{
+      mProjection(projection) {
     mScissorEnable = false;
 
     mScissorLeft = 0;
@@ -41,12 +39,10 @@ RocketInterface::RocketInterface(Renderer* rs, Ogre::MaterialPtr uiMaterial,
     setupKeymap();
 }
 
-RocketInterface::~RocketInterface()
-{
+RocketInterface::~RocketInterface() {
 }
 
-int RocketInterface::mapSDLKeyCode(SDL_Keycode key)
-{
+int RocketInterface::mapSDLKeyCode(SDL_Keycode key) {
     auto it = mKeyMap.find(key);
     if (it != mKeyMap.end())
         return it->second;
@@ -54,47 +50,37 @@ int RocketInterface::mapSDLKeyCode(SDL_Keycode key)
         return Rocket::Core::Input::KI_UNKNOWN;
 }
 
-Rocket::Core::Input::KeyModifier RocketInterface::mapSDLKeyMod(Uint16 mod)
-{
+Rocket::Core::Input::KeyModifier RocketInterface::mapSDLKeyMod(Uint16 mod) {
     using namespace Rocket::Core::Input;
 
     int rocketMod = 0;
-    if (mod & KMOD_SHIFT)
-        rocketMod |= KM_SHIFT;
-    if (mod & KMOD_CTRL)
-        rocketMod |= KM_CTRL;
-    if (mod & KMOD_ALT)
-        rocketMod |= KM_ALT;
-    if (mod & KMOD_GUI)
-        rocketMod |= KM_META;
-    if (mod & KMOD_CAPS)
-        rocketMod |= KM_CAPSLOCK;
-    if (mod & KMOD_NUM)
-        rocketMod |= KM_NUMLOCK;
+    if (mod & KMOD_SHIFT) rocketMod |= KM_SHIFT;
+    if (mod & KMOD_CTRL) rocketMod |= KM_CTRL;
+    if (mod & KMOD_ALT) rocketMod |= KM_ALT;
+    if (mod & KMOD_GUI) rocketMod |= KM_META;
+    if (mod & KMOD_CAPS) rocketMod |= KM_CAPSLOCK;
+    if (mod & KMOD_NUM) rocketMod |= KM_NUMLOCK;
 
     return KeyModifier(rocketMod);
 }
 
-int RocketInterface::mapSDLMouseButton(uint button)
-{
+int RocketInterface::mapSDLMouseButton(uint button) {
     return button - 1;
 }
 
 void RocketInterface::RenderGeometry(Rocket::Core::Vertex* vertices, int numVertices, int* indices,
                                      int numIndices, Rocket::Core::TextureHandle texture,
-                                     const Rocket::Core::Vector2f& translation)
-{
+                                     const Rocket::Core::Vector2f& translation) {
     // NOTE: This is very inefficient so it should only be used when debugging
-    Rocket::Core::CompiledGeometryHandle gh = CompileGeometry(vertices, numVertices, indices,
-                                                              numIndices, texture);
+    Rocket::Core::CompiledGeometryHandle gh =
+        CompileGeometry(vertices, numVertices, indices, numIndices, texture);
     RenderCompiledGeometry(gh, translation);
     ReleaseCompiledGeometry(gh);
 }
 
 Rocket::Core::CompiledGeometryHandle RocketInterface::CompileGeometry(
     Rocket::Core::Vertex* vertices, int numVertices, int* indices, int numIndices,
-    Rocket::Core::TextureHandle texture)
-{
+    Rocket::Core::TextureHandle texture) {
     RocketOgreGeometry* geometry = new RocketOgreGeometry();
     geometry->texture = texture == 0 ? nullptr : reinterpret_cast<RocketOgreTexture*>(texture);
     geometry->renderOp.vertexData = new Ogre::VertexData();
@@ -123,8 +109,7 @@ Rocket::Core::CompiledGeometryHandle RocketInterface::CompileGeometry(
     // Fill the vertex buffer
     RocketOgreVertex* vertexData = static_cast<RocketOgreVertex*>(
         vb->lock(0, vb->getSizeInBytes(), Ogre::HardwareBuffer::HBL_NORMAL));
-    for (int i = 0; i < numVertices; ++i)
-    {
+    for (int i = 0; i < numVertices; ++i) {
         vertexData[i].position.x = vertices[i].position.x;
         vertexData[i].position.y = vertices[i].position.y;
 
@@ -163,8 +148,7 @@ Rocket::Core::CompiledGeometryHandle RocketInterface::CompileGeometry(
 }
 
 void RocketInterface::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometryHandle,
-                                             const Rocket::Core::Vector2f& translation)
-{
+                                             const Rocket::Core::Vector2f& translation) {
     RocketOgreGeometry* geometry = reinterpret_cast<RocketOgreGeometry*>(geometryHandle);
 
     // Build world matrix
@@ -173,29 +157,24 @@ void RocketInterface::RenderCompiledGeometry(Rocket::Core::CompiledGeometryHandl
 
     // Draw UI element
     Ogre::Pass* pass;
-    if (geometry->texture)
-    {
+    if (geometry->texture) {
         pass = mUIMaterial->getTechnique("Texture")->getPass(0);
         pass->getTextureUnitState(0)->setTexture(geometry->texture->texture);
-    }
-    else
-    {
+    } else {
         pass = mUIMaterial->getTechnique("NoTexture")->getPass(0);
     }
-    mSceneMgr->manualRender(&geometry->renderOp, pass, nullptr,
-                            world, Ogre::Matrix4::IDENTITY, mProjection);
+    mSceneMgr->manualRender(&geometry->renderOp, pass, nullptr, world, Ogre::Matrix4::IDENTITY,
+                            mProjection);
 }
 
-void RocketInterface::ReleaseCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometryHandle)
-{
+void RocketInterface::ReleaseCompiledGeometry(Rocket::Core::CompiledGeometryHandle geometryHandle) {
     RocketOgreGeometry* geometry = reinterpret_cast<RocketOgreGeometry*>(geometryHandle);
     delete geometry->renderOp.vertexData;
     delete geometry->renderOp.indexData;
     delete geometry;
 }
 
-void RocketInterface::EnableScissorRegion(bool enable)
-{
+void RocketInterface::EnableScissorRegion(bool enable) {
     mScissorEnable = enable;
 
     if (!mScissorEnable)
@@ -205,34 +184,30 @@ void RocketInterface::EnableScissorRegion(bool enable)
                                       mScissorBottom);
 }
 
-void RocketInterface::SetScissorRegion(int x, int y, int width, int height)
-{
+void RocketInterface::SetScissorRegion(int x, int y, int width, int height) {
     mScissorLeft = x;
     mScissorTop = y;
     mScissorRight = x + width;
     mScissorBottom = y + height;
 
     if (mScissorEnable)
-        mRenderSystem->setScissorTest(
-            true, mScissorLeft, mScissorTop, mScissorRight, mScissorBottom);
+        mRenderSystem->setScissorTest(true, mScissorLeft, mScissorTop, mScissorRight,
+                                      mScissorBottom);
 }
 
 bool RocketInterface::LoadTexture(Rocket::Core::TextureHandle& textureHandle,
                                   Rocket::Core::Vector2i& textureDimensions,
-                                  const Rocket::Core::String& source)
-{
+                                  const Rocket::Core::String& source) {
     Ogre::TextureManager* tm = Ogre::TextureManager::getSingletonPtr();
     Ogre::TexturePtr texture = tm->getByName(Ogre::String(source.CString()));
 
-    if (texture.isNull())
-    {
-        texture = tm->load(
-            Ogre::String(source.CString()), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-            Ogre::TEX_TYPE_2D, 0, 1.0f, false, Ogre::PF_UNKNOWN, true);
+    if (texture.isNull()) {
+        texture = tm->load(Ogre::String(source.CString()),
+                           Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+                           Ogre::TEX_TYPE_2D, 0, 1.0f, false, Ogre::PF_UNKNOWN, true);
     }
 
-    if (texture.isNull())
-        return false;
+    if (texture.isNull()) return false;
 
     textureDimensions.x = texture->getWidth();
     textureDimensions.y = texture->getHeight();
@@ -243,73 +218,59 @@ bool RocketInterface::LoadTexture(Rocket::Core::TextureHandle& textureHandle,
 
 bool RocketInterface::GenerateTexture(Rocket::Core::TextureHandle& textureHandle,
                                       const Rocket::Core::byte* source,
-                                      const Rocket::Core::Vector2i& dimensions)
-{
+                                      const Rocket::Core::Vector2i& dimensions) {
     static int id = 1;
 
     Ogre::DataStreamPtr stream(OGRE_NEW Ogre::MemoryDataStream(
         (void*)source, dimensions.x * dimensions.y * sizeof(unsigned int)));
     Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().loadRawData(
         Rocket::Core::String(16, "%d", id++).CString(),
-        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, stream,
-        (Ogre::ushort)dimensions.x, (Ogre::ushort)dimensions.y, Ogre::PF_A8B8G8R8,
-        Ogre::TEX_TYPE_2D, 0);
+        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, stream, (Ogre::ushort)dimensions.x,
+        (Ogre::ushort)dimensions.y, Ogre::PF_A8B8G8R8, Ogre::TEX_TYPE_2D, 0);
 
-    if (texture.isNull())
-        return false;
+    if (texture.isNull()) return false;
 
     textureHandle = reinterpret_cast<Rocket::Core::TextureHandle>(new RocketOgreTexture(texture));
     return true;
 }
 
-void RocketInterface::ReleaseTexture(Rocket::Core::TextureHandle texture)
-{
+void RocketInterface::ReleaseTexture(Rocket::Core::TextureHandle texture) {
     delete reinterpret_cast<RocketOgreTexture*>(texture);
 }
 
-float RocketInterface::GetHorizontalTexelOffset()
-{
+float RocketInterface::GetHorizontalTexelOffset() {
     return -mRenderSystem->getHorizontalTexelOffset();
 }
 
-float RocketInterface::GetVerticalTexelOffset()
-{
+float RocketInterface::GetVerticalTexelOffset() {
     return -mRenderSystem->getVerticalTexelOffset();
 }
 
-Rocket::Core::FileHandle RocketInterface::Open(const Rocket::Core::String& path)
-{
+Rocket::Core::FileHandle RocketInterface::Open(const Rocket::Core::String& path) {
     Ogre::DataStreamPtr stream =
         Ogre::ResourceGroupManager::getSingleton().openResource(path.CString());
 
-    if (stream.isNull())
-        return 0;
+    if (stream.isNull()) return 0;
 
     return reinterpret_cast<Rocket::Core::FileHandle>(new Ogre::DataStreamPtr(stream));
 }
 
-void RocketInterface::Close(Rocket::Core::FileHandle file)
-{
-    if (!file)
-        return;
+void RocketInterface::Close(Rocket::Core::FileHandle file) {
+    if (!file) return;
 
     Ogre::DataStreamPtr* pstream = reinterpret_cast<Ogre::DataStreamPtr*>(file);
     delete pstream;
 }
 
-size_t RocketInterface::Read(void* buffer, size_t size, Rocket::Core::FileHandle file)
-{
-    if (!file)
-        return 0;
+size_t RocketInterface::Read(void* buffer, size_t size, Rocket::Core::FileHandle file) {
+    if (!file) return 0;
 
     Ogre::DataStreamPtr stream = *reinterpret_cast<Ogre::DataStreamPtr*>(file);
     return stream->read(buffer, size);
 }
 
-bool RocketInterface::Seek(Rocket::Core::FileHandle file, long offset, int origin)
-{
-    if (!file)
-        return false;
+bool RocketInterface::Seek(Rocket::Core::FileHandle file, long offset, int origin) {
+    if (!file) return false;
 
     Ogre::DataStreamPtr stream = *reinterpret_cast<Ogre::DataStreamPtr*>(file);
     long pos = 0;
@@ -322,36 +283,31 @@ bool RocketInterface::Seek(Rocket::Core::FileHandle file, long offset, int origi
     else
         pos = offset;
 
-    if (pos < 0 || pos > (long)size)
-        return false;
+    if (pos < 0 || pos > (long)size) return false;
 
     stream->seek((size_t)pos);
     return true;
 }
 
-size_t RocketInterface::Tell(Rocket::Core::FileHandle file)
-{
-    if (!file)
-        return 0;
+size_t RocketInterface::Tell(Rocket::Core::FileHandle file) {
+    if (!file) return 0;
 
     Ogre::DataStreamPtr stream = *reinterpret_cast<Ogre::DataStreamPtr*>(file);
     return stream->tell();
 }
 
-float RocketInterface::GetElapsedTime()
-{
+float RocketInterface::GetElapsedTime() {
     return static_cast<float>(time::now());
 }
 
-bool RocketInterface::LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message)
-{
+bool RocketInterface::LogMessage(Rocket::Core::Log::Type type,
+                                 const Rocket::Core::String& message) {
     assert(Log::ptr());
     LOG << "[librocket]: " << message.CString();
     return false;
 }
 
-void RocketInterface::setupKeymap()
-{
+void RocketInterface::setupKeymap() {
     // Set up key mappings
     using namespace Rocket::Core::Input;
     mKeyMap[SDLK_UNKNOWN] = KI_UNKNOWN;
@@ -463,5 +419,4 @@ void RocketInterface::setupKeymap()
     mKeyMap[SDLK_LGUI] = KI_LMETA;
     mKeyMap[SDLK_RGUI] = KI_RMETA;
 }
-
 }

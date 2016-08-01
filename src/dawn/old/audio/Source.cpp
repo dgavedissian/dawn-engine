@@ -4,6 +4,4 @@
  */
 #include "Common.h"
 
-namespace dw {
-
-}
+namespace dw {}

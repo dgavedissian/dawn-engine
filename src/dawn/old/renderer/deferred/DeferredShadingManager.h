@@ -10,8 +10,7 @@ class GBufferSchemeHandler;
 class NoGBufferSchemeHandler;
 
 // System to manage Deferred Shading for a camera/render target.
-class DW_API DeferredShadingManager : public Ogre::RenderTargetListener
-{
+class DW_API DeferredShadingManager : public Ogre::RenderTargetListener {
 public:
     // The first render queue that does get rendered into the GBuffer
     // place objects (like skies) that should be before GBuffer before this one.
@@ -52,5 +51,4 @@ protected:
     bool mFogEnabled;
     bool mDebug;
 };
-
 }

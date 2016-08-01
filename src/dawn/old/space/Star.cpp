@@ -14,14 +14,10 @@ namespace dw {
 // TODO: Lens flares:
 // http://www.ogre3d.org/forums/viewtopic.php?f=11&t=65630
 
-StarDesc::StarDesc() : radius(0.0f), spectralClass(SC_G)
-{
+StarDesc::StarDesc() : radius(0.0f), spectralClass(SC_G) {
 }
 
-Star::Star(Renderer* renderSystem,
-           StarSystem* starSystem,
-           PhysicsWorld* physicsMgr,
-           StarDesc& desc)
+Star::Star(Renderer* renderSystem, StarSystem* starSystem, PhysicsWorld* physicsMgr, StarDesc& desc)
     : SystemBody(renderSystem),
       mPhysicsMgr(physicsMgr),
       mDesc(desc),
@@ -30,8 +26,7 @@ Star::Star(Renderer* renderSystem,
       mGlowBillboard(nullptr),
       mFlareBillboardSet(nullptr),
       mGlowBillboardSet(nullptr),
-      mSceneNode(nullptr)
-{
+      mSceneNode(nullptr) {
     assert(desc.radius > 0.0f);
 
     // Get the correct colour, and create the scene node
@@ -60,66 +55,62 @@ Star::Star(Renderer* renderSystem,
     mLight->setDiffuseColour(Colour(1.0f, 1.0f, 1.0f));
 }
 
-Star::~Star()
-{
+Star::~Star() {
     mRenderSystem->getSceneMgr()->destroyLight(mLight);
     mRenderSystem->getSceneMgr()->destroyBillboardSet(mGlowBillboardSet);
     mRenderSystem->getSceneMgr()->destroyBillboardSet(mFlareBillboardSet);
     mRenderSystem->getSceneMgr()->destroySceneNode(mSceneNode);
 }
 
-Colour Star::getColour() const
-{
+Colour Star::getColour() const {
     Colour colour;
 
     // Pick the colour based on the class
-    switch (mDesc.spectralClass)
-    {
-    case SC_O:
-        // blue
-        colour = Colour(0.6f, 0.7f, 1.0f);
-        break;
+    switch (mDesc.spectralClass) {
+        case SC_O:
+            // blue
+            colour = Colour(0.6f, 0.7f, 1.0f);
+            break;
 
-    case SC_B:
-        // blue white
-        colour = Colour(0.7f, 0.8f, 1.0f);
-        break;
+        case SC_B:
+            // blue white
+            colour = Colour(0.7f, 0.8f, 1.0f);
+            break;
 
-    case SC_A:
-        // light blue white
-        colour = Colour(0.87f, 0.9f, 1.0f);
-        break;
+        case SC_A:
+            // light blue white
+            colour = Colour(0.87f, 0.9f, 1.0f);
+            break;
 
-    case SC_F:
-        // white
-        colour = Colour(0.95f, 0.95f, 1.0f);
-        break;
+        case SC_F:
+            // white
+            colour = Colour(0.95f, 0.95f, 1.0f);
+            break;
 
-    case SC_G:
-        // yellow white
-        colour = Colour(1.0f, 0.9f, 0.8f);
-        break;
+        case SC_G:
+            // yellow white
+            colour = Colour(1.0f, 0.9f, 0.8f);
+            break;
 
-    case SC_K:
-        // yellow orange
-        colour = Colour(1.0f, 0.82f, 0.6f);
-        break;
+        case SC_K:
+            // yellow orange
+            colour = Colour(1.0f, 0.82f, 0.6f);
+            break;
 
-    case SC_M:
-        // orange red
-        colour = Colour(1.0f, 0.77f, 0.49f);
-        break;
+        case SC_M:
+            // orange red
+            colour = Colour(1.0f, 0.77f, 0.49f);
+            break;
 
-    default:
-        colour = Colour(1.0f, 1.0f, 1.0f);
-        break;
+        default:
+            colour = Colour(1.0f, 1.0f, 1.0f);
+            break;
     }
 
     return colour;
 }
 
-void Star::preRender(Camera* camera)
-{
+void Star::preRender(Camera* camera) {
     Vec3 localPosition = mPosition.toCameraSpace(camera);
 
     // Calculate light direction and apparent radius
@@ -131,8 +122,7 @@ void Star::preRender(Camera* camera)
     // Position the billboards
     float scale = 100000.0f;
     mGlowBillboard->setPosition(lightDirection * scale);
-    if (mFlareBillboard)
-        mFlareBillboard->setPosition(mGlowBillboard->mPosition);
+    if (mFlareBillboard) mFlareBillboard->setPosition(mGlowBillboard->mPosition);
 
     // Scale the billboards
     mGlowBillboard->setDimensions(apparentRadius * scale * 120.0f, apparentRadius * scale * 120.0f);
@@ -145,23 +135,18 @@ void Star::preRender(Camera* camera)
     mPhysicsMgr->rayQuery(camera->getPosition(), mPosition, camera, query);
     mFlareVisibility =
         math::Clamp(mFlareVisibility + (query.hit ? -1.0f : 1.0f) * 8.0f / 60.0f, 0.0f, 1.0f);
-    if (mFlareVisibility < M_EPSILON && mFlareBillboard)
-    {
+    if (mFlareVisibility < M_EPSILON && mFlareBillboard) {
         mFlareBillboardSet->removeBillboard(mFlareBillboard);
         mFlareBillboard = nullptr;
-    }
-    else if (mFlareVisibility > 0.0f && !mFlareBillboard)
-    {
+    } else if (mFlareVisibility > 0.0f && !mFlareBillboard) {
         mFlareBillboard = mFlareBillboardSet->createBillboard(mGlowBillboard->getPosition());
     }
 
-    if (mFlareBillboard)
-    {
+    if (mFlareBillboard) {
         mFlareBillboard->setColour(getColour() * mFlareVisibility);
     }
 
     // Update satellites
     SystemBody::preRender(camera);
 }
-
 }

@@ -8,36 +8,27 @@ namespace dw {
 
 // This Singleton design is based off:
 // https://github.com/nandor/MAZE/blob/master/maze/MZSingleton.h
-template <class T>
-class Singleton
-{
+template <class T> class Singleton {
 public:
     // The holder is used to deallocate the instance - in case the derived class
     // does not implement a virtual destructor
-    class Holder
-    {
+    class Holder {
     public:
-        Holder() : mInstance(nullptr)
-        {
+        Holder() : mInstance(nullptr) {
         }
 
-        ~Holder()
-        {
-            if (mInstance != nullptr)
-            {
+        ~Holder() {
+            if (mInstance != nullptr) {
                 assert(false && "A singleton hasn't been released properly!");
             }
         }
 
-        void setInstance(T* inst)
-        {
+        void setInstance(T* inst) {
             mInstance = inst;
         }
 
-        void release()
-        {
-            if (mInstance != nullptr)
-            {
+        void release() {
+            if (mInstance != nullptr) {
                 delete mInstance;
             }
 
@@ -50,29 +41,25 @@ public:
 
     // Singletons are initialized by calling the constructor of the class at
     // startup, so no thread safety is needed
-    Singleton()
-    {
+    Singleton() {
         assert(!mInstance);
         mInstance = static_cast<T*>(this);
         mHolder.setInstance(mInstance);
     }
 
     // Deallocate the instance
-    static void release()
-    {
+    static void release() {
         mHolder.release();
         mInstance = nullptr;
     }
 
     // Returns a reference to the singleton instance
-    static T& inst()
-    {
+    static T& inst() {
         return *mInstance;
     }
 
     // Returns a pointer to the singleton instance
-    static T* ptr()
-    {
+    static T* ptr() {
         return mInstance;
     }
 
@@ -85,9 +72,6 @@ private:
     static T* mInstance;
 };
 
-template <class T>
-typename Singleton<T>::Holder Singleton<T>::mHolder;
-template <class T>
-T* Singleton<T>::mInstance = nullptr;
-
+template <class T> typename Singleton<T>::Holder Singleton<T>::mHolder;
+template <class T> T* Singleton<T>::mInstance = nullptr;
 }

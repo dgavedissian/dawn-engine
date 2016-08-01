@@ -7,20 +7,15 @@
 
 namespace dw {
 
-SceneManager::SceneManager()
-{
+SceneManager::SceneManager() {
 }
 
-SceneManager::~SceneManager()
-{
+SceneManager::~SceneManager() {
 }
 
-void SceneManager::update(float dt)
-{
+void SceneManager::update(float dt) {
 }
 
-void SceneManager::preRender(Camera* camera)
-{
+void SceneManager::preRender(Camera* camera) {
 }
-
 }

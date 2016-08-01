@@ -7,32 +7,28 @@
 namespace dw {
 
 // Internal game states
-enum
-{
-    S_NO_STATE = -1,
-    S_SANDBOX,
-    S_USER_ID_BEGIN
-};
+enum { S_NO_STATE = -1, S_SANDBOX, S_USER_ID_BEGIN };
 
 // Empty game state
-class DW_API State
-{
+class DW_API State {
 public:
-    State() {}
-    virtual ~State() {}
+    State() {
+    }
+    virtual ~State() {
+    }
 
     // Called when the state is entered
-    virtual void enter() {};
+    virtual void enter(){};
 
     // Called when the state exits (either on pop or change)
-    virtual void exit() {};
+    virtual void exit(){};
 
     // Updates this state
-    virtual void update(float dt) {};
+    virtual void update(float dt){};
 
     // Called before rendering
     // Use this to blit sprites
-    virtual void preRender() {};
+    virtual void preRender(){};
 
     // Get the ID of this state
     virtual uint getId() const = 0;
@@ -42,15 +38,10 @@ public:
 };
 
 // State modality - does it own the screen or is it a pop-up?
-enum StateModality
-{
-    SM_EXCLUSIVE,
-    SM_POP_UP
-};
+enum StateModality { SM_EXCLUSIVE, SM_POP_UP };
 
 // Manages the games states
-class DW_API StateManager : public Object
-{
+class DW_API StateManager : public Object {
 public:
     DW_OBJECT(Object)
 
@@ -92,5 +83,4 @@ private:
     Map<int, SharedPtr<State>> mStateMap;
     Vector<SharedPtr<State>> mStateStack;
 };
-
 }

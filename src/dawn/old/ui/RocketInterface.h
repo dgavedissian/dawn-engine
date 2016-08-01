@@ -12,8 +12,7 @@ namespace dw {
 
 class Renderer;
 
-struct RocketOgreVertex
-{
+struct RocketOgreVertex {
     Ogre::Vector2 position;
     Ogre::uint32 colour;
     Ogre::Vector2 uv;
@@ -21,8 +20,7 @@ struct RocketOgreVertex
 
 class RocketInterface : public Rocket::Core::RenderInterface,
                         public Rocket::Core::FileInterface,
-                        public Rocket::Core::SystemInterface
-{
+                        public Rocket::Core::SystemInterface {
 public:
     RocketInterface(Renderer* rs, Ogre::MaterialPtr uiMaterial, const Ogre::Matrix4& projection);
     virtual ~RocketInterface();
@@ -74,7 +72,8 @@ public:
 
     // Inherited from Rocket::Core::SystemInterface
     virtual float GetElapsedTime() override;
-    virtual bool LogMessage(Rocket::Core::Log::Type type, const Rocket::Core::String& message) override;
+    virtual bool LogMessage(Rocket::Core::Log::Type type,
+                            const Rocket::Core::String& message) override;
 
 private:
     Ogre::RenderSystem* mRenderSystem;
@@ -92,7 +91,5 @@ private:
 
 private:
     void setupKeymap();
-
 };
-
 }

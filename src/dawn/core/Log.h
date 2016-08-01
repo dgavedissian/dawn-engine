@@ -8,15 +8,9 @@
 
 namespace dw {
 
-enum LogLevel
-{
-    LOG_INFO,
-    LOG_WARN,
-    LOG_ERROR
-};
+enum LogLevel { LOG_INFO, LOG_WARN, LOG_ERROR };
 
-class DW_API LogListener
-{
+class DW_API LogListener {
 public:
     LogListener();
     virtual ~LogListener();
@@ -26,24 +20,19 @@ public:
 };
 
 // Outputs to the platform specific log
-class DW_API PlatformLog : public LogListener
-{
+class DW_API PlatformLog : public LogListener {
 public:
     virtual void logWrite(const String& message) override;
 };
 
-class DW_API Log : public Singleton<Log>
-{
+class DW_API Log : public Singleton<Log> {
 private:
-    class DW_API Stream
-    {
+    class DW_API Stream {
     public:
         Stream(Log* log, LogLevel level, const String& message);
         ~Stream();
 
-        template <class T>
-        inline Stream& operator<<(T val)
-        {
+        template <class T> inline Stream& operator<<(T val) {
             std::ostringstream writer;
             writer << val;
             mMessage += writer.str();
@@ -84,16 +73,13 @@ private:
     PlatformLog mPlatformLog;
 };
 
-template <> inline Log::Stream& Log::Stream::operator<<<String>(String val)
-{
+template <> inline Log::Stream& Log::Stream::operator<<<String>(String val) {
     mMessage += val;
     return *this;
 }
-
 }
 
 // Macros
 #define LOG Log::inst().getStream(LOG_INFO)
 #define LOGWARN Log::inst().getStream(LOG_WARN)
 #define LOGERR Log::inst().getStream(LOG_ERROR)
-

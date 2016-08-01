@@ -13,8 +13,7 @@ Context::Context() {
 Context::~Context() {
 }
 
-void Context::addSubsystem(SharedPtr <Object> subsystem) {
+void Context::addSubsystem(SharedPtr<Object> subsystem) {
     mSubsystems[subsystem->getType()] = subsystem;
 }
-
 }

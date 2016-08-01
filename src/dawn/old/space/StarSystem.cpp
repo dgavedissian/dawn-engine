@@ -11,10 +11,7 @@
 namespace dw {
 
 StarSystem::StarSystem(Renderer* rs, PhysicsWorld* pm)
-    : mRenderSystem(rs),
-      mPhysicsManager(pm),
-      mBackgroundSceneNode(nullptr)
-{
+    : mRenderSystem(rs), mPhysicsManager(pm), mBackgroundSceneNode(nullptr) {
     // Create the root scene node
     mBackgroundSceneNode = rs->getRootSceneNode()->createChildSceneNode();
 
@@ -35,51 +32,44 @@ StarSystem::StarSystem(Renderer* rs, PhysicsWorld* pm)
     mBackgroundSceneNode->attachObject(mStarfield);
 }
 
-StarSystem::~StarSystem()
-{
+StarSystem::~StarSystem() {
     mRenderSystem->getSceneMgr()->destroySceneNode(mBackgroundSceneNode);
     mRenderSystem->getSceneMgr()->destroyEntity(mStarfield);
     mRenderSystem->getSceneMgr()->destroyEntity(mGalacticPlane);
 }
 
 SharedPtr<AsteroidBelt> StarSystem::createAsteroidBelt(float minRadius, float maxRadius,
-                                                        float height)
-{
-    SharedPtr<AsteroidBelt> asteroidBelt = makeShared<AsteroidBelt>(
-        mRenderSystem, minRadius, maxRadius, height);
+                                                       float height) {
+    SharedPtr<AsteroidBelt> asteroidBelt =
+        makeShared<AsteroidBelt>(mRenderSystem, minRadius, maxRadius, height);
     mAsteroidBelts.push_back(asteroidBelt);
     return asteroidBelt;
 }
 
-SharedPtr<Barycentre> StarSystem::createBarycentre()
-{
+SharedPtr<Barycentre> StarSystem::createBarycentre() {
     SharedPtr<Barycentre> barycentre = makeShared<Barycentre>(mRenderSystem);
     mBodies.push_back(barycentre);
     return barycentre;
 }
 
-SharedPtr<Planet> StarSystem::createPlanet(PlanetDesc& desc)
-{
+SharedPtr<Planet> StarSystem::createPlanet(PlanetDesc& desc) {
     SharedPtr<Planet> planet = makeShared<Planet>(mRenderSystem, this, desc);
     mBodies.push_back(planet);
     return planet;
 }
 
-SharedPtr<Star> StarSystem::createStar(StarDesc& desc)
-{
+SharedPtr<Star> StarSystem::createStar(StarDesc& desc) {
     SharedPtr<Star> star = makeShared<Star>(mRenderSystem, this, mPhysicsManager, desc);
     mBodies.push_back(star);
     mStars.push_back(star);
     return star;
 }
 
-void StarSystem::setRoot(SharedPtr<SystemBody> body)
-{
+void StarSystem::setRoot(SharedPtr<SystemBody> body) {
     mRootBody = body;
 }
 
-void StarSystem::createNebulaCloud(const String& texture, const Colour& fogColour)
-{
+void StarSystem::createNebulaCloud(const String& texture, const Colour& fogColour) {
     // Nebula Clouds
     mNebulaSceneNode = mBackgroundSceneNode->createChildSceneNode();
     mNebula = mRenderSystem->getSceneMgr()->createEntity(Ogre::SceneManager::PT_SPHERE);
@@ -89,8 +79,7 @@ void StarSystem::createNebulaCloud(const String& texture, const Colour& fogColou
     mNebulaSceneNode->attachObject(mNebula);
 
     // Enable fog
-    if (fogColour != Colour(0.0f, 0.0f, 0.0f, 0.0f))
-    {
+    if (fogColour != Colour(0.0f, 0.0f, 0.0f, 0.0f)) {
         mRenderSystem->getDeferredShadingMgr()->EnableFog(true);
 
         // Set the fog colour
@@ -98,42 +87,31 @@ void StarSystem::createNebulaCloud(const String& texture, const Colour& fogColou
     }
 }
 
-void StarSystem::update(float dt)
-{
-    if (mRootBody)
-        mRootBody->update(dt, Position::origin);
+void StarSystem::update(float dt) {
+    if (mRootBody) mRootBody->update(dt, Position::origin);
 }
 
-void StarSystem::preRender(Camera* camera)
-{
-    if (mRootBody)
-        mRootBody->preRender(camera);
+void StarSystem::preRender(Camera* camera) {
+    if (mRootBody) mRootBody->preRender(camera);
 }
 
-void StarSystem::calculatePosition(double time)
-{
-    if (mRootBody)
-        mRootBody->calculatePosition(time);
+void StarSystem::calculatePosition(double time) {
+    if (mRootBody) mRootBody->calculatePosition(time);
 }
 
-SharedPtr<SystemBody> StarSystem::getRootBody()
-{
+SharedPtr<SystemBody> StarSystem::getRootBody() {
     return mRootBody;
 }
 
-const Vector<SharedPtr<SystemBody>>& StarSystem::getBodies() const
-{
+const Vector<SharedPtr<SystemBody>>& StarSystem::getBodies() const {
     return mBodies;
 }
 
-const Vector<SharedPtr<Star>>& StarSystem::getStars() const
-{
+const Vector<SharedPtr<Star>>& StarSystem::getStars() const {
     return mStars;
 }
 
-Ogre::SceneNode* StarSystem::getRootSceneNode()
-{
+Ogre::SceneNode* StarSystem::getRootSceneNode() {
     return mBackgroundSceneNode;
 }
-
 }

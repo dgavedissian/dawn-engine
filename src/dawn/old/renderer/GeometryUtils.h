@@ -26,5 +26,4 @@ DW_API void createCone(Ogre::VertexData* vertexData, Ogre::IndexData* indexData,
 
 // Fill up a fresh copy of VertexData with a normalized quad
 DW_API void createQuad(Ogre::VertexData* vertexData);
-
 }

@@ -4,6 +4,4 @@
  */
 #pragma once
 
-namespace dw {
-
-}
+namespace dw {}

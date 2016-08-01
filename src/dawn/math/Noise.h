@@ -7,8 +7,7 @@
 namespace dw {
 
 #define SAMPLE_SIZE 1024
-class DW_API PerlinNoise
-{
+class DW_API PerlinNoise {
 public:
     PerlinNoise(int octaves, float freq, float amp, int seed);
 
@@ -42,5 +41,4 @@ private:
     float g1[SAMPLE_SIZE + SAMPLE_SIZE + 2];
     bool mStart;
 };
-
 }

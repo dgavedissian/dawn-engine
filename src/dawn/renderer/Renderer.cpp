@@ -5,19 +5,14 @@
 #include "Common.h"
 #include "renderer/Renderer.h"
 
-Renderer::Renderer(Context* context) :
-    Object(context)
-{
+Renderer::Renderer(Context* context) : Object(context) {
 }
 
-Renderer::~Renderer()
-{
+Renderer::~Renderer() {
 }
 
-void Renderer::setup(int width, int height)
-{
+void Renderer::setup(int width, int height) {
 }
 
-void Renderer::shutdown()
-{
+void Renderer::shutdown() {
 }

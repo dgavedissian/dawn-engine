@@ -13,20 +13,16 @@ namespace dw {
 const Ogre::uint8 DeferredShadingManager::PRE_GBUFFER_RENDER_QUEUE = Ogre::RENDER_QUEUE_1;
 const Ogre::uint8 DeferredShadingManager::POST_GBUFFER_RENDER_QUEUE = Ogre::RENDER_QUEUE_8;
 
-class DW_API CustomCameraSetup : public Ogre::ShadowCameraSetup
-{
+class DW_API CustomCameraSetup : public Ogre::ShadowCameraSetup {
 public:
-    CustomCameraSetup()
-    {
+    CustomCameraSetup() {
     }
-    virtual ~CustomCameraSetup()
-    {
+    virtual ~CustomCameraSetup() {
     }
 
     void getShadowCamera(const Ogre::SceneManager* sm, const Ogre::Camera* cam,
                          const Ogre::Viewport* vp, const Ogre::Light* light, Ogre::Camera* texCam,
-                         size_t iteration) const override
-    {
+                         size_t iteration) const override {
         Ogre::Vector3 pos, dir;
 
         // reset custom view / projection matrix in case already set
@@ -36,8 +32,7 @@ public:
 
         // get the shadow frustum's far distance
         float shadowDist = light->getShadowFarDistance();
-        if (!shadowDist)
-        {
+        if (!shadowDist) {
             // need a shadow distance, make one up
             shadowDist = cam->getNearClipDistance() * 300;
         }
@@ -46,8 +41,7 @@ public:
         texCam->setFarClipDistance(sm->getShadowDirectionalLightExtrusionDistance() * 2.0f);
 
         // Directional lights
-        if (light->getType() == Ogre::Light::LT_DIRECTIONAL)
-        {
+        if (light->getType() == Ogre::Light::LT_DIRECTIONAL) {
             // set up the shadow texture
             // Set ortho projection
             texCam->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
@@ -57,11 +51,11 @@ public:
             // Calculate look at position
             // We want to look at a spot shadowOffset away from near plane
             // 0.5 is a little too close for angles
-            Ogre::Vector3 target = cam->getDerivedPosition();    // + (cam->getDerivedDirection() *
-                                                           // shadowOffset);
+            Ogre::Vector3 target = cam->getDerivedPosition();  // + (cam->getDerivedDirection() *
+                                                               // shadowOffset);
 
             // Calculate direction, which same as directional light direction
-            dir = -light->getDerivedDirection();    // backwards since point down -z
+            dir = -light->getDerivedDirection();  // backwards since point down -z
             dir.normalise();
 
             // Calculate position
@@ -84,8 +78,7 @@ public:
             Ogre::Vector3 up = Ogre::Vector3::UNIT_Y;
 
             // Check it's not coincident with dir
-            if (math::Abs(up.dotProduct(dir)) >= 1.0f)
-            {
+            if (math::Abs(up.dotProduct(dir)) >= 1.0f) {
                 // Use camera up
                 up = Ogre::Vector3::UNIT_Z;
             }
@@ -110,8 +103,7 @@ public:
             pos = q * lightSpacePos;
         }
         // Spotlight
-        else if (light->getType() == Ogre::Light::LT_SPOTLIGHT)
-        {
+        else if (light->getType() == Ogre::Light::LT_SPOTLIGHT) {
             // Set perspective projection
             texCam->setProjectionType(Ogre::PT_PERSPECTIVE);
 
@@ -119,8 +111,7 @@ public:
             Ogre::Radian fovy = light->getSpotlightOuterAngle() * 1.2f;
 
             // limit angle
-            if (fovy.valueDegrees() > 175)
-            {
+            if (fovy.valueDegrees() > 175) {
                 fovy = Ogre::Degree(175);
             }
 
@@ -130,12 +121,11 @@ public:
             pos = light->getDerivedPosition();
 
             // Calculate direction, which same as spotlight direction
-            dir = -light->getDerivedDirection();    // backwards since point down -z
+            dir = -light->getDerivedDirection();  // backwards since point down -z
             dir.normalise();
         }
         // Point light
-        else
-        {
+        else {
             // Set perspective projection
             texCam->setProjectionType(Ogre::PT_PERSPECTIVE);
 
@@ -151,7 +141,7 @@ public:
             // Calculate position, which same as point light position
             pos = light->getDerivedPosition();
 
-            dir = (pos - target);    // backwards since point down -z
+            dir = (pos - target);  // backwards since point down -z
             dir.normalise();
         }
 
@@ -162,8 +152,7 @@ public:
         Ogre::Vector3 up = Ogre::Vector3::UNIT_Y;
 
         // Check it's not coincident with dir
-        if (math::Abs(up.dotProduct(dir)) >= 1.0f)
-        {
+        if (math::Abs(up.dotProduct(dir)) >= 1.0f) {
             // Use camera up
             up = Ogre::Vector3::UNIT_Z;
         }
@@ -188,8 +177,7 @@ DeferredShadingManager::DeferredShadingManager(Ogre::Viewport* vp, Ogre::SceneMa
       mLightingInstance(nullptr),
       mDebugInstance(nullptr),
       mActive(false),
-      mDebug(false)
-{
+      mDebug(false) {
     /*
     sm->setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
     sm->setShadowTextureCasterMaterial("DeferredShading/Shadows/Caster");
@@ -235,12 +223,11 @@ DeferredShadingManager::DeferredShadingManager(Ogre::Viewport* vp, Ogre::SceneMa
     mDebugInstance = cm.addCompositor(mViewport, "DeferredShading/ShowDebug");
 
     // Set as active
-    //EnableFog(false);
+    // EnableFog(false);
     SetActive(true);
 }
 
-DeferredShadingManager::~DeferredShadingManager()
-{
+DeferredShadingManager::~DeferredShadingManager() {
     Ogre::CompositorChain* chain =
         Ogre::CompositorManager::getSingleton().getCompositorChain(mViewport);
     chain->_removeInstance(mDebugInstance);
@@ -248,12 +235,12 @@ DeferredShadingManager::~DeferredShadingManager()
     chain->_removeInstance(mGBufferInstance);
     Ogre::CompositorManager::getSingleton().removeCompositorChain(mViewport);
 
-    Ogre::MaterialManager::getSingleton().removeListener(mNoGBufferSchemeHandler.get(), "NoGBuffer");
+    Ogre::MaterialManager::getSingleton().removeListener(mNoGBufferSchemeHandler.get(),
+                                                         "NoGBuffer");
     Ogre::MaterialManager::getSingleton().removeListener(mGBufferSchemeHandler.get(), "GBuffer");
 }
 
-void DeferredShadingManager::EnableFog(bool fog)
-{
+void DeferredShadingManager::EnableFog(bool fog) {
     /*
     // Prevent unnecessary setups
     if (mFogEnabled == fog)
@@ -269,30 +256,24 @@ void DeferredShadingManager::EnableFog(bool fog)
     }*/
 }
 
-void DeferredShadingManager::SetDebugMode(bool debug)
-{
+void DeferredShadingManager::SetDebugMode(bool debug) {
     // Prevent unnecessary setups
-    if (mDebug == debug && mLightingInstance->getEnabled() == !mDebug)
-        return;
+    if (mDebug == debug && mLightingInstance->getEnabled() == !mDebug) return;
 
     mLightingInstance->setEnabled(!debug);
     mDebugInstance->setEnabled(debug);
     mDebug = debug;
 }
 
-bool DeferredShadingManager::IsDebugMode() const
-{
+bool DeferredShadingManager::IsDebugMode() const {
     return mDebug;
 }
 
-void DeferredShadingManager::SetActive(bool active)
-{
-    if (mActive != active)
-    {
+void DeferredShadingManager::SetActive(bool active) {
+    if (mActive != active) {
         mActive = active;
         mGBufferInstance->setEnabled(active);
         SetDebugMode(mDebug);
     }
 }
-
 }

@@ -11,49 +11,38 @@
 namespace dw {
 
 SystemBody::SystemBody(Renderer* rs)
-    : mRenderSystem(rs),
-      mOrbit(nullptr),
-      mParent(nullptr),
-      mPosition()
-{
+    : mRenderSystem(rs), mOrbit(nullptr), mParent(nullptr), mPosition() {
 }
 
-SystemBody::~SystemBody()
-{
+SystemBody::~SystemBody() {
     removeAllAsteroidBelts();
     removeAllSatellites();
 }
 
-void SystemBody::setOrbit(SharedPtr<Orbit> orbit)
-{
+void SystemBody::setOrbit(SharedPtr<Orbit> orbit) {
     mOrbit = orbit;
 }
 
-void SystemBody::addSatellite(SharedPtr<SystemBody> satellite, SharedPtr<Orbit> orbit)
-{
+void SystemBody::addSatellite(SharedPtr<SystemBody> satellite, SharedPtr<Orbit> orbit) {
     mSatellites.push_back(satellite);
     satellite->setOrbit(orbit);
     satellite->setParent(this);
 }
 
-void SystemBody::removeAllSatellites()
-{
+void SystemBody::removeAllSatellites() {
     mSatellites.clear();
 }
 
-void SystemBody::addAsteroidBelt(SharedPtr<AsteroidBelt> belt)
-{
+void SystemBody::addAsteroidBelt(SharedPtr<AsteroidBelt> belt) {
     mAsteroidBelts.push_back(belt);
     belt->setParent(this);
 }
 
-void SystemBody::removeAllAsteroidBelts()
-{
+void SystemBody::removeAllAsteroidBelts() {
     mAsteroidBelts.clear();
 }
 
-void SystemBody::update(float dt, const Position& cameraPosition)
-{
+void SystemBody::update(float dt, const Position& cameraPosition) {
     // Update satellites
     for (auto satellite : mSatellites)
         satellite->update(dt, cameraPosition);
@@ -63,8 +52,7 @@ void SystemBody::update(float dt, const Position& cameraPosition)
         asteroidBelt->update(dt, cameraPosition);
 }
 
-void SystemBody::preRender(Camera* camera)
-{
+void SystemBody::preRender(Camera* camera) {
     // Update satellites
     for (auto satellite : mSatellites)
         satellite->preRender(camera);
@@ -74,47 +62,38 @@ void SystemBody::preRender(Camera* camera)
         asteroidBelt->preRender(camera);
 }
 
-const Orbit* SystemBody::getOrbit() const
-{
+const Orbit* SystemBody::getOrbit() const {
     return mOrbit.get();
 }
 
-const SystemBody* SystemBody::getSatellite(uint index) const
-{
+const SystemBody* SystemBody::getSatellite(uint index) const {
     assert(index < mSatellites.size());
     return mSatellites[index].get();
 }
 
-const Vector<SharedPtr<SystemBody>>& SystemBody::getAllSatellites() const
-{
+const Vector<SharedPtr<SystemBody>>& SystemBody::getAllSatellites() const {
     return mSatellites;
 }
 
-const Position& SystemBody::getPosition() const
-{
+const Position& SystemBody::getPosition() const {
     return mPosition;
 }
 
-void SystemBody::setParent(SystemBody* parent)
-{
+void SystemBody::setParent(SystemBody* parent) {
     mParent = parent;
 }
 
-void SystemBody::calculatePosition(double time)
-{
+void SystemBody::calculatePosition(double time) {
     // Get offset
     Position offset;
-    if (mParent)
-        offset = mParent->getPosition();
+    if (mParent) offset = mParent->getPosition();
 
     // Calculate final position
     mPosition = offset;
-    if (mOrbit)
-        mPosition += mOrbit->calculatePosition(time);
+    if (mOrbit) mPosition += mOrbit->calculatePosition(time);
 
     // Update satellites
     for (auto i = mSatellites.begin(); i != mSatellites.end(); ++i)
         (*i)->calculatePosition(time);
 }
-
 }

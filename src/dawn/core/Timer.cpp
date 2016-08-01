@@ -8,28 +8,23 @@
 namespace dw {
 namespace time {
 
-TimePoint beginTiming()
-{
+TimePoint beginTiming() {
     return _SteadyClock::now();
 }
 
-double elapsed(TimePoint then)
-{
+double elapsed(TimePoint then) {
     return std::chrono::duration_cast<std::chrono::seconds>(_SteadyClock::now() - then).count();
 }
 
-SystemTimePoint now()
-{
+SystemTimePoint now() {
     return _SystemClock::now();
 }
 
-String format(SystemTimePoint time, const String& format)
-{
+String format(SystemTimePoint time, const String& format) {
     StringStream out;
     std::time_t tt = _SystemClock::to_time_t(time);
     out << std::put_time(std::gmtime(&tt), format.c_str());
     return out.str();
 }
-
 }
 }

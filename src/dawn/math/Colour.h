@@ -2,8 +2,7 @@
 
 #include "math/Defs.h"
 
-class Colour
-{
+class Colour {
 public:
     Colour(float r, float g, float b, float a = 0);
     ~Colour();

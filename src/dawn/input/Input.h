@@ -9,8 +9,7 @@
 
 namespace dw {
 
-class DW_API Input
-{
+class DW_API Input {
 public:
     Input();
     ~Input();
@@ -43,23 +42,18 @@ public:
 private:
     uint mInputBlock;
     Vec2i mViewportSize;
-
 };
 
-class DW_API EvtData_KeyDown : public EventData
-{
+class DW_API EvtData_KeyDown : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_KeyDown(SDL_Keycode kc, SDL_Scancode sc, u16 m) : keycode(kc), scancode(sc), mod(m)
-    {
+    EvtData_KeyDown(SDL_Keycode kc, SDL_Scancode sc, u16 m) : keycode(kc), scancode(sc), mod(m) {
     }
-    const EventType& getType() const override
-    {
+    const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override
-    {
+    const String getName() const override {
         return "EvtData_KeyDown";
     }
 
@@ -68,20 +62,16 @@ public:
     u16 mod;
 };
 
-class DW_API EvtData_KeyUp : public EventData
-{
+class DW_API EvtData_KeyUp : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_KeyUp(SDL_Keycode kc, SDL_Scancode sc, u16 m) : keycode(kc), scancode(sc), mod(m)
-    {
+    EvtData_KeyUp(SDL_Keycode kc, SDL_Scancode sc, u16 m) : keycode(kc), scancode(sc), mod(m) {
     }
-    const EventType& getType() const override
-    {
+    const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override
-    {
+    const String getName() const override {
         return "EvtData_KeyUp";
     }
 
@@ -90,98 +80,86 @@ public:
     u16 mod;
 };
 
-class DW_API EvtData_TextInput : public EventData
-{
+class DW_API EvtData_TextInput : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_TextInput(String t) : text(t)
-    {
+    EvtData_TextInput(String t) : text(t) {
     }
-    const EventType& getType() const override
-    {
+    const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override
-    {
+    const String getName() const override {
         return "EvtData_TextInput";
     }
 
     String text;
 };
 
-class DW_API EvtData_MouseDown : public EventData
-{
+class DW_API EvtData_MouseDown : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_MouseDown(uint b) : button(b)
-    {
+    EvtData_MouseDown(uint b) : button(b) {
     }
-    const EventType& getType() const override
-    {
+    const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override
-    {
+    const String getName() const override {
         return "EvtData_MouseDown";
     }
 
     uint button;
 };
 
-class DW_API EvtData_MouseUp : public EventData
-{
+class DW_API EvtData_MouseUp : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_MouseUp(uint b) : button(b)
-    {
+    EvtData_MouseUp(uint b) : button(b) {
     }
-    const EventType& getType() const override
-    {
+    const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override
-    {
+    const String getName() const override {
         return "EvtData_MouseUp";
     }
 
     uint button;
 };
 
-class DW_API EvtData_MouseMove : public EventData
-{
+class DW_API EvtData_MouseMove : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_MouseMove(const Vec2i& p, const Vec2& pr, const Vec2i& m) : pos(p), posRel(pr), motion(m) {}
-    const EventType& getType() const override { return eventType; }
-    const String getName() const override { return "EvtData_MouseMove"; }
+    EvtData_MouseMove(const Vec2i& p, const Vec2& pr, const Vec2i& m)
+        : pos(p), posRel(pr), motion(m) {
+    }
+    const EventType& getType() const override {
+        return eventType;
+    }
+    const String getName() const override {
+        return "EvtData_MouseMove";
+    }
 
     Vec2i pos;
     Vec2 posRel;
     Vec2i motion;
 };
 
-class DW_API EvtData_MouseWheel : public EventData
-{
+class DW_API EvtData_MouseWheel : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_MouseWheel(const Vec2i& m) : motion(m)
-    {
+    EvtData_MouseWheel(const Vec2i& m) : motion(m) {
     }
-    const EventType& getType() const override
-    {
+    const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override
-    {
+    const String getName() const override {
         return "EvtData_MouseWheel";
     }
 
     Vec2i motion;
 };
-
 }

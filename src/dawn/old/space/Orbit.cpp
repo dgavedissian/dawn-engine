@@ -8,25 +8,18 @@
 namespace dw {
 
 CircularOrbit::CircularOrbit(float radius, float period, float phaseDifference /*= 0.0f*/)
-    : mRadius(radius), mPeroid(period), mPhaseDiff(phaseDifference)
-{
+    : mRadius(radius), mPeroid(period), mPhaseDiff(phaseDifference) {
 }
 
-CircularOrbit::~CircularOrbit()
-{
+CircularOrbit::~CircularOrbit() {
 }
 
-Position CircularOrbit::calculatePosition(double time)
-{
-    if (mRadius < M_EPSILON)
-    {
+Position CircularOrbit::calculatePosition(double time) {
+    if (mRadius < M_EPSILON) {
         return Position();
-    }
-    else
-    {
+    } else {
         double angle = time / (double)mPeroid * (double)math::pi * 2.0 + mPhaseDiff;
         return Position(sin(angle), 0.0, -cos(angle)) * mRadius;
     }
 }
-
 }

@@ -6,8 +6,7 @@
 
 namespace dw {
 
-class DW_API Track
-{
+class DW_API Track {
 public:
     // TODO: replace filename with dw::sound::Source
     Track(const String& filename, irrklang::ISoundEngine* engine);
@@ -33,5 +32,4 @@ public:
 private:
     irrklang::ISound* mTrack;
 };
-
 }

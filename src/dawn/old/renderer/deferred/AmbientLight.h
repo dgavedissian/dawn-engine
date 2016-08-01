@@ -18,8 +18,7 @@
 
 namespace dw {
 
-class DW_API AmbientLight : public Ogre::SimpleRenderable
-{
+class DW_API AmbientLight : public Ogre::SimpleRenderable {
 public:
     AmbientLight();
     ~AmbientLight();
@@ -35,5 +34,4 @@ protected:
     Ogre::Real mRadius;
     Ogre::MaterialPtr mMaterialPtr;
 };
-
 }

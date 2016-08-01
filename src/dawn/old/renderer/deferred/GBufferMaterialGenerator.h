@@ -9,14 +9,12 @@
 namespace dw {
 
 // Class for generating materials for objects to render themselves to the GBuffer
-class DW_API GBufferMaterialGenerator : public MaterialGenerator
-{
+class DW_API GBufferMaterialGenerator : public MaterialGenerator {
 public:
     GBufferMaterialGenerator();
 
     // The relevant options for objects that are rendered to the GBuffer
-    enum GBufferPermutations
-    {
+    enum GBufferPermutations {
         // (Regular) Textures
         GBP_NO_TEXTURES = 0x00000000,
         GBP_ONE_TEXTURE = 0x00000001,
@@ -53,8 +51,9 @@ private:
     String mBaseName;
 
     virtual Ogre::GpuProgramPtr GenerateVertexShader(MaterialGenerator::Perm permutation) override;
-    virtual Ogre::GpuProgramPtr GenerateFragmentShader(MaterialGenerator::Perm permutation) override;
-    virtual Ogre::MaterialPtr GenerateTemplateMaterial(MaterialGenerator::Perm permutation) override;
+    virtual Ogre::GpuProgramPtr GenerateFragmentShader(
+        MaterialGenerator::Perm permutation) override;
+    virtual Ogre::MaterialPtr GenerateTemplateMaterial(
+        MaterialGenerator::Perm permutation) override;
 };
-
 }

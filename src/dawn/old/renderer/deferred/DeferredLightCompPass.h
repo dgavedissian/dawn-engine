@@ -16,8 +16,7 @@ namespace dw {
 // The render operation that will be called each frame in the custom composition pass. This is the
 // class that will send the actual render calls of the spheres (point lights), cones (spotlights)
 // and quads (directional lights) after the GBuffer has been constructed
-class DW_API DeferredLightRenderOperation : public Ogre::CompositorInstance::RenderSystemOperation
-{
+class DW_API DeferredLightRenderOperation : public Ogre::CompositorInstance::RenderSystemOperation {
 public:
     friend class DW_API DeferredLight;
 
@@ -54,19 +53,15 @@ private:
 
 // The custom composition pass that is used for rendering the light geometry
 // This class needs to be registered with the CompositorManager
-class DW_API DeferredLightCompositionPass : public Ogre::CustomCompositionPass
-{
+class DW_API DeferredLightCompositionPass : public Ogre::CustomCompositionPass {
 public:
     virtual Ogre::CompositorInstance::RenderSystemOperation* createOperation(
-        Ogre::CompositorInstance* instance, const Ogre::CompositionPass* pass) override
-    {
+        Ogre::CompositorInstance* instance, const Ogre::CompositionPass* pass) override {
         return OGRE_NEW DeferredLightRenderOperation(instance, pass);
     }
 
 protected:
-    virtual ~DeferredLightCompositionPass()
-    {
+    virtual ~DeferredLightCompositionPass() {
     }
 };
-
 }

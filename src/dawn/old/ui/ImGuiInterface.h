@@ -9,8 +9,7 @@ namespace dw {
 class Renderer;
 class Input;
 
-class ImGuiInterface
-{
+class ImGuiInterface {
 public:
     ImGuiInterface(Renderer* rs, Input* im, Ogre::MaterialPtr uiMaterial,
                    const Ogre::Matrix4& projection);
@@ -52,6 +51,4 @@ private:
     // Callback used by ImGui
     static void renderDrawListsCallback(ImDrawData* drawData);
 };
-
 }
-

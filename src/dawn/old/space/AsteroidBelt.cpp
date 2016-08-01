@@ -10,15 +10,14 @@
 #define ASTEROID_MESH_COUNT 3
 #define ASTEROID_LEVELS 3
 #define ASTEROID_COUNT 750
-#define HALF_REGION_SIZE 4000.0f    // region size for min level
+#define HALF_REGION_SIZE 4000.0f  // region size for min level
 #define SCALE_FACTOR 4.0f
 #define INITIAL_SIZE 6.0f
 
 namespace dw {
 
 AsteroidBelt::AsteroidBelt(Renderer* rs, float minRadius, float maxRadius, float height)
-    : mMinRadius(minRadius), mMaxRadius(maxRadius), mHeight(height)
-{
+    : mMinRadius(minRadius), mMaxRadius(maxRadius), mHeight(height) {
     assert(mMinRadius < mMaxRadius);
     assert(mHeight > 0.0f);
 
@@ -26,13 +25,11 @@ AsteroidBelt::AsteroidBelt(Renderer* rs, float minRadius, float maxRadius, float
     std::default_random_engine engine;
     std::uniform_int_distribution<int> randomID(1, ASTEROID_MESH_COUNT);
     std::uniform_real_distribution<float> randomRotation(-math::pi, math::pi);
-    for (int l = 0; l < ASTEROID_LEVELS; ++l)
-    {
+    for (int l = 0; l < ASTEROID_LEVELS; ++l) {
         float posScaleFactor = math::PowInt(SCALE_FACTOR, l * 2);
         float sizeScaleFactor = math::PowInt(SCALE_FACTOR, l * 2);
         Vector<Asteroid> level;
-        for (int i = 0; i < ASTEROID_COUNT; ++i)
-        {
+        for (int i = 0; i < ASTEROID_COUNT; ++i) {
             Asteroid a;
             Ogre::Entity* ent = rs->getSceneMgr()->createEntity(
                 "scene-asteroid" + std::to_string(randomID(engine)) + ".mesh");
@@ -59,14 +56,11 @@ AsteroidBelt::AsteroidBelt(Renderer* rs, float minRadius, float maxRadius, float
     }
 }
 
-AsteroidBelt::~AsteroidBelt()
-{
+AsteroidBelt::~AsteroidBelt() {
 }
 
-void AsteroidBelt::update(float dt, const Position& cameraPosition)
-{
-    if (mParent)
-    {
+void AsteroidBelt::update(float dt, const Position& cameraPosition) {
+    if (mParent) {
         // Calculate position relative to belt origin
         Position relativePosition = cameraPosition - mParent->getPosition();
 
@@ -77,14 +71,12 @@ void AsteroidBelt::update(float dt, const Position& cameraPosition)
             // TODO: Attenuate asteroids based on thickness
 
             // Update asteroids
-            for (int l = 0; l < ASTEROID_LEVELS; ++l)
-            {
+            for (int l = 0; l < ASTEROID_LEVELS; ++l) {
                 float scaleFactor = math::Pow(SCALE_FACTOR, (float)l);
                 Vec3 halfRegion(HALF_REGION_SIZE * scaleFactor);
                 Position min = relativePosition - Position(halfRegion);
                 Position max = relativePosition + Position(halfRegion);
-                for (auto& a : mAsteroidLevels[l])
-                {
+                for (auto& a : mAsteroidLevels[l]) {
                     a.position.x = wrap(a.position.x, min.x, max.x);
                     a.position.y = wrap(a.position.y, min.y, max.y);
                     a.position.z = wrap(a.position.z, min.z, max.z);
@@ -94,19 +86,15 @@ void AsteroidBelt::update(float dt, const Position& cameraPosition)
     }
 }
 
-void AsteroidBelt::preRender(Camera* camera)
-{
+void AsteroidBelt::preRender(Camera* camera) {
     // Update asteroid meshes
-    for (int l = 0; l < ASTEROID_LEVELS; ++l)
-    {
+    for (int l = 0; l < ASTEROID_LEVELS; ++l) {
         for (auto& a : mAsteroidLevels[l])
             a.node->setPosition(a.position.toCameraSpace(camera));
     }
 }
 
-void AsteroidBelt::setParent(SystemBody* parent)
-{
+void AsteroidBelt::setParent(SystemBody* parent) {
     mParent = parent;
 }
-
 }

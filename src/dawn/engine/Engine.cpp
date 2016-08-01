@@ -23,8 +23,7 @@ Engine::Engine(const String& game, const String& version)
       mPrefPath(""),
       mLogFile("engine.log"),
       mConfigFile("engine.cfg"),
-      mMainCamera(nullptr)
-{
+      mMainCamera(nullptr) {
     gEngine = this;
 
     // Get the base path
@@ -32,9 +31,9 @@ Engine::Engine(const String& game, const String& version)
     mBasePath = basePath;
     SDL_free(basePath);
 #if DW_PLATFORM == DW_WIN32
-	mBasePath += "..\\";
+    mBasePath += "..\\";
 #elif DW_PLATFORM == DW_LINUX
-	mBasePath += "../";
+    mBasePath += "../";
 #endif
 
     // Get the preferences path
@@ -48,7 +47,7 @@ Engine::Engine(const String& game, const String& version)
     mPrefPath.replace(mPrefPath.find("//"), 2, "/");
 #endif
 
-    // Change the working directory
+// Change the working directory
 #if DW_PLATFORM == DW_WIN32
     SetCurrentDirectoryA(mBasePath.c_str());
 #else
@@ -64,13 +63,11 @@ Engine::Engine(const String& game, const String& version)
     printSystemInfo();
 }
 
-Engine::~Engine()
-{
+Engine::~Engine() {
     shutdown();
 }
 
-void Engine::setup()
-{
+void Engine::setup() {
     assert(!mInitialised);
 
     SDL_Init(SDL_INIT_VIDEO);
@@ -107,10 +104,9 @@ void Engine::setup()
     // Enumerate available video modes
     Vector<SDL_DisplayMode> displayModes = mRenderer->getDeviceDisplayModes();
     LOG << "Available video modes:";
-    for (auto i = displayModes.begin(); i != displayModes.end(); i++)
-    {
+    for (auto i = displayModes.begin(); i != displayModes.end(); i++) {
         LOG << "\t" << (*i).w << "x" << (*i).h << "@" << (*i).refresh_rate << "Hz"
-        << " - Pixel Format: " << SDL_GetPixelFormatName((*i).format);
+            << " - Pixel Format: " << SDL_GetPixelFormatName((*i).format);
     }
 
     // TODO: move this to UI system
@@ -123,14 +119,11 @@ void Engine::setup()
     ADD_LISTENER(Engine, EvtData_Exit);
 }
 
-void Engine::shutdown()
-{
-    if (!mInitialised)
-        return;
+void Engine::shutdown() {
+    if (!mInitialised) return;
 
     // Save config
-    if (mSaveConfigOnExit)
-        Config::save();
+    if (mSaveConfigOnExit) Config::save();
 
     // Shutdown the engine
     SAFE_DELETE(mStateMgr);
@@ -143,11 +136,11 @@ void Engine::shutdown()
     SAFE_DELETE(mRenderer);
     SAFE_DELETE(mLuaState);
 
-	// Shut down the event system
-	mEventSystem = nullptr;
-	EventSystem::release();
+    // Shut down the event system
+    mEventSystem = nullptr;
+    EventSystem::release();
 
-	// Close the log
+    // Close the log
     Log::release();
 
     // Shut down SDL
@@ -157,19 +150,16 @@ void Engine::shutdown()
     mInitialised = false;
 }
 
-void Engine::run(EngineTickCallback tickFunc)
-{
+void Engine::run(EngineTickCallback tickFunc) {
     // Start the main loop
     const float dt = 1.0f / 60.0f;
     double previousTime = time::now();
     double accumulator = 0.0;
-    while (mRunning)
-    {
+    while (mRunning) {
         mUI->beginFrame();
 
         // Update game logic
-        while (accumulator >= dt)
-        {
+        while (accumulator >= dt) {
             update(dt, mMainCamera);
             tickFunc(dt);
             accumulator -= dt;
@@ -189,21 +179,18 @@ void Engine::run(EngineTickCallback tickFunc)
     mStateMgr->clear();
 }
 
-void Engine::setMainCamera(Camera *camera)
-{
+void Engine::setMainCamera(Camera* camera) {
     mMainCamera = camera;
 }
 
-void Engine::printSystemInfo()
-{
+void Engine::printSystemInfo() {
     LOG << "\tPlatform: " << SDL_GetPlatform();
     LOG << "\tBase Path: " << mBasePath;
     LOG << "\tPreferences Path: " << mPrefPath;
     // TODO: more system info
 }
 
-void Engine::update(float dt, Camera* camera)
-{
+void Engine::update(float dt, Camera* camera) {
     mPhysicsWorld->update(dt, camera);
     mStarSystem->update(dt);
     mEventSystem->update((uint64_t)20);
@@ -213,18 +200,15 @@ void Engine::update(float dt, Camera* camera)
     mSceneMgr->update(dt);
 }
 
-void Engine::preRender(Camera* camera)
-{
+void Engine::preRender(Camera* camera) {
     mStarSystem->preRender(camera);
     mSceneMgr->preRender(camera);
     mStateMgr->preRender();
     mUI->preRender();
 }
 
-void Engine::handleEvent(EventDataPtr eventData)
-{
+void Engine::handleEvent(EventDataPtr eventData) {
     assert(eventIs<EvtData_Exit>(eventData));
     mRunning = false;
 }
-
 }

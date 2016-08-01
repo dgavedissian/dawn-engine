@@ -12,8 +12,7 @@ namespace dw {
 class DeferredLightRenderOperation;
 
 // Deferred light geometry. Each instance matches a normal light. Should not be created by the user.
-class DW_API DeferredLight : public Ogre::SimpleRenderable
-{
+class DW_API DeferredLight : public Ogre::SimpleRenderable {
 public:
     DeferredLight(MaterialGenerator* gen, Ogre::Light* parentLight,
                   DeferredLightRenderOperation* renderOp);
@@ -64,5 +63,4 @@ protected:
     // Material permutation
     Ogre::uint32 mPermutation;
 };
-
 }

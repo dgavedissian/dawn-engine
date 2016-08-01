@@ -19,8 +19,7 @@ const EventType EvtData_UIMouseLeave::eventType(0xe135de8);
 const EventType EvtData_UIClick::eventType(0xe135dd7);
 const EventType EvtData_UISubmit::eventType(0x3d02cddc);
 
-UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
-{
+UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs) {
     // WORKAROUND: Deal with an ogre bug by call 'getQueueGroup' to ensure it actually exists
     rs->getSceneMgr()->getRenderQueue()->getQueueGroup(INTERFACE_RENDER_QUEUE);
     rs->getSceneMgr()->addRenderQueueListener(this);
@@ -30,8 +29,7 @@ UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
 
     // Load UI material
     mUIMaterial = Ogre::MaterialManager::getSingleton().getByName("UI");
-    if (!mUIMaterial->isLoaded())
-        mUIMaterial->load();
+    if (!mUIMaterial->isLoaded()) mUIMaterial->load();
 
     // Set up libRocket
     mRocketInterface = makeShared<RocketInterface>(rs, mUIMaterial, mProjection);
@@ -41,13 +39,13 @@ UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
     Rocket::Core::Initialise();
     Rocket::Controls::Initialise();
     mContext = Rocket::Core::CreateContext("default",
-            Rocket::Core::Vector2i(rs->getWidth(), rs->getHeight()));
+                                           Rocket::Core::Vector2i(rs->getWidth(), rs->getHeight()));
     Rocket::Debugger::Initialise(mContext);
 
     // Load fonts
-    Rocket::Core::FontDatabase::LoadFontFace(
-            "LiberationSans-Regular.ttf", "Liberation", Rocket::Core::Font::STYLE_NORMAL,
-            Rocket::Core::Font::WEIGHT_NORMAL);
+    Rocket::Core::FontDatabase::LoadFontFace("LiberationSans-Regular.ttf", "Liberation",
+                                             Rocket::Core::Font::STYLE_NORMAL,
+                                             Rocket::Core::Font::WEIGHT_NORMAL);
 
     // Initialise ImGui
     mImGuiInterface = makeShared<ImGuiInterface>(rs, im, mUIMaterial, mProjection);
@@ -65,8 +63,7 @@ UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs)
     ADD_LISTENER(UI, EvtData_MouseWheel);
 }
 
-UI::~UI()
-{
+UI::~UI() {
     REMOVE_LISTENER(UI, EvtData_TextInput);
     REMOVE_LISTENER(UI, EvtData_KeyDown);
     REMOVE_LISTENER(UI, EvtData_KeyUp);
@@ -88,42 +85,34 @@ UI::~UI()
     mRenderSystem->getSceneMgr()->removeRenderQueueListener(this);
 }
 
-void UI::beginFrame()
-{
+void UI::beginFrame() {
     mImGuiInterface->beginFrame();
 }
 
-void UI::update(float dt)
-{
+void UI::update(float dt) {
 }
 
-void UI::preRender()
-{
+void UI::preRender() {
 }
 
-Layout* UI::loadLayout(const String& filename)
-{
+Layout* UI::loadLayout(const String& filename) {
     // TODO: Deal with failure correctly
     auto fn = Rocket::Core::String(filename.c_str());
     Rocket::Core::ElementDocument* document = mContext->LoadDocument(fn);
 
     // Set the title
     Rocket::Core::Element* title = document->GetElementById("title");
-    if (title)
-        title->SetInnerRML(document->GetTitle());
+    if (title) title->SetInnerRML(document->GetTitle());
 
     return new Layout(this, document);
 }
 
-void UI::unloadLayout(Layout* layout)
-{
+void UI::unloadLayout(Layout* layout) {
     delete layout;
 }
 
-void UI::handleEvent(EventDataPtr eventData)
-{
-    if (eventIs<EvtData_TextInput>(eventData))
-    {
+void UI::handleEvent(EventDataPtr eventData) {
+    if (eventIs<EvtData_TextInput>(eventData)) {
         auto castedEventData = castEvent<EvtData_TextInput>(eventData);
 
         mImGuiInterface->onTextInput(castedEventData->text);
@@ -132,19 +121,14 @@ void UI::handleEvent(EventDataPtr eventData)
             mContext->ProcessTextInput(Rocket::Core::String(castedEventData->text.c_str()));
     }
 
-    if (eventIs<EvtData_KeyDown>(eventData))
-    {
+    if (eventIs<EvtData_KeyDown>(eventData)) {
         auto castedEventData = castEvent<EvtData_KeyDown>(eventData);
 
         // Toggle the console
-        if (castedEventData->keycode == SDLK_BACKQUOTE || castedEventData->keycode == SDLK_F12)
-        {
-            if (castedEventData->mod & KMOD_SHIFT)
-            {
+        if (castedEventData->keycode == SDLK_BACKQUOTE || castedEventData->keycode == SDLK_F12) {
+            if (castedEventData->mod & KMOD_SHIFT) {
                 Rocket::Debugger::SetVisible(!Rocket::Debugger::IsVisible());
-            }
-            else
-            {
+            } else {
                 mConsole->setVisible(!mConsole->isVisible());
             }
             return;
@@ -156,8 +140,7 @@ void UI::handleEvent(EventDataPtr eventData)
                                  mRocketInterface->mapSDLKeyMod(castedEventData->mod));
     }
 
-    if (eventIs<EvtData_KeyUp>(eventData))
-    {
+    if (eventIs<EvtData_KeyUp>(eventData)) {
         auto castedEventData = castEvent<EvtData_KeyUp>(eventData);
         mImGuiInterface->onKey(castedEventData->keycode, castedEventData->mod, false);
         int key = mRocketInterface->mapSDLKeyCode(castedEventData->keycode);
@@ -165,30 +148,27 @@ void UI::handleEvent(EventDataPtr eventData)
                                mRocketInterface->mapSDLKeyMod(castedEventData->mod));
     }
 
-    if (eventIs<EvtData_MouseDown>(eventData))
-    {
+    if (eventIs<EvtData_MouseDown>(eventData)) {
         auto castedEventData = castEvent<EvtData_MouseDown>(eventData);
         mImGuiInterface->onMouseButton(castedEventData->button);
-        mContext->ProcessMouseButtonDown(mRocketInterface->mapSDLMouseButton(castedEventData->button),
-                                         mRocketInterface->mapSDLKeyMod(SDL_GetModState()));
+        mContext->ProcessMouseButtonDown(
+            mRocketInterface->mapSDLMouseButton(castedEventData->button),
+            mRocketInterface->mapSDLKeyMod(SDL_GetModState()));
     }
 
-    if (eventIs<EvtData_MouseUp>(eventData))
-    {
+    if (eventIs<EvtData_MouseUp>(eventData)) {
         auto castedEventData = castEvent<EvtData_MouseUp>(eventData);
         mContext->ProcessMouseButtonUp(mRocketInterface->mapSDLMouseButton(castedEventData->button),
                                        mRocketInterface->mapSDLKeyMod(SDL_GetModState()));
     }
 
-    if (eventIs<EvtData_MouseMove>(eventData))
-    {
+    if (eventIs<EvtData_MouseMove>(eventData)) {
         auto castedEventData = castEvent<EvtData_MouseMove>(eventData);
         mContext->ProcessMouseMove(castedEventData->pos.x, castedEventData->pos.y,
                                    mRocketInterface->mapSDLKeyMod(SDL_GetModState()));
     }
 
-    if (eventIs<EvtData_MouseWheel>(eventData))
-    {
+    if (eventIs<EvtData_MouseWheel>(eventData)) {
         auto castedEventData = castEvent<EvtData_MouseWheel>(eventData);
         mImGuiInterface->onMouseScroll(castedEventData->motion.y);
         mContext->ProcessMouseWheel(-castedEventData->motion.y,
@@ -196,8 +176,7 @@ void UI::handleEvent(EventDataPtr eventData)
     }
 }
 
-void UI::ProcessEvent(Rocket::Core::Event& event)
-{
+void UI::ProcessEvent(Rocket::Core::Event& event) {
     String type = event.GetType().CString();
     String id = event.GetCurrentElement()->GetId().CString();
 
@@ -210,16 +189,12 @@ void UI::ProcessEvent(Rocket::Core::Event& event)
     Rocket::Core::String key;
     Rocket::Core::String value;
     int totalLength = out.str().length();
-    while (event.GetParameters()->Iterate(i, key, value))
-    {
+    while (event.GetParameters()->Iterate(i, key, value)) {
         int thisLength = key.Length() + value.Length() + 2;
-        if (totalLength + thisLength > 120)
-        {
+        if (totalLength + thisLength > 120) {
             out << std::endl << "[librocket event]   ";
             totalLength = thisLength + 20;
-        }
-        else
-        {
+        } else {
             totalLength += thisLength;
         }
 
@@ -240,19 +215,16 @@ void UI::ProcessEvent(Rocket::Core::Event& event)
         EventSystem::inst().queueEvent(makeShared<EvtData_UISubmit>(id, parameters));
 }
 
-void UI::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String&, bool&)
-{
+void UI::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String&, bool&) {
     if (queueGroupId == INTERFACE_RENDER_QUEUE &&
-        Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled())
-    {
+        Ogre::Root::getSingleton().getRenderSystem()->_getViewport()->getOverlaysEnabled()) {
         mContext->Update();
         mContext->Render();
         ImGui::Render();
     }
 }
 
-void UI::buildProjMatrix(Ogre::Matrix4& projectionMatrix)
-{
+void UI::buildProjMatrix(Ogre::Matrix4& projectionMatrix) {
     float zNear = -1.0f;
     float zFar = 1.0f;
 
@@ -264,5 +236,4 @@ void UI::buildProjMatrix(Ogre::Matrix4& projectionMatrix)
     projectionMatrix[2][2] = -2.0f / (zFar - zNear);
     projectionMatrix[3][3] = 1.0f;
 }
-
 }
