@@ -22,8 +22,6 @@ set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug)
 ###############################################
 
 include(Utilities)
-enable_cpp14()
-enable_maximum_warnings()
 
 
 ###############################################
@@ -50,6 +48,10 @@ function(add_game GAME_NAME)
 
     # Add executable
     add_executable(${GAME_NAME} ${TYPE} ${ARGN})
+
+    # Compile in C++14 mode
+    enable_cpp14(${GAME_NAME})
+    enable_maximum_warnings(${GAME_NAME})
 
     # Add include directories
     get_target_property(DAWN_INCLUDE_DIRS Dawn INCLUDE_DIRECTORIES)

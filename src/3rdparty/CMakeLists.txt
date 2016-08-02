@@ -1,14 +1,18 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
 
-# Find SDL2 on the system
-find_package(SDL2 REQUIRED)
-set(INCLUDE_DIRS ${INCLUDE_DIRS} ${SDL2_INCLUDE_DIR})
-set(LIBS ${LIBS} ${SDL2_LIBRARIES})
+find_package(OpenGL REQUIRED)
+set(INCLUDE_DIRS ${INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR})
+set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 
 # Add bundled external libraries
 set(INCLUDE_DIRS ${INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/khronos
+    ${CMAKE_CURRENT_SOURCE_DIR}/bx/include
     ${CMAKE_CURRENT_SOURCE_DIR}/FastDelegate
+    ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include
     ${CMAKE_CURRENT_SOURCE_DIR}/ImGui
     ${CMAKE_CURRENT_SOURCE_DIR}/ontology/include
     ${CMAKE_CURRENT_SOURCE_DIR}/sol
@@ -146,6 +150,26 @@ if(UNIX) # TODO: If is Clang or GCC
     add_definitions(-fPIC)
 endif()
 
+# bgfx
+add_definitions(-DBGFX_CONFIG_RENDERER_OPENGL=33)
+if(APPLE)
+    add_library(bgfx bgfx/src/amalgamated.mm)
+else()
+    add_library(bgfx bgfx/src/amalgamated.cpp)
+endif()
+target_include_directories(bgfx PRIVATE ${INCLUDE_DIRS})
+set_target_properties(bgfx PROPERTIES FOLDER "3rdparty")
+set(LIBS ${LIBS} bgfx)
+
+# glfw
+set(GLFW_BUILD_EXAMPLES 0)
+set(GLFW_BUILD_TESTS 0)
+set(GLFW_BUILD_DOCS 0)
+add_subdirectory(glfw)
+target_include_directories(glfw PRIVATE ${INCLUDE_DIRS})
+set_target_properties(glfw PROPERTIES FOLDER "3rdparty")
+set(LIBS ${LIBS} glfw)
+
 # ImGui
 add_library(ImGui ImGui/imgui.cpp)
 target_include_directories(ImGui PRIVATE ${INCLUDE_DIRS})
@@ -154,12 +178,15 @@ set(LIBS ${LIBS} ImGui)
 
 # ontology
 add_subdirectory(ontology)
+enable_cpp11(ontology)
 target_include_directories(ontology PRIVATE ${INCLUDE_DIRS})
+set_target_properties(ontology PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} ontology)
 
 # YamlCpp
 file(GLOB YAML_CPP_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} YamlCpp/src/*.cpp)
 add_library(YamlCpp ${YAML_CPP_SRC})
+enable_cpp11(YamlCpp)
 target_include_directories(YamlCpp PRIVATE ${INCLUDE_DIRS})
 set_target_properties(YamlCpp PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} YamlCpp)
