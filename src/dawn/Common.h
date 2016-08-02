@@ -66,9 +66,6 @@ template <class... T> inline Tuple<T...> makeTuple(T&&... args) {
     return std::tuple<T...>(std::forward<T>(args)...);
 }
 
-// Type info
-using TypeInfo = std::type_info;
-
 // Files
 // TODO: Deprecated, use file class
 using InputFileStream = std::ifstream;

@@ -9,7 +9,7 @@
 
 namespace dw {
 
-class TypeInfo {
+class DW_API TypeInfo {
 public:
     TypeInfo(std::type_info t);
     ~TypeInfo();
@@ -44,7 +44,7 @@ private:
         return ti;                                     \
     }
 
-class Object {
+class DW_API Object {
 public:
     Object(Context* context);
     virtual ~Object();
@@ -63,4 +63,5 @@ public:
 protected:
     Context* mContext;
 };
+
 }

@@ -31,4 +31,5 @@ Object::~Object() {
 Context* Object::getContext() const {
     return mContext;
 }
+
 }

@@ -4,19 +4,21 @@
  */
 #pragma once
 
+#include "math/StringHash.h"
+
 namespace dw {
 
 class Object;
 
-class Context {
+class DW_API Context {
 public:
     Context(String basePath, String prefPath);
-    virtual ~Context();
+    ~Context();
 
     void addSubsystem(Object* subsystem);
 
     template <class T> T* getSubsystem() {
-        return static_cast<T*>(mSubsystems[T::getType()]);
+        return static_cast<T*>(mSubsystems[T::getType().value()]);
     }
 
     /// Get the base path of the application
@@ -32,7 +34,8 @@ public:
     }
 
 private:
-    HashMap<StringHash, SharedPtr<Object>> mSubsystems;
+    // HashMaps require an enum type (e.g. an integer), so we use the StringHash's internal type
+    HashMap<uint32_t, SharedPtr<Object>> mSubsystems;
 
     // File paths
     String mBasePath;

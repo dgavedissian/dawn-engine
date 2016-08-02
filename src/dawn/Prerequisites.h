@@ -22,10 +22,10 @@
 #include <ctime>
 
 #include <exception>
+#include <string>
 #include <list>
 #include <map>
 #include <unordered_map>
-#include <string>
 #include <vector>
 #include <iostream>
 #include <iomanip>
@@ -60,20 +60,6 @@
 #undef LOG
 #endif
 
-// SDL
-#include <SDL.h>
-
-// Undefine conflicting names define by stupid platform SDKs
-#ifdef PlaySound
-#undef PlaySound
-#endif
-#ifdef None
-#undef None
-#endif
-#ifdef Nil
-#undef Nil
-#endif
-
 //
 // Bundled Libraries
 //
@@ -81,7 +67,7 @@
 // Lua C++ interface
 #include "sol.hpp"
 
-// imgui debugging UI
+// imgui
 #include "imgui.h"
 
 // FastDelegate

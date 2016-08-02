@@ -178,7 +178,7 @@ set(LIBS ${LIBS} ImGui)
 
 # ontology
 add_subdirectory(ontology)
-enable_cpp11(ontology)
+enable_cpp14(ontology)
 target_include_directories(ontology PRIVATE ${INCLUDE_DIRS})
 set_target_properties(ontology PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} ontology)
@@ -186,7 +186,7 @@ set(LIBS ${LIBS} ontology)
 # YamlCpp
 file(GLOB YAML_CPP_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} YamlCpp/src/*.cpp)
 add_library(YamlCpp ${YAML_CPP_SRC})
-enable_cpp11(YamlCpp)
+enable_cpp14(YamlCpp)
 target_include_directories(YamlCpp PRIVATE ${INCLUDE_DIRS})
 set_target_properties(YamlCpp PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} YamlCpp)

@@ -37,6 +37,7 @@ set(CPP_FILES
     core/Context.cpp
     core/EventSystem.cpp
     core/Log.cpp
+    core/Object.cpp
     core/StateManager.cpp
     core/StringUtils.cpp
     core/Timer.cpp

@@ -31,4 +31,4 @@ private:
     uint32_t mValue;
 };
 
-END_NAMESPACE
+}

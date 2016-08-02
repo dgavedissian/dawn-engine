@@ -72,8 +72,7 @@ macro(enable_cpp14 TARGET)
     endif()
 endmacro()
 
-# If on macOS, enable the libc++ stdlib instead of the default one for more implementations of
-# C++11/14
+# If on macOS, enable the libc++ stdlib instead of the default one for more implementations of C++11/14
 macro(util_enable_libcpp TARGET)
     if(APPLE)
         target_compile_options(${TARGET} PUBLIC -stdlib=libc++)
