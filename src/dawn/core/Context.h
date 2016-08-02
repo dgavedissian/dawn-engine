@@ -6,12 +6,14 @@
 
 namespace dw {
 
+class Object;
+
 class Context {
 public:
     Context(String basePath, String prefPath);
     virtual ~Context();
 
-    void addSubsystem(SharedPtr<Object> subsystem);
+    void addSubsystem(Object* subsystem);
 
     template <class T> T* getSubsystem() {
         return static_cast<T*>(mSubsystems[T::getType()]);

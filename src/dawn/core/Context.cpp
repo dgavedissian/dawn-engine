@@ -13,8 +13,8 @@ Context::Context(String basePath, String prefPath) : mBasePath(basePath), mPrefP
 Context::~Context() {
 }
 
-void Context::addSubsystem(SharedPtr<Object> subsystem) {
-    mSubsystems[subsystem->getType()] = subsystem;
+void Context::addSubsystem(Object* subsystem) {
+    mSubsystems[subsystem->getType()] = SharedPtr<Object>(subsystem);
 }
 
 }

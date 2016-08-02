@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include <glfw/glfw3.h>
+
 namespace dw {
 
 class Renderer : public Object {
@@ -13,7 +15,8 @@ public:
     Renderer(Context* context);
     ~Renderer();
 
-    void setup(int width, int height);
-    void shutdown();
-}
+private:
+    GLFWwindow* mWindow;
+};
+
 }

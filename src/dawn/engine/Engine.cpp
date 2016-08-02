@@ -64,17 +64,19 @@ Engine::~Engine() {
 void Engine::setup() {
     assert(!mInitialised);
 
-    SDL_Init(SDL_INIT_VIDEO);
+    if (!glfwInit())
+    {
+        // TODO(David): Handle initialization failure
+    }
 
     // Create EventSystem
-    mEventSystem = new EventSystem;
-    mContext->addSubsystem(makeShared<EventSystem>(mContext));
+    mContext->addSubsystem(new EventSystem(mContext));
 
     // Load configuration
     Config::load(mPrefPath + mConfigFile);
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
-    getContext()->addSubsystem(makeShared<LuaState>());
+    getContext()->addSubsystem(new LuaState());
     bindToLua();
 
     // Build window title
@@ -86,20 +88,20 @@ void Engine::setup() {
 #endif
 
     // Create the engine systems
-    mContext->addSubsystem(makeShared<Input>(mContext));
-    mContext->addSubsystem(makeShared<Renderer>(mContext, gameTitle));
+    mContext->addSubsystem(new Input(mContext));
+    mContext->addSubsystem(new Renderer(mContext));
     //mUI = new UI(mRenderer, mInput, mLuaState);
     //mAudio = new Audio;
     //mPhysicsWorld = new PhysicsWorld(mRenderer);
     //mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->getSceneMgr());
     //mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
-    mContext->addSubsystem(makeShared<StateManager>(mContext));
+    mContext->addSubsystem(new StateManager(mContext));
 
     // Set input viewport size
-    mInput->setViewportSize(mRenderer->getViewportSize());
+    getSubsystem<Input>()->setViewportSize(getSubsystem<Renderer>()->getViewportSize());
 
     // Enumerate available video modes
-    Vector<SDL_DisplayMode> displayModes = mRenderer->getDeviceDisplayModes();
+    Vector<SDL_DisplayMode> displayModes = getSubsystem<Renderer>()->getDeviceDisplayModes();
     LOG << "Available video modes:";
     for (auto i = displayModes.begin(); i != displayModes.end(); i++) {
         LOG << "\t" << (*i).w << "x" << (*i).h << "@" << (*i).refresh_rate << "Hz"

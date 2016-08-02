@@ -5,14 +5,14 @@
 #include "Common.h"
 #include "renderer/Renderer.h"
 
-Renderer::Renderer(Context* context) : Object(context) {
+namespace dw {
+
+Renderer::Renderer(Context *context) : Object(context) {
+    mWindow = glfwCreateWindow(1024, 768, "Dawn Engine", nullptr, nullptr);
 }
 
 Renderer::~Renderer() {
+    glfwDestroyWindow(mWindow);
 }
 
-void Renderer::setup(int width, int height) {
-}
-
-void Renderer::shutdown() {
 }

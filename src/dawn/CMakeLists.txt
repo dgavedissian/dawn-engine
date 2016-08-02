@@ -58,6 +58,8 @@ set(CPP_FILES
 
 # Project
 add_library(Dawn SHARED ${CPP_FILES} ${H_FILES})
+enable_cpp14(Dawn)
+enable_maximum_warnings(Dawn)
 add_dependencies(Dawn ${EXTERNAL_DEPS})
 set_output_dir(Dawn ${CMAKE_BINARY_DIR}/lib)
 set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
