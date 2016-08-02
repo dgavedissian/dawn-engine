@@ -1,6 +1,6 @@
 # Useful CMake utility functions
-# Last Updated: 4/9/2015
-# Copyright (c) 2015 David Avedissian (avedissian.david@gmail.com)
+# Last Updated: 2/8/2016
+# Copyright (c) 2015-16 David Avedissian (git@davedissian.com)
 
 # Create a vcproj userfile which correctly runs the binary in a specified working directory when debugging
 function(create_vcproj_userfile TARGETNAME)
@@ -57,26 +57,26 @@ macro(set_output_dir TARGET OUTDIR)
 endmacro()
 
 # Enable C++11
-macro(enable_cpp11)
+macro(enable_cpp11 TARGET)
     if(UNIX)
-        add_compile_options(-std=c++11)
-        util_enable_libcpp()
+        target_compile_options(${TARGET} PUBLIC -std=c++11)
+        util_enable_libcpp(${TARGET})
     endif()
 endmacro()
 
 # Enable C++14
-macro(enable_cpp14)
+macro(enable_cpp14 TARGET)
     if(UNIX)
-        add_compile_options(-std=c++14)
-        util_enable_libcpp()
+        target_compile_options(${TARGET} PUBLIC -std=c++14)
+        util_enable_libcpp(${TARGET})
     endif()
 endmacro()
 
 # If on macOS, enable the libc++ stdlib instead of the default one for more implementations of
 # C++11/14
-macro(util_enable_libcpp)
+macro(util_enable_libcpp TARGET)
     if(APPLE)
-        add_compile_options(-stdlib=libc++)
+        target_compile_options(${TARGET} PUBLIC -stdlib=libc++)
         if(XCODE)
             set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
             set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
@@ -86,15 +86,15 @@ endmacro()
 
 
 # Macro to enable maximum warnings
-macro(enable_maximum_warnings)
+macro(enable_maximum_warnings TARGET)
     if(MSVC)
         add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-        add_compile_options(/W4)
+        target_compile_options(${TARGET} PUBLIC /W4)
     elseif(UNIX)
-        add_compile_options(-Wall -Wextra -pedantic -Wuninitialized -Wfloat-equal
-                            -Woverloaded-virtual -Wno-unused-parameter)
+        target_compile_options(${TARGET} PUBLIC -Wall -Wextra -pedantic -Wuninitialized -Wfloat-equal
+                                                -Woverloaded-virtual -Wno-unused-parameter)
         if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-            add_compile_options(-Wno-nested-anon-types -Wno-gnu-anonymous-struct)
+            target_compile_options(${TARGET} PUBLIC -Wno-nested-anon-types -Wno-gnu-anonymous-struct)
         endif()
     endif()
 endmacro()
