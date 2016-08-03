@@ -46,7 +46,6 @@ private:
     void update(float dt);
     void preRender(Camera* camera);
     void handleEvent(EventDataPtr eventData);
-    void bindToLua();
 };
 
 }

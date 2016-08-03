@@ -7,7 +7,7 @@
 
 namespace dw {
 
-SceneManager::SceneManager() {
+SceneManager::SceneManager(Context* context) : Object(context) {
 }
 
 SceneManager::~SceneManager() {

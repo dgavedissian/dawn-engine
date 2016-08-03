@@ -65,7 +65,7 @@ void Engine::setup() {
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
     getContext()->addSubsystem(new LuaState(mContext));
-    bindToLua();
+    // TODO(David): bind engine services to lua?
 
     // Build window title
     String gameTitle(mGameName);
