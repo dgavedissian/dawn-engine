@@ -4,6 +4,7 @@
 */
 #include "Common.h"
 #include "engine/App.h"
+#include "core/Timer.h"
 #include "DawnEngine.h"
 
 namespace dw {
@@ -15,13 +16,13 @@ int runEngine(App* app, int argc, char** argv)
     engine.setup();
     app->_setContext(engine.getContext());
     app->init(argc, argv);
-    engine.run([](float dt) {
+    engine.run([&app](float dt) {
         app->update(dt);
     });
     app->shutdown();
     delete app;
     engine.shutdown();
-    return EXIT_SUCCESS:
+    return EXIT_SUCCESS;
 }
 
 Engine::Engine(const String& game, const String& version)
@@ -33,33 +34,9 @@ Engine::Engine(const String& game, const String& version)
       mGameVersion(version),
       mLogFile("engine.log"),
       mConfigFile("engine.cfg") {
-    // Get the base path
-    char* basePathPtr = SDL_GetBasePath();
-    String basePath = basePathPtr;
-    SDL_free(basePathPtr);
-#if DW_PLATFORM == DW_WIN32
-    mBasePath += "..\\";
-#elif DW_PLATFORM == DW_LINUX
-    mBasePath += "../";
-#endif
-
-    // Get the preferences path
-    // Having an empty org will leave a double slash in the path so replace with a single slash.
-    char* prefPathPtr = SDL_GetPrefPath("", mGameName.c_str());
-    String prefPath = prefPathPtr;
-    SDL_free(prefPathPtr);
-#if DW_PLATFORM == DW_WIN32
-    mPrefPath.replace(mPrefPath.find("\\\\"), 2, "\\");
-#elif DW_PLATFORM == DW_LINUX
-    mPrefPath.replace(mPrefPath.find("//"), 2, "/");
-#endif
-
-// Change the working directory
-#if DW_PLATFORM == DW_WIN32
-    SetCurrentDirectoryA(mBasePath.c_str());
-#else
-    chdir(basePath.c_str());
-#endif
+    // TODO(David): Implement base path (where resources are located) and pref path (where to save settings)
+    String basePath = "";
+    String prefPath = "";
 
     // Create context
     mContext = new Context(basePath, prefPath);
@@ -80,19 +57,14 @@ Engine::~Engine() {
 void Engine::setup() {
     assert(!mInitialised);
 
-    if (!glfwInit())
-    {
-        // TODO(David): Handle initialization failure
-    }
-
     // Create EventSystem
     mContext->addSubsystem(new EventSystem(mContext));
 
     // Load configuration
-    Config::load(mPrefPath + mConfigFile);
+    Config::load(mContext->getPrefPath() + mConfigFile);
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
-    getContext()->addSubsystem(new LuaState());
+    getContext()->addSubsystem(new LuaState(mContext));
     bindToLua();
 
     // Build window title
@@ -114,6 +86,7 @@ void Engine::setup() {
     mContext->addSubsystem(new StateManager(mContext));
 
     // Set input viewport size
+    /*
     getSubsystem<Input>()->setViewportSize(getSubsystem<Renderer>()->getViewportSize());
 
     // Enumerate available video modes
@@ -126,6 +99,7 @@ void Engine::setup() {
 
     // TODO: move this to UI system
     SDL_StartTextInput();
+     */
 
     // The engine is now initialised
     mInitialised = true;
@@ -140,86 +114,67 @@ void Engine::shutdown() {
     // Save config
     if (mSaveConfigOnExit) Config::save();
 
-    // Shutdown the engine
-    SAFE_DELETE(mStateMgr);
-    SAFE_DELETE(mUI);
-    SAFE_DELETE(mStarSystem);
-    SAFE_DELETE(mSceneMgr);
-    SAFE_DELETE(mPhysicsWorld);
-    SAFE_DELETE(mAudio);
-    SAFE_DELETE(mInput);
-    SAFE_DELETE(mRenderer);
-    SAFE_DELETE(mLuaState);
-
-    // Shut down the event system
-    mEventSystem = nullptr;
-    EventSystem::release();
+    // Remove subsystems
+    mContext->removeSubsystem<StateManager>();
+    mContext->clearSubsystems();
 
     // Close the log
     Log::release();
-
-    // Shut down SDL
-    SDL_Quit();
 
     // The engine is no longer initialised
     mInitialised = false;
 }
 
 void Engine::run(EngineTickCallback tickFunc) {
+    // TODO(David) stub
+    Camera* mMainCamera = nullptr;
+
     // Start the main loop
     const float dt = 1.0f / 60.0f;
-    double previousTime = time::now();
+    time::TimePoint previousTime = time::beginTiming();
     double accumulator = 0.0;
     while (mRunning) {
-        mUI->beginFrame();
+        //mUI->beginFrame();
 
         // Update game logic
         while (accumulator >= dt) {
-            update(dt, mMainCamera);
+            update(dt);
             tickFunc(dt);
             accumulator -= dt;
         }
 
         // Render a frame
         preRender(mMainCamera);
-        mRenderer->renderFrame(mMainCamera);
+        //mContext->getSubsystem<Renderer>()->renderFrame(mMainCamera);
 
         // Calculate frameTime
-        double currentTime = time::now();
-        accumulator += currentTime - previousTime;
+        time::TimePoint currentTime = time::beginTiming();
+        accumulator += time::elapsed(previousTime, currentTime);
         previousTime = currentTime;
     }
 
     // Ensure that all states have been exited so no crashes occur later
-    mStateMgr->clear();
-}
-
-void Engine::setMainCamera(Camera* camera) {
-    mMainCamera = camera;
+    mContext->getSubsystem<StateManager>()->clear();
 }
 
 void Engine::printSystemInfo() {
+    /*
     LOG << "\tPlatform: " << SDL_GetPlatform();
     LOG << "\tBase Path: " << mBasePath;
     LOG << "\tPreferences Path: " << mPrefPath;
     // TODO: more system info
+     */
 }
 
-void Engine::update(float dt, Camera* camera) {
-    mPhysicsWorld->update(dt, camera);
-    mStarSystem->update(dt);
-    mEventSystem->update((uint64_t)20);
-    mAudio->update(dt, camera);
-    mStateMgr->update(dt);
-    mUI->update(dt);
-    mSceneMgr->update(dt);
+void Engine::update(float dt) {
+    mContext->getSubsystem<EventSystem>()->update(0.02f);
+    mContext->getSubsystem<StateManager>()->update(dt);
+    mContext->getSubsystem<SceneManager>()->update(dt);
 }
 
 void Engine::preRender(Camera* camera) {
-    mStarSystem->preRender(camera);
-    mSceneMgr->preRender(camera);
-    mStateMgr->preRender();
-    mUI->preRender();
+    mContext->getSubsystem<SceneManager>()->preRender(camera);
+    mContext->getSubsystem<StateManager>()->preRender();
 }
 
 void Engine::handleEvent(EventDataPtr eventData) {

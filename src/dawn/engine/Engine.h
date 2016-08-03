@@ -14,6 +14,8 @@ int runEngine(App* app, int argc, char** argv);
 
 class DW_API Engine : public Object {
 public:
+    DW_OBJECT(Engine);
+
     Engine(const String& game, const String& version);
     ~Engine();
 
@@ -26,10 +28,6 @@ public:
     /// Run the main loop
     /// @param tickFunc Function to run every time the game logic is updated
     void run(EngineTickCallback tickFunc);
-
-    /// Set the main camera
-    /// @param camera Camera
-    void setMainCamera(Camera* camera);
 
 private:
     bool mInitialised;
@@ -45,7 +43,7 @@ private:
 
 private:
     void printSystemInfo();
-    void update(float dt, Camera* camera);
+    void update(float dt);
     void preRender(Camera* camera);
     void handleEvent(EventDataPtr eventData);
     void bindToLua();
