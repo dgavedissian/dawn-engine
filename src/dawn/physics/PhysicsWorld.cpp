@@ -4,7 +4,6 @@
  */
 #include "Common.h"
 #include "input/Input.h"
-#include "scene/RigidEntity.h"
 #include "PhysicsWorld.h"
 
 namespace dw {
@@ -21,9 +20,7 @@ PhysicsWorld::PhysicsWorld() {
 
     // Set the properties of the world
     mWorld->setGravity(btVector3(0.0f, 0.0f, 0.0f));
-    mWorld->setInternalTickCallback(BulletTickCallback);
-    mWorld->setDebugDrawer(mDebugDrawer.get());
-    mDebugDrawer->setDebugMode(false);
+    mWorld->setInternalTickCallback(bulletTickCallback);
 
     // Register event delegates
     ADD_LISTENER(PhysicsWorld, EvtData_KeyDown);
@@ -37,30 +34,20 @@ PhysicsWorld::~PhysicsWorld() {
 
 void PhysicsWorld::update(float dt, Camera* camera) {
     // Call PreSimulationStep on each rigid body
-    for (auto body : mRigidBodyList)
-        static_cast<RigidEntity*>(body->getUserPointer())->PreSimulationStep(camera);
+    //for (auto body : mRigidBodyList)
+    //   static_cast<RigidEntity*>(body->getUserPointer())->PreSimulationStep(camera);
 
     // Step the simulation
     mWorld->stepSimulation(dt, 0);
-    mDebugDrawer->step();
+    //mDebugDrawer->step();
 }
 
 void PhysicsWorld::handleEvent(EventDataPtr eventData) {
     if (eventIs<EvtData_KeyDown>(eventData)) {
         auto castedEventData = castEvent<EvtData_KeyDown>(eventData);
-        if (castedEventData->keycode == SDLK_F2)
-            mDebugDrawer->setDebugMode(!mDebugDrawer->getDebugMode());
+        if (castedEventData->key == Key::F2)
+            ;//mDebugDrawer->setDebugMode(!mDebugDrawer->getDebugMode());
     }
-}
-
-void PhysicsWorld::AddToWorld(btRigidBody* body) {
-    mWorld->addRigidBody(body);
-    mRigidBodyList.push_back(body);
-}
-
-void PhysicsWorld::RemoveFromWorld(btRigidBody* body) {
-    mRigidBodyList.remove(body);
-    mWorld->removeRigidBody(body);
 }
 
 bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera* camera,
@@ -96,6 +83,6 @@ bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera* 
     return result.hit;
 }
 
-void PhysicsWorld::BulletTickCallback(btDynamicsWorld* world, btScalar timestep) {
+void PhysicsWorld::bulletTickCallback(btDynamicsWorld* world, btScalar timestep) {
 }
 }

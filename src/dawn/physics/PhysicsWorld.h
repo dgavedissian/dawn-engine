@@ -44,14 +44,8 @@ private:
 
     List<btRigidBody*> mRigidBodyList;
 
-    // Adds a btRigidBody to the btDynamicsWorld
-    void AddToWorld(btRigidBody* body);
-
-    // Removes a btRigidBody from the btDynamicsWorld
-    void RemoveFromWorld(btRigidBody* body);
-
     // Dispatch collision events
-    static void BulletTickCallback(btDynamicsWorld* world, btScalar timestep);
+    static void bulletTickCallback(btDynamicsWorld* world, btScalar timestep);
 
     // Grant RigidEntity access to AddToWorld/RemoveFromWorld
     friend class RigidEntity;
