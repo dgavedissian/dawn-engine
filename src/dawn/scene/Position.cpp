@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "Camera.h"
+//#include "Camera.h"
 #include "Position.h"
 
 namespace dw {
@@ -29,11 +29,15 @@ Vec3 Position::getRelativeTo(const Position& point) const {
 }
 
 Vec3 Position::toCameraSpace(Camera* camera) const {
-    return getRelativeTo(camera->getPosition());
+    // TODO(David): stub
+    return getRelativeTo(*this);
+    //return getRelativeTo(camera->getPosition());
 }
 
 Position Position::fromCameraSpace(Camera* camera, const Vec3& cameraSpace) {
-    return camera->getPosition() + cameraSpace;
+    // TODO(David): stub
+    return Position(cameraSpace);
+    //return camera->getPosition() + cameraSpace;
 }
 
 bool Position::operator==(const Position& other) const {
