@@ -83,7 +83,7 @@ void StateManager::handleEvent(EventDataPtr eventData) {
     // Handle state reloading
     if (eventIs<EvtData_KeyDown>(eventData)) {
         auto castedEventData = castEvent<EvtData_KeyDown>(eventData);
-        if (castedEventData->keycode == SDLK_F8) reload();
+        if (castedEventData->key == Key::F8) reload();
     }
 }
 

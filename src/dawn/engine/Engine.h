@@ -6,9 +6,12 @@
 
 namespace dw {
 
+class App;
+
 typedef std::function<void(float)> EngineTickCallback;
 
-// Application Base
+int runEngine(App* app, int argc, char** argv);
+
 class DW_API Engine : public Object {
 public:
     Engine(const String& game, const String& version);
@@ -47,4 +50,5 @@ private:
     void handleEvent(EventDataPtr eventData);
     void bindToLua();
 };
+
 }

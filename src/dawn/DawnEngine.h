@@ -8,6 +8,7 @@
 #include "Common.h"
 #include "core/StateManager.h"
 #include "core/StringUtils.h"
+#include "engine/App.h"
 #include "engine/Config.h"
 #include "engine/Engine.h"
 #include "math/Defs.h"

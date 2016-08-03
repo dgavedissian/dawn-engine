@@ -39,7 +39,7 @@ private:
     static String getTypeNameStatic() {                \
         return getTypeInfoStatic().getTypeName();      \
     }                                                  \
-    static const TypeInfo& getTypeInfoStatic() const { \
+    static const TypeInfo& getTypeInfoStatic() {       \
         static TypeInfo ti(typeid(type));              \
         return ti;                                     \
     }

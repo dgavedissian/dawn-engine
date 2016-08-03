@@ -3,11 +3,27 @@
 * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
 */
 #include "Common.h"
+#include "engine/App.h"
 #include "DawnEngine.h"
 
 namespace dw {
 
-// Application entry point
+// TODO(David): Implement this in a better way. For now this is just a wrapper over how apps were created before
+int runEngine(App* app, int argc, char** argv)
+{
+    dw::Engine engine(app->getGameName(), app->getGameVersion());
+    engine.setup();
+    app->_setContext(engine.getContext());
+    app->init(argc, argv);
+    engine.run([](float dt) {
+        app->update(dt);
+    });
+    app->shutdown();
+    delete app;
+    engine.shutdown();
+    return EXIT_SUCCESS:
+}
+
 Engine::Engine(const String& game, const String& version)
     : Object(nullptr),
       mInitialised(false),
