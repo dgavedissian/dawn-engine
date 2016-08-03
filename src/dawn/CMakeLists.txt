@@ -25,7 +25,6 @@ set(H_FILES
     math/Vec3i.h
     math/Vec4i.h
     physics/PhysicsWorld.h
-    platform/Entry.h
     platform/Thread.h
     renderer/Renderer.h
     scene/Position.h
@@ -55,7 +54,6 @@ set(CPP_FILES
     math/Vec3i.cpp
     math/Vec4i.cpp
     physics/PhysicsWorld.cpp
-    platform/Entry.cpp
     platform/Thread.cpp
     renderer/Renderer.cpp
     scene/Position.cpp

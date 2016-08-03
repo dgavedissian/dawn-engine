@@ -4,11 +4,17 @@
  */
 #pragma once
 
+#if DW_PLATFORM == DW_WIN32
 #define DW_IMPLEMENT_MAIN(AppClass) \
-    namespace dw { \
-    int runApp(int argc, char** argv) { \
+    int WINAPI WinMain(HINSTANCE, HINSTANCE, LPCSTR, int) { \
+        return dw::runEngine(new AppClass, __argc, __argv); \
+    }
+#else
+#define DW_IMPLEMENT_MAIN(AppClass) \
+    int main(int argc, char** argv) { \
         return dw::runEngine(new AppClass, argc, argv); \
     }
+#endif
 
 namespace dw {
 
