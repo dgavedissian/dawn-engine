@@ -19,5 +19,6 @@
 #include "math/Vec4i.h"
 #include "input/Input.h"
 #include "physics/PhysicsWorld.h"
+#include "renderer/Renderer.h"
 #include "scene/SceneManager.h"
 #include "script/LuaState.h"

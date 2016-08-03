@@ -17,4 +17,16 @@ void Context::addSubsystem(Object* subsystem) {
     mSubsystems[subsystem->getType().value()] = SharedPtr<Object>(subsystem);
 }
 
+Object* Context::getSubsystem(StringHash subsystemType) {
+    return mSubsystems[subsystemType.value()].get();
+}
+
+void Context::removeSubsystem(StringHash subsystemType) {
+    mSubsystems.erase(subsystemType.value());
+}
+
+void Context::clearSubsystems() {
+    mSubsystems.clear();
+}
+
 }

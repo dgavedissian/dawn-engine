@@ -67,7 +67,7 @@ template <class... T> inline Tuple<T...> makeTuple(T&&... args) {
 }
 
 // Files
-// TODO: Deprecated, use file class
+// TOD(David): Deprecated in favour of a file class
 using InputFileStream = std::ifstream;
 using OutputFileStream = std::ofstream;
 using FileStream = std::fstream;
@@ -77,6 +77,9 @@ template <class T> using Vector = std::vector<T>;
 template <class T> using List = std::list<T>;
 template <class K, class T> using Map = std::map<K, T>;
 template <class K, class T> using HashMap = std::unordered_map<K, T>;
+
+// Stubs
+class Camera {}; // TODO(David) stub until ECS is integrated
 }
 
 // Safe delete macros

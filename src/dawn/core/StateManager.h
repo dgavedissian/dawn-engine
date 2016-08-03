@@ -43,7 +43,7 @@ enum StateModality { SM_EXCLUSIVE, SM_POP_UP };
 // Manages the games states
 class DW_API StateManager : public Object {
 public:
-    DW_OBJECT(Object)
+    DW_OBJECT(StateManager)
 
     StateManager(Context* context);
     ~StateManager();

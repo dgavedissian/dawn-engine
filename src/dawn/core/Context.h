@@ -15,10 +15,19 @@ public:
     Context(String basePath, String prefPath);
     ~Context();
 
+    // Subsystems
     void addSubsystem(Object* subsystem);
+    Object* getSubsystem(StringHash subsystemType);
+    void removeSubsystem(StringHash subsystemType);
+    void clearSubsystems();
 
+    // Convenient template methods for subsystems
     template <class T> T* getSubsystem() {
-        return static_cast<T*>(mSubsystems[T::getType().value()]);
+        return static_cast<T*>(getSubsystem(T::getTypeStatic()));
+    }
+
+    template <class T> void removeSubsystem() {
+        removeSubsystem(T::getTypeStatic());
     }
 
     /// Get the base path of the application

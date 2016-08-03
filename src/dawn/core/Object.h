@@ -11,7 +11,7 @@ namespace dw {
 
 class DW_API TypeInfo {
 public:
-    TypeInfo(std::type_info t);
+    TypeInfo(const std::type_info& t);
     ~TypeInfo();
 
     StringHash getType() const;
@@ -22,8 +22,8 @@ private:
     String mTypeName;
 };
 
-#define DW_OBJECT(type)                                \
-    typedef type Type;                                 \
+#define DW_OBJECT(T)                                   \
+    typedef T Type;                                    \
     virtual StringHash getType() const {               \
         return getTypeInfo().getType();                \
     }                                                  \
@@ -40,7 +40,7 @@ private:
         return getTypeInfoStatic().getTypeName();      \
     }                                                  \
     static const TypeInfo& getTypeInfoStatic() {       \
-        static TypeInfo ti(typeid(type));              \
+        static TypeInfo ti(typeid(Type));              \
         return ti;                                     \
     }
 

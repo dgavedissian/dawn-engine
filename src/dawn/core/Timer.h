@@ -28,6 +28,9 @@ DW_API TimePoint beginTiming();
 // Return the time elapsed in seconds since a time point to when this function was called
 DW_API double elapsed(TimePoint then);
 
+// TODO(David) comment
+DW_API double elapsed(TimePoint then, TimePoint now);
+
 // Calendar
 
 // return the current system time

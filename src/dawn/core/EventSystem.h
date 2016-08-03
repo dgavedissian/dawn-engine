@@ -49,6 +49,8 @@ template <class T> SharedPtr<T> castEvent(const EventDataPtr eventData) {
 
 class DW_API EventSystem : public Singleton<EventSystem>, public Object {
 public:
+    DW_OBJECT(EventSystem);
+
     EventSystem(Context* context);
     virtual ~EventSystem();
 

@@ -6,7 +6,7 @@
 
 namespace dw {
 
-TypeInfo::TypeInfo(std::type_info t) {
+TypeInfo::TypeInfo(const std::type_info& t) {
     mTypeName = String(t.name());
     mType = StringHash(mTypeName);
 }

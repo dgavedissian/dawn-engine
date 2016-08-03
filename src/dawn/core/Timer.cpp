@@ -13,7 +13,11 @@ TimePoint beginTiming() {
 }
 
 double elapsed(TimePoint then) {
-    return std::chrono::duration_cast<std::chrono::seconds>(_SteadyClock::now() - then).count();
+    return elapsed(then, beginTiming());
+}
+
+double elapsed(TimePoint then, TimePoint now) {
+    return std::chrono::duration_cast<std::chrono::seconds>(now - then).count();
 }
 
 SystemTimePoint now() {
