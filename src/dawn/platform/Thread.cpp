@@ -15,5 +15,4 @@ Thread::~Thread() {
 
 void Thread::join() {
 }
-
 }

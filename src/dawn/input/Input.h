@@ -9,8 +9,7 @@
 
 namespace dw {
 
-enum MouseButton
-{
+enum MouseButton {
     None,
     Left,
     Middle,
@@ -19,21 +18,19 @@ enum MouseButton
     Count
 };
 
-enum class Modifier
-{
-    None       = 0,
-    LeftAlt    = 0x01,
-    RightAlt   = 0x02,
-    LeftCtrl   = 0x04,
-    RightCtrl  = 0x08,
-    LeftShift  = 0x10,
+enum class Modifier {
+    None = 0,
+    LeftAlt = 0x01,
+    RightAlt = 0x02,
+    LeftCtrl = 0x04,
+    RightCtrl = 0x08,
+    LeftShift = 0x10,
     RightShift = 0x20,
-    LeftMeta   = 0x40,
-    RightMeta  = 0x80
+    LeftMeta = 0x40,
+    RightMeta = 0x80
 };
 
-enum class Key
-{
+enum class Key {
     None = 0,
     Esc,
     Return,

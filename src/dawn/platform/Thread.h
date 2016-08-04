@@ -15,7 +15,5 @@ public:
 
 private:
     std::thread mThread;
-
 };
-
 }

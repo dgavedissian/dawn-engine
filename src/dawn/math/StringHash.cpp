@@ -62,7 +62,8 @@ String StringHash::toString() const {
 uint32_t StringHash::calculate(const char* str) {
     uint32_t hash = 0;
 
-    if (!str) return hash;
+    if (!str)
+        return hash;
 
     // Perform a case-insensitive hash using the SDBM algorithm
     while (*str)

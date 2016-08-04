@@ -5,24 +5,23 @@
 #include "DawnEngine.h"
 #include "SandboxState.h"
 
-int main(int argc, char** argv)
-{
-	// Set up the engine
+int main(int argc, char** argv) {
+    // Set up the engine
     dw::Engine* engine = new dw::Engine("Sandbox", "1.0.0");
-	engine->setup();
+    engine->setup();
 
-	// Add resource locations
-	// TODO: move this out of the renderer class
-	engine->getRenderer()->addResourceLocation(engine->getBasePath() + "media/sandbox");
+    // Add resource locations
+    // TODO: move this out of the renderer class
+    engine->getRenderer()->addResourceLocation(engine->getBasePath() + "media/sandbox");
 
-	// Register the sandbox state and switch to it
-	engine->getStateMgr()->registerState(dw::makeShared<SandboxState>(engine));
-	engine->getStateMgr()->changeTo(S_SANDBOX);
+    // Register the sandbox state and switch to it
+    engine->getStateMgr()->registerState(dw::makeShared<SandboxState>(engine));
+    engine->getStateMgr()->changeTo(S_SANDBOX);
 
-	// Run the engine
-	engine->run([](float) {});
+    // Run the engine
+    engine->run([](float) {});
 
-	// Shutdown and exit
+    // Shutdown and exit
     engine->shutdown();
     return 0;
 }

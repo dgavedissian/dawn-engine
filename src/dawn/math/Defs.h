@@ -125,7 +125,8 @@ inline float smoothStep(float lhs, float rhs, float t) {
 /// Note: The result (the remainder) has same sign as the divisor. Similar to matlab's mod(),
 ///	      rather than cmath's to fmod(). Eg: mod(-3,4) = 1, fmod(-3,4) = -3
 inline float mod(float x, float y) {
-    if (floatEq(y, 0.0f)) return x;
+    if (floatEq(y, 0.0f))
+        return x;
 
     float m = x - y * floor(x / y);
     if (y > 0)  // modulo range: [0..y)
@@ -169,7 +170,8 @@ inline int clamp(int value, int min, int max) {
 
 /// Check whether an unsigned integer is a power of two.
 inline bool isPow2(unsigned value) {
-    if (!value) return true;
+    if (!value)
+        return true;
     while (!(value & 1))
         value >>= 1;
     return value == 1;
@@ -207,8 +209,10 @@ template <class T> T wrap(const T& value, const T& min, const T& max) {
 /// Takes one step from a value to a target with a given step. If the distance is less then the
 /// step value, then it just returns the target value.
 template <class T> T step(const T& value, const T& step, const T& target) {
-    if (target > value) return min(target, value + step);
-    if (target < value) return max(target, value - step);
+    if (target > value)
+        return min(target, value + step);
+    if (target < value)
+        return max(target, value - step);
     return value;
 }
 
