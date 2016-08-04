@@ -14,5 +14,4 @@ Renderer::Renderer(Context *context) : Object(context) {
 Renderer::~Renderer() {
     glfwDestroyWindow(mWindow);
 }
-
 }

@@ -79,7 +79,8 @@ void Log::write(const String& message, LogLevel level) {
         const int tabSize = 4;
         for (uint i = 0; i < line.size(); ++i) {
             int noSpaces = tabSize - (i % tabSize);
-            if (line[i] == '\t') line.replace(i, 1, String(noSpaces, ' '));
+            if (line[i] == '\t')
+                line.replace(i, 1, String(noSpaces, ' '));
         }
 
         // Output to file

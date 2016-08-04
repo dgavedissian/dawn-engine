@@ -44,6 +44,12 @@
 // External Libraries
 //
 
+// bgfx
+#include <bgfx/bgfx.h>
+
+// glfw
+#include <glfw/glfw3.h>
+
 // Bullet
 #include <btBulletDynamicsCommon.h>
 

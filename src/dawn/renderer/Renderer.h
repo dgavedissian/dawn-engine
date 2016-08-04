@@ -4,8 +4,6 @@
  */
 #pragma once
 
-#include <glfw/glfw3.h>
-
 namespace dw {
 
 class Renderer : public Object {
@@ -18,5 +16,4 @@ public:
 private:
     GLFWwindow* mWindow;
 };
-
 }

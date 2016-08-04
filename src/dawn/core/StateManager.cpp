@@ -25,12 +25,14 @@ void StateManager::registerState(SharedPtr<State> state) {
 }
 
 void StateManager::changeTo(int id) {
-    if (mStateStack.size() > 0) pop();
+    if (mStateStack.size() > 0)
+        pop();
     push(id);
 }
 
 void StateManager::push(int id) {
-    if (id == S_NO_STATE) return;
+    if (id == S_NO_STATE)
+        return;
 
     // TODO: We need some kind of way to "pause" the frame timer
     SharedPtr<State> newState = getStateById(id);
@@ -83,7 +85,8 @@ void StateManager::handleEvent(EventDataPtr eventData) {
     // Handle state reloading
     if (eventIs<EvtData_KeyDown>(eventData)) {
         auto castedEventData = castEvent<EvtData_KeyDown>(eventData);
-        if (castedEventData->key == Key::F8) reload();
+        if (castedEventData->key == Key::F8)
+            reload();
     }
 }
 

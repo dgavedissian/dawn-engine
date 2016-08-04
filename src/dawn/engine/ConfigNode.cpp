@@ -125,7 +125,8 @@ uint ConfigNode::size() const {
 }
 
 void ConfigNode::push(const ConfigNode& v) {
-    if (mType == NT_NULL) mType = NT_SEQUENCE;
+    if (mType == NT_NULL)
+        mType = NT_SEQUENCE;
     mData.sequence.push_back(v);
 }
 
@@ -156,7 +157,8 @@ Vector<ConfigNode>::const_iterator ConfigNode::seq_end() const {
 }
 
 void ConfigNode::insert(const Pair<String, ConfigNode>& p) {
-    if (mType == NT_NULL) mType = NT_MAP;
+    if (mType == NT_NULL)
+        mType = NT_MAP;
     mData.keymap.insert(p);
 }
 
@@ -165,7 +167,8 @@ bool ConfigNode::contains(const String& key) const {
 }
 
 ConfigNode& ConfigNode::operator[](const String& key) {
-    if (mType == NT_NULL) mType = NT_MAP;
+    if (mType == NT_NULL)
+        mType = NT_MAP;
     assert(mType == NT_MAP);
     return mData.keymap[key];
 }

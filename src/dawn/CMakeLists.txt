@@ -43,6 +43,7 @@ set(CPP_FILES
     core/StateManager.cpp
     core/StringUtils.cpp
     core/Timer.cpp
+    engine/App.cpp
     engine/Config.cpp
     engine/ConfigNode.cpp
     engine/Engine.cpp

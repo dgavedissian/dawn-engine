@@ -12,7 +12,8 @@ const EventType EvtData_Exit::eventType(0x98aceab8);
 const EventType EvtData_SendMessage::eventType(0x244cec1b);
 const EventType EvtData_Message::eventType(0x8d859562);
 
-EventSystem::EventSystem(Context* context) : Object(context), mActiveQueue(0), mProcessingEvents(false) {
+EventSystem::EventSystem(Context* context)
+    : Object(context), mActiveQueue(0), mProcessingEvents(false) {
 }
 
 EventSystem::~EventSystem() {
@@ -122,7 +123,8 @@ bool EventSystem::abortEvent(const EventType& type, bool allOfType /*= false*/) 
                 eventQueue.erase(currentIt);
                 success = true;
 
-                if (!allOfType) break;
+                if (!allOfType)
+                    break;
             }
         }
     }
@@ -156,7 +158,8 @@ bool EventSystem::update(double maxDuration) {
         }
 
         // Check to see if time ran out
-        if (time::elapsed(now) >= maxDuration) break;
+        if (time::elapsed(now) >= maxDuration)
+            break;
     }
 
     mProcessingEvents = false;

@@ -22,26 +22,26 @@ private:
     String mTypeName;
 };
 
-#define DW_OBJECT(T)                                   \
-    typedef T Type;                                    \
-    virtual StringHash getType() const {               \
-        return getTypeInfo().getType();                \
-    }                                                  \
-    virtual String getTypeName() const {               \
-        return getTypeInfo().getTypeName();            \
-    }                                                  \
-    virtual TypeInfo getTypeInfo() const {             \
-        return getTypeInfoStatic();                    \
-    }                                                  \
-    static StringHash getTypeStatic() {                \
-        return getTypeInfoStatic().getType();          \
-    }                                                  \
-    static String getTypeNameStatic() {                \
-        return getTypeInfoStatic().getTypeName();      \
-    }                                                  \
-    static const TypeInfo& getTypeInfoStatic() {       \
-        static TypeInfo ti(typeid(Type));              \
-        return ti;                                     \
+#define DW_OBJECT(T)                                    \
+    typedef T Type;                                     \
+    virtual dw::StringHash getType() const override {   \
+        return getTypeInfo().getType();                 \
+    }                                                   \
+    virtual dw::String getTypeName() const override {   \
+        return getTypeInfo().getTypeName();             \
+    }                                                   \
+    virtual dw::TypeInfo getTypeInfo() const override { \
+        return getTypeInfoStatic();                     \
+    }                                                   \
+    static dw::StringHash getTypeStatic() {             \
+        return getTypeInfoStatic().getType();           \
+    }                                                   \
+    static dw::String getTypeNameStatic() {             \
+        return getTypeInfoStatic().getTypeName();       \
+    }                                                   \
+    static const dw::TypeInfo& getTypeInfoStatic() {    \
+        static dw::TypeInfo ti(typeid(Type));           \
+        return ti;                                      \
     }
 
 class DW_API Object {
@@ -63,5 +63,4 @@ public:
 protected:
     Context* mContext;
 };
-
 }

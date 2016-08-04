@@ -79,7 +79,7 @@ template <class K, class T> using Map = std::map<K, T>;
 template <class K, class T> using HashMap = std::unordered_map<K, T>;
 
 // Stubs
-class Camera {}; // TODO(David) stub until ECS is integrated
+class Camera {};  // TODO(David) stub until ECS is integrated
 }
 
 // Safe delete macros

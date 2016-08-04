@@ -43,13 +43,15 @@ CommandLineArgs parseCommandArgs(int argc, char** argv) {
 
 String generateName(const String& prefix /*= "Unnamed"*/) {
     static Map<String, int> countMap;
-    if (countMap.find(prefix) == countMap.end()) countMap[prefix] = 0;
+    if (countMap.find(prefix) == countMap.end())
+        countMap[prefix] = 0;
     return prefix + std::to_string(++countMap[prefix]);
 }
 
 String padString(const String& str, uint length) {
     String out = str;
-    if (length > out.size()) out.insert(out.size(), length - out.size(), ' ');
+    if (length > out.size())
+        out.insert(out.size(), length - out.size(), ' ');
     return out;
 }
 
@@ -65,7 +67,8 @@ String concat(const Vector<String>& vec, const String& delim) {
     String out;
     for (uint i = 0; i < vec.size() - 1; ++i)
         out += vec[i];
-    if (!vec.empty()) out += vec.back();
+    if (!vec.empty())
+        out += vec.back();
     return out;
 }
 

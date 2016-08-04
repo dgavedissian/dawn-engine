@@ -28,5 +28,4 @@ void Context::removeSubsystem(StringHash subsystemType) {
 void Context::clearSubsystems() {
     mSubsystems.clear();
 }
-
 }

@@ -19,7 +19,8 @@ template <> struct Converter<bool> {
     }
 
     static bool decode(const ConfigNode& node, bool& rhs) {
-        if (node.mType != NT_SCALAR) return false;
+        if (node.mType != NT_SCALAR)
+            return false;
 
         rhs = node.mData.scalar == "true";
         return true;
@@ -35,7 +36,8 @@ template <> struct Converter<int> {
     }
 
     static bool decode(const ConfigNode& node, int& rhs) {
-        if (node.mType != NT_SCALAR) return false;
+        if (node.mType != NT_SCALAR)
+            return false;
 
         try {
             rhs = std::stoi(node.mData.scalar);
@@ -57,7 +59,8 @@ template <> struct Converter<uint> {
     }
 
     static bool decode(const ConfigNode& node, uint& rhs) {
-        if (node.mType != NT_SCALAR) return false;
+        if (node.mType != NT_SCALAR)
+            return false;
 
         try {
             rhs = std::stoul(node.mData.scalar);
@@ -79,7 +82,8 @@ template <> struct Converter<uint64_t> {
     }
 
     static bool decode(const ConfigNode& node, uint64_t& rhs) {
-        if (node.mType != NT_SCALAR) return false;
+        if (node.mType != NT_SCALAR)
+            return false;
 
         try {
             rhs = std::stoull(node.mData.scalar);
@@ -101,7 +105,8 @@ template <> struct Converter<float> {
     }
 
     static bool decode(const ConfigNode& node, float& rhs) {
-        if (node.mType != NT_SCALAR) return false;
+        if (node.mType != NT_SCALAR)
+            return false;
 
         rhs = std::stof(node.mData.scalar);
         return true;
@@ -117,7 +122,8 @@ template <> struct Converter<double> {
     }
 
     static bool decode(const ConfigNode& node, double& rhs) {
-        if (node.mType != NT_SCALAR) return false;
+        if (node.mType != NT_SCALAR)
+            return false;
 
         rhs = std::stod(node.mData.scalar);
         return true;
@@ -133,7 +139,8 @@ template <> struct Converter<String> {
     }
 
     static bool decode(const ConfigNode& node, String& rhs) {
-        if (node.mType != NT_SCALAR) return false;
+        if (node.mType != NT_SCALAR)
+            return false;
 
         rhs = node.mData.scalar;
         return true;
@@ -149,7 +156,8 @@ template <> struct Converter<Vec2> {
     }
 
     static bool decode(const ConfigNode& node, Vec2& rhs) {
-        if (!node.isSequence() || node.size() != 2) return false;
+        if (!node.isSequence() || node.size() != 2)
+            return false;
 
         rhs.x = node[0].as<float>();
         rhs.y = node[1].as<float>();
@@ -166,7 +174,8 @@ template <> struct Converter<Vec2i> {
     }
 
     static bool decode(const ConfigNode& node, Vec2i& rhs) {
-        if (!node.isSequence() || node.size() != 2) return false;
+        if (!node.isSequence() || node.size() != 2)
+            return false;
 
         rhs.x = node[0].as<int>();
         rhs.y = node[1].as<int>();
@@ -184,7 +193,8 @@ template <> struct Converter<Vec3> {
     }
 
     static bool decode(const ConfigNode& node, Vec3& rhs) {
-        if (!node.isSequence() || node.size() != 3) return false;
+        if (!node.isSequence() || node.size() != 3)
+            return false;
 
         rhs.x = node[0].as<float>();
         rhs.y = node[1].as<float>();
@@ -203,7 +213,8 @@ template <> struct Converter<Vec3i> {
     }
 
     static bool decode(const ConfigNode& node, Vec3i& rhs) {
-        if (!node.isSequence() || node.size() != 3) return false;
+        if (!node.isSequence() || node.size() != 3)
+            return false;
 
         rhs.x = node[0].as<int>();
         rhs.y = node[1].as<int>();
@@ -223,7 +234,8 @@ template <> struct Converter<Vec4> {
     }
 
     static bool decode(const ConfigNode& node, Vec4& rhs) {
-        if (!node.isSequence() || node.size() != 4) return false;
+        if (!node.isSequence() || node.size() != 4)
+            return false;
 
         rhs.x = node[0].as<float>();
         rhs.y = node[1].as<float>();
@@ -244,7 +256,8 @@ template <> struct Converter<Vec4i> {
     }
 
     static bool decode(const ConfigNode& node, Vec4i& rhs) {
-        if (!node.isSequence() || node.size() != 4) return false;
+        if (!node.isSequence() || node.size() != 4)
+            return false;
 
         rhs.x = node[0].as<int>();
         rhs.y = node[1].as<int>();
