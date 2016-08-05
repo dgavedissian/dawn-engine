@@ -16,6 +16,6 @@ public:
     void frame();
 
 private:
-    GLFWwindow* mWindow;
+    uint mWidth, mHeight;
 };
 }

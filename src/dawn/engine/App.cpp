@@ -27,6 +27,11 @@ int runApp(App* app, int argc, char** argv) {
     if (!glfwInit())
         return EXIT_FAILURE;
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
     GLFWwindow* window = glfwCreateWindow(1280, 720, app->getGameName().c_str(), NULL, NULL);
     glfwMakeContextCurrent(window);
 
