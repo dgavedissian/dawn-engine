@@ -146,7 +146,7 @@ void Engine::run(EngineTickCallback tickFunc) {
 
         // Render a frame
         preRender(mMainCamera);
-        // mContext->getSubsystem<Renderer>()->renderFrame(mMainCamera);
+        mContext->getSubsystem<Renderer>()->frame();
 
         // Calculate frameTime
         time::TimePoint currentTime = time::beginTiming();

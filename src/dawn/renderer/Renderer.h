@@ -13,6 +13,8 @@ public:
     Renderer(Context* context);
     ~Renderer();
 
+    void frame();
+
 private:
     GLFWwindow* mWindow;
 };

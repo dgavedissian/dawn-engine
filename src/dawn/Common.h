@@ -78,6 +78,11 @@ template <class T> using List = std::list<T>;
 template <class K, class T> using Map = std::map<K, T>;
 template <class K, class T> using HashMap = std::unordered_map<K, T>;
 
+// Threads
+using Thread = std::thread;
+using Mutex = std::mutex;
+using MutexScope = std::lock_guard<std::mutex>;
+
 // Stubs
 class Camera {};  // TODO(David) stub until ECS is integrated
 }
