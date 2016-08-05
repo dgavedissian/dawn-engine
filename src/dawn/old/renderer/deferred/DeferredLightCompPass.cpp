@@ -115,7 +115,8 @@ void DeferredLightRenderOperation::execute(Ogre::SceneManager* sm, Ogre::RenderS
             assert(tus);
             const Ogre::TexturePtr& shadowTex = sm->getShadowTexture(0);
 
-            if (tus->_getTexturePtr() != shadowTex) tus->_setTexturePtr(shadowTex);
+            if (tus->_getTexturePtr() != shadowTex)
+                tus->_setTexturePtr(shadowTex);
         }
 
         injectTechnique(sm, tech, dLight, &ll);

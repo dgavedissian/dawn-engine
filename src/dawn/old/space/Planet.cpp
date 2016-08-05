@@ -140,7 +140,8 @@ void Planet::preRender(Camera* camera) {
 
     // Scale the surface and atmosphere
     mSurfaceNode->setPosition(cameraSpacePosition);
-    if (mDesc.hasAtmosphere) mAtmosphereNode->setPosition(mSurfaceNode->getPosition());
+    if (mDesc.hasAtmosphere)
+        mAtmosphereNode->setPosition(mSurfaceNode->getPosition());
 
     // Detect a sun object
     // TODO support multiple stars

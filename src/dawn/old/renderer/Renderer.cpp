@@ -251,7 +251,8 @@ Ogre::MaterialPtr Renderer::getMaterial(const String& name) {
 
 Ogre::MaterialPtr Renderer::getMaterialCopy(const String& originalName, const String& newName) {
     Ogre::MaterialPtr material = getMaterial(originalName);
-    if (material.isNull()) return material;
+    if (material.isNull())
+        return material;
     return material->clone(newName);
 }
 
@@ -412,7 +413,8 @@ void Renderer::createSDLWindow(const String& windowTitle, const Vec2i& displayMo
                                Ogre::NameValuePairList& options) {
     // Create the window
     int windowFlags = 0;
-    if (fullscreen) windowFlags |= SDL_WINDOW_FULLSCREEN;
+    if (fullscreen)
+        windowFlags |= SDL_WINDOW_FULLSCREEN;
     mWindow = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                displayMode.x, displayMode.y, windowFlags);
 
@@ -502,7 +504,8 @@ void Renderer::findClosestPolygon(Ogre::Entity* entity, float& closestDistance,
         Ogre::SubMesh* subMesh = mesh->getSubMesh(i);
 
         // Ignore anything that isn't a triangle List
-        if (subMesh->operationType != Ogre::RenderOperation::OT_TRIANGLE_LIST) continue;
+        if (subMesh->operationType != Ogre::RenderOperation::OT_TRIANGLE_LIST)
+            continue;
 
         // Get the vertex data
         Ogre::VertexData* vertexData;
@@ -533,7 +536,8 @@ void Renderer::findClosestPolygon(Ogre::Entity* entity, float& closestDistance,
         // If it is null then skip as it must be a point cloud
         Ogre::HardwareIndexBufferSharedPtr iBuff = subMesh->indexData->indexBuffer;
 
-        if (iBuff.isNull()) continue;
+        if (iBuff.isNull())
+            continue;
 
         uint* pLong = (uint*)iBuff->lock(Ogre::HardwareBuffer::HBL_READ_ONLY);
         uint16_t* pShort = (uint16_t*)pLong;
@@ -559,7 +563,8 @@ void Renderer::findClosestPolygon(Ogre::Entity* entity, float& closestDistance,
             vertexPos = Ogre::Vector3(pReal[0], pReal[1], pReal[2]);  // read position values
 
             // Apply world transformations
-            if (parentNode) vertexPos = (parentOrientation * (vertexPos * parentScale)) + parentPos;
+            if (parentNode)
+                vertexPos = (parentOrientation * (vertexPos * parentScale)) + parentPos;
 
             // Figure out triangle and calculate the distance if it's the closest
             switch (k % 3) {

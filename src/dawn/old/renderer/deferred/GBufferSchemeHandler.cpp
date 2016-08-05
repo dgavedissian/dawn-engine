@@ -63,7 +63,8 @@ bool GBufferSchemeHandler::CheckNormalMap(Ogre::TextureUnitState* tus,
     } else {
         Ogre::String lowerCaseName = tus->getTextureName();
         Ogre::StringUtil::toLowerCase(lowerCaseName);
-        if (lowerCaseName.find(NORMAL_MAP_PATTERN) != Ogre::String::npos) isNormal = true;
+        if (lowerCaseName.find(NORMAL_MAP_PATTERN) != Ogre::String::npos)
+            isNormal = true;
     }
 
     if (isNormal) {
@@ -81,7 +82,8 @@ GBufferSchemeHandler::PassProperties GBufferSchemeHandler::InspectPass(
     Ogre::Pass* pass, unsigned short lodIndex, const Ogre::Renderable* rend) {
     PassProperties props;
 
-    if (pass->getParent()->getSchemeName() == "NoGBuffer") props.isDeferred = false;
+    if (pass->getParent()->getSchemeName() == "NoGBuffer")
+        props.isDeferred = false;
 
     // TODO : Use renderable to indicate whether this has skinning.
     // Probably use same const cast that renderSingleObject uses.
@@ -93,12 +95,15 @@ GBufferSchemeHandler::PassProperties GBufferSchemeHandler::InspectPass(
     for (unsigned short i = 0; i < pass->getNumTextureUnitStates(); i++) {
         Ogre::TextureUnitState* tus = pass->getTextureUnitState(i);
 
-        if (!CheckNormalMap(tus, props)) props.regularTextures.push_back(tus);
+        if (!CheckNormalMap(tus, props))
+            props.regularTextures.push_back(tus);
 
-        if (tus->getEffects().size() > 0) props.isDeferred = false;
+        if (tus->getEffects().size() > 0)
+            props.isDeferred = false;
     }
 
-    if (pass->getDiffuse() != Ogre::ColourValue::White) props.hasDiffuseColour = true;
+    if (pass->getDiffuse() != Ogre::ColourValue::White)
+        props.hasDiffuseColour = true;
 
     // Check transparency
     if (pass->getDestBlendFactor() != Ogre::SBF_ZERO) {
@@ -107,7 +112,8 @@ GBufferSchemeHandler::PassProperties GBufferSchemeHandler::InspectPass(
     }
 
     // Check lighting
-    if (pass->getLightingEnabled() == false) props.isDeferred = false;
+    if (pass->getLightingEnabled() == false)
+        props.isDeferred = false;
 
     return props;
 }
@@ -148,11 +154,14 @@ MaterialGenerator::Perm GBufferSchemeHandler::GetPermutation(const PassPropertie
                         "GBufferSchemeHandler::inspectPass");
     }
 
-    if (props.isSkinned) perm |= GBufferMaterialGenerator::GBP_SKINNED;
+    if (props.isSkinned)
+        perm |= GBufferMaterialGenerator::GBP_SKINNED;
 
-    if (props.normalMap != nullptr) perm |= GBufferMaterialGenerator::GBP_NORMAL_MAP;
+    if (props.normalMap != nullptr)
+        perm |= GBufferMaterialGenerator::GBP_NORMAL_MAP;
 
-    if (props.hasDiffuseColour) perm |= GBufferMaterialGenerator::GBP_HAS_DIFFUSE_COLOUR;
+    if (props.hasDiffuseColour)
+        perm |= GBufferMaterialGenerator::GBP_HAS_DIFFUSE_COLOUR;
 
     return perm;
 }

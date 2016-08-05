@@ -116,7 +116,8 @@ void ImGuiInterface::beginFrame() {
 
 void ImGuiInterface::onMouseButton(int button) {
     button -= SDL_BUTTON_LEFT;
-    if (button >= 0 && button < 3) mMousePressed[button] = true;
+    if (button >= 0 && button < 3)
+        mMousePressed[button] = true;
 }
 
 void ImGuiInterface::onMouseScroll(float scroll) {
@@ -124,7 +125,8 @@ void ImGuiInterface::onMouseScroll(float scroll) {
 }
 
 void ImGuiInterface::onKey(SDL_Keycode key, Uint16 mod, bool down) {
-    if (key < 0x0 || key > 0x200) return;
+    if (key < 0x0 || key > 0x200)
+        return;
 
     mIO.KeysDown[key & ~SDLK_SCANCODE_MASK] = down;
     mIO.KeyCtrl = mod & KMOD_CTRL;

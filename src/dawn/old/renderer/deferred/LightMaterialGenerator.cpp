@@ -83,7 +83,8 @@ Ogre::MaterialPtr LightMaterialGenerator::GenerateTemplateMaterial(Perm permutat
     else
         materialName += "Geometry";
 
-    if (permutation & LightMaterialGenerator::MI_SHADOW_CASTER) materialName += "Shadow";
+    if (permutation & LightMaterialGenerator::MI_SHADOW_CASTER)
+        materialName += "Shadow";
 
     return Ogre::MaterialManager::getSingleton().getByName(materialName);
 }
@@ -105,11 +106,14 @@ String LightMaterialGenerator::GetPPDefines(Perm permutation) {
     strPPD += "LIGHT_TYPE=" + Ogre::StringConverter::toString(lightType);
 
     // Optional parameters
-    if (permutation & LightMaterialGenerator::MI_SPECULAR) strPPD += ",IS_SPECULAR=1";
+    if (permutation & LightMaterialGenerator::MI_SPECULAR)
+        strPPD += ",IS_SPECULAR=1";
 
-    if (permutation & LightMaterialGenerator::MI_ATTENUATED) strPPD += ",IS_ATTENUATED=1";
+    if (permutation & LightMaterialGenerator::MI_ATTENUATED)
+        strPPD += ",IS_ATTENUATED=1";
 
-    if (permutation & LightMaterialGenerator::MI_SHADOW_CASTER) strPPD += ",IS_SHADOW_CASTER=1";
+    if (permutation & LightMaterialGenerator::MI_SHADOW_CASTER)
+        strPPD += ",IS_SHADOW_CASTER=1";
 
     return strPPD;
 }

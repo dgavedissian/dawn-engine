@@ -241,7 +241,8 @@ Ogre::MaterialPtr GBufferMaterialGenerator::GenerateTemplateMaterial(
     pass->setName(mBaseName + "Pass_" + Ogre::StringConverter::toString(permutation));
     pass->setLightingEnabled(false);
 
-    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP) pass->createTextureUnitState();
+    if (permutation & GBufferMaterialGenerator::GBP_NORMAL_MAP)
+        pass->createTextureUnitState();
 
     uint32 numTextures = permutation & GBufferMaterialGenerator::GBP_TEXTURE_MASK;
     for (uint32 i = 0; i < numTextures; i++)

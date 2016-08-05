@@ -44,7 +44,8 @@ SpriteManager::SpriteManager(Ogre::Viewport* viewport, Ogre::SceneManager* scene
 
 SpriteManager::~SpriteManager() {
     mSceneManager->removeRenderQueueListener(this);
-    if (!mHwBuffer.isNull()) destroyHardwareBuffer();
+    if (!mHwBuffer.isNull())
+        destroyHardwareBuffer();
 }
 
 void SpriteManager::renderQueueEnded(Ogre::uint8 queueGroupId, const Ogre::String& invocation,
@@ -186,7 +187,8 @@ void SpriteManager::drawSprite(const SpriteDesc& s) {
     SpriteChunk spr;
     for (int i = 0; i < 4; ++i) {
         // Transform point
-        if (!math::EqualAbs(s.angle, 0.0f)) c[i].p = rotate(c[i].p, s.angle);
+        if (!math::EqualAbs(s.angle, 0.0f))
+            c[i].p = rotate(c[i].p, s.angle);
         c[i].p = toScreenCoord(c[i].p + s.position);
 
         // Copy vertex
@@ -200,16 +202,19 @@ void SpriteManager::drawSprite(const SpriteDesc& s) {
 
 void SpriteManager::render() {
     uint newSize = mSpriteCount * 6;
-    if (newSize < MIN_HARDWARE_BUFFER_SIZE) newSize = MIN_HARDWARE_BUFFER_SIZE;
+    if (newSize < MIN_HARDWARE_BUFFER_SIZE)
+        newSize = MIN_HARDWARE_BUFFER_SIZE;
 
     // Grow hardware buffer if needed
     if (mHwBuffer.isNull() || mHwBuffer->getNumVertices() < newSize) {
-        if (!mHwBuffer.isNull()) destroyHardwareBuffer();
+        if (!mHwBuffer.isNull())
+            destroyHardwareBuffer();
         createHardwareBuffer(newSize);
     }
 
     // Bail if there are no sprites to render
-    if (mSpriteCount == 0) return;
+    if (mSpriteCount == 0)
+        return;
 
     // Lock hardware buffer
     float z = -1.0f;

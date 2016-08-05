@@ -122,7 +122,8 @@ void Star::preRender(Camera* camera) {
     // Position the billboards
     float scale = 100000.0f;
     mGlowBillboard->setPosition(lightDirection * scale);
-    if (mFlareBillboard) mFlareBillboard->setPosition(mGlowBillboard->mPosition);
+    if (mFlareBillboard)
+        mFlareBillboard->setPosition(mGlowBillboard->mPosition);
 
     // Scale the billboards
     mGlowBillboard->setDimensions(apparentRadius * scale * 120.0f, apparentRadius * scale * 120.0f);

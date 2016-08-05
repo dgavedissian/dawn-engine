@@ -86,11 +86,13 @@ void SystemBody::setParent(SystemBody* parent) {
 void SystemBody::calculatePosition(double time) {
     // Get offset
     Position offset;
-    if (mParent) offset = mParent->getPosition();
+    if (mParent)
+        offset = mParent->getPosition();
 
     // Calculate final position
     mPosition = offset;
-    if (mOrbit) mPosition += mOrbit->calculatePosition(time);
+    if (mOrbit)
+        mPosition += mOrbit->calculatePosition(time);
 
     // Update satellites
     for (auto i = mSatellites.begin(); i != mSatellites.end(); ++i)

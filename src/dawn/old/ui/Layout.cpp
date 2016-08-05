@@ -39,7 +39,8 @@ void Layout::show(int showType) {
 
 void Layout::hide() {
     // Disable modality by calling "Show" again
-    if (mDocument->IsModal()) mDocument->Show(Rocket::Core::ElementDocument::NONE);
+    if (mDocument->IsModal())
+        mDocument->Show(Rocket::Core::ElementDocument::NONE);
 
     // Remove focus
     mDocument->GetFocusLeafNode()->Blur();

@@ -54,12 +54,18 @@ Rocket::Core::Input::KeyModifier RocketInterface::mapSDLKeyMod(Uint16 mod) {
     using namespace Rocket::Core::Input;
 
     int rocketMod = 0;
-    if (mod & KMOD_SHIFT) rocketMod |= KM_SHIFT;
-    if (mod & KMOD_CTRL) rocketMod |= KM_CTRL;
-    if (mod & KMOD_ALT) rocketMod |= KM_ALT;
-    if (mod & KMOD_GUI) rocketMod |= KM_META;
-    if (mod & KMOD_CAPS) rocketMod |= KM_CAPSLOCK;
-    if (mod & KMOD_NUM) rocketMod |= KM_NUMLOCK;
+    if (mod & KMOD_SHIFT)
+        rocketMod |= KM_SHIFT;
+    if (mod & KMOD_CTRL)
+        rocketMod |= KM_CTRL;
+    if (mod & KMOD_ALT)
+        rocketMod |= KM_ALT;
+    if (mod & KMOD_GUI)
+        rocketMod |= KM_META;
+    if (mod & KMOD_CAPS)
+        rocketMod |= KM_CAPSLOCK;
+    if (mod & KMOD_NUM)
+        rocketMod |= KM_NUMLOCK;
 
     return KeyModifier(rocketMod);
 }
@@ -207,7 +213,8 @@ bool RocketInterface::LoadTexture(Rocket::Core::TextureHandle& textureHandle,
                            Ogre::TEX_TYPE_2D, 0, 1.0f, false, Ogre::PF_UNKNOWN, true);
     }
 
-    if (texture.isNull()) return false;
+    if (texture.isNull())
+        return false;
 
     textureDimensions.x = texture->getWidth();
     textureDimensions.y = texture->getHeight();
@@ -228,7 +235,8 @@ bool RocketInterface::GenerateTexture(Rocket::Core::TextureHandle& textureHandle
         Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, stream, (Ogre::ushort)dimensions.x,
         (Ogre::ushort)dimensions.y, Ogre::PF_A8B8G8R8, Ogre::TEX_TYPE_2D, 0);
 
-    if (texture.isNull()) return false;
+    if (texture.isNull())
+        return false;
 
     textureHandle = reinterpret_cast<Rocket::Core::TextureHandle>(new RocketOgreTexture(texture));
     return true;
@@ -250,27 +258,31 @@ Rocket::Core::FileHandle RocketInterface::Open(const Rocket::Core::String& path)
     Ogre::DataStreamPtr stream =
         Ogre::ResourceGroupManager::getSingleton().openResource(path.CString());
 
-    if (stream.isNull()) return 0;
+    if (stream.isNull())
+        return 0;
 
     return reinterpret_cast<Rocket::Core::FileHandle>(new Ogre::DataStreamPtr(stream));
 }
 
 void RocketInterface::Close(Rocket::Core::FileHandle file) {
-    if (!file) return;
+    if (!file)
+        return;
 
     Ogre::DataStreamPtr* pstream = reinterpret_cast<Ogre::DataStreamPtr*>(file);
     delete pstream;
 }
 
 size_t RocketInterface::Read(void* buffer, size_t size, Rocket::Core::FileHandle file) {
-    if (!file) return 0;
+    if (!file)
+        return 0;
 
     Ogre::DataStreamPtr stream = *reinterpret_cast<Ogre::DataStreamPtr*>(file);
     return stream->read(buffer, size);
 }
 
 bool RocketInterface::Seek(Rocket::Core::FileHandle file, long offset, int origin) {
-    if (!file) return false;
+    if (!file)
+        return false;
 
     Ogre::DataStreamPtr stream = *reinterpret_cast<Ogre::DataStreamPtr*>(file);
     long pos = 0;
@@ -283,14 +295,16 @@ bool RocketInterface::Seek(Rocket::Core::FileHandle file, long offset, int origi
     else
         pos = offset;
 
-    if (pos < 0 || pos > (long)size) return false;
+    if (pos < 0 || pos > (long)size)
+        return false;
 
     stream->seek((size_t)pos);
     return true;
 }
 
 size_t RocketInterface::Tell(Rocket::Core::FileHandle file) {
-    if (!file) return 0;
+    if (!file)
+        return 0;
 
     Ogre::DataStreamPtr stream = *reinterpret_cast<Ogre::DataStreamPtr*>(file);
     return stream->tell();

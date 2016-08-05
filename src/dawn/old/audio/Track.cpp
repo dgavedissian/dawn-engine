@@ -10,7 +10,8 @@ namespace dw {
 Track::Track(const String& filename, irrklang::ISoundEngine* engine) {
     // Load the track
     mTrack = engine->play2D(filename.c_str(), true, true, true);
-    if (!mTrack) throw std::runtime_error(("ERROR: File " + filename + " not found!").c_str());
+    if (!mTrack)
+        throw std::runtime_error(("ERROR: File " + filename + " not found!").c_str());
 
     // Set it to loop
     mTrack->setIsLooped(true);
@@ -36,7 +37,8 @@ void Track::stop() {
 
 void Track::seek(float location) {
     irrklang::ik_u32 length = mTrack->getSoundSource()->getPlayLength();
-    if (length > 0.0f) mTrack->setPlayPosition((irrklang::ik_u32)(location * length));
+    if (length > 0.0f)
+        mTrack->setPlayPosition((irrklang::ik_u32)(location * length));
 }
 
 void Track::setVolume(float volume) {

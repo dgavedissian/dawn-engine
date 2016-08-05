@@ -258,7 +258,8 @@ void DeferredShadingManager::EnableFog(bool fog) {
 
 void DeferredShadingManager::SetDebugMode(bool debug) {
     // Prevent unnecessary setups
-    if (mDebug == debug && mLightingInstance->getEnabled() == !mDebug) return;
+    if (mDebug == debug && mLightingInstance->getEnabled() == !mDebug)
+        return;
 
     mLightingInstance->setEnabled(!debug);
     mDebugInstance->setEnabled(debug);

@@ -208,7 +208,8 @@ void DeferredLight::updateFromCamera(Ogre::Camera* camera) {
     // Set shader params
     const Ogre::MaterialPtr& mat = getMaterial();
 
-    if (!mat->isLoaded()) mat->load();
+    if (!mat->isLoaded())
+        mat->load();
 
     Ogre::Technique* tech = mat->getBestTechnique();
     Ogre::Vector3 farCorner = camera->getViewMatrix(true) * camera->getWorldSpaceCorners()[4];

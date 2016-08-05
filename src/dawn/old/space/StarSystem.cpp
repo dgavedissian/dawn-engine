@@ -88,15 +88,18 @@ void StarSystem::createNebulaCloud(const String& texture, const Colour& fogColou
 }
 
 void StarSystem::update(float dt) {
-    if (mRootBody) mRootBody->update(dt, Position::origin);
+    if (mRootBody)
+        mRootBody->update(dt, Position::origin);
 }
 
 void StarSystem::preRender(Camera* camera) {
-    if (mRootBody) mRootBody->preRender(camera);
+    if (mRootBody)
+        mRootBody->preRender(camera);
 }
 
 void StarSystem::calculatePosition(double time) {
-    if (mRootBody) mRootBody->calculatePosition(time);
+    if (mRootBody)
+        mRootBody->calculatePosition(time);
 }
 
 SharedPtr<SystemBody> StarSystem::getRootBody() {

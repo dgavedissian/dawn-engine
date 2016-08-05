@@ -29,7 +29,8 @@ UI::UI(Renderer* rs, Input* im, LuaState* ls) : mRenderSystem(rs) {
 
     // Load UI material
     mUIMaterial = Ogre::MaterialManager::getSingleton().getByName("UI");
-    if (!mUIMaterial->isLoaded()) mUIMaterial->load();
+    if (!mUIMaterial->isLoaded())
+        mUIMaterial->load();
 
     // Set up libRocket
     mRocketInterface = makeShared<RocketInterface>(rs, mUIMaterial, mProjection);
@@ -102,7 +103,8 @@ Layout* UI::loadLayout(const String& filename) {
 
     // Set the title
     Rocket::Core::Element* title = document->GetElementById("title");
-    if (title) title->SetInnerRML(document->GetTitle());
+    if (title)
+        title->SetInnerRML(document->GetTitle());
 
     return new Layout(this, document);
 }
