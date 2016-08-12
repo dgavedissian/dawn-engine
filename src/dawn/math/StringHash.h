@@ -8,8 +8,10 @@ namespace dw {
 
 class DW_API StringHash {
 public:
+    using HashType = u32;
+
     StringHash();
-    explicit StringHash(uint32_t value);
+    explicit StringHash(HashType value);
     StringHash(const char* str);
     StringHash(const String& str);
 
@@ -21,14 +23,14 @@ public:
     bool operator>(const StringHash& rhs) const;
     operator bool() const;
 
-    uint32_t value() const;
+    HashType value() const;
     String toString() const;
 
-    static uint32_t calculate(const char* str);
+    static HashType calculate(const char* str);
 
     static const StringHash ZERO;
 
 private:
-    uint32_t mValue;
+    HashType mValue;
 };
 }

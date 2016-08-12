@@ -11,6 +11,7 @@
 #include "engine/App.h"
 #include "engine/Config.h"
 #include "engine/Engine.h"
+#include "io/FileSystem.h"
 #include "math/Defs.h"
 #include "math/Noise.h"
 #include "math/Rect.h"

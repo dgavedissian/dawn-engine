@@ -17,6 +17,11 @@ set(H_FILES
     engine/ConfigNode.inl
     engine/Engine.h
     input/Input.h
+    io/File.h
+    io/FileSystem.h
+    io/InputStream.h
+    io/OutputStream.h
+    math/Colour.h
     math/Defs.h
     math/Noise.h
     math/Rect.h
@@ -26,6 +31,8 @@ set(H_FILES
     math/Vec4i.h
     physics/PhysicsWorld.h
     renderer/Renderer.h
+    resource/Resource.h
+    resource/ResourceCache.h
     scene/Position.h
     scene/SceneManager.h
     script/LuaState.h
@@ -47,6 +54,10 @@ set(CPP_FILES
     engine/ConfigNode.cpp
     engine/Engine.cpp
     input/Input.cpp
+    io/File.cpp
+    io/FileSystem.cpp
+    io/InputStream.cpp
+    io/OutputStream.cpp
     math/Noise.cpp
     math/Rect.cpp
     math/StringHash.cpp
@@ -55,6 +66,8 @@ set(CPP_FILES
     math/Vec4i.cpp
     physics/PhysicsWorld.cpp
     renderer/Renderer.cpp
+    resource/Resource.cpp
+    resource/ResourceCache.cpp
     scene/Position.cpp
     scene/SceneManager.cpp
     script/LuaState.cpp)

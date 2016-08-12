@@ -33,6 +33,7 @@ using byte = u8;
 // String
 using String = std::string;
 using StringStream = std::stringstream;
+using Path = String;
 
 // Smart pointers
 template <class T> using SharedPtr = std::shared_ptr<T>;

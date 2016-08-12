@@ -75,6 +75,7 @@ void Engine::setup() {
 #endif
 
     // Create the engine systems
+    mContext->addSubsystem(new FileSystem(mContext));
     mContext->addSubsystem(new Input(mContext));
     mContext->addSubsystem(new Renderer(mContext));
     // mUI = new UI(mRenderer, mInput, mLuaState);
