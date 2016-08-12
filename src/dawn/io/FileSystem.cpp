@@ -5,19 +5,16 @@
 #include "Common.h"
 #include "io/FileSystem.h"
 
-#include <sys/stat.h>
+#define MAX_PATH 256
 
-/*
 #if DW_PLATFORM == DW_WIN32
 // TODO(David): Required windows headers
 #else
 #include <unistd.h>
+#include <sys/stat.h>
 #endif
- */
 
 namespace dw {
-
-const u32 MAX_PATH = 256;
 
 FileSystem::FileSystem(Context* context) : Object(context) {
 }
@@ -61,7 +58,7 @@ bool FileSystem::fileExists(const Path &path) {
         return false;
 #else
     struct stat st;
-    if (stat(fixedName.CString(), &st) || st.st_mode & S_IFDIR)
+    if (stat(path.c_str(), &st) || st.st_mode & S_IFDIR)
         return false;
 #endif
 

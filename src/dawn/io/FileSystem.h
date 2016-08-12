@@ -18,8 +18,6 @@ public:
 
     bool fileExists(const Path& path);
 
-    static const u32 MAX_PATH;
-
 };
 
 }
