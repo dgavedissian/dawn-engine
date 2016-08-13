@@ -44,7 +44,7 @@ public:
 
 private:
     // HashMaps require an enum type (e.g. an integer), so we use the StringHash's internal type
-    HashMap<uint32_t, SharedPtr<Object>> mSubsystems;
+    HashMap<StringHash, SharedPtr<Object>> mSubsystems;
 
     // File paths
     String mBasePath;

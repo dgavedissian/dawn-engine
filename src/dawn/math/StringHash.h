@@ -34,3 +34,14 @@ private:
     HashType mValue;
 };
 }
+
+// Specialisation of std::hash used for HashMap<K, V>
+namespace std {
+template <> struct hash<dw::StringHash> {
+    typedef dw::StringHash argument_type;
+    typedef std::size_t result_type;
+    result_type operator()(argument_type const& s) const {
+        return s.value();
+    }
+};
+}

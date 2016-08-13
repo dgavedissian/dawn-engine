@@ -14,15 +14,15 @@ Context::~Context() {
 }
 
 void Context::addSubsystem(Object* subsystem) {
-    mSubsystems[subsystem->getType().value()] = SharedPtr<Object>(subsystem);
+    mSubsystems[subsystem->getType()] = SharedPtr<Object>(subsystem);
 }
 
 Object* Context::getSubsystem(StringHash subsystemType) {
-    return mSubsystems[subsystemType.value()].get();
+    return mSubsystems[subsystemType].get();
 }
 
 void Context::removeSubsystem(StringHash subsystemType) {
-    mSubsystems.erase(subsystemType.value());
+    mSubsystems.erase(subsystemType);
 }
 
 void Context::clearSubsystems() {

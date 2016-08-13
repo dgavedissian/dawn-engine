@@ -21,7 +21,7 @@ public:
         StringHash nameHash(String(filename.c_str()));
 
         // If the resource already exists, cache hit
-        auto it = mResourceCache.find(nameHash.value());
+        auto it = mResourceCache.find(nameHash);
         if (it != mResourceCache.end()) {
             return static_cast<T*>((*it).second.get());
         }
@@ -38,6 +38,6 @@ private:
     SharedPtr<File> getFile(const Path& filename);
 
     Vector<Path> mResourcePaths;
-    HashMap<StringHash::HashType, SharedPtr<Resource>> mResourceCache;
+    HashMap<StringHash, SharedPtr<Resource>> mResourceCache;
 };
 }
