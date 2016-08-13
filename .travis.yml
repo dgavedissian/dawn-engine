@@ -13,8 +13,8 @@ addons:
     - sourceline: 'ppa:george-edison55/cmake-3.x'
     packages:
     - cmake
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install cmake; fi
+    - xorg-dev
+    - libgl1-dev
 before_script:
   - mkdir build
   - cd build
