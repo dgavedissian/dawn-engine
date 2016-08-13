@@ -7,10 +7,14 @@ os:
 compiler:
 - gcc
 - clang
+addons:
+  apt:
+    sources:
+    - sourceline: 'ppa:george-edison55/cmake-3.x'
+    packages:
+    - cmake
 before_install:
-  - sudo add-apt-repository ppa:george-edison55/cmake-3.x
-  - sudo apt-get update -q
-  - sudo apt-get install cmake
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install cmake; fi
 before_script:
   - mkdir build
   - cd build
