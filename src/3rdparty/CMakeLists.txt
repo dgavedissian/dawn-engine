@@ -161,6 +161,40 @@ target_include_directories(bgfx PRIVATE ${INCLUDE_DIRS})
 set_target_properties(bgfx PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} bgfx)
 
+# shaderc (part of bgfx)
+set(BGFX_SHADERC_SRC
+    bgfx/tools/shaderc/shaderc.cpp
+    bgfx/tools/shaderc/shaderc_glsl.cpp
+    bgfx/tools/shaderc/shaderc_hlsl.cpp)
+file(GLOB BGFX_SHADERC_GLSL_OPTIMIZER_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    bgfx/3rdparty/fcpp/cpp*.c
+    bgfx/3rdparty/glsl-optimizer/src/glsl/glcpp/*.c
+    bgfx/3rdparty/glsl-optimizer/src/glsl/ast*.cpp
+    bgfx/3rdparty/glsl-optimizer/src/glsl/builtin*.cpp
+    bgfx/3rdparty/glsl-optimizer/src/glsl/glsl*.cpp
+    bgfx/3rdparty/glsl-optimizer/src/glsl/hir*.cpp
+    bgfx/3rdparty/glsl-optimizer/src/glsl/ir*.cpp
+    bgfx/3rdparty/glsl-optimizer/src/glsl/link*.cpp
+    bgfx/3rdparty/glsl-optimizer/src/glsl/loop*.cpp
+    bgfx/3rdparty/glsl-optimizer/src/glsl/lower*.cpp
+    bgfx/3rdparty/glsl-optimizer/src/glsl/opt*.cpp
+    bgfx/3rdparty/glsl-optimizer/src/glsl/standalone_scaffolding.cpp
+    bgfx/3rdparty/glsl-optimizer/src/glsl/s_expression.cpp
+    bgfx/3rdparty/glsl-optimizer/src/glsl/*.c
+    bgfx/3rdparty/glsl-optimizer/src/mesa/main/*.c
+    bgfx/3rdparty/glsl-optimizer/src/mesa/program/*.c
+    bgfx/3rdparty/glsl-optimizer/src/util/*.c)
+add_executable(shaderc ${BGFX_SHADERC_SRC} ${BGFX_SHADERC_GLSL_OPTIMIZER_SRC})
+target_link_libraries(shaderc bgfx)
+target_include_directories(shaderc PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/fcpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/src/glsl
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/src/mesa
+    ${CMAKE_CURRENT_SOURCE_DIR}/bx/include)
+
 # glfw
 set(GLFW_BUILD_EXAMPLES 0)
 set(GLFW_BUILD_TESTS 0)
