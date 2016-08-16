@@ -31,6 +31,7 @@ set(H_FILES
     math/Vec4i.h
     physics/PhysicsWorld.h
     renderer/Renderer.h
+    renderer/Shader.h
     resource/Resource.h
     resource/ResourceCache.h
     scene/Position.h
@@ -66,6 +67,7 @@ set(CPP_FILES
     math/Vec4i.cpp
     physics/PhysicsWorld.cpp
     renderer/Renderer.cpp
+    renderer/Shader.cpp
     resource/Resource.cpp
     resource/ResourceCache.cpp
     scene/Position.cpp
