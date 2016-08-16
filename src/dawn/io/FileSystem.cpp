@@ -24,14 +24,12 @@ FileSystem::~FileSystem() {
 
 bool FileSystem::setWorkingDir(const Path& path) {
 #if DW_PLATFORM == DW_WIN32
-    if (SetCurrentDirectoryA(path.c_str()) == FALSE)
-    {
+    if (SetCurrentDirectoryA(path.c_str()) == FALSE) {
         LOGERR << "Failed to change directory to " << path;
         return false;
     }
 #else
-    if (chdir(path.c_str()) != 0)
-    {
+    if (chdir(path.c_str()) != 0) {
         LOGERR << "Failed to change directory to " << path;
         return false;
     }
@@ -51,7 +49,7 @@ Path FileSystem::getWorkingDir() const {
     return Path(path);
 }
 
-bool FileSystem::fileExists(const Path &path) {
+bool FileSystem::fileExists(const Path& path) {
 #if DW_PLATFORM == DW_WIN32
     DWORD attributes = GetFileAttributesA(path.c_str());
     if (attributes == INVALID_FILE_ATTRIBUTES || attributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -64,5 +62,4 @@ bool FileSystem::fileExists(const Path &path) {
 
     return true;
 }
-
 }

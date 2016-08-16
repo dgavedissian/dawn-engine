@@ -101,6 +101,9 @@ void Engine::setup() {
     SDL_StartTextInput();
      */
 
+    // Display startup info
+    LOG << "Current Working Directory: " << getSubsystem<FileSystem>()->getWorkingDir();
+
     // The engine is now initialised
     mInitialised = true;
 

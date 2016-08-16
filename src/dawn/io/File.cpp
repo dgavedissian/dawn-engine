@@ -66,6 +66,10 @@ u32 File::write(const void* src, u32 size) {
 void File::open(const Path& path, int mode) {
     String modeStr = fileModeMapper(mode);
     mHandle = fopen(path.c_str(), modeStr.c_str());
+    if (!mHandle) {
+        LOGERR << "Failed to open file: " << path;
+        return;
+    }
 
     // Determine file size
     fseek(mHandle, 0, SEEK_END);
