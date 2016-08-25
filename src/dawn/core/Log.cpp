@@ -34,7 +34,15 @@ Log::Stream::~Stream() {
     mLogger->write(mMessage, mLevel);
 }
 
-Log::Log(const String& filename) : mLogFile(filename) {
+Log::StreamEndpoint::StreamEndpoint(Log* log, LogLevel level) : mLogger(log), mLevel(level) {
+}
+
+Log::Log(Context* context, const String& filename)
+    : Object(context),
+      info(this, LOG_INFO),
+      warning(this, LOG_WARN),
+      error(this, LOG_ERROR),
+      mLogFile(filename) {
     mLogFile << "Dawn Engine " << DW_VERSION_STR << std::endl;
     mLogFile << "-------------------------------------" << std::endl;
 }

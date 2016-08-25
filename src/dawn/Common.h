@@ -107,6 +107,7 @@ class Camera {};  // TODO(David) stub until ECS is integrated
 // Common includes
 #include "core/Context.h"
 #include "core/Object.h"
+#include "core/Option.h"
 #include "core/Log.h"
 #include "math/Defs.h"
 #include "scene/Position.h"

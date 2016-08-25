@@ -41,7 +41,7 @@ Engine::Engine(const String& game, const String& version)
     mContext = new Context(basePath, prefPath);
 
     // Initialise logging
-    new Log(prefPath + mLogFile);
+    mContext->addSubsystem(new Log(mContext, prefPath + mLogFile));
     LOG << "Starting " << mGameName << " " << mGameVersion;
 #ifdef DW_DEBUG
     LOGWARN << "This is a debug build!";
@@ -63,7 +63,7 @@ void Engine::setup() {
     Config::load(mContext->getPrefPath() + mConfigFile);
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
-    getContext()->addSubsystem(new LuaState(mContext));
+    mContext->addSubsystem(new LuaState(mContext));
     // TODO(David): bind engine services to lua?
 
     // Build window title
@@ -122,9 +122,6 @@ void Engine::shutdown() {
     // Remove subsystems
     mContext->removeSubsystem<StateManager>();
     mContext->clearSubsystems();
-
-    // Close the log
-    Log::release();
 
     // The engine is no longer initialised
     mInitialised = false;

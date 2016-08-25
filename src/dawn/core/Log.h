@@ -25,7 +25,7 @@ public:
     virtual void logWrite(const String& message) override;
 };
 
-class DW_API Log : public Singleton<Log> {
+class DW_API Log : public Singleton<Log>, public Object {
 private:
     class DW_API Stream {
     public:
@@ -45,9 +45,31 @@ private:
         String mMessage;
     };
 
+    class DW_API StreamEndpoint {
+    public:
+        StreamEndpoint(Log* log, LogLevel level);
+
+        template <class T> inline Stream operator<<(T val) const {
+            return Stream(mLogger, mLevel, "") << val;
+        }
+
+    private:
+        Log* mLogger;
+        LogLevel mLevel;
+    };
+
 public:
-    Log(const String& filename);
+    DW_OBJECT(Log);
+
+    Log(Context* context, const String& filename);
     ~Log();
+
+    // NEW API
+    const StreamEndpoint info;
+    const StreamEndpoint warning;
+    const StreamEndpoint error;
+
+    // OLD API
 
     // Writes a new line to the output stream
     void write(const String& message, LogLevel level);

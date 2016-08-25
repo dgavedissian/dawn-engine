@@ -31,4 +31,8 @@ Object::~Object() {
 Context* Object::getContext() const {
     return mContext;
 }
+
+Log& Object::getLog() const {
+    return *getSubsystem<Log>();
+}
 }

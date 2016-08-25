@@ -9,6 +9,8 @@
 
 namespace dw {
 
+class Log;
+
 class DW_API TypeInfo {
 public:
     TypeInfo(const std::type_info& t);
@@ -51,8 +53,11 @@ public:
 
     Context* getContext() const;
 
+    // Convenient access to the logger
+    Log& getLog() const;
+
     // Convenient access to context methods
-    template <class T> T* getSubsystem() {
+    template <class T> T* getSubsystem() const {
         return mContext->getSubsystem<T>();
     }
 

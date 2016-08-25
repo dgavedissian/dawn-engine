@@ -7,6 +7,7 @@ set(H_FILES
     core/FixedMemoryPool.h
     core/Log.h
     core/Object.h
+    core/Option.h
     core/Singleton.h
     core/StateManager.h
     core/StringUtils.h
@@ -32,6 +33,7 @@ set(H_FILES
     physics/PhysicsWorld.h
     renderer/Renderer.h
     renderer/Shader.h
+    renderer/ShaderProgram.h
     resource/Resource.h
     resource/ResourceCache.h
     scene/Position.h
@@ -68,6 +70,7 @@ set(CPP_FILES
     physics/PhysicsWorld.cpp
     renderer/Renderer.cpp
     renderer/Shader.cpp
+    renderer/ShaderProgram.cpp
     resource/Resource.cpp
     resource/ResourceCache.cpp
     scene/Position.cpp
