@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "resource/Resource.h"
+
 namespace dw {
 
 class Shader : public Resource {
