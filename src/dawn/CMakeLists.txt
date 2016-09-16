@@ -31,9 +31,12 @@ set(H_FILES
     math/Vec3i.h
     math/Vec4i.h
     physics/PhysicsWorld.h
+    renderer/Material.h
+    renderer/Mesh.h
+    renderer/Node.h
     renderer/Renderer.h
     renderer/Shader.h
-    renderer/ShaderProgram.h
+    renderer/ShaderSource.h
     resource/Resource.h
     resource/ResourceCache.h
     scene/Position.h
@@ -68,9 +71,12 @@ set(CPP_FILES
     math/Vec3i.cpp
     math/Vec4i.cpp
     physics/PhysicsWorld.cpp
+    renderer/Material.cpp
+    renderer/Mesh.cpp
+    renderer/Node.cpp
     renderer/Renderer.cpp
     renderer/Shader.cpp
-    renderer/ShaderProgram.cpp
+    renderer/ShaderSource.cpp
     resource/Resource.cpp
     resource/ResourceCache.cpp
     scene/Position.cpp

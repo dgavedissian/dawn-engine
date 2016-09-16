@@ -3,39 +3,33 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "io/InputStream.h"
-#include "resource/Resource.h"
 #include "renderer/Shader.h"
 
 namespace dw {
 
-Shader::Shader(Context* context) : Resource(context) {
+Shader::Shader(Context *context, ShaderSource *vs, ShaderSource *fs)
+    : Object(context), mVertexShader(vs), mFragmentShader(fs) {
+    mHandle = bgfx::createProgram(vs->getHandle(), fs->getHandle());
+    // TODO(David): error checking
 }
 
 Shader::~Shader() {
+    bgfx::destroyProgram(mHandle);
 }
 
-bool Shader::beginLoad(InputStream& src) {
-    // TODO(David): Sanity checking here?
-    mSrcLen = (u32)src.getSize();
-    assert(mSrcLen != 0);
-    mSrcData = new byte[mSrcLen];
-    src.read(mSrcData, src.getSize());
-
-    // Does this require compilation?
-    /// TODO(David): Execute shaderc on source file
-
-    return true;
-}
-
-void Shader::endLoad() {
-    // Create bgfx shader and free memory
-    mHandle = bgfx::createShader(bgfx::makeRef(mSrcData, mSrcLen));
-    delete[] mSrcData;
-    mSrcData = nullptr;
-}
-
-bgfx::ShaderHandle Shader::getHandle() const {
-    return mHandle;
+Option<bgfx::UniformHandle> Shader::getUniformHandle(const String &name,
+                                                     bgfx::UniformType::Enum type, int count) {
+    auto it = mUniformHandleTable.find(name);
+    if (it != mUniformHandleTable.end()) {
+        if (type == (*it).second.second) {
+            return (*it).second.first;
+        } else {
+            getLog().error << "Unable to set uniform '" << name << "', mismatched type " << type
+                           << " != " << (*it).second.second;
+            return Option<bgfx::UniformHandle>();
+        }
+    } else {
+        return Option<bgfx::UniformHandle>();
+    }
 }
 }
