@@ -9,7 +9,7 @@
 
 namespace dw {
 
-ConfigNode ConvertFromYaml(const YAML::Node& node) {
+ConfigNode ConvertFromYaml(Context* context, const YAML::Node& node) {
     switch (node.Type()) {
         case YAML::NodeType::Scalar:
             return ConfigNode(node.as<String>());
@@ -62,15 +62,15 @@ void EmitYaml(YAML::Emitter& out, const ConfigNode& node) {
     }
 }
 
+
+
+
+
+
+
+
+
 std::istream& operator>>(std::istream& stream, ConfigNode& node) {
-    try {
-        node = ConvertFromYaml(YAML::Load(stream));
-    } catch (YAML::ParserException& e) {
-        std::stringstream ss;
-        ss << "YAML Parsing exception: " << e.what();
-        ERROR_WARN(ss.str());
-    }
-    return stream;
 }
 
 std::ostream& operator<<(std::ostream& stream, const ConfigNode& node) {
@@ -79,10 +79,10 @@ std::ostream& operator<<(std::ostream& stream, const ConfigNode& node) {
     return stream << out.c_str();
 }
 
-ConfigNode::ConfigNode() : mType(NT_NULL) {
+ConfigNode::ConfigNode(Context* context) : Object(context), mType(NT_NULL) {
 }
 
-ConfigNode::ConfigNode(const ConfigNode& rhs) : mType(rhs.mType) {
+ConfigNode::ConfigNode(Context* context, const ConfigNode& rhs) : Object(context), mType(rhs.mType) {
     mData.scalar = rhs.mData.scalar;
     mData.sequence = rhs.mData.sequence;
     mData.keymap = rhs.mData.keymap;
@@ -94,6 +94,27 @@ ConfigNode::~ConfigNode() {
 void ConfigNode::load(const String& s) {
     std::istringstream(s) >> *this;
 }
+
+  void ConfigNode::load(InputStream& src)          {
+      char* buffer = new char[src.getSize() + 1];
+      src.read(buffer, src.getSize());
+      buffer[src.getSize()] = '\0';
+      try {
+          node = ConvertFromYaml(YAML::Load(buffer));
+      } catch (YAML::ParserException& e) {
+          std::stringstream ss;
+          ss << "YAML Parsing exception: " << e.what();
+          ERROR_WARN(ss.str());
+      }
+      return stream;
+
+
+  }
+  void ConfigNode::save(OutputStream& dst)    {
+
+  }
+
+
 
 ConfigNodeType ConfigNode::getType() const {
     return mType;

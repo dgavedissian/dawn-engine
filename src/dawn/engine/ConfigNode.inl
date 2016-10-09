@@ -18,7 +18,7 @@ template <> struct Converter<bool> {
         return out;
     }
 
-    static bool decode(const ConfigNode& node, bool& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, bool& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -35,14 +35,14 @@ template <> struct Converter<int> {
         return out;
     }
 
-    static bool decode(const ConfigNode& node, int& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, int& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
         try {
             rhs = std::stoi(node.mData.scalar);
         } catch (std::exception& e) {
-            LOG << "Unable to convert value " << node.mData.scalar << " - Reason: " << e.what();
+            logger.info << "Unable to convert value " << node.mData.scalar << " - Reason: " << e.what();
             return false;
         }
 
@@ -58,14 +58,14 @@ template <> struct Converter<uint> {
         return out;
     }
 
-    static bool decode(const ConfigNode& node, uint& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, uint& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
         try {
             rhs = std::stoul(node.mData.scalar);
         } catch (std::exception& e) {
-            LOG << "Unable to convert value " << node.mData.scalar << " - Reason: " << e.what();
+            logger.info << "Unable to convert value " << node.mData.scalar << " - Reason: " << e.what();
             return false;
         }
 
@@ -81,14 +81,14 @@ template <> struct Converter<uint64_t> {
         return out;
     }
 
-    static bool decode(const ConfigNode& node, uint64_t& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, uint64_t& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
         try {
             rhs = std::stoull(node.mData.scalar);
         } catch (std::exception& e) {
-            LOG << "Unable to convert value " << node.mData.scalar << " - Reason: " << e.what();
+            logger.info << "Unable to convert value " << node.mData.scalar << " - Reason: " << e.what();
             return false;
         }
 
@@ -104,7 +104,7 @@ template <> struct Converter<float> {
         return out;
     }
 
-    static bool decode(const ConfigNode& node, float& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, float& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -121,7 +121,7 @@ template <> struct Converter<double> {
         return out;
     }
 
-    static bool decode(const ConfigNode& node, double& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, double& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -138,7 +138,7 @@ template <> struct Converter<String> {
         return out;
     }
 
-    static bool decode(const ConfigNode& node, String& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, String& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -155,7 +155,7 @@ template <> struct Converter<Vec2> {
         return node;
     }
 
-    static bool decode(const ConfigNode& node, Vec2& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, Vec2& rhs) {
         if (!node.isSequence() || node.size() != 2)
             return false;
 
@@ -173,7 +173,7 @@ template <> struct Converter<Vec2i> {
         return node;
     }
 
-    static bool decode(const ConfigNode& node, Vec2i& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, Vec2i& rhs) {
         if (!node.isSequence() || node.size() != 2)
             return false;
 
@@ -192,7 +192,7 @@ template <> struct Converter<Vec3> {
         return node;
     }
 
-    static bool decode(const ConfigNode& node, Vec3& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, Vec3& rhs) {
         if (!node.isSequence() || node.size() != 3)
             return false;
 
@@ -212,7 +212,7 @@ template <> struct Converter<Vec3i> {
         return node;
     }
 
-    static bool decode(const ConfigNode& node, Vec3i& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, Vec3i& rhs) {
         if (!node.isSequence() || node.size() != 3)
             return false;
 
@@ -233,7 +233,7 @@ template <> struct Converter<Vec4> {
         return node;
     }
 
-    static bool decode(const ConfigNode& node, Vec4& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, Vec4& rhs) {
         if (!node.isSequence() || node.size() != 4)
             return false;
 
@@ -255,7 +255,7 @@ template <> struct Converter<Vec4i> {
         return node;
     }
 
-    static bool decode(const ConfigNode& node, Vec4i& rhs) {
+    static bool decode(Log& logger, const ConfigNode& node, Vec4i& rhs) {
         if (!node.isSequence() || node.size() != 4)
             return false;
 

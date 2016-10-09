@@ -8,19 +8,19 @@
 namespace dw {
 namespace str {
 
-CommandLineArgs parseCommandArgs(int argc, char** argv) {
+CommandLineArgs parseCommandArgs(Log& logger, int argc, char** argv) {
     CommandLineArgs args;
 
     // Parse arguments
-    auto dispatchArgument = [&args](const String& name, const String& param) {
+    auto dispatchArgument = [&args, &logger](const String& name, const String& param) {
         if (name.length() > 0) {
-            LOG << "\tName: " << name << " - Param: " << param;
+            logger.info << "\tName: " << name << " - Param: " << param;
             args.insert(make_pair(name, param));
         }
     };
 
     // Walk through argc/argv
-    LOG << "Program Arguments:";
+    logger.info << "Program Arguments:";
     String name, param;
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
@@ -29,7 +29,7 @@ CommandLineArgs parseCommandArgs(int argc, char** argv) {
             param.clear();
         } else {
             if (!param.empty())
-                LOG << "Extra argument specified, ignoring";
+                logger.info << "Extra argument specified, ignoring";
             else
                 param = String(argv[i]);
         }

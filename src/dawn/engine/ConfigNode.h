@@ -4,6 +4,9 @@
  */
 #pragma once
 
+#include "io/InputStream.h"
+#include "io/OutputStream.h"
+
 namespace dw {
 
 enum ConfigNodeType { NT_NULL, NT_SCALAR, NT_SEQUENCE, NT_MAP };
@@ -18,16 +21,16 @@ struct ConfigNodeData {
 
 template <class T> struct Converter {
     static ConfigNode encode(const T& value);
-    static bool decode(const ConfigNode& node, T& value);
+    static bool decode(Log& logger, const ConfigNode& node, T& value);
 };
 
-class DW_API ConfigNode {
+class DW_API ConfigNode : public Object {
 public:
     template <class T> friend struct Converter;
 
-    ConfigNode();
-    ConfigNode(const ConfigNode& rhs);
-    template <class T> ConfigNode(const T& s) : ConfigNode(Converter<T>::encode(s)) {
+    ConfigNode(Context* context);
+    ConfigNode(Context* context, const ConfigNode& rhs);
+    template <class T> ConfigNode(Context* context, const T& s) : ConfigNode(context, Converter<T>::encode(s)) {
     }
     ~ConfigNode();
 
@@ -35,19 +38,22 @@ public:
     /// @param s String to parse
     void load(const String& s);
 
+    void load(InputStream& src);
+    void save(OutputStream& dst);
+
     // Stream operators
     friend DW_API std::istream& operator>>(std::istream& stream, ConfigNode& node);
     friend DW_API std::ostream& operator<<(std::ostream& stream, const ConfigNode& node);
 
     template <class T> T as() const {
         T out;
-        Converter<T>::decode(*this, out);
+        Converter<T>::decode(getLog(), *this, out);
         return out;
     }
 
     template <class T> T as(const T& defaultValue) const {
         T out;
-        if (Converter<T>::decode(*this, out))
+        if (Converter<T>::decode(getLog(), *this, out))
             return out;
         else
             return defaultValue;

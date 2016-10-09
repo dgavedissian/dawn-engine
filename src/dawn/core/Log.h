@@ -102,6 +102,6 @@ template <> inline Log::Stream& Log::Stream::operator<<<String>(String val) {
 }
 
 // Macros
-#define LOG Log::inst().getStream(LOG_INFO)
+#define LOG getLog().info
 #define LOGWARN Log::inst().getStream(LOG_WARN)
 #define LOGERR Log::inst().getStream(LOG_ERROR)
