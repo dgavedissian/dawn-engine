@@ -5,6 +5,10 @@
 #include "Common.h"
 #include "core/StringUtils.h"
 
+#if DW_PLATFORM == DW_WIN32
+#include <Windows.h>
+#endif
+
 namespace dw {
 
 LogListener::LogListener() {
@@ -66,7 +70,7 @@ void Log::write(const String& message, LogLevel level) {
     str::split(message, '\n', lines);
 
     // TODO: threading - add lock here
-    for (uint i = 0; i < lines.size(); ++i) {
+    for (uint l = 0; l < lines.size(); ++l) {
         String levelStr = "";
         switch (level) {
             case LOG_WARN:
@@ -81,7 +85,7 @@ void Log::write(const String& message, LogLevel level) {
                 break;
         }
 
-        String line = timeStr + " " + levelStr + " " + lines[i];
+        String line = timeStr + " " + levelStr + " " + lines[l];
 
         // Convert tab characters into spaces
         const int tabSize = 4;

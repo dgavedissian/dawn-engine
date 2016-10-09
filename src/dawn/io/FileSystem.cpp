@@ -8,7 +8,7 @@
 #define MAX_PATH 256
 
 #if DW_PLATFORM == DW_WIN32
-// TODO(David): Required windows headers
+#include <Windows.h>
 #else
 #include <unistd.h>
 #include <sys/stat.h>

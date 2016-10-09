@@ -12,31 +12,31 @@ namespace dw {
 ConfigNode ConvertFromYaml(Context* context, const YAML::Node& node) {
     switch (node.Type()) {
         case YAML::NodeType::Scalar:
-            return ConfigNode(node.as<String>());
+            return ConfigNode{context, node.as<String>()};
 
         case YAML::NodeType::Sequence: {
-            ConfigNode seq;
+            ConfigNode seq{context};
             for (auto i = node.begin(); i != node.end(); i++) {
                 const YAML::Node& n = *i;
-                seq.push(ConvertFromYaml(n));
+                seq.push(ConvertFromYaml(context, n));
             }
             return seq;
         }
 
         case YAML::NodeType::Map: {
-            ConfigNode m;
+            ConfigNode m{context};
             for (auto i = node.begin(); i != node.end(); i++)
-                m.insert(make_pair(i->first.as<String>(), ConvertFromYaml(i->second)));
+                m.insert(make_pair(i->first.as<String>(), ConvertFromYaml(context, i->second)));
             return m;
         }
 
         default:
-            return ConfigNode();
+            return ConfigNode{context};
     }
 }
 
 void EmitYaml(YAML::Emitter& out, const ConfigNode& node) {
-    switch (node.getType()) {
+    switch (node.getNodeType()) {
         case NT_SCALAR:
             out << node.as<String>();
             break;
@@ -58,25 +58,8 @@ void EmitYaml(YAML::Emitter& out, const ConfigNode& node) {
             break;
 
         default:
-            ERROR_WARN("Can't emit a YAML node of type " + std::to_string(node.getType()));
+            ERROR_WARN("Can't emit a YAML node of type " + std::to_string(node.getNodeType()));
     }
-}
-
-
-
-
-
-
-
-
-
-std::istream& operator>>(std::istream& stream, ConfigNode& node) {
-}
-
-std::ostream& operator<<(std::ostream& stream, const ConfigNode& node) {
-    YAML::Emitter out;
-    EmitYaml(out, node);
-    return stream << out.c_str();
 }
 
 ConfigNode::ConfigNode(Context* context) : Object(context), mType(NT_NULL) {
@@ -91,32 +74,25 @@ ConfigNode::ConfigNode(Context* context, const ConfigNode& rhs) : Object(context
 ConfigNode::~ConfigNode() {
 }
 
-void ConfigNode::load(const String& s) {
-    std::istringstream(s) >> *this;
+void ConfigNode::load(InputStream& src) {
+    String buffer = stream::read<String>(src);
+    try {
+        *this = ConvertFromYaml(mContext, YAML::Load(buffer.c_str()));
+    }
+    catch (YAML::ParserException& e) {
+        std::stringstream ss;
+        ss << "YAML Parsing exception: " << e.what();
+        ERROR_WARN(ss.str());
+    }
 }
 
-  void ConfigNode::load(InputStream& src)          {
-      char* buffer = new char[src.getSize() + 1];
-      src.read(buffer, src.getSize());
-      buffer[src.getSize()] = '\0';
-      try {
-          node = ConvertFromYaml(YAML::Load(buffer));
-      } catch (YAML::ParserException& e) {
-          std::stringstream ss;
-          ss << "YAML Parsing exception: " << e.what();
-          ERROR_WARN(ss.str());
-      }
-      return stream;
+void ConfigNode::save(OutputStream& dst) {
+    YAML::Emitter out;
+    EmitYaml(out, *this);
+    stream::write(dst, String(out.c_str()));
+}
 
-
-  }
-  void ConfigNode::save(OutputStream& dst)    {
-
-  }
-
-
-
-ConfigNodeType ConfigNode::getType() const {
+ConfigNodeType ConfigNode::getNodeType() const {
     return mType;
 }
 
@@ -191,7 +167,14 @@ ConfigNode& ConfigNode::operator[](const String& key) {
     if (mType == NT_NULL)
         mType = NT_MAP;
     assert(mType == NT_MAP);
-    return mData.keymap[key];
+
+    auto it = mData.keymap.find(key);
+    if (it == mData.keymap.end()) {
+        mData.keymap.insert(makePair(key, ConfigNode(mContext)));
+        return mData.keymap.at(key);
+    } else {
+        return it->second;
+    }
 }
 
 const ConfigNode& ConfigNode::operator[](const String& key) const {

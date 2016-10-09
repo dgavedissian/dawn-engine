@@ -11,16 +11,18 @@ using _SystemClock = std::chrono::system_clock;
 using _SteadyClock = std::chrono::steady_clock;
 using TimePoint = _SteadyClock::time_point;
 using SystemTimePoint = _SystemClock::time_point;
-template <class T> using Duration = std::chrono::duration<double, std::chrono::seconds>;
+template <class T> using Duration = std::chrono::duration<double, T>;
 
-using std::chrono::nanoseconds;
-using std::chrono::microseconds;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
-using std::chrono::minutes;
-using std::chrono::hours;
+using nano = std::nano;
+using micro = std::micro;
+using milli = std::milli;
+using seconds = std::ratio<1>;
+using minutes = std::ratio<60>;
+using hours = std::ratio<3600>;
 
 // Intervals
+
+// TODO(David): Use a RAII class here?!
 
 // Return the current steady time to be used for interval calculations
 DW_API TimePoint beginTiming();

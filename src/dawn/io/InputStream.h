@@ -38,8 +38,34 @@ protected:
 namespace stream {
 
 template <class T> T read(InputStream& stream) {
-    // static_assert(false, "stream::read is not implemented for arbitrary types");
+    static_assert(sizeof(T) != sizeof(T), "stream::read is not implemented for arbitrary types");
     return T();
+}
+
+// Implement read for primitive types
+#define IMPL_READ(T)                          \
+    template <> inline T read<T>(InputStream& stream) { \
+        T value;                              \
+        stream.read(&value, sizeof(T));       \
+        return value;                         \
+    }
+
+IMPL_READ(i8)
+IMPL_READ(u8)
+IMPL_READ(i16)
+IMPL_READ(u16)
+IMPL_READ(i32)
+IMPL_READ(u32)
+IMPL_READ(i64)
+IMPL_READ(u64)
+IMPL_READ(char)
+IMPL_READ(bool)
+IMPL_READ(float)
+IMPL_READ(double)
+
+/// Read a null terminated string
+template <> inline String read<String>(InputStream& stream) {
+    return stream.readLine('\0');
 }
 }
 }

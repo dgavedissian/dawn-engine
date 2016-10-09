@@ -24,7 +24,7 @@ public:
     virtual void exit(){};
 
     // Updates this state
-    virtual void update(float dt){};
+    virtual void update(float){};
 
     // Called before rendering
     // Use this to blit sprites

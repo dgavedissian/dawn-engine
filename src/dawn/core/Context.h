@@ -9,6 +9,7 @@
 namespace dw {
 
 class Object;
+class ConfigNode;
 
 class DW_API Context {
 public:
@@ -30,6 +31,18 @@ public:
         removeSubsystem(T::getTypeStatic());
     }
 
+    /// Access the config node
+    ConfigNode& getConfig();
+
+    /// Access the config node
+    const ConfigNode& getConfig() const;
+
+    /// Load the configuration
+    void loadConfig(const String& configFile);
+
+    /// Save the configuration
+    void saveConfig(const String& configFile);
+
     /// Get the base path of the application
     /// @returns The base path
     const String& getBasePath() const {
@@ -43,8 +56,10 @@ public:
     }
 
 private:
-    // HashMaps require an enum type (e.g. an integer), so we use the StringHash's internal type
-    HashMap<StringHash, SharedPtr<Object>> mSubsystems;
+    HashMap<StringHash, UniquePtr<Object>> mSubsystems;
+    
+    // Engine configuration
+    UniquePtr<ConfigNode> mConfig;
 
     // File paths
     String mBasePath;

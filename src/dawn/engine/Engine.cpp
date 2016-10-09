@@ -60,7 +60,7 @@ void Engine::setup() {
     mContext->addSubsystem(new EventSystem(mContext));
 
     // Load configuration
-    Config::load(mContext->getPrefPath() + mConfigFile);
+    mContext->loadConfig(mConfigFile);
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
     mContext->addSubsystem(new LuaState(mContext));
@@ -117,7 +117,7 @@ void Engine::shutdown() {
 
     // Save config
     if (mSaveConfigOnExit)
-        Config::save();
+        mContext->saveConfig(mConfigFile);
 
     // Remove subsystems
     mContext->removeSubsystem<StateManager>();

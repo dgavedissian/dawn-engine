@@ -10,15 +10,19 @@
 
 namespace dw {
 
+template <class T>
+ConfigNode::ConfigNode(Context* context, const T& s) : ConfigNode(context, Converter<T>::encode(context, s)) {
+}
+
 template <> struct Converter<bool> {
-    static ConfigNode encode(const bool& value) {
-        ConfigNode out;
+    static ConfigNode encode(Context* context, const bool& value) {
+        ConfigNode out{context};
         out.mType = NT_SCALAR;
         out.mData.scalar = value ? "true" : "false";
         return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, bool& rhs) {
+    static bool decode(Log&, const ConfigNode& node, bool& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -28,8 +32,8 @@ template <> struct Converter<bool> {
 };
 
 template <> struct Converter<int> {
-    static ConfigNode encode(const int& value) {
-        ConfigNode out;
+    static ConfigNode encode(Context* context, const int& value) {
+        ConfigNode out{context};
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
         return out;
@@ -51,8 +55,8 @@ template <> struct Converter<int> {
 };
 
 template <> struct Converter<uint> {
-    static ConfigNode encode(const uint& value) {
-        ConfigNode out;
+    static ConfigNode encode(Context* context, const uint& value) {
+        ConfigNode out{context};
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
         return out;
@@ -74,8 +78,8 @@ template <> struct Converter<uint> {
 };
 
 template <> struct Converter<uint64_t> {
-    static ConfigNode encode(const uint64_t& value) {
-        ConfigNode out;
+    static ConfigNode encode(Context* context, const uint64_t& value) {
+        ConfigNode out{context};
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
         return out;
@@ -97,14 +101,14 @@ template <> struct Converter<uint64_t> {
 };
 
 template <> struct Converter<float> {
-    static ConfigNode encode(const float& value) {
-        ConfigNode out;
+    static ConfigNode encode(Context* context, const float& value) {
+        ConfigNode out{context};
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
         return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, float& rhs) {
+    static bool decode(Log&, const ConfigNode& node, float& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -114,14 +118,14 @@ template <> struct Converter<float> {
 };
 
 template <> struct Converter<double> {
-    static ConfigNode encode(const double& value) {
-        ConfigNode out;
+    static ConfigNode encode(Context* context, const double& value) {
+        ConfigNode out{context};
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
         return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, double& rhs) {
+    static bool decode(Log&, const ConfigNode& node, double& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -131,14 +135,14 @@ template <> struct Converter<double> {
 };
 
 template <> struct Converter<String> {
-    static ConfigNode encode(const String& value) {
-        ConfigNode out;
+    static ConfigNode encode(Context* context, const String& value) {
+        ConfigNode out{context};
         out.mType = NT_SCALAR;
         out.mData.scalar = value;
         return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, String& rhs) {
+    static bool decode(Log&, const ConfigNode& node, String& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -148,14 +152,14 @@ template <> struct Converter<String> {
 };
 
 template <> struct Converter<Vec2> {
-    static ConfigNode encode(const Vec2& rhs) {
-        ConfigNode node;
-        node.push(rhs.x);
-        node.push(rhs.y);
-        return node;
+    static ConfigNode encode(Context* context, const Vec2& rhs) {
+        ConfigNode out{context};
+        out.push(ConfigNode(context, rhs.x));
+        out.push(ConfigNode(context, rhs.y));
+        return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, Vec2& rhs) {
+    static bool decode(Log&, const ConfigNode& node, Vec2& rhs) {
         if (!node.isSequence() || node.size() != 2)
             return false;
 
@@ -166,14 +170,14 @@ template <> struct Converter<Vec2> {
 };
 
 template <> struct Converter<Vec2i> {
-    static ConfigNode encode(const Vec2i& rhs) {
-        ConfigNode node;
-        node.push(rhs.x);
-        node.push(rhs.y);
-        return node;
+    static ConfigNode encode(Context* context, const Vec2i& rhs) {
+        ConfigNode out{context};
+        out.push(ConfigNode(context, rhs.x));
+        out.push(ConfigNode(context, rhs.y));
+        return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, Vec2i& rhs) {
+    static bool decode(Log&, const ConfigNode& node, Vec2i& rhs) {
         if (!node.isSequence() || node.size() != 2)
             return false;
 
@@ -184,15 +188,15 @@ template <> struct Converter<Vec2i> {
 };
 
 template <> struct Converter<Vec3> {
-    static ConfigNode encode(const Vec3& rhs) {
-        ConfigNode node;
-        node.push(rhs.x);
-        node.push(rhs.y);
-        node.push(rhs.z);
-        return node;
+    static ConfigNode encode(Context* context, const Vec3& rhs) {
+        ConfigNode out{context};
+        out.push(ConfigNode(context, rhs.x));
+        out.push(ConfigNode(context, rhs.y));
+        out.push(ConfigNode(context, rhs.z));
+        return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, Vec3& rhs) {
+    static bool decode(Log&, const ConfigNode& node, Vec3& rhs) {
         if (!node.isSequence() || node.size() != 3)
             return false;
 
@@ -204,15 +208,15 @@ template <> struct Converter<Vec3> {
 };
 
 template <> struct Converter<Vec3i> {
-    static ConfigNode encode(const Vec3i& rhs) {
-        ConfigNode node;
-        node.push(rhs.x);
-        node.push(rhs.y);
-        node.push(rhs.z);
-        return node;
+    static ConfigNode encode(Context* context, const Vec3i& rhs) {
+        ConfigNode out{context};
+        out.push(ConfigNode(context, rhs.x));
+        out.push(ConfigNode(context, rhs.y));
+        out.push(ConfigNode(context, rhs.z));
+        return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, Vec3i& rhs) {
+    static bool decode(Log&, const ConfigNode& node, Vec3i& rhs) {
         if (!node.isSequence() || node.size() != 3)
             return false;
 
@@ -224,16 +228,16 @@ template <> struct Converter<Vec3i> {
 };
 
 template <> struct Converter<Vec4> {
-    static ConfigNode encode(const Vec4& rhs) {
-        ConfigNode node;
-        node.push(rhs.x);
-        node.push(rhs.y);
-        node.push(rhs.z);
-        node.push(rhs.w);
-        return node;
+    static ConfigNode encode(Context* context, const Vec4& rhs) {
+        ConfigNode out{context};
+        out.push(ConfigNode(context, rhs.x));
+        out.push(ConfigNode(context, rhs.y));
+        out.push(ConfigNode(context, rhs.z));
+        out.push(ConfigNode(context, rhs.w));
+        return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, Vec4& rhs) {
+    static bool decode(Log&, const ConfigNode& node, Vec4& rhs) {
         if (!node.isSequence() || node.size() != 4)
             return false;
 
@@ -246,16 +250,16 @@ template <> struct Converter<Vec4> {
 };
 
 template <> struct Converter<Vec4i> {
-    static ConfigNode encode(const Vec4i& rhs) {
-        ConfigNode node;
-        node.push(rhs.x);
-        node.push(rhs.y);
-        node.push(rhs.z);
-        node.push(rhs.w);
-        return node;
+    static ConfigNode encode(Context* context, const Vec4i& rhs) {
+        ConfigNode out{context};
+        out.push(ConfigNode(context, rhs.x));
+        out.push(ConfigNode(context, rhs.y));
+        out.push(ConfigNode(context, rhs.z));
+        out.push(ConfigNode(context, rhs.w));
+        return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, Vec4i& rhs) {
+    static bool decode(Log&, const ConfigNode& node, Vec4i& rhs) {
         if (!node.isSequence() || node.size() != 4)
             return false;
 

@@ -39,6 +39,7 @@
 #include <limits>
 #include <typeinfo>
 #include <chrono>
+#include <mutex>
 
 //
 // External Libraries
@@ -82,4 +83,9 @@
 // Re-enable warnings
 #if defined(DW_MSVC)
 #pragma warning(pop)
+#endif
+
+// Disable "warning C4251: '...' needs to have dll-interface to be used by clients of class '...'"
+#if defined(DW_MSVC)
+#pragma warning(disable: 4251)
 #endif

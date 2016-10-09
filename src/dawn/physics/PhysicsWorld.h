@@ -20,9 +20,11 @@ struct DW_API PhysicsRaycastResult {
 };
 
 // Manages the Bullet physics library and provides some helper functions.
-class DW_API PhysicsWorld {
+class DW_API PhysicsWorld : public Object {
 public:
-    PhysicsWorld();
+    DW_OBJECT(PhysicsWorld);
+
+    PhysicsWorld(Context* context);
     ~PhysicsWorld();
 
     // Takes a step of dt seconds in the simulation

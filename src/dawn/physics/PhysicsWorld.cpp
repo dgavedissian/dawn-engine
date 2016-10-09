@@ -8,7 +8,7 @@
 
 namespace dw {
 
-PhysicsWorld::PhysicsWorld() {
+PhysicsWorld::PhysicsWorld(Context* context) : Object(context) {
     LOG << "Bullet Version " << (btGetVersion() / 100) << "." << (btGetVersion() % 100);
 
     mBroadphase.reset(new btDbvtBroadphase());

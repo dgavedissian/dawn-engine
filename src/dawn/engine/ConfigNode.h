@@ -20,23 +20,20 @@ struct ConfigNodeData {
 };
 
 template <class T> struct Converter {
-    static ConfigNode encode(const T& value);
+    static ConfigNode encode(Context* context, const T& value);
     static bool decode(Log& logger, const ConfigNode& node, T& value);
 };
 
 class DW_API ConfigNode : public Object {
 public:
+    DW_OBJECT(ConfigNode);
+
     template <class T> friend struct Converter;
 
     ConfigNode(Context* context);
     ConfigNode(Context* context, const ConfigNode& rhs);
-    template <class T> ConfigNode(Context* context, const T& s) : ConfigNode(context, Converter<T>::encode(s)) {
-    }
+    template <class T> ConfigNode(Context* context, const T& s);
     ~ConfigNode();
-
-    /// Load a configuration from a string
-    /// @param s String to parse
-    void load(const String& s);
 
     void load(InputStream& src);
     void save(OutputStream& dst);
@@ -59,7 +56,7 @@ public:
             return defaultValue;
     }
 
-    ConfigNodeType getType() const;
+    ConfigNodeType getNodeType() const;
     bool isScalar() const;
     bool isSequence() const;
     bool isMap() const;
@@ -91,4 +88,5 @@ private:
     ConfigNodeData mData;
 };
 }
-#include "ConfigNode.inl"
+
+#include "ConfigNode.i.h"

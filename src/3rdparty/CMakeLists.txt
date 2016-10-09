@@ -17,6 +17,10 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/ontology/include
     ${CMAKE_CURRENT_SOURCE_DIR}/sol
     ${CMAKE_CURRENT_SOURCE_DIR}/YamlCpp/include)
+if(MSVC)
+    set(INCLUDE_DIRS ${INCLUDE_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/bx/include/compat/msvc)
+endif()
 
 
 ##############################################################
