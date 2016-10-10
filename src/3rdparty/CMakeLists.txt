@@ -192,6 +192,7 @@ file(GLOB BGFX_SHADERC_GLSL_OPTIMIZER_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     bgfx/3rdparty/glsl-optimizer/src/mesa/program/*.c
     bgfx/3rdparty/glsl-optimizer/src/util/*.c)
 add_executable(shaderc ${BGFX_SHADERC_SRC} ${BGFX_SHADERC_GLSL_OPTIMIZER_SRC})
+enable_cpp11(shaderc)
 target_link_libraries(shaderc bgfx)
 target_include_directories(shaderc PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/include
