@@ -1,6 +1,7 @@
 # Useful CMake utility functions
 # Last Updated: 2/8/2016
 # Copyright (c) 2015-16 David Avedissian (git@davedissian.com)
+cmake_minimum_required(VERSION 3.1)
 
 # Create a vcproj userfile which correctly runs the binary in a specified working directory when debugging
 function(create_vcproj_userfile TARGETNAME)
@@ -59,7 +60,8 @@ endmacro()
 # Enable C++11
 macro(enable_cpp11 TARGET)
     if(UNIX)
-        target_compile_options(${TARGET} PUBLIC -std=c++11)
+        set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 11)
+        set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD_REQUIRED TRUE)
         util_enable_libcpp(${TARGET})
     endif()
 endmacro()
@@ -67,13 +69,8 @@ endmacro()
 # Enable C++14
 macro(enable_cpp14 TARGET)
     if(UNIX)
-        if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
-            target_compile_options(${TARGET} PUBLIC -std=c++1y)
-        elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.5)
-            target_compile_options(${TARGET} PUBLIC -std=c++1y)
-        else()
-            target_compile_options(${TARGET} PUBLIC -std=c++14)
-        endif()
+        set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 14)
+        set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD_REQUIRED TRUE)
         util_enable_libcpp(${TARGET})
     endif()
 endmacro()
