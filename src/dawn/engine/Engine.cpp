@@ -56,11 +56,17 @@ Engine::~Engine() {
 void Engine::setup() {
     assert(!mInitialised);
 
-    // Create EventSystem
+    // Low-level subsystems
     mContext->addSubsystem(new EventSystem(mContext));
+    mContext->addSubsystem(new FileSystem(mContext));
 
     // Load configuration
-    mContext->loadConfig(mConfigFile);
+    if (mContext->getSubsystem<FileSystem>()->fileExists(mConfigFile)) {
+        getLog().info << "Loading configuration from " << mConfigFile;
+        mContext->loadConfig(mConfigFile);
+    } else {
+        getLog().info << "Configuration does not exist - will be created";
+    }
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
     mContext->addSubsystem(new LuaState(mContext));
@@ -75,7 +81,6 @@ void Engine::setup() {
 #endif
 
     // Create the engine systems
-    mContext->addSubsystem(new FileSystem(mContext));
     mContext->addSubsystem(new Input(mContext));
     mContext->addSubsystem(new Renderer(mContext));
     // mUI = new UI(mRenderer, mInput, mLuaState);

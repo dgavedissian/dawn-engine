@@ -204,9 +204,9 @@ target_include_directories(shaderc PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/bx/include)
 
 # glfw
-set(GLFW_BUILD_EXAMPLES 0)
-set(GLFW_BUILD_TESTS 0)
-set(GLFW_BUILD_DOCS 0)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 add_subdirectory(glfw)
 target_include_directories(glfw PRIVATE ${INCLUDE_DIRS})
 set_target_properties(glfw PROPERTIES FOLDER "3rdparty")

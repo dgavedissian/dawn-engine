@@ -49,7 +49,7 @@
 #include <bgfx/bgfx.h>
 
 // glfw
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
 // Bullet
 #include <btBulletDynamicsCommon.h>
