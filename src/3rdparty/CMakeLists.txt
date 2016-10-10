@@ -164,6 +164,9 @@ endif()
 target_include_directories(bgfx PRIVATE ${INCLUDE_DIRS})
 set_target_properties(bgfx PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} bgfx)
+if(WIN32)
+    set(LIBS ${LIBS} psapi.lib)
+endif()
 
 # shaderc (part of bgfx)
 set(BGFX_SHADERC_SRC
