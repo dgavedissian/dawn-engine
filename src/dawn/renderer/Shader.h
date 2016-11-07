@@ -15,7 +15,7 @@ public:
     Shader(Context* context, ShaderSource* vs, ShaderSource* ps);
     ~Shader();
 
-    template <class T> void setUniform(const String& name, const T& value) {
+    template <typename T> void setUniform(const String& name, const T& value) {
     }
 
 private:

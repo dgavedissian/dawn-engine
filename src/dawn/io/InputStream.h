@@ -27,6 +27,9 @@ public:
     /// @param delim Delimeter character
     String readLine(char delim = '\n');
 
+    /// Returns the current position in the input stream
+    u64 getPosition() const;
+
     /// Returns the size of the input stream
     u64 getSize() const;
 

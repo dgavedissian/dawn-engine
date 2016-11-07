@@ -4,10 +4,10 @@
  */
 #pragma once
 
-namespace dw {
+#include "io/InputStream.h"
+#include "io/OutputStream.h"
 
-class InputStream;
-class OutputStream;
+namespace dw {
 
 class Resource : public Object {
 public:

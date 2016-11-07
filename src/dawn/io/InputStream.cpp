@@ -31,6 +31,10 @@ bool InputStream::eof() {
     return mPosition >= mSize;
 }
 
+u64 InputStream::getPosition() const {
+    return mPosition;
+}
+
 u64 InputStream::getSize() const {
     return mSize;
 }

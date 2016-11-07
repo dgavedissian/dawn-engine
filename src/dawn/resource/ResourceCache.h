@@ -17,7 +17,7 @@ public:
 
     void addResourcePath(const Path& path);
 
-    template <class T> T* getResource(const Path& filename) {
+    template <typename T> T* getResource(const Path& filename) {
         StringHash nameHash(String(filename.c_str()));
 
         // If the resource already exists, cache hit

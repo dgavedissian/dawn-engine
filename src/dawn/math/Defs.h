@@ -123,7 +123,7 @@ inline float smoothStep(float lhs, float rhs, float t) {
 
 /// Floating-point modulo
 /// Note: The result (the remainder) has same sign as the divisor. Similar to matlab's mod(),
-///	      rather than cmath's to fmod(). Eg: mod(-3,4) = 1, fmod(-3,4) = -3
+///	      rather than cmath's fmod(). Eg: mod(-3,4) = 1, fmod(-3,4) = -3
 inline float mod(float x, float y) {
     if (floatEq(y, 0.0f))
         return x;
