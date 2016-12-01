@@ -5,6 +5,9 @@
 #pragma once
 
 #if DW_PLATFORM == DW_WIN32
+#define WIN32_LEAN_AND_MIN
+#define NOMINMAX
+#include <Windows.h>
 #define DW_IMPLEMENT_MAIN(AppClass)                         \
     int WINAPI WinMain(HINSTANCE, HINSTANCE, LPCSTR, int) { \
         return dw::runApp(new AppClass, __argc, __argv);    \

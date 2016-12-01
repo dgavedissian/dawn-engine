@@ -36,6 +36,7 @@ set(H_FILES
     renderer/Renderer.h
     renderer/Shader.h
     renderer/ShaderSource.h
+    renderer/Texture.h
     resource/Resource.h
     resource/ResourceCache.h
     scene/Position.h
@@ -75,6 +76,7 @@ set(CPP_FILES
     renderer/Renderer.cpp
     renderer/Shader.cpp
     renderer/ShaderSource.cpp
+    renderer/Texture.cpp
     resource/Resource.cpp
     resource/ResourceCache.cpp
     scene/Position.cpp

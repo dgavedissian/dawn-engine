@@ -18,7 +18,11 @@ public:
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
 
+    bgfx::TextureHandle getTextureHandle() const;
+
 private:
+    bgfx::TextureHandle mTextureHandle;
+
 };
 
 }

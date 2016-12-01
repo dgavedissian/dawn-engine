@@ -155,6 +155,14 @@ if(UNIX) # TODO: If is Clang or GCC
     add_definitions(-fPIC)
 endif()
 
+# assimp
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+set(ASSIMP_BUILD_TESTS OFF)
+add_subdirectory(assimp)
+target_include_directories(assimp PRIVATE ${INCLUDE_DIRS})
+set_target_properties(assimp PROPERTIES FOLDER "3rdparty")
+set(LIBS ${LIBS} assimp)
+
 # bgfx
 add_definitions(-DBGFX_CONFIG_RENDERER_OPENGL=33)
 if(APPLE)
