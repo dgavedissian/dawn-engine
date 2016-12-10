@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.0)
 project(Dawn)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_MACOSX_RPATH 1)
 
 
 ###############################################

@@ -12,6 +12,7 @@ build*/
 
 # CLion
 .idea
+cmake-build-debug
 
 # OS junk files
 [Tt]humbs.db

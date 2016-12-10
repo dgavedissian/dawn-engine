@@ -5,6 +5,9 @@ find_package(OpenGL REQUIRED)
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR})
 set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 
+# Force everything to be statically linked
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
 # Add bundled external libraries
 set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/include
@@ -156,8 +159,8 @@ if(UNIX) # TODO: If is Clang or GCC
 endif()
 
 # assimp
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
-set(ASSIMP_BUILD_TESTS OFF)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 add_subdirectory(assimp)
 target_include_directories(assimp PRIVATE ${INCLUDE_DIRS})
 set_target_properties(assimp PROPERTIES FOLDER "3rdparty")
@@ -169,6 +172,11 @@ if(APPLE)
     add_library(bgfx bgfx/src/amalgamated.mm)
 else()
     add_library(bgfx bgfx/src/amalgamated.cpp)
+endif()
+if(APPLE)
+    find_library(COCOA_LIBRARY Cocoa)
+    find_library(FOUNDATION_LIBRARY Foundation)
+    target_link_libraries(bgfx ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY})
 endif()
 target_include_directories(bgfx PRIVATE ${INCLUDE_DIRS})
 set_target_properties(bgfx PROPERTIES FOLDER "3rdparty")
@@ -222,7 +230,10 @@ set_target_properties(glfw PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} glfw)
 
 # ImGui
-add_library(ImGui ImGui/imgui.cpp)
+add_library(ImGui
+    ImGui/imgui.cpp
+    ImGui/imgui_demo.cpp
+    ImGui/imgui_draw.cpp)
 target_include_directories(ImGui PRIVATE ${INCLUDE_DIRS})
 set_target_properties(ImGui PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} ImGui)
