@@ -20,6 +20,7 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/ontology/include
     ${CMAKE_CURRENT_SOURCE_DIR}/sol
     ${CMAKE_CURRENT_SOURCE_DIR}/stb_image
+    ${CMAKE_CURRENT_SOURCE_DIR}/tinyformat
     ${CMAKE_CURRENT_SOURCE_DIR}/YamlCpp/include)
 if(MSVC)
     set(INCLUDE_DIRS ${INCLUDE_DIRS}

@@ -91,10 +91,9 @@ class Camera {};  // TODO(David) stub until ECS is integrated
     }
 
 // Error macros
-#define ERROR_WARN(x) LOGWARN << (x)
 #define ERROR_FATAL(x)               \
     {                                \
-        LOGERR << (x);               \
+        getLog().error(x);           \
         throw std::runtime_error(x); \
     }
 

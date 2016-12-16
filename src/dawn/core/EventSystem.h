@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "core/Singleton.h"
+
 // Macros to make adding/removing event Listeners more sane
 #define ADD_LISTENER(LISTENER, EVENT)                                                             \
     dw::EventSystem::inst().addListener(fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), \

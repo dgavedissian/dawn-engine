@@ -11,33 +11,44 @@
 
 namespace dw {
 
-LogListener::LogListener() {
-    Log::inst().addListener(this);
-}
+class PlatformLogMessageHandler : public LogMessageHandler {
+public:
+    void onMessage(LogLevel level, const String &message) override {
+        switch (level) {
+            case LogLevel::Debug:
+            case LogLevel::Info:
+                std::cout << message;
+                break;
 
-LogListener::~LogListener() {
-    Log::inst().removeListener(this);
-}
+            case LogLevel::Warning:
+            case LogLevel::Error:
+                std::cerr << message;
+                break;
+        }
 
-void PlatformLog::logWrite(const String& message) {
-    // Output to stdout
-    std::cout << message << std::endl;
-
-// Output to VS debug screen
 #if DW_PLATFORM == DW_WIN32 && defined(DW_DEBUG)
-    String debugLine = message + "\n";
-    OutputDebugStringA(debugLine.c_str());
+        // Output a debug string to the Visual Studio console
+        String debugLine = message + "\n";
+        OutputDebugStringA(debugLine.c_str());
 #endif
+    }
+};
+
+Logger::Logger(Context* context) : Object{context} {
+    addLogMessageHandler(makeUnique<PlatformLogMessageHandler>());
 }
 
-Log::Stream::Stream(Log* log, LogLevel level, const String& message)
-    : mLogger(log), mLevel(level), mMessage(message) {
+void Logger::addLogMessageHandler(UniquePtr<LogMessageHandler>&& handler) {
+    _handlers.emplace_back(std::move(handler));
 }
 
-Log::Stream::~Stream() {
-    mLogger->write(mMessage, mLevel);
+void Logger::dispatchLogMessage(LogLevel level, const String& message) {
+    for (auto& handler : _handlers) {
+        handler->onMessage(level, message);
+    }
 }
 
+/*
 Log::StreamEndpoint::StreamEndpoint(Log* log, LogLevel level) : mLogger(log), mLevel(level) {
 }
 
@@ -114,15 +125,17 @@ Log::Stream Log::getStream(LogLevel level) {
     return Stream(this, level, "");
 }
 
-void Log::addListener(LogListener* Listener) {
+void Log::addListener(LogListener_OLD* Listener) {
     mListeners.push_back(Listener);
 }
 
-void Log::removeListener(LogListener* Listener) {
+void Log::removeListener(LogListener_OLD* Listener) {
     mListeners.erase(std::find(mListeners.begin(), mListeners.end(), Listener));
 }
 
 const Vector<String>& Log::getBuffer() const {
     return mLogBuffer;
 }
+ */
+
 }

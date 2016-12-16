@@ -9,7 +9,7 @@
 
 namespace dw {
 
-class Log;
+class Logger;
 
 class DW_API TypeInfo {
 public:
@@ -53,8 +53,8 @@ public:
 
     Context* getContext() const;
 
-    // Convenient access to the logger
-    Log& getLog() const;
+    // Convenient access to the logger via the context
+    Logger& getLog() const;
 
     // Convenient access to context methods
     template <class T> T* getSubsystem() const {

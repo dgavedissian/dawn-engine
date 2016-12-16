@@ -21,7 +21,7 @@ struct ConfigNodeData {
 
 template <class T> struct Converter {
     static ConfigNode encode(Context* context, const T& value);
-    static bool decode(Log& logger, const ConfigNode& node, T& value);
+    static bool decode(Logger& logger, const ConfigNode& node, T& value);
 };
 
 class DW_API ConfigNode : public Object {

@@ -22,7 +22,7 @@ template <> struct Converter<bool> {
         return out;
     }
 
-    static bool decode(Log&, const ConfigNode& node, bool& rhs) {
+    static bool decode(Logger&, const ConfigNode& node, bool& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -31,22 +31,22 @@ template <> struct Converter<bool> {
     }
 };
 
-template <> struct Converter<int> {
-    static ConfigNode encode(Context* context, const int& value) {
+template <> struct Converter<i32> {
+    static ConfigNode encode(Context* context, const i32& value) {
         ConfigNode out{context};
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
         return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, int& rhs) {
+    static bool decode(Logger& logger, const ConfigNode& node, i32& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
         try {
             rhs = std::stoi(node.mData.scalar);
         } catch (std::exception& e) {
-            logger.info << "Unable to convert value " << node.mData.scalar << " - Reason: " << e.what();
+            logger.warn("Unable to convert int32 value %s - Reason: %s", node.mData.scalar, e.what());
             return false;
         }
 
@@ -54,22 +54,26 @@ template <> struct Converter<int> {
     }
 };
 
-template <> struct Converter<uint> {
-    static ConfigNode encode(Context* context, const uint& value) {
+template <> struct Converter<u32> {
+    static ConfigNode encode(Context* context, const u32& value) {
         ConfigNode out{context};
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
         return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, uint& rhs) {
+    static bool decode(Logger& logger, const ConfigNode& node, u32& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
         try {
-            rhs = std::stoul(node.mData.scalar);
+            unsigned long converted = std::stoul(node.mData.scalar);
+            if (converted > std::numeric_limits<u32>::max()) {
+                throw std::overflow_error("Numerical overflow");
+            }
+            rhs = static_cast<u32>(converted);
         } catch (std::exception& e) {
-            logger.info << "Unable to convert value " << node.mData.scalar << " - Reason: " << e.what();
+            logger.warn("Unable to convert uint32 value %s - Reason: %s", node.mData.scalar, e.what());
             return false;
         }
 
@@ -77,22 +81,22 @@ template <> struct Converter<uint> {
     }
 };
 
-template <> struct Converter<uint64_t> {
-    static ConfigNode encode(Context* context, const uint64_t& value) {
+template <> struct Converter<u64> {
+    static ConfigNode encode(Context* context, const u64& value) {
         ConfigNode out{context};
         out.mType = NT_SCALAR;
         out.mData.scalar = std::to_string(value);
         return out;
     }
 
-    static bool decode(Log& logger, const ConfigNode& node, uint64_t& rhs) {
+    static bool decode(Logger& logger, const ConfigNode& node, u64& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
         try {
             rhs = std::stoull(node.mData.scalar);
         } catch (std::exception& e) {
-            logger.info << "Unable to convert value " << node.mData.scalar << " - Reason: " << e.what();
+            logger.warn("Unable to convert uint64 value %s - Reason: %s", node.mData.scalar, e.what());
             return false;
         }
 
@@ -108,7 +112,7 @@ template <> struct Converter<float> {
         return out;
     }
 
-    static bool decode(Log&, const ConfigNode& node, float& rhs) {
+    static bool decode(Logger&, const ConfigNode& node, float& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -125,7 +129,7 @@ template <> struct Converter<double> {
         return out;
     }
 
-    static bool decode(Log&, const ConfigNode& node, double& rhs) {
+    static bool decode(Logger&, const ConfigNode& node, double& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -142,7 +146,7 @@ template <> struct Converter<String> {
         return out;
     }
 
-    static bool decode(Log&, const ConfigNode& node, String& rhs) {
+    static bool decode(Logger&, const ConfigNode& node, String& rhs) {
         if (node.mType != NT_SCALAR)
             return false;
 
@@ -159,7 +163,7 @@ template <> struct Converter<Vec2> {
         return out;
     }
 
-    static bool decode(Log&, const ConfigNode& node, Vec2& rhs) {
+    static bool decode(Logger&, const ConfigNode& node, Vec2& rhs) {
         if (!node.isSequence() || node.size() != 2)
             return false;
 
@@ -177,7 +181,7 @@ template <> struct Converter<Vec2i> {
         return out;
     }
 
-    static bool decode(Log&, const ConfigNode& node, Vec2i& rhs) {
+    static bool decode(Logger&, const ConfigNode& node, Vec2i& rhs) {
         if (!node.isSequence() || node.size() != 2)
             return false;
 
@@ -196,7 +200,7 @@ template <> struct Converter<Vec3> {
         return out;
     }
 
-    static bool decode(Log&, const ConfigNode& node, Vec3& rhs) {
+    static bool decode(Logger&, const ConfigNode& node, Vec3& rhs) {
         if (!node.isSequence() || node.size() != 3)
             return false;
 
@@ -216,7 +220,7 @@ template <> struct Converter<Vec3i> {
         return out;
     }
 
-    static bool decode(Log&, const ConfigNode& node, Vec3i& rhs) {
+    static bool decode(Logger&, const ConfigNode& node, Vec3i& rhs) {
         if (!node.isSequence() || node.size() != 3)
             return false;
 
@@ -237,7 +241,7 @@ template <> struct Converter<Vec4> {
         return out;
     }
 
-    static bool decode(Log&, const ConfigNode& node, Vec4& rhs) {
+    static bool decode(Logger&, const ConfigNode& node, Vec4& rhs) {
         if (!node.isSequence() || node.size() != 4)
             return false;
 
@@ -259,7 +263,7 @@ template <> struct Converter<Vec4i> {
         return out;
     }
 
-    static bool decode(Log&, const ConfigNode& node, Vec4i& rhs) {
+    static bool decode(Logger&, const ConfigNode& node, Vec4i& rhs) {
         if (!node.isSequence() || node.size() != 4)
             return false;
 

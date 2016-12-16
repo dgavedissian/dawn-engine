@@ -4,104 +4,68 @@
  */
 #pragma once
 
-#include "core/Singleton.h"
+#include <tinyformat.h>
 
 namespace dw {
 
-enum LogLevel { LOG_INFO, LOG_WARN, LOG_ERROR };
-
-class DW_API LogListener {
-public:
-    LogListener();
-    virtual ~LogListener();
-
-    // TODO: Override this
-    virtual void logWrite(const String& message) = 0;
+enum class LogLevel {
+    Debug,
+    Info,
+    Warning,
+    Error
 };
 
-// Outputs to the platform specific log
-class DW_API PlatformLog : public LogListener {
+class DW_API LogMessageHandler {
 public:
-    virtual void logWrite(const String& message) override;
+    LogMessageHandler() = default;
+    virtual ~LogMessageHandler() = default;
+
+    virtual void onMessage(LogLevel level, const String& message) = 0;
 };
 
-class DW_API Log : public Singleton<Log>, public Object {
-private:
-    class DW_API Stream {
-    public:
-        Stream(Log* log, LogLevel level, const String& message);
-        ~Stream();
-
-        template <class T> inline Stream& operator<<(T val) {
-            std::ostringstream writer;
-            writer << val;
-            mMessage += writer.str();
-            return *this;
-        }
-
-    private:
-        Log* mLogger;
-        LogLevel mLevel;
-        String mMessage;
-    };
-
-    class DW_API StreamEndpoint {
-    public:
-        StreamEndpoint(Log* log, LogLevel level);
-
-        template <class T> inline Stream operator<<(T val) const {
-            return Stream(mLogger, mLevel, "") << val;
-        }
-
-    private:
-        Log* mLogger;
-        LogLevel mLevel;
-    };
-
+class DW_API Logger : public Object {
 public:
-    DW_OBJECT(Log);
+    DW_OBJECT(Logger);
 
-    Log(Context* context, const String& filename);
-    ~Log();
+    Logger(Context* context);
+    ~Logger() = default;
 
-    // NEW API
-    const StreamEndpoint info;
-    const StreamEndpoint warning;
-    const StreamEndpoint error;
+    void addLogMessageHandler(UniquePtr<LogMessageHandler>&& handler);
 
-    // OLD API
+    template <typename ...T>
+    String formatMessage(const String& format, const T&... args) {
+        return tfm::format(format.c_str(), args...);
+    }
 
-    // Writes a new line to the output stream
-    void write(const String& message, LogLevel level);
+    template <typename ...T>
+    void log(LogLevel level, const String& format, const T&... args) {
+        dispatchLogMessage(level, formatMessage(format, args...));
+    }
 
-    // Returns a new output stream object which writes a line when it gets out of scope
-    Stream getStream(LogLevel level);
+    template <typename ...T>
+    void debug(const String& format, const T&... args) {
+        log(LogLevel::Debug, format, args...);
+    }
 
-    // Add a Listener
-    void addListener(LogListener* Listener);
+    template <typename ...T>
+    void info(const String& format, const T&... args) {
+        log(LogLevel::Info, format, args...);
+    }
 
-    // Remove a Listener
-    void removeListener(LogListener* Listener);
+    template <typename ...T>
+    void warn(const String& format, const T&... args) {
+        log(LogLevel::Warning, format, args...);
+    }
 
-    // Get the current log buffer
-    const Vector<String>& getBuffer() const;
+    template <typename ...T>
+    void error(const String& format, const T&... args) {
+        log(LogLevel::Error, format, args...);
+    }
+
 
 private:
-    std::ofstream mLogFile;
-    Vector<String> mLogBuffer;
-
-    Vector<LogListener*> mListeners;
-
-    PlatformLog mPlatformLog;
+    void dispatchLogMessage(LogLevel level, const String& message);
+    Vector<UniquePtr<LogMessageHandler>> _handlers;
 };
 
-template <> inline Log::Stream& Log::Stream::operator<<<String>(String val) {
-    mMessage += val;
-    return *this;
 }
-}
-
-// Macros
-#define LOG getLog().info
-#define LOGWARN Log::inst().getStream(LOG_WARN)
-#define LOGERR Log::inst().getStream(LOG_ERROR)

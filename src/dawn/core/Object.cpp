@@ -32,7 +32,7 @@ Context* Object::getContext() const {
     return mContext;
 }
 
-Log& Object::getLog() const {
-    return *getSubsystem<Log>();
+Logger& Object::getLog() const {
+    return *getSubsystem<Logger>();
 }
 }
