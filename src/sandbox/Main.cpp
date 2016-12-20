@@ -4,7 +4,6 @@
  */
 #include "DawnEngine.h"
 #include "io/File.h"
-#include "io/FileSystem.h"
 
 class Sandbox : public dw::App {
 public:
@@ -14,7 +13,7 @@ public:
         getSubsystem<dw::FileSystem>()->setWorkingDir("media");
 
         dw::File file(mContext, "sandbox/test.txt", dw::FileMode::Read);
-        getLog().error << dw::stream::read<dw::u8>(file);
+        getLog().info("File contents: %s", dw::stream::read<dw::u8>(file));
     }
 
     virtual void update(float dt) override {

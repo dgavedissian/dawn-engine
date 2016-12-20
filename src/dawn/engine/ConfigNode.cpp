@@ -35,7 +35,7 @@ ConfigNode ConvertFromYaml(Context* context, const YAML::Node& node) {
     }
 }
 
-void EmitYaml(YAML::Emitter& out, const ConfigNode& node) {
+void EmitYaml(Logger& logger, YAML::Emitter& out, const ConfigNode& node) {
     switch (node.getNodeType()) {
         case NT_SCALAR:
             out << node.as<String>();
@@ -44,7 +44,7 @@ void EmitYaml(YAML::Emitter& out, const ConfigNode& node) {
         case NT_SEQUENCE:
             out << YAML::BeginSeq;
             for (auto i = node.seq_begin(); i != node.seq_end(); i++)
-                EmitYaml(out, *i);
+                EmitYaml(logger, out, *i);
             out << YAML::EndSeq;
             break;
 
@@ -52,13 +52,13 @@ void EmitYaml(YAML::Emitter& out, const ConfigNode& node) {
             out << YAML::BeginMap;
             for (auto i = node.map_begin(); i != node.map_end(); i++) {
                 out << YAML::Key << i->first << YAML::Value;
-                EmitYaml(out, i->second);
+                EmitYaml(logger, out, i->second);
             }
             out << YAML::EndMap;
             break;
 
         default:
-            ERROR_WARN("Can't emit a YAML node of type " + std::to_string(node.getNodeType()));
+            logger.warn("Can't emit a YAML node of type %s", node.getNodeType());
     }
 }
 
@@ -80,15 +80,13 @@ void ConfigNode::load(InputStream& src) {
         *this = ConvertFromYaml(mContext, YAML::Load(buffer.c_str()));
     }
     catch (YAML::ParserException& e) {
-        std::stringstream ss;
-        ss << "YAML Parsing exception: " << e.what();
-        ERROR_WARN(ss.str());
+        getLog().error("YAML Parsing exception: %s", e.what());
     }
 }
 
 void ConfigNode::save(OutputStream& dst) {
     YAML::Emitter out;
-    EmitYaml(out, *this);
+    EmitYaml(getLog(), out, *this);
     stream::write(dst, String(out.c_str()));
 }
 

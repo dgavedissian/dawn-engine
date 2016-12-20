@@ -9,7 +9,7 @@
 namespace dw {
 
 PhysicsWorld::PhysicsWorld(Context* context) : Object(context) {
-    LOG << "Bullet Version " << (btGetVersion() / 100) << "." << (btGetVersion() % 100);
+    getLog().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
 
     mBroadphase.reset(new btDbvtBroadphase());
     mCollisionConfig.reset(new btDefaultCollisionConfiguration());
@@ -29,7 +29,7 @@ PhysicsWorld::PhysicsWorld(Context* context) : Object(context) {
 PhysicsWorld::~PhysicsWorld() {
     REMOVE_LISTENER(PhysicsWorld, EvtData_KeyDown);
 
-    LOG << "Bullet cleaned up";
+    getLog().info("Bullet cleaned up");
 }
 
 void PhysicsWorld::update(float dt, Camera* camera) {

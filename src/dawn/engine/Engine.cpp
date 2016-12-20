@@ -41,10 +41,11 @@ Engine::Engine(const String& game, const String& version)
     mContext = new Context(basePath, prefPath);
 
     // Initialise logging
-    mContext->addSubsystem(new Log(mContext, prefPath + mLogFile));
-    LOG << "Starting " << mGameName << " " << mGameVersion;
+    mContext->addSubsystem(new Logger(mContext));
+    // TODO(david): Add a file logger to prefPath + mLogFile
+    getLog().info("Starting %s %s", mGameName, mGameVersion);
 #ifdef DW_DEBUG
-    LOGWARN << "This is a debug build!";
+    getLog().warn("NOTE: This is a debug build!");
 #endif
     printSystemInfo();
 }
@@ -62,10 +63,10 @@ void Engine::setup() {
 
     // Load configuration
     if (mContext->getSubsystem<FileSystem>()->fileExists(mConfigFile)) {
-        getLog().info << "Loading configuration from " << mConfigFile;
+        getLog().info("Loading configuration from %s", mConfigFile);
         mContext->loadConfig(mConfigFile);
     } else {
-        getLog().info << "Configuration does not exist - will be created";
+        getLog().info("Configuration does not exist, creating %s", mConfigFile);
     }
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
@@ -107,7 +108,7 @@ void Engine::setup() {
      */
 
     // Display startup info
-    LOG << "Current Working Directory: " << getSubsystem<FileSystem>()->getWorkingDir();
+    getLog().info("Current Working Directory: ", getSubsystem<FileSystem>()->getWorkingDir());
 
     // The engine is now initialised
     mInitialised = true;

@@ -15,7 +15,7 @@ Material::~Material() {
 }
 
 bool Material::beginLoad(InputStream& src) {
-    getLog().warning << "Material loading unimplemented";
+    getLog().error("Material loading unimplemented");
     return false;
 }
 

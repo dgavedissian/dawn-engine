@@ -15,7 +15,7 @@ Mesh::~Mesh() {
 }
 
 bool Mesh::beginLoad(InputStream& src) {
-    getLog().warning << "Mesh loading unimplemented";
+    getLog().error("Mesh loading unimplemented");
     return false;
 }
 

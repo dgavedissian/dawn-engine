@@ -30,7 +30,7 @@ bool FileSystem::setWorkingDir(const Path& path) {
     }
 #else
     if (chdir(path.c_str()) != 0) {
-        LOGERR << "Failed to change directory to " << path;
+        getLog().error("Failed to change directory to %s", path);
         return false;
     }
 #endif

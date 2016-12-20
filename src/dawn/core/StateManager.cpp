@@ -38,7 +38,7 @@ void StateManager::push(int id) {
     SharedPtr<State> newState = getStateById(id);
     mStateStack.push_back(newState);
     newState->enter();
-    LOG << "Pushed " << newState->getName();
+    getLog().info("Pushed %s", newState->getName());
 }
 
 void StateManager::pop() {
@@ -46,9 +46,10 @@ void StateManager::pop() {
         SharedPtr<State> back = mStateStack.back();
         back->exit();
         mStateStack.pop_back();
-        LOG << "Popped " << back->getName();
+        getLog().info("Popped %s", back->getName());
     } else {
-        LOG << "WARNING: Trying to pop a state when no states are on the stack";
+        // TODO(#21): Deal with this error correctly.
+        getLog().error("Trying to pop a state when no states are on the stack");
     }
 }
 
@@ -64,7 +65,7 @@ void StateManager::clear() {
 }
 
 void StateManager::update(float dt) {
-    uint size = mStateStack.size();
+    u64 size = mStateStack.size();
     for (uint i = 0; i < size; ++i)
         mStateStack[i]->update(dt);
 }

@@ -34,7 +34,7 @@ public:
 
     u32 write(const void* src, u32 size) override;
 
-    void open(const Path& path, int mode);
+    bool open(const Path& path, int mode);
     void close();
 
 private:
