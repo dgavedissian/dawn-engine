@@ -40,8 +40,11 @@ set(EXTERNAL_INSTALL ${EXTERNAL_PREFIX}/install)
 
 # Arguments to be passed to all calls to CMake
 set(EXTERNAL_ARGS
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} # CMake doesn't seem to do this automatically?
-    -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL})
+    -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL}
+    # ExternalProject needs to have these passed in.
+    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+    -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
 if(APPLE)
     set(EXTERNAL_ARGS ${EXTERNAL_ARGS}
         -DCMAKE_OSX_ARCHITECTURES=x86_64

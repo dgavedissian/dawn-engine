@@ -1,22 +1,63 @@
-sudo: required
-dist: trusty
+################################
+# project configuration
+################################
+
+# C++ project
 language: cpp
-os:
-- linux
-- osx
-compiler:
-- gcc
-- clang
-addons:
-  apt:
-    sources:
-    - sourceline: 'ppa:george-edison55/cmake-3.x'
-    packages:
-    - cmake
-    - xorg-dev
-    - libgl1-mesa-dev
-before_script:
+dist: trusty
+sudo: required
+
+################################
+# build matrix
+################################
+
+matrix:
+  include:
+
+  # OSX / Clang
+
+  - os: osx
+    env: C_COMPILER=clang CXX_COMPILER=clang++
+    osx_image: xcode7.3
+
+  - os: osx
+    env: C_COMPILER=clang CXX_COMPILER=clang++
+    osx_image: xcode8.2
+
+  # Linux / GCC
+
+  - os: linux
+    env: C_COMPILER=gcc-5 CXX_COMPILER=g++-5
+    compiler: gcc
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+          - ppa:george-edison55/cmake-3.x
+        packages:
+          - gcc-5
+          - g++-5
+          - cmake
+          - xorg-dev
+          - libgl1-mesa-dev
+
+  # Linux / Clang
+
+  - os: linux
+    env: C_COMPILER=clang CXX_COMPILER=clang++
+    compiler: clang
+    addons:
+      apt:
+        packages:
+          - xorg-dev
+          - libgl1-mesa-dev
+
+################################
+# build script
+################################
+
+script:
   - mkdir build
   - cd build
-  - cmake ..
-script: make
+  - cmake -DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CXX_COMPILER ..
+  - make
