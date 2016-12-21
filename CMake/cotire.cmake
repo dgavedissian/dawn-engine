@@ -3,7 +3,7 @@
 # See the cotire manual for usage hints.
 #
 #=============================================================================
-# Copyright 2012-2015 Sascha Kratky
+# Copyright 2012-2016 Sascha Kratky
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -43,7 +43,7 @@ if (NOT CMAKE_SCRIPT_MODE_FILE)
 endif()
 
 set (COTIRE_CMAKE_MODULE_FILE "${CMAKE_CURRENT_LIST_FILE}")
-set (COTIRE_CMAKE_MODULE_VERSION "1.7.6")
+set (COTIRE_CMAKE_MODULE_VERSION "1.7.8")
 
 # activate select policies
 if (POLICY CMP0025)
@@ -331,7 +331,7 @@ function (cotire_get_target_usage_requirements _target _targetRequirementsVar)
             list (FIND _targetRequirements ${_library} _index)
             if (_index LESS 0)
                 list (APPEND _targetRequirements ${_library})
-                # process transitive libraries
+                # BFS traversal of transitive libraries
                 get_target_property(_libraries ${_library} INTERFACE_LINK_LIBRARIES)
                 if (_libraries)
                     list (APPEND _librariesToProcess ${_libraries})
@@ -387,6 +387,24 @@ function (cotire_filter_compile_flags _language _flagFilter _matchedOptionsVar _
     endif()
     set (${_matchedOptionsVar} ${_matchedOptions} PARENT_SCOPE)
     set (${_unmatchedOptionsVar} ${_unmatchedOptions} PARENT_SCOPE)
+endfunction()
+
+function (cotire_is_target_supported _target _isSupportedVar)
+    if (NOT TARGET "${_target}")
+        set (${_isSupportedVar} FALSE PARENT_SCOPE)
+        return()
+    endif()
+    get_target_property(_imported ${_target} IMPORTED)
+    if (_imported)
+        set (${_isSupportedVar} FALSE PARENT_SCOPE)
+        return()
+    endif()
+    get_target_property(_targetType ${_target} TYPE)
+    if (NOT _targetType MATCHES "EXECUTABLE|(STATIC|SHARED|MODULE|OBJECT)_LIBRARY")
+        set (${_isSupportedVar} FALSE PARENT_SCOPE)
+        return()
+    endif()
+    set (${_isSupportedVar} TRUE PARENT_SCOPE)
 endfunction()
 
 function (cotire_get_target_compile_flags _config _language _target _flagsVar)
@@ -558,6 +576,21 @@ function (cotire_get_target_include_directories _config _language _target _inclu
         set (_linkedTargets "")
         cotire_get_target_usage_requirements(${_target} _linkedTargets)
         foreach (_linkedTarget ${_linkedTargets})
+            get_target_property(_linkedTargetType ${_linkedTarget} TYPE)
+            if (CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE AND NOT CMAKE_VERSION VERSION_LESS "3.4.0" AND
+                    _linkedTargetType MATCHES "(STATIC|SHARED|MODULE|OBJECT)_LIBRARY")
+                # CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE refers to CMAKE_CURRENT_BINARY_DIR and CMAKE_CURRENT_SOURCE_DIR
+                # at the time, when the target was created. These correspond to the target properties BINARY_DIR and SOURCE_DIR
+                # which are only available with CMake 3.4 or later.
+                get_target_property(_targetDirs ${_linkedTarget} BINARY_DIR)
+                if (_targetDirs)
+                    list (APPEND _dirs ${_targetDirs})
+                endif()
+                get_target_property(_targetDirs ${_linkedTarget} SOURCE_DIR)
+                if (_targetDirs)
+                    list (APPEND _dirs ${_targetDirs})
+                endif()
+            endif()
             get_target_property(_targetDirs ${_linkedTarget} INTERFACE_INCLUDE_DIRECTORIES)
             if (_targetDirs)
                 list (APPEND _dirs ${_targetDirs})
@@ -610,7 +643,7 @@ function (cotire_get_target_export_symbol _target _exportSymbolVar)
     get_target_property(_targetType ${_target} TYPE)
     get_target_property(_enableExports ${_target} ENABLE_EXPORTS)
     if (_targetType MATCHES "(SHARED|MODULE)_LIBRARY" OR
-        (_targetType STREQUAL "EXECUTABLE" AND _enableExports))
+    (_targetType STREQUAL "EXECUTABLE" AND _enableExports))
         get_target_property(_exportSymbol ${_target} DEFINE_SYMBOL)
         if (NOT _exportSymbol)
             set (_exportSymbol "${_target}_EXPORTS")
@@ -815,7 +848,10 @@ macro (cotire_set_cmd_to_prologue _cmdVar)
     endif()
 endmacro()
 
-function (cotire_init_compile_cmd _cmdVar _language _compilerExe _compilerArg1)
+function (cotire_init_compile_cmd _cmdVar _language _compilerLauncher _compilerExe _compilerArg1)
+    if (NOT _compilerLauncher)
+        set (_compilerLauncher ${CMAKE_${_language}_COMPILER_LAUNCHER})
+    endif()
     if (NOT _compilerExe)
         set (_compilerExe "${CMAKE_${_language}_COMPILER}")
     endif()
@@ -823,7 +859,12 @@ function (cotire_init_compile_cmd _cmdVar _language _compilerExe _compilerArg1)
         set (_compilerArg1 ${CMAKE_${_language}_COMPILER_ARG1})
     endif()
     string (STRIP "${_compilerArg1}" _compilerArg1)
-    set (${_cmdVar} "${_compilerExe}" ${_compilerArg1} PARENT_SCOPE)
+    if ("${CMAKE_GENERATOR}" MATCHES "Make|Ninja")
+        # compiler launcher is only supported for Makefile and Ninja
+        set (${_cmdVar} ${_compilerLauncher} "${_compilerExe}" ${_compilerArg1} PARENT_SCOPE)
+    else()
+        set (${_cmdVar} "${_compilerExe}" ${_compilerArg1} PARENT_SCOPE)
+    endif()
 endfunction()
 
 macro (cotire_add_definitions_to_cmd _cmdVar _language)
@@ -911,7 +952,7 @@ function (cotire_check_file_up_to_date _fileIsUpToDateVar _file)
                 # IS_NEWER_THAN returns TRUE if both files have the same timestamp
                 # thus we do the comparison in both directions to exclude ties
                 if ("${_dependencyFile}" IS_NEWER_THAN "${_file}" AND
-                    NOT "${_file}" IS_NEWER_THAN "${_dependencyFile}")
+                        NOT "${_file}" IS_NEWER_THAN "${_dependencyFile}")
                     set (_triggerFile "${_dependencyFile}")
                     break()
                 endif()
@@ -1143,9 +1184,9 @@ endfunction()
 
 function (cotire_scan_includes _includesVar)
     set(_options "")
-    set(_oneValueArgs COMPILER_ID COMPILER_EXECUTABLE COMPILER_VERSION LANGUAGE UNPARSED_LINES)
+    set(_oneValueArgs COMPILER_ID COMPILER_EXECUTABLE COMPILER_ARG1 COMPILER_VERSION LANGUAGE UNPARSED_LINES)
     set(_multiValueArgs COMPILE_DEFINITIONS COMPILE_FLAGS INCLUDE_DIRECTORIES SYSTEM_INCLUDE_DIRECTORIES
-        IGNORE_PATH INCLUDE_PATH IGNORE_EXTENSIONS INCLUDE_PRIORITY_PATH)
+            IGNORE_PATH INCLUDE_PATH IGNORE_EXTENSIONS INCLUDE_PRIORITY_PATH COMPILER_LAUNCHER)
     cmake_parse_arguments(_option "${_options}" "${_oneValueArgs}" "${_multiValueArgs}" ${ARGN})
     set (_sourceFiles ${_option_UNPARSED_ARGUMENTS})
     if (NOT _option_LANGUAGE)
@@ -1157,7 +1198,7 @@ function (cotire_scan_includes _includesVar)
     if (NOT _option_COMPILER_VERSION)
         set (_option_COMPILER_VERSION "${CMAKE_${_option_LANGUAGE}_COMPILER_VERSION}")
     endif()
-    cotire_init_compile_cmd(_cmd "${_option_LANGUAGE}" "${_option_COMPILER_EXECUTABLE}" "${_option_COMPILER_ARG1}")
+    cotire_init_compile_cmd(_cmd "${_option_LANGUAGE}" "${_option_COMPILER_LAUNCHER}" "${_option_COMPILER_EXECUTABLE}" "${_option_COMPILER_ARG1}")
     cotire_add_definitions_to_cmd(_cmd "${_option_LANGUAGE}" ${_option_COMPILE_DEFINITIONS})
     cotire_add_compile_flags_to_cmd(_cmd ${_option_COMPILE_FLAGS})
     cotire_add_includes_to_cmd(_cmd "${_option_LANGUAGE}" _option_INCLUDE_DIRECTORIES _option_SYSTEM_INCLUDE_DIRECTORIES)
@@ -1183,20 +1224,20 @@ function (cotire_scan_includes _includesVar)
         unset (ENV{VS_UNICODE_OUTPUT})
     endif()
     execute_process(
-        COMMAND ${_cmd}
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        RESULT_VARIABLE _result
-        OUTPUT_QUIET
-        ERROR_VARIABLE _output)
+            COMMAND ${_cmd}
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            RESULT_VARIABLE _result
+            OUTPUT_QUIET
+            ERROR_VARIABLE _output)
     if (_result)
         message (STATUS "Result ${_result} scanning includes of ${_existingSourceFiles}.")
     endif()
     cotire_parse_includes(
-        "${_option_LANGUAGE}" "${_output}"
-        "${_option_IGNORE_PATH}" "${_option_INCLUDE_PATH}"
-        "${_option_IGNORE_EXTENSIONS}"
-        _includes _unparsedLines
-        ${_sourceFiles})
+            "${_option_LANGUAGE}" "${_output}"
+            "${_option_IGNORE_PATH}" "${_option_INCLUDE_PATH}"
+            "${_option_IGNORE_EXTENSIONS}"
+            _includes _unparsedLines
+            ${_sourceFiles})
     if (_option_INCLUDE_PRIORITY_PATH)
         set (_sortedIncludes "")
         foreach (_priorityPath ${_option_INCLUDE_PRIORITY_PATH})
@@ -1262,8 +1303,8 @@ function (cotire_generate_unity_source _unityFile)
     set(_options "")
     set(_oneValueArgs LANGUAGE)
     set(_multiValueArgs
-        DEPENDS SOURCES_COMPILE_DEFINITIONS
-        PRE_UNDEFS SOURCES_PRE_UNDEFS POST_UNDEFS SOURCES_POST_UNDEFS PROLOGUE EPILOGUE)
+            DEPENDS SOURCES_COMPILE_DEFINITIONS
+            PRE_UNDEFS SOURCES_PRE_UNDEFS POST_UNDEFS SOURCES_POST_UNDEFS PROLOGUE EPILOGUE)
     cmake_parse_arguments(_option "${_options}" "${_oneValueArgs}" "${_multiValueArgs}" ${ARGN})
     if (_option_DEPENDS)
         cotire_check_file_up_to_date(_unityFileIsUpToDate "${_unityFile}" ${_option_DEPENDS})
@@ -1298,8 +1339,8 @@ function (cotire_generate_unity_source _unityFile)
     set (_compileUndefinitions "")
     foreach (_sourceFile ${_sourceFiles})
         cotire_get_source_compile_definitions(
-            "${_option_CONFIGURATION}" "${_option_LANGUAGE}" "${_sourceFile}" _compileDefinitions
-            ${_option_SOURCES_COMPILE_DEFINITIONS})
+                "${_option_CONFIGURATION}" "${_option_LANGUAGE}" "${_sourceFile}" _compileDefinitions
+                ${_option_SOURCES_COMPILE_DEFINITIONS})
         cotire_get_source_undefs("${_sourceFile}" COTIRE_UNITY_SOURCE_PRE_UNDEFS _sourcePreUndefs ${_option_SOURCES_PRE_UNDEFS})
         cotire_get_source_undefs("${_sourceFile}" COTIRE_UNITY_SOURCE_POST_UNDEFS _sourcePostUndefs ${_option_SOURCES_POST_UNDEFS})
         if (_option_PRE_UNDEFS)
@@ -1354,10 +1395,10 @@ endfunction()
 
 function (cotire_generate_prefix_header _prefixFile)
     set(_options "")
-    set(_oneValueArgs LANGUAGE COMPILER_EXECUTABLE COMPILER_ID COMPILER_VERSION)
+    set(_oneValueArgs LANGUAGE COMPILER_EXECUTABLE COMPILER_ARG1 COMPILER_ID COMPILER_VERSION)
     set(_multiValueArgs DEPENDS COMPILE_DEFINITIONS COMPILE_FLAGS
-        INCLUDE_DIRECTORIES SYSTEM_INCLUDE_DIRECTORIES IGNORE_PATH INCLUDE_PATH
-        IGNORE_EXTENSIONS INCLUDE_PRIORITY_PATH)
+            INCLUDE_DIRECTORIES SYSTEM_INCLUDE_DIRECTORIES IGNORE_PATH INCLUDE_PATH
+            IGNORE_EXTENSIONS INCLUDE_PRIORITY_PATH COMPILER_LAUNCHER)
     cmake_parse_arguments(_option "${_options}" "${_oneValueArgs}" "${_multiValueArgs}" ${ARGN})
     if (NOT _option_COMPILER_ID)
         set (_option_COMPILER_ID "${CMAKE_${_option_LANGUAGE}_ID}")
@@ -1389,21 +1430,23 @@ function (cotire_generate_prefix_header _prefixFile)
     endif()
     set (_sourceFiles ${_option_UNPARSED_ARGUMENTS})
     cotire_scan_includes(_selectedHeaders ${_sourceFiles}
-        LANGUAGE "${_option_LANGUAGE}"
-        COMPILER_EXECUTABLE "${_option_COMPILER_EXECUTABLE}"
-        COMPILER_ID "${_option_COMPILER_ID}"
-        COMPILER_VERSION "${_option_COMPILER_VERSION}"
-        COMPILE_DEFINITIONS ${_option_COMPILE_DEFINITIONS}
-        COMPILE_FLAGS ${_option_COMPILE_FLAGS}
-        INCLUDE_DIRECTORIES ${_option_INCLUDE_DIRECTORIES}
-        SYSTEM_INCLUDE_DIRECTORIES ${_option_SYSTEM_INCLUDE_DIRECTORIES}
-        IGNORE_PATH ${_option_IGNORE_PATH}
-        INCLUDE_PATH ${_option_INCLUDE_PATH}
-        IGNORE_EXTENSIONS ${_option_IGNORE_EXTENSIONS}
-        INCLUDE_PRIORITY_PATH ${_option_INCLUDE_PRIORITY_PATH}
-        UNPARSED_LINES _unparsedLines)
+            LANGUAGE "${_option_LANGUAGE}"
+            COMPILER_LAUNCHER "${_option_COMPILER_LAUNCHER}"
+            COMPILER_EXECUTABLE "${_option_COMPILER_EXECUTABLE}"
+            COMPILER_ARG1 "${_option_COMPILER_ARG1}"
+            COMPILER_ID "${_option_COMPILER_ID}"
+            COMPILER_VERSION "${_option_COMPILER_VERSION}"
+            COMPILE_DEFINITIONS ${_option_COMPILE_DEFINITIONS}
+            COMPILE_FLAGS ${_option_COMPILE_FLAGS}
+            INCLUDE_DIRECTORIES ${_option_INCLUDE_DIRECTORIES}
+            SYSTEM_INCLUDE_DIRECTORIES ${_option_SYSTEM_INCLUDE_DIRECTORIES}
+            IGNORE_PATH ${_option_IGNORE_PATH}
+            INCLUDE_PATH ${_option_INCLUDE_PATH}
+            IGNORE_EXTENSIONS ${_option_IGNORE_EXTENSIONS}
+            INCLUDE_PRIORITY_PATH ${_option_INCLUDE_PRIORITY_PATH}
+            UNPARSED_LINES _unparsedLines)
     cotire_generate_unity_source("${_prefixFile}"
-        PROLOGUE ${_prologue} EPILOGUE ${_epilogue} LANGUAGE "${_option_LANGUAGE}" ${_selectedHeaders})
+            PROLOGUE ${_prologue} EPILOGUE ${_epilogue} LANGUAGE "${_option_LANGUAGE}" ${_selectedHeaders})
     set (_unparsedLinesFile "${_prefixFile}.log")
     if (_unparsedLines)
         if (COTIRE_VERBOSE OR NOT _selectedHeaders)
@@ -1524,7 +1567,7 @@ function (cotire_add_pch_compilation_flags _language _compilerID _compilerVersio
         if (_flags)
             # append to list
             list (APPEND _flags /nologo "${_sourceFileType${_language}}"
-                "/Yc${_prefixFileNative}" "/Fp${_pchFileNative}" "/FI${_prefixFileNative}" /Zs "${_hostFileNative}")
+                    "/Yc${_prefixFileNative}" "/Fp${_pchFileNative}" "/FI${_prefixFileNative}" /Zs "${_hostFileNative}")
             if (COTIRE_PCH_MEMORY_SCALING_FACTOR)
                 list (APPEND _flags "/Zm${COTIRE_PCH_MEMORY_SCALING_FACTOR}")
             endif()
@@ -1570,7 +1613,7 @@ function (cotire_add_pch_compilation_flags _language _compilerID _compilerVersio
             if (_flags)
                 # append to list
                 list (APPEND _flags /nologo "${_sourceFileType${_language}}"
-                    "/Yc" "/Fp${_pchFileNative}" "/FI${_prefixFileNative}" /Zs "${_hostFileNative}")
+                        "/Yc" "/Fp${_pchFileNative}" "/FI${_prefixFileNative}" /Zs "${_hostFileNative}")
                 if (NOT "${_compilerVersion}" VERSION_LESS "13.1.0")
                     list (APPEND _flags "/Wpch-messages")
                 endif()
@@ -1748,8 +1791,8 @@ endfunction()
 
 function (cotire_precompile_prefix_header _prefixFile _pchFile _hostFile)
     set(_options "")
-    set(_oneValueArgs COMPILER_EXECUTABLE COMPILER_ID COMPILER_VERSION LANGUAGE)
-    set(_multiValueArgs COMPILE_DEFINITIONS COMPILE_FLAGS INCLUDE_DIRECTORIES SYSTEM_INCLUDE_DIRECTORIES SYS)
+    set(_oneValueArgs COMPILER_EXECUTABLE COMPILER_ARG1 COMPILER_ID COMPILER_VERSION LANGUAGE)
+    set(_multiValueArgs COMPILE_DEFINITIONS COMPILE_FLAGS INCLUDE_DIRECTORIES SYSTEM_INCLUDE_DIRECTORIES SYS COMPILER_LAUNCHER)
     cmake_parse_arguments(_option "${_options}" "${_oneValueArgs}" "${_multiValueArgs}" ${ARGN})
     if (NOT _option_LANGUAGE)
         set (_option_LANGUAGE "CXX")
@@ -1760,14 +1803,14 @@ function (cotire_precompile_prefix_header _prefixFile _pchFile _hostFile)
     if (NOT _option_COMPILER_VERSION)
         set (_option_COMPILER_VERSION "${CMAKE_${_option_LANGUAGE}_COMPILER_VERSION}")
     endif()
-    cotire_init_compile_cmd(_cmd "${_option_LANGUAGE}" "${_option_COMPILER_EXECUTABLE}" "${_option_COMPILER_ARG1}")
+    cotire_init_compile_cmd(_cmd "${_option_LANGUAGE}" "${_option_COMPILER_LAUNCHER}" "${_option_COMPILER_EXECUTABLE}" "${_option_COMPILER_ARG1}")
     cotire_add_definitions_to_cmd(_cmd "${_option_LANGUAGE}" ${_option_COMPILE_DEFINITIONS})
     cotire_add_compile_flags_to_cmd(_cmd ${_option_COMPILE_FLAGS})
     cotire_add_includes_to_cmd(_cmd "${_option_LANGUAGE}" _option_INCLUDE_DIRECTORIES _option_SYSTEM_INCLUDE_DIRECTORIES)
     cotire_add_frameworks_to_cmd(_cmd "${_option_LANGUAGE}" _option_INCLUDE_DIRECTORIES _option_SYSTEM_INCLUDE_DIRECTORIES)
     cotire_add_pch_compilation_flags(
-        "${_option_LANGUAGE}" "${_option_COMPILER_ID}" "${_option_COMPILER_VERSION}"
-        "${_prefixFile}" "${_pchFile}" "${_hostFile}" _cmd)
+            "${_option_LANGUAGE}" "${_option_COMPILER_ID}" "${_option_COMPILER_VERSION}"
+            "${_prefixFile}" "${_pchFile}" "${_hostFile}" _cmd)
     if (COTIRE_VERBOSE)
         message (STATUS "execute_process: ${_cmd}")
     endif()
@@ -1776,9 +1819,9 @@ function (cotire_precompile_prefix_header _prefixFile _pchFile _hostFile)
         unset (ENV{VS_UNICODE_OUTPUT})
     endif()
     execute_process(
-        COMMAND ${_cmd}
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        RESULT_VARIABLE _result)
+            COMMAND ${_cmd}
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            RESULT_VARIABLE _result)
     if (_result)
         message (FATAL_ERROR "cotire: error ${_result} precompiling ${_prefixFile}.")
     endif()
@@ -1786,7 +1829,7 @@ endfunction()
 
 function (cotire_check_precompiled_header_support _language _target _msgVar)
     set (_unsupportedCompiler
-        "Precompiled headers not supported for ${_language} compiler ${CMAKE_${_language}_COMPILER_ID}")
+            "Precompiled headers not supported for ${_language} compiler ${CMAKE_${_language}_COMPILER_ID}")
     if (CMAKE_${_language}_COMPILER_ID MATCHES "MSVC")
         # supported since Visual Studio C++ 6.0
         # and CMake does not support an earlier version
@@ -1811,11 +1854,12 @@ function (cotire_check_precompiled_header_support _language _target _msgVar)
     else()
         set (${_msgVar} "${_unsupportedCompiler}." PARENT_SCOPE)
     endif()
-    if (CMAKE_${_language}_COMPILER MATCHES "ccache")
+    get_target_property(_launcher ${_target} ${_language}_COMPILER_LAUNCHER)
+    if (CMAKE_${_language}_COMPILER MATCHES "ccache" OR _launcher MATCHES "ccache")
         if (NOT "$ENV{CCACHE_SLOPPINESS}" MATCHES "time_macros|pch_defines")
             set (${_msgVar}
-                "ccache requires the environment variable CCACHE_SLOPPINESS to be set to \"pch_defines,time_macros\"."
-                PARENT_SCOPE)
+                    "ccache requires the environment variable CCACHE_SLOPPINESS to be set to \"pch_defines,time_macros\"."
+                    PARENT_SCOPE)
         endif()
     endif()
     if (APPLE)
@@ -1829,8 +1873,8 @@ function (cotire_check_precompiled_header_support _language _target _msgVar)
             if (_numberOfArchitectures GREATER 1)
                 string (REPLACE ";" ", " _architectureStr "${_architectures}")
                 set (${_msgVar}
-                    "Precompiled headers not supported on Darwin for multi-architecture builds (${_architectureStr})."
-                    PARENT_SCOPE)
+                        "Precompiled headers not supported on Darwin for multi-architecture builds (${_architectureStr})."
+                        PARENT_SCOPE)
                 break()
             endif()
         endforeach()
@@ -2067,14 +2111,15 @@ function (cotire_generate_target_script _language _configurations _target _targe
     foreach (_config ${_configurations})
         string (TOUPPER "${_config}" _upperConfig)
         cotire_get_target_include_directories(
-            "${_config}" "${_language}" "${_target}" COTIRE_TARGET_INCLUDE_DIRECTORIES_${_upperConfig} COTIRE_TARGET_SYSTEM_INCLUDE_DIRECTORIES_${_upperConfig})
+                "${_config}" "${_language}" "${_target}" COTIRE_TARGET_INCLUDE_DIRECTORIES_${_upperConfig} COTIRE_TARGET_SYSTEM_INCLUDE_DIRECTORIES_${_upperConfig})
         cotire_get_target_compile_definitions(
-            "${_config}" "${_language}" "${_target}" COTIRE_TARGET_COMPILE_DEFINITIONS_${_upperConfig})
+                "${_config}" "${_language}" "${_target}" COTIRE_TARGET_COMPILE_DEFINITIONS_${_upperConfig})
         cotire_get_target_compiler_flags(
-            "${_config}" "${_language}" "${_target}" COTIRE_TARGET_COMPILE_FLAGS_${_upperConfig})
+                "${_config}" "${_language}" "${_target}" COTIRE_TARGET_COMPILE_FLAGS_${_upperConfig})
         cotire_get_source_files_compile_definitions(
-            "${_config}" "${_language}" COTIRE_TARGET_SOURCES_COMPILE_DEFINITIONS_${_upperConfig} ${_targetSources})
+                "${_config}" "${_language}" COTIRE_TARGET_SOURCES_COMPILE_DEFINITIONS_${_upperConfig} ${_targetSources})
     endforeach()
+    get_target_property(COTIRE_TARGET_${_language}_COMPILER_LAUNCHER ${_target} ${_language}_COMPILER_LAUNCHER)
     # set up COTIRE_TARGET_SOURCES
     set (COTIRE_TARGET_SOURCES "")
     foreach (_sourceFile ${_targetSources})
@@ -2100,14 +2145,14 @@ function (cotire_generate_target_script _language _configurations _target _targe
     set (_contents "")
     set (_contentsHasGeneratorExpressions FALSE)
     foreach (_var IN LISTS _matchVars ITEMS
-        XCODE MSVC CMAKE_GENERATOR CMAKE_BUILD_TYPE CMAKE_CONFIGURATION_TYPES
-        CMAKE_${_language}_COMPILER_ID CMAKE_${_language}_COMPILER_VERSION
-        CMAKE_${_language}_COMPILER CMAKE_${_language}_COMPILER_ARG1
-        CMAKE_INCLUDE_FLAG_${_language} CMAKE_INCLUDE_FLAG_${_language}_SEP
-        CMAKE_INCLUDE_SYSTEM_FLAG_${_language}
-        CMAKE_${_language}_FRAMEWORK_SEARCH_FLAG
-        CMAKE_${_language}_SYSTEM_FRAMEWORK_SEARCH_FLAG
-        CMAKE_${_language}_SOURCE_FILE_EXTENSIONS)
+            XCODE MSVC CMAKE_GENERATOR CMAKE_BUILD_TYPE CMAKE_CONFIGURATION_TYPES
+            CMAKE_${_language}_COMPILER_ID CMAKE_${_language}_COMPILER_VERSION
+            CMAKE_${_language}_COMPILER_LAUNCHER CMAKE_${_language}_COMPILER CMAKE_${_language}_COMPILER_ARG1
+            CMAKE_INCLUDE_FLAG_${_language} CMAKE_INCLUDE_FLAG_${_language}_SEP
+            CMAKE_INCLUDE_SYSTEM_FLAG_${_language}
+            CMAKE_${_language}_FRAMEWORK_SEARCH_FLAG
+            CMAKE_${_language}_SYSTEM_FRAMEWORK_SEARCH_FLAG
+            CMAKE_${_language}_SOURCE_FILE_EXTENSIONS)
         if (DEFINED ${_var})
             string (REPLACE "\"" "\\\"" _value "${${_var}}")
             set (_contents "${_contents}set (${_var} \"${_value}\")\n")
@@ -2142,8 +2187,8 @@ function (cotire_setup_pch_file_compilation _language _target _targetScript _pre
         if (_sourceFiles)
             set (_flags "")
             cotire_add_pch_compilation_flags(
-                "${_language}" "${CMAKE_${_language}_COMPILER_ID}" "${CMAKE_${_language}_COMPILER_VERSION}"
-                "${_prefixFile}" "${_pchFile}" "${_hostFile}" _flags)
+                    "${_language}" "${CMAKE_${_language}_COMPILER_ID}" "${CMAKE_${_language}_COMPILER_VERSION}"
+                    "${_prefixFile}" "${_pchFile}" "${_hostFile}" _flags)
             set_property (SOURCE ${_hostFile} APPEND_STRING PROPERTY COMPILE_FLAGS " ${_flags} ")
             set_property (SOURCE ${_hostFile} APPEND PROPERTY OBJECT_OUTPUTS "${_pchFile}")
             # make object file generated from host file depend on prefix header
@@ -2156,19 +2201,23 @@ function (cotire_setup_pch_file_compilation _language _target _targetScript _pre
         if (_targetScript)
             cotire_set_cmd_to_prologue(_cmds)
             list (APPEND _cmds -P "${COTIRE_CMAKE_MODULE_FILE}" "precompile" "${_targetScript}" "${_prefixFile}" "${_pchFile}" "${_hostFile}")
-            file (RELATIVE_PATH _pchFileRelPath "${CMAKE_BINARY_DIR}" "${_pchFile}")
+            if (MSVC_IDE)
+                file (TO_NATIVE_PATH "${_pchFile}" _pchFileLogPath)
+            else()
+                file (RELATIVE_PATH _pchFileLogPath "${CMAKE_BINARY_DIR}" "${_pchFile}")
+            endif()
             if (COTIRE_DEBUG)
                 message (STATUS "add_custom_command: OUTPUT ${_pchFile} ${_cmds} DEPENDS ${_prefixFile} IMPLICIT_DEPENDS ${_language} ${_prefixFile}")
             endif()
             set_property (SOURCE "${_pchFile}" PROPERTY GENERATED TRUE)
             add_custom_command(
-                OUTPUT "${_pchFile}"
-                COMMAND ${_cmds}
-                DEPENDS "${_prefixFile}"
-                IMPLICIT_DEPENDS ${_language} "${_prefixFile}"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-                COMMENT "Building ${_language} precompiled header ${_pchFileRelPath}"
-                VERBATIM)
+                    OUTPUT "${_pchFile}"
+                    COMMAND ${_cmds}
+                    DEPENDS "${_prefixFile}"
+                    IMPLICIT_DEPENDS ${_language} "${_prefixFile}"
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                    COMMENT "Building ${_language} precompiled header ${_pchFileLogPath}"
+                    VERBATIM)
         endif()
     endif()
 endfunction()
@@ -2184,8 +2233,8 @@ function (cotire_setup_pch_file_inclusion _language _target _wholeTarget _prefix
             set_source_files_properties(${_sourceFiles} PROPERTIES COTIRE_TARGET "${_target}")
             set (_flags "")
             cotire_add_prefix_pch_inclusion_flags(
-                "${_language}" "${CMAKE_${_language}_COMPILER_ID}" "${CMAKE_${_language}_COMPILER_VERSION}"
-                "${_prefixFile}" "${_pchFile}" _flags)
+                    "${_language}" "${CMAKE_${_language}_COMPILER_ID}" "${CMAKE_${_language}_COMPILER_VERSION}"
+                    "${_prefixFile}" "${_pchFile}" _flags)
             set_property (SOURCE ${_sourceFiles} APPEND_STRING PROPERTY COMPILE_FLAGS " ${_flags} ")
             # make object files generated from source files depend on precompiled header
             set_property (SOURCE ${_sourceFiles} APPEND PROPERTY OBJECT_DEPENDS "${_pchFile}")
@@ -2197,8 +2246,8 @@ function (cotire_setup_pch_file_inclusion _language _target _wholeTarget _prefix
             # of the source files, if this is a multi-language target or has excluded files
             set (_flags "")
             cotire_add_prefix_pch_inclusion_flags(
-                "${_language}" "${CMAKE_${_language}_COMPILER_ID}" "${CMAKE_${_language}_COMPILER_VERSION}"
-                "${_prefixFile}" "${_pchFile}" _flags)
+                    "${_language}" "${CMAKE_${_language}_COMPILER_ID}" "${CMAKE_${_language}_COMPILER_VERSION}"
+                    "${_prefixFile}" "${_pchFile}" _flags)
             set_property (SOURCE ${_sourceFiles} APPEND_STRING PROPERTY COMPILE_FLAGS " ${_flags} ")
             # mark sources as cotired to prevent them from being used in another cotired target
             set_source_files_properties(${_sourceFiles} PROPERTIES COTIRE_TARGET "${_target}")
@@ -2214,8 +2263,8 @@ function (cotire_setup_prefix_file_inclusion _language _target _prefixFile)
     set (_flags "")
     set (_pchFile "")
     cotire_add_prefix_pch_inclusion_flags(
-        "${_language}" "${CMAKE_${_language}_COMPILER_ID}" "${CMAKE_${_language}_COMPILER_VERSION}"
-        "${_prefixFile}" "${_pchFile}" _flags)
+            "${_language}" "${CMAKE_${_language}_COMPILER_ID}" "${CMAKE_${_language}_COMPILER_VERSION}"
+            "${_prefixFile}" "${_pchFile}" _flags)
     set_property (SOURCE ${_sourceFiles} APPEND_STRING PROPERTY COMPILE_FLAGS " ${_flags} ")
     # mark sources as cotired to prevent them from being used in another cotired target
     set_source_files_properties(${_sourceFiles} PROPERTIES COTIRE_TARGET "${_target}")
@@ -2252,27 +2301,31 @@ function (cotire_setup_combine_command _language _targetScript _joinedFile _cmds
         message (STATUS "add_custom_command: OUTPUT ${_joinedFile} COMMAND ${_prefixCmd} DEPENDS ${_files}")
     endif()
     set_property (SOURCE "${_joinedFile}" PROPERTY GENERATED TRUE)
-    file (RELATIVE_PATH _joinedFileRelPath "${CMAKE_BINARY_DIR}" "${_joinedFile}")
+    if (MSVC_IDE)
+        file (TO_NATIVE_PATH "${_joinedFile}" _joinedFileLogPath)
+    else()
+        file (RELATIVE_PATH _joinedFileLogPath "${CMAKE_BINARY_DIR}" "${_joinedFile}")
+    endif()
     get_filename_component(_joinedFileBaseName "${_joinedFile}" NAME_WE)
     get_filename_component(_joinedFileExt "${_joinedFile}" EXT)
     if (_language AND _joinedFileBaseName MATCHES "${COTIRE_UNITY_SOURCE_FILENAME_SUFFIX}$")
-        set (_comment "Generating ${_language} unity source ${_joinedFileRelPath}")
+        set (_comment "Generating ${_language} unity source ${_joinedFileLogPath}")
     elseif (_language AND _joinedFileBaseName MATCHES "${COTIRE_PREFIX_HEADER_FILENAME_SUFFIX}$")
         if (_joinedFileExt MATCHES "^\\.c")
-            set (_comment "Generating ${_language} prefix source ${_joinedFileRelPath}")
+            set (_comment "Generating ${_language} prefix source ${_joinedFileLogPath}")
         else()
-            set (_comment "Generating ${_language} prefix header ${_joinedFileRelPath}")
+            set (_comment "Generating ${_language} prefix header ${_joinedFileLogPath}")
         endif()
     else()
-        set (_comment "Generating ${_joinedFileRelPath}")
+        set (_comment "Generating ${_joinedFileLogPath}")
     endif()
     add_custom_command(
-        OUTPUT "${_joinedFile}"
-        COMMAND ${_prefixCmd}
-        DEPENDS ${_files}
-        COMMENT "${_comment}"
-        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-        VERBATIM)
+            OUTPUT "${_joinedFile}"
+            COMMAND ${_prefixCmd}
+            DEPENDS ${_files}
+            COMMENT "${_comment}"
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+            VERBATIM)
     list (APPEND ${_cmdsVar} COMMAND ${_prefixCmd})
     set (${_cmdsVar} ${${_cmdsVar}} PARENT_SCOPE)
 endfunction()
@@ -2304,11 +2357,11 @@ function (cotire_setup_target_pch_usage _languages _target _wholeTarget)
         # because CMake PRE_BUILD command does not support dependencies,
         # we check dependencies explicity in cotire script mode when the pre-build action is run
         add_custom_command(
-            TARGET "${_target}"
-            PRE_BUILD ${_cmds}
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-            COMMENT "Updating target ${_target} prefix headers"
-            VERBATIM)
+                TARGET "${_target}"
+                PRE_BUILD ${_cmds}
+                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                COMMENT "Updating target ${_target} prefix headers"
+                VERBATIM)
         # make Xcode precompile the generated prefix header with ProcessPCH and ProcessPCH++
         set_target_properties(${_target} PROPERTIES XCODE_ATTRIBUTE_GCC_PRECOMPILE_PREFIX_HEADER "YES")
         set_target_properties(${_target} PROPERTIES XCODE_ATTRIBUTE_GCC_PREFIX_HEADER "${_prefixHeader}")
@@ -2325,8 +2378,8 @@ function (cotire_setup_target_pch_usage _languages _target _wholeTarget)
                     get_property(_pchFile TARGET ${_target} PROPERTY COTIRE_${_language}_PRECOMPILED_HEADER)
                     set (_options COMPILE_OPTIONS)
                     cotire_add_prefix_pch_inclusion_flags(
-                        "${_language}" "${CMAKE_${_language}_COMPILER_ID}" "${CMAKE_${_language}_COMPILER_VERSION}"
-                        "${_prefixFile}" "${_pchFile}" _options)
+                            "${_language}" "${CMAKE_${_language}_COMPILER_ID}" "${CMAKE_${_language}_COMPILER_VERSION}"
+                            "${_prefixFile}" "${_pchFile}" _options)
                     set_property(TARGET ${_target} APPEND PROPERTY ${_options})
                 endif()
             endif()
@@ -2365,17 +2418,21 @@ function (cotire_setup_unity_generation_commands _language _target _targetScript
             # CMake 3.1.0 supports generator expressions in arguments to DEPENDS
             set (_unityCmdDepends "${_targetConfigScript}")
         endif()
-        file (RELATIVE_PATH _unityFileRelPath "${CMAKE_BINARY_DIR}" "${_unityFile}")
+        if (MSVC_IDE)
+            file (TO_NATIVE_PATH "${_unityFile}" _unityFileLogPath)
+        else()
+            file (RELATIVE_PATH _unityFileLogPath "${CMAKE_BINARY_DIR}" "${_unityFile}")
+        endif()
         if (COTIRE_DEBUG)
             message (STATUS "add_custom_command: OUTPUT ${_unityFile} COMMAND ${_unityCmd} DEPENDS ${_unityCmdDepends}")
         endif()
         add_custom_command(
-            OUTPUT "${_unityFile}"
-            COMMAND ${_unityCmd}
-            DEPENDS ${_unityCmdDepends}
-            COMMENT "Generating ${_language} unity source ${_unityFileRelPath}"
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-            VERBATIM)
+                OUTPUT "${_unityFile}"
+                COMMAND ${_unityCmd}
+                DEPENDS ${_unityCmdDepends}
+                COMMENT "Generating ${_language} unity source ${_unityFileLogPath}"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                VERBATIM)
         list (APPEND ${_cmdsVar} COMMAND ${_unityCmd})
     endforeach()
     set (${_cmdsVar} ${${_cmdsVar}} PARENT_SCOPE)
@@ -2391,12 +2448,16 @@ function (cotire_setup_prefix_generation_command _language _target _targetScript
     if (COTIRE_DEBUG)
         message (STATUS "add_custom_command: OUTPUT ${_prefixFile} COMMAND ${_prefixCmd} DEPENDS ${_unityFile} ${_dependencySources}")
     endif()
-    file (RELATIVE_PATH _prefixFileRelPath "${CMAKE_BINARY_DIR}" "${_prefixFile}")
+    if (MSVC_IDE)
+        file (TO_NATIVE_PATH "${_prefixFile}" _prefixFileLogPath)
+    else()
+        file (RELATIVE_PATH _prefixFileLogPath "${CMAKE_BINARY_DIR}" "${_prefixFile}")
+    endif()
     get_filename_component(_prefixFileExt "${_prefixFile}" EXT)
     if (_prefixFileExt MATCHES "^\\.c")
-        set (_comment "Generating ${_language} prefix source ${_prefixFileRelPath}")
+        set (_comment "Generating ${_language} prefix source ${_prefixFileLogPath}")
     else()
-        set (_comment "Generating ${_language} prefix header ${_prefixFileRelPath}")
+        set (_comment "Generating ${_language} prefix header ${_prefixFileLogPath}")
     endif()
     # prevent pre-processing errors upon generating the prefix header when a target's generated include file does not yet exist
     # we do not add a file-level dependency for the target's generated files though, because we only want to depend on their existence
@@ -2415,12 +2476,12 @@ function (cotire_setup_prefix_generation_command _language _target _targetScript
         endif()
     endif()
     add_custom_command(
-        OUTPUT "${_prefixFile}" "${_prefixFile}.log"
-        COMMAND ${_prefixCmd}
-        DEPENDS ${_unityFiles} ${_dependencySources}
-        COMMENT "${_comment}"
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        VERBATIM)
+            OUTPUT "${_prefixFile}" "${_prefixFile}.log"
+            COMMAND ${_prefixCmd}
+            DEPENDS ${_unityFiles} ${_dependencySources}
+            COMMENT "${_comment}"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            VERBATIM)
     list (APPEND ${_cmdsVar} COMMAND ${_prefixCmd})
     set (${_cmdsVar} ${${_cmdsVar}} PARENT_SCOPE)
 endfunction()
@@ -2434,8 +2495,8 @@ function (cotire_setup_prefix_generation_from_unity_command _language _target _t
         set (_prefixSourceFile "${_prefixFile}")
     endif()
     cotire_setup_prefix_generation_command(
-        ${_language} ${_target} "${_targetScript}"
-        "${_prefixSourceFile}" "${_unityFiles}" ${_cmdsVar} ${_sourceFiles})
+            ${_language} ${_target} "${_targetScript}"
+            "${_prefixSourceFile}" "${_unityFiles}" ${_cmdsVar} ${_sourceFiles})
     if (CMAKE_${_language}_COMPILER_ID MATCHES "GNU|Clang")
         # set up generation of a prefix source file which includes the prefix header
         cotire_setup_combine_command(${_language} "${_targetScript}" "${_prefixFile}" _cmds ${_prefixSourceFile})
@@ -2578,7 +2639,7 @@ function (cotire_choose_target_languages _target _targetLanguagesVar _wholeTarge
             set (${_targetLanguagesVar} "" PARENT_SCOPE)
             return()
         endif()
-        if (_targetUsePCH AND "${_language}" MATCHES "^C|CXX$")
+        if (_targetUsePCH AND "${_language}" MATCHES "^C|CXX$" AND NOT "${CMAKE_${_language}_COMPILER_ID}" STREQUAL "")
             cotire_check_precompiled_header_support("${_language}" "${_target}" _disableMsg)
             if (_disableMsg)
                 set (_targetUsePCH FALSE)
@@ -2643,7 +2704,7 @@ function (cotire_choose_target_languages _target _targetLanguagesVar _wholeTarge
             set (COTIREMSG_${_target} "")
         endif()
         if (COTIRE_VERBOSE OR NOT "${_targetMsgLevel}" STREQUAL "STATUS" OR
-            NOT "${COTIREMSG_${_target}}" STREQUAL "${_targetMsg}")
+                NOT "${COTIREMSG_${_target}}" STREQUAL "${_targetMsg}")
             # cache message to avoid redundant messages on re-configure
             set (COTIREMSG_${_target} "${_targetMsg}" CACHE INTERNAL "${_target} cotire message.")
             message (${_targetMsgLevel} "${_targetMsg}")
@@ -2695,7 +2756,7 @@ function (cotire_process_target_language _language _configurations _target _whol
         set (_unitySourceFiles ${_sourceFiles} ${_cotiredSources})
     endif()
     cotire_generate_target_script(
-        ${_language} "${_configurations}" ${_target} _targetScript _targetConfigScript ${_unitySourceFiles})
+            ${_language} "${_configurations}" ${_target} _targetScript _targetConfigScript ${_unitySourceFiles})
     # set up unity files for parallel compilation
     cotire_compute_unity_max_number_of_includes(${_target} _maxIncludes ${_unitySourceFiles})
     cotire_make_unity_source_file_paths(${_language} ${_target} ${_maxIncludes} _unityFiles ${_unitySourceFiles})
@@ -2704,12 +2765,12 @@ function (cotire_process_target_language _language _configurations _target _whol
         return()
     elseif (_numberOfUnityFiles GREATER 1)
         cotire_setup_unity_generation_commands(
-            ${_language} ${_target} "${_targetScript}" "${_targetConfigScript}" "${_unityFiles}" _cmds ${_unitySourceFiles})
+                ${_language} ${_target} "${_targetScript}" "${_targetConfigScript}" "${_unityFiles}" _cmds ${_unitySourceFiles})
     endif()
     # set up single unity file for prefix header generation
     cotire_make_single_unity_source_file_path(${_language} ${_target} _unityFile)
     cotire_setup_unity_generation_commands(
-        ${_language} ${_target} "${_targetScript}" "${_targetConfigScript}" "${_unityFile}" _cmds ${_unitySourceFiles})
+            ${_language} ${_target} "${_targetScript}" "${_targetConfigScript}" "${_unityFile}" _cmds ${_unitySourceFiles})
     cotire_make_prefix_file_path(${_language} ${_target} _prefixFile)
     # set up prefix header
     if (_prefixFile)
@@ -2717,10 +2778,10 @@ function (cotire_process_target_language _language _configurations _target _whol
         get_property(_prefixHeaderFiles TARGET ${_target} PROPERTY COTIRE_${_language}_PREFIX_HEADER_INIT)
         if (_prefixHeaderFiles)
             cotire_setup_prefix_generation_from_provided_command(
-                ${_language} ${_target} "${_targetConfigScript}" "${_prefixFile}" _cmds ${_prefixHeaderFiles})
+                    ${_language} ${_target} "${_targetConfigScript}" "${_prefixFile}" _cmds ${_prefixHeaderFiles})
         else()
             cotire_setup_prefix_generation_from_unity_command(
-                ${_language} ${_target} "${_targetConfigScript}" "${_prefixFile}" "${_unityFile}" _cmds ${_unitySourceFiles})
+                    ${_language} ${_target} "${_targetConfigScript}" "${_prefixFile}" "${_unityFile}" _cmds ${_unitySourceFiles})
         endif()
         # check if selected language has enough sources at all
         list (LENGTH _sourceFiles _numberOfSources)
@@ -2734,9 +2795,9 @@ function (cotire_process_target_language _language _configurations _target _whol
             if (_pchFile)
                 # first file in _sourceFiles is passed as the host file
                 cotire_setup_pch_file_compilation(
-                    ${_language} ${_target} "${_targetConfigScript}" "${_prefixFile}" "${_pchFile}" ${_sourceFiles})
+                        ${_language} ${_target} "${_targetConfigScript}" "${_prefixFile}" "${_pchFile}" ${_sourceFiles})
                 cotire_setup_pch_file_inclusion(
-                    ${_language} ${_target} ${_wholeTarget} "${_prefixFile}" "${_pchFile}" ${_sourceFiles})
+                        ${_language} ${_target} ${_wholeTarget} "${_prefixFile}" "${_pchFile}" ${_sourceFiles})
             endif()
         elseif (_prefixHeaderFiles)
             # user provided prefix header must be included unconditionally
@@ -2761,10 +2822,10 @@ function (cotire_setup_clean_target _target)
         get_filename_component(_outputDir "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}" ABSOLUTE)
         list (APPEND _cmds -P "${COTIRE_CMAKE_MODULE_FILE}" "cleanup" "${_outputDir}" "${COTIRE_INTDIR}" "${_target}")
         add_custom_target(${_cleanTargetName}
-            COMMAND ${_cmds}
-            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-            COMMENT "Cleaning up target ${_target} cotire generated files"
-            VERBATIM)
+                COMMAND ${_cmds}
+                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+                COMMENT "Cleaning up target ${_target} cotire generated files"
+                VERBATIM)
         cotire_init_target("${_cleanTargetName}")
     endif()
 endfunction()
@@ -2878,9 +2939,9 @@ function (cotire_setup_unity_build_target _languages _configurations _target)
     endif()
     # copy output location properties
     set (_outputDirProperties
-        ARCHIVE_OUTPUT_DIRECTORY ARCHIVE_OUTPUT_DIRECTORY_<CONFIG>
-        LIBRARY_OUTPUT_DIRECTORY LIBRARY_OUTPUT_DIRECTORY_<CONFIG>
-        RUNTIME_OUTPUT_DIRECTORY RUNTIME_OUTPUT_DIRECTORY_<CONFIG>)
+            ARCHIVE_OUTPUT_DIRECTORY ARCHIVE_OUTPUT_DIRECTORY_<CONFIG>
+            LIBRARY_OUTPUT_DIRECTORY LIBRARY_OUTPUT_DIRECTORY_<CONFIG>
+            RUNTIME_OUTPUT_DIRECTORY RUNTIME_OUTPUT_DIRECTORY_<CONFIG>)
     if (COTIRE_UNITY_OUTPUT_DIRECTORY)
         set (_setDefaultOutputDir TRUE)
         if (IS_ABSOLUTE "${COTIRE_UNITY_OUTPUT_DIRECTORY}")
@@ -2903,86 +2964,87 @@ function (cotire_setup_unity_build_target _languages _configurations _target)
         endif()
         if (_setDefaultOutputDir)
             set_target_properties(${_unityTargetName} PROPERTIES
-                ARCHIVE_OUTPUT_DIRECTORY "${_outputDir}"
-                LIBRARY_OUTPUT_DIRECTORY "${_outputDir}"
-                RUNTIME_OUTPUT_DIRECTORY "${_outputDir}")
+                    ARCHIVE_OUTPUT_DIRECTORY "${_outputDir}"
+                    LIBRARY_OUTPUT_DIRECTORY "${_outputDir}"
+                    RUNTIME_OUTPUT_DIRECTORY "${_outputDir}")
         endif()
     else()
         cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-            ${_outputDirProperties})
+                ${_outputDirProperties})
     endif()
     # copy output name
     cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-        ARCHIVE_OUTPUT_NAME ARCHIVE_OUTPUT_NAME_<CONFIG>
-        LIBRARY_OUTPUT_NAME LIBRARY_OUTPUT_NAME_<CONFIG>
-        OUTPUT_NAME OUTPUT_NAME_<CONFIG>
-        RUNTIME_OUTPUT_NAME RUNTIME_OUTPUT_NAME_<CONFIG>
-        PREFIX <CONFIG>_POSTFIX SUFFIX
-        IMPORT_PREFIX IMPORT_SUFFIX)
+            ARCHIVE_OUTPUT_NAME ARCHIVE_OUTPUT_NAME_<CONFIG>
+            LIBRARY_OUTPUT_NAME LIBRARY_OUTPUT_NAME_<CONFIG>
+            OUTPUT_NAME OUTPUT_NAME_<CONFIG>
+            RUNTIME_OUTPUT_NAME RUNTIME_OUTPUT_NAME_<CONFIG>
+            PREFIX <CONFIG>_POSTFIX SUFFIX
+            IMPORT_PREFIX IMPORT_SUFFIX)
     # copy compile stuff
     cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-        COMPILE_DEFINITIONS COMPILE_DEFINITIONS_<CONFIG>
-        COMPILE_FLAGS COMPILE_OPTIONS
-        Fortran_FORMAT Fortran_MODULE_DIRECTORY
-        INCLUDE_DIRECTORIES
-        INTERPROCEDURAL_OPTIMIZATION INTERPROCEDURAL_OPTIMIZATION_<CONFIG>
-        POSITION_INDEPENDENT_CODE
-        C_COMPILER_LAUNCHER CXX_COMPILER_LAUNCHER
-        C_INCLUDE_WHAT_YOU_USE CXX_INCLUDE_WHAT_YOU_USE
-        C_VISIBILITY_PRESET CXX_VISIBILITY_PRESET VISIBILITY_INLINES_HIDDEN)
+            COMPILE_DEFINITIONS COMPILE_DEFINITIONS_<CONFIG>
+            COMPILE_FLAGS COMPILE_OPTIONS
+            Fortran_FORMAT Fortran_MODULE_DIRECTORY
+            INCLUDE_DIRECTORIES
+            INTERPROCEDURAL_OPTIMIZATION INTERPROCEDURAL_OPTIMIZATION_<CONFIG>
+            POSITION_INDEPENDENT_CODE
+            C_COMPILER_LAUNCHER CXX_COMPILER_LAUNCHER
+            C_INCLUDE_WHAT_YOU_USE CXX_INCLUDE_WHAT_YOU_USE
+            C_VISIBILITY_PRESET CXX_VISIBILITY_PRESET VISIBILITY_INLINES_HIDDEN)
     # copy compile features
     cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-        C_EXTENSIONS C_STANDARD C_STANDARD_REQUIRED
-        CXX_EXTENSIONS CXX_STANDARD CXX_STANDARD_REQUIRED
-        COMPILE_FEATURES)
+            C_EXTENSIONS C_STANDARD C_STANDARD_REQUIRED
+            CXX_EXTENSIONS CXX_STANDARD CXX_STANDARD_REQUIRED
+            COMPILE_FEATURES)
     # copy interface stuff
     cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-        COMPATIBLE_INTERFACE_BOOL COMPATIBLE_INTERFACE_NUMBER_MAX COMPATIBLE_INTERFACE_NUMBER_MIN
-        COMPATIBLE_INTERFACE_STRING
-        INTERFACE_COMPILE_DEFINITIONS INTERFACE_COMPILE_FEATURES INTERFACE_COMPILE_OPTIONS
-        INTERFACE_INCLUDE_DIRECTORIES INTERFACE_SOURCES
-        INTERFACE_POSITION_INDEPENDENT_CODE INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-        INTERFACE_AUTOUIC_OPTIONS NO_SYSTEM_FROM_IMPORTED)
+            COMPATIBLE_INTERFACE_BOOL COMPATIBLE_INTERFACE_NUMBER_MAX COMPATIBLE_INTERFACE_NUMBER_MIN
+            COMPATIBLE_INTERFACE_STRING
+            INTERFACE_COMPILE_DEFINITIONS INTERFACE_COMPILE_FEATURES INTERFACE_COMPILE_OPTIONS
+            INTERFACE_INCLUDE_DIRECTORIES INTERFACE_SOURCES
+            INTERFACE_POSITION_INDEPENDENT_CODE INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
+            INTERFACE_AUTOUIC_OPTIONS NO_SYSTEM_FROM_IMPORTED)
     # copy link stuff
     cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-        BUILD_WITH_INSTALL_RPATH INSTALL_RPATH INSTALL_RPATH_USE_LINK_PATH SKIP_BUILD_RPATH
-        LINKER_LANGUAGE LINK_DEPENDS LINK_DEPENDS_NO_SHARED
-        LINK_FLAGS LINK_FLAGS_<CONFIG>
-        LINK_INTERFACE_LIBRARIES LINK_INTERFACE_LIBRARIES_<CONFIG>
-        LINK_INTERFACE_MULTIPLICITY LINK_INTERFACE_MULTIPLICITY_<CONFIG>
-        LINK_SEARCH_START_STATIC LINK_SEARCH_END_STATIC
-        STATIC_LIBRARY_FLAGS STATIC_LIBRARY_FLAGS_<CONFIG>
-        NO_SONAME SOVERSION VERSION)
+            BUILD_WITH_INSTALL_RPATH INSTALL_RPATH INSTALL_RPATH_USE_LINK_PATH SKIP_BUILD_RPATH
+            LINKER_LANGUAGE LINK_DEPENDS LINK_DEPENDS_NO_SHARED
+            LINK_FLAGS LINK_FLAGS_<CONFIG>
+            LINK_INTERFACE_LIBRARIES LINK_INTERFACE_LIBRARIES_<CONFIG>
+            LINK_INTERFACE_MULTIPLICITY LINK_INTERFACE_MULTIPLICITY_<CONFIG>
+            LINK_SEARCH_START_STATIC LINK_SEARCH_END_STATIC
+            STATIC_LIBRARY_FLAGS STATIC_LIBRARY_FLAGS_<CONFIG>
+            NO_SONAME SOVERSION VERSION)
     # copy cmake stuff
     cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-        IMPLICIT_DEPENDS_INCLUDE_TRANSFORM RULE_LAUNCH_COMPILE RULE_LAUNCH_CUSTOM RULE_LAUNCH_LINK)
+            IMPLICIT_DEPENDS_INCLUDE_TRANSFORM RULE_LAUNCH_COMPILE RULE_LAUNCH_CUSTOM RULE_LAUNCH_LINK)
     # copy Apple platform specific stuff
     cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-        BUNDLE BUNDLE_EXTENSION FRAMEWORK FRAMEWORK_VERSION INSTALL_NAME_DIR
-        MACOSX_BUNDLE MACOSX_BUNDLE_INFO_PLIST MACOSX_FRAMEWORK_INFO_PLIST MACOSX_RPATH
-        OSX_ARCHITECTURES OSX_ARCHITECTURES_<CONFIG> PRIVATE_HEADER PUBLIC_HEADER RESOURCE XCTEST)
+            BUNDLE BUNDLE_EXTENSION FRAMEWORK FRAMEWORK_VERSION INSTALL_NAME_DIR
+            MACOSX_BUNDLE MACOSX_BUNDLE_INFO_PLIST MACOSX_FRAMEWORK_INFO_PLIST MACOSX_RPATH
+            OSX_ARCHITECTURES OSX_ARCHITECTURES_<CONFIG> PRIVATE_HEADER PUBLIC_HEADER RESOURCE XCTEST
+            IOS_INSTALL_COMBINED)
     # copy Windows platform specific stuff
     cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-        GNUtoMS
-        COMPILE_PDB_NAME COMPILE_PDB_NAME_<CONFIG>
-        COMPILE_PDB_OUTPUT_DIRECTORY COMPILE_PDB_OUTPUT_DIRECTORY_<CONFIG>
-        PDB_NAME PDB_NAME_<CONFIG> PDB_OUTPUT_DIRECTORY PDB_OUTPUT_DIRECTORY_<CONFIG>
-        VS_DESKTOP_EXTENSIONS_VERSION VS_DOTNET_REFERENCES VS_DOTNET_TARGET_FRAMEWORK_VERSION
-        VS_GLOBAL_KEYWORD VS_GLOBAL_PROJECT_TYPES VS_GLOBAL_ROOTNAMESPACE
-        VS_IOT_EXTENSIONS_VERSION VS_IOT_STARTUP_TASK
-        VS_KEYWORD VS_MOBILE_EXTENSIONS_VERSION
-        VS_SCC_AUXPATH VS_SCC_LOCALPATH VS_SCC_PROJECTNAME VS_SCC_PROVIDER
-        VS_WINDOWS_TARGET_PLATFORM_MIN_VERSION
-        VS_WINRT_COMPONENT VS_WINRT_EXTENSIONS VS_WINRT_REFERENCES
-        WIN32_EXECUTABLE WINDOWS_EXPORT_ALL_SYMBOLS)
+            GNUtoMS
+            COMPILE_PDB_NAME COMPILE_PDB_NAME_<CONFIG>
+            COMPILE_PDB_OUTPUT_DIRECTORY COMPILE_PDB_OUTPUT_DIRECTORY_<CONFIG>
+            PDB_NAME PDB_NAME_<CONFIG> PDB_OUTPUT_DIRECTORY PDB_OUTPUT_DIRECTORY_<CONFIG>
+            VS_DESKTOP_EXTENSIONS_VERSION VS_DOTNET_REFERENCES VS_DOTNET_TARGET_FRAMEWORK_VERSION
+            VS_GLOBAL_KEYWORD VS_GLOBAL_PROJECT_TYPES VS_GLOBAL_ROOTNAMESPACE
+            VS_IOT_EXTENSIONS_VERSION VS_IOT_STARTUP_TASK
+            VS_KEYWORD VS_MOBILE_EXTENSIONS_VERSION
+            VS_SCC_AUXPATH VS_SCC_LOCALPATH VS_SCC_PROJECTNAME VS_SCC_PROVIDER
+            VS_WINDOWS_TARGET_PLATFORM_MIN_VERSION
+            VS_WINRT_COMPONENT VS_WINRT_EXTENSIONS VS_WINRT_REFERENCES
+            WIN32_EXECUTABLE WINDOWS_EXPORT_ALL_SYMBOLS)
     # copy Android platform specific stuff
     cotire_copy_set_properites("${_configurations}" TARGET ${_target} ${_unityTargetName}
-        ANDROID_API ANDROID_API_MIN ANDROID_GUI
-        ANDROID_ANT_ADDITIONAL_OPTIONS ANDROID_ARCH ANDROID_ASSETS_DIRECTORIES
-        ANDROID_JAR_DEPENDENCIES ANDROID_JAR_DIRECTORIES ANDROID_JAVA_SOURCE_DIR
-        ANDROID_NATIVE_LIB_DEPENDENCIES ANDROID_NATIVE_LIB_DIRECTORIES
-        ANDROID_PROCESS_MAX ANDROID_PROGUARD ANDROID_PROGUARD_CONFIG_PATH
-        ANDROID_SECURE_PROPS_PATH ANDROID_SKIP_ANT_STEP ANDROID_STL_TYPE)
+            ANDROID_API ANDROID_API_MIN ANDROID_GUI
+            ANDROID_ANT_ADDITIONAL_OPTIONS ANDROID_ARCH ANDROID_ASSETS_DIRECTORIES
+            ANDROID_JAR_DEPENDENCIES ANDROID_JAR_DIRECTORIES ANDROID_JAVA_SOURCE_DIR
+            ANDROID_NATIVE_LIB_DEPENDENCIES ANDROID_NATIVE_LIB_DIRECTORIES
+            ANDROID_PROCESS_MAX ANDROID_PROGUARD ANDROID_PROGUARD_CONFIG_PATH
+            ANDROID_SECURE_PROPS_PATH ANDROID_SKIP_ANT_STEP ANDROID_STL_TYPE)
     # use output name from original target
     get_target_property(_targetOutputName ${_unityTargetName} OUTPUT_NAME)
     if (NOT _targetOutputName)
@@ -3012,10 +3074,16 @@ function (cotire_target _target)
     if (NOT _option_CONFIGURATIONS)
         cotire_get_configuration_types(_option_CONFIGURATIONS)
     endif()
-    # trivial checks
-    get_target_property(_imported ${_target} IMPORTED)
-    if (_imported)
-        message (WARNING "cotire: imported target ${_target} cannot be cotired.")
+    # check if cotire can be applied to target at all
+    cotire_is_target_supported(${_target} _isSupported)
+    if (NOT _isSupported)
+        get_target_property(_imported ${_target} IMPORTED)
+        get_target_property(_targetType ${_target} TYPE)
+        if (_imported)
+            message (WARNING "cotire: imported ${_targetType} target ${_target} cannot be cotired.")
+        else()
+            message (STATUS "cotire: ${_targetType} target ${_target} cannot be cotired.")
+        endif()
         return()
     endif()
     # resolve alias
@@ -3080,11 +3148,27 @@ endfunction(cotire_target)
 function (cotire_map_libraries _strategy _mappedLibrariesVar)
     set (_mappedLibraries "")
     foreach (_library ${ARGN})
-        if (TARGET "${_library}" AND "${_strategy}" MATCHES "COPY_UNITY")
-            # use target's corresponding unity target, if available
-            get_target_property(_libraryUnityTargetName ${_library} COTIRE_UNITY_TARGET_NAME)
-            if (TARGET "${_libraryUnityTargetName}")
-                list (APPEND _mappedLibraries "${_libraryUnityTargetName}")
+        if (_library MATCHES "^\\$<LINK_ONLY:(.+)>$")
+            set (_libraryName "${CMAKE_MATCH_1}")
+            set (_linkOnly TRUE)
+        else()
+            set (_libraryName "${_library}")
+            set (_linkOnly FALSE)
+        endif()
+        if ("${_strategy}" MATCHES "COPY_UNITY")
+            cotire_is_target_supported(${_libraryName} _isSupported)
+            if (_isSupported)
+                # use target's corresponding unity target, if available
+                get_target_property(_libraryUnityTargetName ${_libraryName} COTIRE_UNITY_TARGET_NAME)
+                if (TARGET "${_libraryUnityTargetName}")
+                    if (_linkOnly)
+                        list (APPEND _mappedLibraries "$<LINK_ONLY:${_libraryUnityTargetName}>")
+                    else()
+                        list (APPEND _mappedLibraries "${_libraryUnityTargetName}")
+                    endif()
+                else()
+                    list (APPEND _mappedLibraries "${_library}")
+                endif()
             else()
                 list (APPEND _mappedLibraries "${_library}")
             endif()
@@ -3097,6 +3181,10 @@ function (cotire_map_libraries _strategy _mappedLibrariesVar)
 endfunction()
 
 function (cotire_target_link_libraries _target)
+    cotire_is_target_supported(${_target} _isSupported)
+    if (NOT _isSupported)
+        return()
+    endif()
     get_target_property(_unityTargetName ${_target} COTIRE_UNITY_TARGET_NAME)
     if (TARGET "${_unityTargetName}")
         get_target_property(_linkLibrariesStrategy ${_target} COTIRE_UNITY_LINK_LIBRARIES_INIT)
@@ -3104,21 +3192,21 @@ function (cotire_target_link_libraries _target)
             message (STATUS "unity target ${_unityTargetName} link strategy: ${_linkLibrariesStrategy}")
         endif()
         if ("${_linkLibrariesStrategy}" MATCHES "^(COPY|COPY_UNITY)$")
-            set (_unityLinkLibraries "")
             get_target_property(_linkLibraries ${_target} LINK_LIBRARIES)
             if (_linkLibraries)
-                list (APPEND _unityLinkLibraries ${_linkLibraries})
+                cotire_map_libraries("${_linkLibrariesStrategy}" _unityLinkLibraries ${_linkLibraries})
+                set_target_properties(${_unityTargetName} PROPERTIES LINK_LIBRARIES "${_unityLinkLibraries}")
+                if (COTIRE_DEBUG)
+                    message (STATUS "unity target ${_unityTargetName} link libraries: ${_unityLinkLibraries}")
+                endif()
             endif()
             get_target_property(_interfaceLinkLibraries ${_target} INTERFACE_LINK_LIBRARIES)
             if (_interfaceLinkLibraries)
-                list (APPEND _unityLinkLibraries ${_interfaceLinkLibraries})
-            endif()
-            cotire_map_libraries("${_linkLibrariesStrategy}" _unityLinkLibraries ${_unityLinkLibraries})
-            if (COTIRE_DEBUG)
-                message (STATUS "unity target ${_unityTargetName} libraries: ${_unityLinkLibraries}")
-            endif()
-            if (_unityLinkLibraries)
-                target_link_libraries(${_unityTargetName} ${_unityLinkLibraries})
+                cotire_map_libraries("${_linkLibrariesStrategy}" _unityLinkInterfaceLibraries ${_interfaceLinkLibraries})
+                set_target_properties(${_unityTargetName} PROPERTIES INTERFACE_LINK_LIBRARIES "${_unityLinkInterfaceLibraries}")
+                if (COTIRE_DEBUG)
+                    message (STATUS "unity target ${_unityTargetName} interface link libraries: ${_unityLinkInterfaceLibraries}")
+                endif()
             endif()
         endif()
     endif()
@@ -3161,8 +3249,8 @@ function (cotire_add_to_pch_all_target _pchTargetName)
     set (_targetName "${COTIRE_PCH_ALL_TARGET_NAME}")
     if (NOT TARGET "${_targetName}")
         add_custom_target("${_targetName}"
-            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-            VERBATIM)
+                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+                VERBATIM)
         cotire_init_target("${_targetName}")
     endif()
     cotire_setup_clean_all_target()
@@ -3173,8 +3261,8 @@ function (cotire_add_to_unity_all_target _unityTargetName)
     set (_targetName "${COTIRE_UNITY_BUILD_ALL_TARGET_NAME}")
     if (NOT TARGET "${_targetName}")
         add_custom_target("${_targetName}"
-            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-            VERBATIM)
+                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+                VERBATIM)
         cotire_init_target("${_targetName}")
     endif()
     cotire_setup_clean_all_target()
@@ -3187,10 +3275,10 @@ function (cotire_setup_clean_all_target)
         cotire_set_cmd_to_prologue(_cmds)
         list (APPEND _cmds -P "${COTIRE_CMAKE_MODULE_FILE}" "cleanup" "${CMAKE_BINARY_DIR}" "${COTIRE_INTDIR}")
         add_custom_target(${_targetName}
-            COMMAND ${_cmds}
-            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-            COMMENT "Cleaning up all cotire generated files"
-            VERBATIM)
+                COMMAND ${_cmds}
+                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+                COMMENT "Cleaning up all cotire generated files"
+                VERBATIM)
         cotire_init_target("${_targetName}")
     endif()
 endfunction()
@@ -3277,14 +3365,14 @@ if (CMAKE_SCRIPT_MODE_FILE)
         cotire_select_unity_source_files("${COTIRE_ARGV3}" _sources ${_sources})
 
         cotire_generate_unity_source(
-            "${COTIRE_ARGV3}" ${_sources}
-            LANGUAGE "${COTIRE_TARGET_LANGUAGE}"
-            SOURCES_COMPILE_DEFINITIONS ${_sourcesDefinitions}
-            PRE_UNDEFS ${_targetPreUndefs}
-            POST_UNDEFS ${_targetPostUndefs}
-            SOURCES_PRE_UNDEFS ${_sourcesPreUndefs}
-            SOURCES_POST_UNDEFS ${_sourcesPostUndefs}
-            ${_dependsOption})
+                "${COTIRE_ARGV3}" ${_sources}
+                LANGUAGE "${COTIRE_TARGET_LANGUAGE}"
+                SOURCES_COMPILE_DEFINITIONS ${_sourcesDefinitions}
+                PRE_UNDEFS ${_targetPreUndefs}
+                POST_UNDEFS ${_targetPostUndefs}
+                SOURCES_PRE_UNDEFS ${_sourcesPreUndefs}
+                SOURCES_POST_UNDEFS ${_sourcesPostUndefs}
+                ${_dependsOption})
 
     elseif ("${COTIRE_ARGV1}" STREQUAL "prefix")
 
@@ -3304,21 +3392,22 @@ if (CMAKE_SCRIPT_MODE_FILE)
         endforeach()
 
         cotire_generate_prefix_header(
-            "${COTIRE_ARGV3}" ${_files}
-            COMPILER_EXECUTABLE "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER}"
-            COMPILER_ARG1 ${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_ARG1}
-            COMPILER_ID "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_ID}"
-            COMPILER_VERSION "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_VERSION}"
-            LANGUAGE "${COTIRE_TARGET_LANGUAGE}"
-            IGNORE_PATH "${COTIRE_TARGET_IGNORE_PATH};${COTIRE_ADDITIONAL_PREFIX_HEADER_IGNORE_PATH}"
-            INCLUDE_PATH ${COTIRE_TARGET_INCLUDE_PATH}
-            IGNORE_EXTENSIONS "${CMAKE_${COTIRE_TARGET_LANGUAGE}_SOURCE_FILE_EXTENSIONS};${COTIRE_ADDITIONAL_PREFIX_HEADER_IGNORE_EXTENSIONS}"
-            INCLUDE_PRIORITY_PATH ${COTIRE_TARGET_INCLUDE_PRIORITY_PATH}
-            INCLUDE_DIRECTORIES ${_includeDirs}
-            SYSTEM_INCLUDE_DIRECTORIES ${_systemIncludeDirs}
-            COMPILE_DEFINITIONS ${_compileDefinitions}
-            COMPILE_FLAGS ${_compileFlags}
-            ${_dependsOption})
+                "${COTIRE_ARGV3}" ${_files}
+                COMPILER_LAUNCHER "${COTIRE_TARGET_${COTIRE_TARGET_LANGUAGE}_COMPILER_LAUNCHER}"
+                COMPILER_EXECUTABLE "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER}"
+                COMPILER_ARG1 ${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_ARG1}
+                COMPILER_ID "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_ID}"
+                COMPILER_VERSION "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_VERSION}"
+                LANGUAGE "${COTIRE_TARGET_LANGUAGE}"
+                IGNORE_PATH "${COTIRE_TARGET_IGNORE_PATH};${COTIRE_ADDITIONAL_PREFIX_HEADER_IGNORE_PATH}"
+                INCLUDE_PATH ${COTIRE_TARGET_INCLUDE_PATH}
+                IGNORE_EXTENSIONS "${CMAKE_${COTIRE_TARGET_LANGUAGE}_SOURCE_FILE_EXTENSIONS};${COTIRE_ADDITIONAL_PREFIX_HEADER_IGNORE_EXTENSIONS}"
+                INCLUDE_PRIORITY_PATH ${COTIRE_TARGET_INCLUDE_PRIORITY_PATH}
+                INCLUDE_DIRECTORIES ${_includeDirs}
+                SYSTEM_INCLUDE_DIRECTORIES ${_systemIncludeDirs}
+                COMPILE_DEFINITIONS ${_compileDefinitions}
+                COMPILE_FLAGS ${_compileFlags}
+                ${_dependsOption})
 
     elseif ("${COTIRE_ARGV1}" STREQUAL "precompile")
 
@@ -3330,16 +3419,17 @@ if (CMAKE_SCRIPT_MODE_FILE)
         endforeach()
 
         cotire_precompile_prefix_header(
-            "${COTIRE_ARGV3}" "${COTIRE_ARGV4}" "${COTIRE_ARGV5}"
-            COMPILER_EXECUTABLE "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER}"
-            COMPILER_ARG1 ${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_ARG1}
-            COMPILER_ID "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_ID}"
-            COMPILER_VERSION "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_VERSION}"
-            LANGUAGE "${COTIRE_TARGET_LANGUAGE}"
-            INCLUDE_DIRECTORIES ${_includeDirs}
-            SYSTEM_INCLUDE_DIRECTORIES ${_systemIncludeDirs}
-            COMPILE_DEFINITIONS ${_compileDefinitions}
-            COMPILE_FLAGS ${_compileFlags})
+                "${COTIRE_ARGV3}" "${COTIRE_ARGV4}" "${COTIRE_ARGV5}"
+                COMPILER_LAUNCHER "${COTIRE_TARGET_${COTIRE_TARGET_LANGUAGE}_COMPILER_LAUNCHER}"
+                COMPILER_EXECUTABLE "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER}"
+                COMPILER_ARG1 ${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_ARG1}
+                COMPILER_ID "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_ID}"
+                COMPILER_VERSION "${CMAKE_${COTIRE_TARGET_LANGUAGE}_COMPILER_VERSION}"
+                LANGUAGE "${COTIRE_TARGET_LANGUAGE}"
+                INCLUDE_DIRECTORIES ${_includeDirs}
+                SYSTEM_INCLUDE_DIRECTORIES ${_systemIncludeDirs}
+                COMPILE_DEFINITIONS ${_compileDefinitions}
+                COMPILE_FLAGS ${_compileFlags})
 
     elseif ("${COTIRE_ARGV1}" STREQUAL "combine")
 
@@ -3367,9 +3457,9 @@ if (CMAKE_SCRIPT_MODE_FILE)
 
         if (COTIRE_TARGET_LANGUAGE)
             cotire_generate_unity_source(
-                "${_combinedFile}" ${_files}
-                LANGUAGE "${COTIRE_TARGET_LANGUAGE}"
-                ${_dependsOption})
+                    "${_combinedFile}" ${_files}
+                    LANGUAGE "${COTIRE_TARGET_LANGUAGE}"
+                    ${_dependsOption})
         else()
             cotire_generate_unity_source("${_combinedFile}" ${_files} ${_dependsOption})
         endif()
@@ -3406,16 +3496,16 @@ else()
     option (COTIRE_VERBOSE "Enable cotire verbose output?" ${COTIRE_VERBOSE_INIT})
 
     set (COTIRE_ADDITIONAL_PREFIX_HEADER_IGNORE_EXTENSIONS "inc;inl;ipp" CACHE STRING
-        "Ignore headers with the listed file extensions from the generated prefix header.")
+            "Ignore headers with the listed file extensions from the generated prefix header.")
 
     set (COTIRE_ADDITIONAL_PREFIX_HEADER_IGNORE_PATH "" CACHE STRING
-        "Ignore headers from these directories when generating the prefix header.")
+            "Ignore headers from these directories when generating the prefix header.")
 
     set (COTIRE_UNITY_SOURCE_EXCLUDE_EXTENSIONS "m;mm" CACHE STRING
-        "Ignore sources with the listed file extensions from the generated unity source.")
+            "Ignore sources with the listed file extensions from the generated unity source.")
 
     set (COTIRE_MINIMUM_NUMBER_OF_TARGET_SOURCES "3" CACHE STRING
-        "Minimum number of sources in target required to enable use of precompiled header.")
+            "Minimum number of sources in target required to enable use of precompiled header.")
 
     if (NOT DEFINED COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES_INIT)
         if (DEFINED COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES)
@@ -3428,7 +3518,7 @@ else()
         endif()
     endif()
     set (COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "${COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES_INIT}" CACHE STRING
-        "Maximum number of source files to include in a single unity source file.")
+            "Maximum number of source files to include in a single unity source file.")
 
     if (NOT COTIRE_PREFIX_HEADER_FILENAME_SUFFIX)
         set (COTIRE_PREFIX_HEADER_FILENAME_SUFFIX "_prefix")
@@ -3479,18 +3569,18 @@ else()
     # define cotire cache variables
 
     define_property(
-        CACHED_VARIABLE PROPERTY "COTIRE_ADDITIONAL_PREFIX_HEADER_IGNORE_PATH"
-        BRIEF_DOCS "Ignore headers from these directories when generating the prefix header."
-        FULL_DOCS
+            CACHED_VARIABLE PROPERTY "COTIRE_ADDITIONAL_PREFIX_HEADER_IGNORE_PATH"
+            BRIEF_DOCS "Ignore headers from these directories when generating the prefix header."
+            FULL_DOCS
             "The variable can be set to a semicolon separated list of include directories."
             "If a header file is found in one of these directories or sub-directories, it will be excluded from the generated prefix header."
             "If not defined, defaults to empty list."
     )
 
     define_property(
-        CACHED_VARIABLE PROPERTY "COTIRE_ADDITIONAL_PREFIX_HEADER_IGNORE_EXTENSIONS"
-        BRIEF_DOCS "Ignore includes with the listed file extensions from the generated prefix header."
-        FULL_DOCS
+            CACHED_VARIABLE PROPERTY "COTIRE_ADDITIONAL_PREFIX_HEADER_IGNORE_EXTENSIONS"
+            BRIEF_DOCS "Ignore includes with the listed file extensions from the generated prefix header."
+            FULL_DOCS
             "The variable can be set to a semicolon separated list of file extensions."
             "If a header file extension matches one in the list, it will be excluded from the generated prefix header."
             "Includes with an extension in CMAKE_<LANG>_SOURCE_FILE_EXTENSIONS are always ignored."
@@ -3498,9 +3588,9 @@ else()
     )
 
     define_property(
-        CACHED_VARIABLE PROPERTY "COTIRE_UNITY_SOURCE_EXCLUDE_EXTENSIONS"
-        BRIEF_DOCS "Exclude sources with the listed file extensions from the generated unity source."
-        FULL_DOCS
+            CACHED_VARIABLE PROPERTY "COTIRE_UNITY_SOURCE_EXCLUDE_EXTENSIONS"
+            BRIEF_DOCS "Exclude sources with the listed file extensions from the generated unity source."
+            FULL_DOCS
             "The variable can be set to a semicolon separated list of file extensions."
             "If a source file extension matches one in the list, it will be excluded from the generated unity source file."
             "Source files with an extension in CMAKE_<LANG>_IGNORE_EXTENSIONS are always excluded."
@@ -3508,18 +3598,18 @@ else()
     )
 
     define_property(
-        CACHED_VARIABLE PROPERTY "COTIRE_MINIMUM_NUMBER_OF_TARGET_SOURCES"
-        BRIEF_DOCS "Minimum number of sources in target required to enable use of precompiled header."
-        FULL_DOCS
+            CACHED_VARIABLE PROPERTY "COTIRE_MINIMUM_NUMBER_OF_TARGET_SOURCES"
+            BRIEF_DOCS "Minimum number of sources in target required to enable use of precompiled header."
+            FULL_DOCS
             "The variable can be set to an integer > 0."
             "If a target contains less than that number of source files, cotire will not enable the use of the precompiled header for the target."
             "If not defined, defaults to 3."
     )
 
     define_property(
-        CACHED_VARIABLE PROPERTY "COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES"
-        BRIEF_DOCS "Maximum number of source files to include in a single unity source file."
-        FULL_DOCS
+            CACHED_VARIABLE PROPERTY "COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES"
+            BRIEF_DOCS "Maximum number of source files to include in a single unity source file."
+            FULL_DOCS
             "This may be set to an integer >= 0."
             "If 0, cotire will only create a single unity source file."
             "If a target contains more than that number of source files, cotire will create multiple unity source files for it."
@@ -3532,81 +3622,81 @@ else()
     # define cotire directory properties
 
     define_property(
-        DIRECTORY PROPERTY "COTIRE_ENABLE_PRECOMPILED_HEADER"
-        BRIEF_DOCS "Modify build command of cotired targets added in this directory to make use of the generated precompiled header."
-        FULL_DOCS
+            DIRECTORY PROPERTY "COTIRE_ENABLE_PRECOMPILED_HEADER"
+            BRIEF_DOCS "Modify build command of cotired targets added in this directory to make use of the generated precompiled header."
+            FULL_DOCS
             "See target property COTIRE_ENABLE_PRECOMPILED_HEADER."
     )
 
     define_property(
-        DIRECTORY PROPERTY "COTIRE_ADD_UNITY_BUILD"
-        BRIEF_DOCS "Add a new target that performs a unity build for cotired targets added in this directory."
-        FULL_DOCS
+            DIRECTORY PROPERTY "COTIRE_ADD_UNITY_BUILD"
+            BRIEF_DOCS "Add a new target that performs a unity build for cotired targets added in this directory."
+            FULL_DOCS
             "See target property COTIRE_ADD_UNITY_BUILD."
     )
 
     define_property(
-        DIRECTORY PROPERTY "COTIRE_ADD_CLEAN"
-        BRIEF_DOCS "Add a new target that cleans all cotire generated files for cotired targets added in this directory."
-        FULL_DOCS
+            DIRECTORY PROPERTY "COTIRE_ADD_CLEAN"
+            BRIEF_DOCS "Add a new target that cleans all cotire generated files for cotired targets added in this directory."
+            FULL_DOCS
             "See target property COTIRE_ADD_CLEAN."
     )
 
     define_property(
-        DIRECTORY PROPERTY "COTIRE_PREFIX_HEADER_IGNORE_PATH"
-        BRIEF_DOCS "Ignore headers from these directories when generating the prefix header."
-        FULL_DOCS
+            DIRECTORY PROPERTY "COTIRE_PREFIX_HEADER_IGNORE_PATH"
+            BRIEF_DOCS "Ignore headers from these directories when generating the prefix header."
+            FULL_DOCS
             "See target property COTIRE_PREFIX_HEADER_IGNORE_PATH."
     )
 
     define_property(
-        DIRECTORY PROPERTY "COTIRE_PREFIX_HEADER_INCLUDE_PATH"
-        BRIEF_DOCS "Honor headers from these directories when generating the prefix header."
-        FULL_DOCS
+            DIRECTORY PROPERTY "COTIRE_PREFIX_HEADER_INCLUDE_PATH"
+            BRIEF_DOCS "Honor headers from these directories when generating the prefix header."
+            FULL_DOCS
             "See target property COTIRE_PREFIX_HEADER_INCLUDE_PATH."
     )
 
     define_property(
-        DIRECTORY PROPERTY "COTIRE_PREFIX_HEADER_INCLUDE_PRIORITY_PATH"
-        BRIEF_DOCS "Header paths matching one of these directories are put at the top of the prefix header."
-        FULL_DOCS
+            DIRECTORY PROPERTY "COTIRE_PREFIX_HEADER_INCLUDE_PRIORITY_PATH"
+            BRIEF_DOCS "Header paths matching one of these directories are put at the top of the prefix header."
+            FULL_DOCS
             "See target property COTIRE_PREFIX_HEADER_INCLUDE_PRIORITY_PATH."
     )
 
     define_property(
-        DIRECTORY PROPERTY "COTIRE_UNITY_SOURCE_PRE_UNDEFS"
-        BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file before the inclusion of each source file."
-        FULL_DOCS
+            DIRECTORY PROPERTY "COTIRE_UNITY_SOURCE_PRE_UNDEFS"
+            BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file before the inclusion of each source file."
+            FULL_DOCS
             "See target property COTIRE_UNITY_SOURCE_PRE_UNDEFS."
     )
 
     define_property(
-        DIRECTORY PROPERTY "COTIRE_UNITY_SOURCE_POST_UNDEFS"
-        BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file after the inclusion of each source file."
-        FULL_DOCS
+            DIRECTORY PROPERTY "COTIRE_UNITY_SOURCE_POST_UNDEFS"
+            BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file after the inclusion of each source file."
+            FULL_DOCS
             "See target property COTIRE_UNITY_SOURCE_POST_UNDEFS."
     )
 
     define_property(
-        DIRECTORY PROPERTY "COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES"
-        BRIEF_DOCS "Maximum number of source files to include in a single unity source file."
-        FULL_DOCS
+            DIRECTORY PROPERTY "COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES"
+            BRIEF_DOCS "Maximum number of source files to include in a single unity source file."
+            FULL_DOCS
             "See target property COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES."
     )
 
     define_property(
-        DIRECTORY PROPERTY "COTIRE_UNITY_LINK_LIBRARIES_INIT"
-        BRIEF_DOCS "Define strategy for setting up the unity target's link libraries."
-        FULL_DOCS
+            DIRECTORY PROPERTY "COTIRE_UNITY_LINK_LIBRARIES_INIT"
+            BRIEF_DOCS "Define strategy for setting up the unity target's link libraries."
+            FULL_DOCS
             "See target property COTIRE_UNITY_LINK_LIBRARIES_INIT."
     )
 
     # define cotire target properties
 
     define_property(
-        TARGET PROPERTY "COTIRE_ENABLE_PRECOMPILED_HEADER" INHERITED
-        BRIEF_DOCS "Modify this target's build command to make use of the generated precompiled header."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_ENABLE_PRECOMPILED_HEADER" INHERITED
+            BRIEF_DOCS "Modify this target's build command to make use of the generated precompiled header."
+            FULL_DOCS
             "If this property is set to TRUE, cotire will modify the build command to make use of the generated precompiled header."
             "Irrespective of the value of this property, cotire will setup custom commands to generate the unity source and prefix header for the target."
             "For makefile based generators cotire will also set up a custom target to manually invoke the generation of the precompiled header."
@@ -3616,9 +3706,9 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_ADD_UNITY_BUILD" INHERITED
-        BRIEF_DOCS "Add a new target that performs a unity build for this target."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_ADD_UNITY_BUILD" INHERITED
+            BRIEF_DOCS "Add a new target that performs a unity build for this target."
+            FULL_DOCS
             "If this property is set to TRUE, cotire creates a new target of the same type that uses the generated unity source file instead of the target sources."
             "Most of the relevant target properties will be copied from this target to the new unity build target."
             "Target dependencies and linked libraries have to be manually set up for the new unity build target."
@@ -3628,9 +3718,9 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_ADD_CLEAN" INHERITED
-        BRIEF_DOCS "Add a new target that cleans all cotire generated files for this target."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_ADD_CLEAN" INHERITED
+            BRIEF_DOCS "Add a new target that cleans all cotire generated files for this target."
+            FULL_DOCS
             "If this property is set to TRUE, cotire creates a new target that clean all files (unity source, prefix header, precompiled header)."
             "The clean target name will be set to this target's name with the suffix _clean_cotire appended."
             "Inherited from directory."
@@ -3638,9 +3728,9 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_PREFIX_HEADER_IGNORE_PATH" INHERITED
-        BRIEF_DOCS "Ignore headers from these directories when generating the prefix header."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_PREFIX_HEADER_IGNORE_PATH" INHERITED
+            BRIEF_DOCS "Ignore headers from these directories when generating the prefix header."
+            FULL_DOCS
             "The property can be set to a list of directories."
             "If a header file is found in one of these directories or sub-directories, it will be excluded from the generated prefix header."
             "Inherited from directory."
@@ -3648,9 +3738,9 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_PREFIX_HEADER_INCLUDE_PATH" INHERITED
-        BRIEF_DOCS "Honor headers from these directories when generating the prefix header."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_PREFIX_HEADER_INCLUDE_PATH" INHERITED
+            BRIEF_DOCS "Honor headers from these directories when generating the prefix header."
+            FULL_DOCS
             "The property can be set to a list of directories."
             "If a header file is found in one of these directories or sub-directories, it will be included in the generated prefix header."
             "If a header file is both selected by COTIRE_PREFIX_HEADER_IGNORE_PATH and COTIRE_PREFIX_HEADER_INCLUDE_PATH,"
@@ -3660,9 +3750,9 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_PREFIX_HEADER_INCLUDE_PRIORITY_PATH" INHERITED
-        BRIEF_DOCS "Header paths matching one of these directories are put at the top of prefix header."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_PREFIX_HEADER_INCLUDE_PRIORITY_PATH" INHERITED
+            BRIEF_DOCS "Header paths matching one of these directories are put at the top of prefix header."
+            FULL_DOCS
             "The property can be set to a list of directories."
             "Header file paths matching one of these directories will be inserted at the beginning of the generated prefix header."
             "Header files are sorted according to the order of the directories in the property."
@@ -3670,9 +3760,9 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_UNITY_SOURCE_PRE_UNDEFS" INHERITED
-        BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file before the inclusion of each target source file."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_UNITY_SOURCE_PRE_UNDEFS" INHERITED
+            BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file before the inclusion of each target source file."
+            FULL_DOCS
             "This may be set to a semicolon-separated list of preprocessor symbols."
             "cotire will add corresponding #undef directives to the generated unit source file before each target source file."
             "Inherited from directory."
@@ -3680,9 +3770,9 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_UNITY_SOURCE_POST_UNDEFS" INHERITED
-        BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file after the inclusion of each target source file."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_UNITY_SOURCE_POST_UNDEFS" INHERITED
+            BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file after the inclusion of each target source file."
+            FULL_DOCS
             "This may be set to a semicolon-separated list of preprocessor symbols."
             "cotire will add corresponding #undef directives to the generated unit source file after each target source file."
             "Inherited from directory."
@@ -3690,9 +3780,9 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES" INHERITED
-        BRIEF_DOCS "Maximum number of source files to include in a single unity source file."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES" INHERITED
+            BRIEF_DOCS "Maximum number of source files to include in a single unity source file."
+            FULL_DOCS
             "This may be set to an integer > 0."
             "If a target contains more than that number of source files, cotire will create multiple unity build files for it."
             "If not set, cotire will only create a single unity source file."
@@ -3701,9 +3791,9 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_<LANG>_UNITY_SOURCE_INIT"
-        BRIEF_DOCS "User provided unity source file to be used instead of the automatically generated one."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_<LANG>_UNITY_SOURCE_INIT"
+            BRIEF_DOCS "User provided unity source file to be used instead of the automatically generated one."
+            FULL_DOCS
             "If set, cotire will only add the given file(s) to the generated unity source file."
             "If not set, cotire will add all the target source files to the generated unity source file."
             "The property can be set to a user provided unity source file."
@@ -3711,9 +3801,9 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_<LANG>_PREFIX_HEADER_INIT"
-        BRIEF_DOCS "User provided prefix header file to be used instead of the automatically generated one."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_<LANG>_PREFIX_HEADER_INIT"
+            BRIEF_DOCS "User provided prefix header file to be used instead of the automatically generated one."
+            FULL_DOCS
             "If set, cotire will add the given header file(s) to the generated prefix header file."
             "If not set, cotire will generate a prefix header by tracking the header files included by the unity source file."
             "The property can be set to a user provided prefix header file (e.g., stdafx.h)."
@@ -3721,9 +3811,9 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_UNITY_LINK_LIBRARIES_INIT" INHERITED
-        BRIEF_DOCS "Define strategy for setting up unity target's link libraries."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_UNITY_LINK_LIBRARIES_INIT" INHERITED
+            BRIEF_DOCS "Define strategy for setting up unity target's link libraries."
+            FULL_DOCS
             "If this property is empty or set to NONE, the generated unity target's link libraries have to be set up manually."
             "If this property is set to COPY, the unity target's link libraries will be copied from this target."
             "If this property is set to COPY_UNITY, the unity target's link libraries will be copied from this target with considering existing unity targets."
@@ -3732,33 +3822,33 @@ else()
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_<LANG>_UNITY_SOURCE"
-        BRIEF_DOCS "Read-only property. The generated <LANG> unity source file(s)."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_<LANG>_UNITY_SOURCE"
+            BRIEF_DOCS "Read-only property. The generated <LANG> unity source file(s)."
+            FULL_DOCS
             "cotire sets this property to the path of the generated <LANG> single computation unit source file for the target."
             "Defaults to empty string."
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_<LANG>_PREFIX_HEADER"
-        BRIEF_DOCS "Read-only property. The generated <LANG> prefix header file."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_<LANG>_PREFIX_HEADER"
+            BRIEF_DOCS "Read-only property. The generated <LANG> prefix header file."
+            FULL_DOCS
             "cotire sets this property to the full path of the generated <LANG> language prefix header for the target."
             "Defaults to empty string."
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_<LANG>_PRECOMPILED_HEADER"
-        BRIEF_DOCS "Read-only property. The generated <LANG> precompiled header file."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_<LANG>_PRECOMPILED_HEADER"
+            BRIEF_DOCS "Read-only property. The generated <LANG> precompiled header file."
+            FULL_DOCS
             "cotire sets this property to the full path of the generated <LANG> language precompiled header binary for the target."
             "Defaults to empty string."
     )
 
     define_property(
-        TARGET PROPERTY "COTIRE_UNITY_TARGET_NAME"
-        BRIEF_DOCS "The name of the generated unity build target corresponding to this target."
-        FULL_DOCS
+            TARGET PROPERTY "COTIRE_UNITY_TARGET_NAME"
+            BRIEF_DOCS "The name of the generated unity build target corresponding to this target."
+            FULL_DOCS
             "This property can be set to the desired name of the unity target that will be created by cotire."
             "If not set, the unity target name will be set to this target's name with the suffix _unity appended."
             "After this target has been processed by cotire, the property is set to the actual name of the generated unity target."
@@ -3768,9 +3858,9 @@ else()
     # define cotire source properties
 
     define_property(
-        SOURCE PROPERTY "COTIRE_EXCLUDED"
-        BRIEF_DOCS "Do not modify source file's build command."
-        FULL_DOCS
+            SOURCE PROPERTY "COTIRE_EXCLUDED"
+            BRIEF_DOCS "Do not modify source file's build command."
+            FULL_DOCS
             "If this property is set to TRUE, the source file's build command will not be modified to make use of the precompiled header."
             "The source file will also be excluded from the generated unity source file."
             "Source files that have their COMPILE_FLAGS property set will be excluded by default."
@@ -3778,36 +3868,36 @@ else()
     )
 
     define_property(
-        SOURCE PROPERTY "COTIRE_DEPENDENCY"
-        BRIEF_DOCS "Add this source file to dependencies of the automatically generated prefix header file."
-        FULL_DOCS
+            SOURCE PROPERTY "COTIRE_DEPENDENCY"
+            BRIEF_DOCS "Add this source file to dependencies of the automatically generated prefix header file."
+            FULL_DOCS
             "If this property is set to TRUE, the source file is added to dependencies of the generated prefix header file."
             "If the file is modified, cotire will re-generate the prefix header source upon build."
             "Defaults to FALSE."
     )
 
     define_property(
-        SOURCE PROPERTY "COTIRE_UNITY_SOURCE_PRE_UNDEFS"
-        BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file before the inclusion of this source file."
-        FULL_DOCS
+            SOURCE PROPERTY "COTIRE_UNITY_SOURCE_PRE_UNDEFS"
+            BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file before the inclusion of this source file."
+            FULL_DOCS
             "This may be set to a semicolon-separated list of preprocessor symbols."
             "cotire will add corresponding #undef directives to the generated unit source file before this file is included."
             "Defaults to empty string."
     )
 
     define_property(
-        SOURCE PROPERTY "COTIRE_UNITY_SOURCE_POST_UNDEFS"
-        BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file after the inclusion of this source file."
-        FULL_DOCS
+            SOURCE PROPERTY "COTIRE_UNITY_SOURCE_POST_UNDEFS"
+            BRIEF_DOCS "Preprocessor undefs to place in the generated unity source file after the inclusion of this source file."
+            FULL_DOCS
             "This may be set to a semicolon-separated list of preprocessor symbols."
             "cotire will add corresponding #undef directives to the generated unit source file after this file is included."
             "Defaults to empty string."
     )
 
     define_property(
-        SOURCE PROPERTY "COTIRE_START_NEW_UNITY_SOURCE"
-        BRIEF_DOCS "Start a new unity source file which includes this source file as the first one."
-        FULL_DOCS
+            SOURCE PROPERTY "COTIRE_START_NEW_UNITY_SOURCE"
+            BRIEF_DOCS "Start a new unity source file which includes this source file as the first one."
+            FULL_DOCS
             "If this property is set to TRUE, cotire will complete the current unity file and start a new one."
             "The new unity source file will include this source file as the first one."
             "This property essentially works as a separator for unity source files."
@@ -3815,9 +3905,9 @@ else()
     )
 
     define_property(
-        SOURCE PROPERTY "COTIRE_TARGET"
-        BRIEF_DOCS "Read-only property. Mark this source file as cotired for the given target."
-        FULL_DOCS
+            SOURCE PROPERTY "COTIRE_TARGET"
+            BRIEF_DOCS "Read-only property. Mark this source file as cotired for the given target."
+            FULL_DOCS
             "cotire sets this property to the name of target, that the source file's build command has been altered for."
             "Defaults to empty string."
     )

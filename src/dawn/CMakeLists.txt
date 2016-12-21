@@ -2,123 +2,88 @@
 # Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
 
 set(H_FILES
-    audio/Audio.h
-    audio/Sound.h
-    audio/Source.h
-    audio/Track.h
-    core/Config.h
-    core/ConfigNode.h
-    core/ConfigNode.inl
-    core/Engine.h
+    core/Context.h
     core/EventSystem.h
     core/FixedMemoryPool.h
     core/Log.h
+    core/Object.h
+    core/Option.h
     core/Singleton.h
     core/StateManager.h
-    core/Utils.h
+    core/StringUtils.h
+    core/Timer.h
+    engine/App.h
+    engine/Engine.h
     input/Input.h
+    io/File.h
+    io/FileSystem.h
+    io/InputStream.h
+    io/OutputStream.h
+    math/Colour.h
     math/Defs.h
     math/Noise.h
     math/Rect.h
+    math/StringHash.h
     math/Vec2i.h
     math/Vec3i.h
     math/Vec4i.h
     physics/PhysicsWorld.h
-    renderer/deferred/AmbientLight.h
-    renderer/deferred/DeferredLight.h
-    renderer/deferred/DeferredLightCompPass.h
-    renderer/deferred/DeferredShadingManager.h
-    renderer/deferred/GBufferMaterialGenerator.h
-    renderer/deferred/GBufferSchemeHandler.h
-    renderer/deferred/LightMaterialGenerator.h
-    renderer/deferred/ListenerFactoryLogic.h
-    renderer/deferred/MaterialGenerator.h
-    renderer/GeometryUtils.h
+    renderer/Material.h
+    renderer/Mesh.h
+    renderer/Node.h
     renderer/Renderer.h
-    renderer/SpriteManager.h
-    scene/space/AsteroidBelt.h
-    scene/space/Barycentre.h
-    scene/space/Galaxy.h
-    scene/space/Orbit.h
-    scene/space/Planet.h
-    scene/space/Star.h
-    scene/space/StarSystem.h
-    scene/space/SystemBody.h
-    scene/Camera.h
-    scene/DefaultCamera.h
-    scene/Entity.h
+    renderer/Shader.h
+    renderer/ShaderSource.h
+    renderer/Texture.h
+    resource/Resource.h
+    resource/ResourceCache.h
     scene/Position.h
-    scene/RigidEntity.h
     scene/SceneManager.h
     script/LuaState.h
-    ui/Console.h
-    ui/ImGuiInterface.h
-    ui/Layout.h
-    ui/RocketInterface.h
-    ui/UI.h
     Common.h
     DawnEngine.h
     Platform.h
     Prerequisites.h)
 
 set(CPP_FILES
-    audio/Audio.cpp
-    audio/Sound.cpp
-    audio/Source.cpp
-    audio/Track.cpp
-    core/Config.cpp
-    core/ConfigNode.cpp
-    core/Engine.cpp
+    core/Context.cpp
     core/EventSystem.cpp
     core/Log.cpp
+    core/Object.cpp
     core/StateManager.cpp
-    core/Utils.cpp
+    core/StringUtils.cpp
+    core/Timer.cpp
+    engine/App.cpp
+    engine/Engine.cpp
     input/Input.cpp
+    io/File.cpp
+    io/FileSystem.cpp
+    io/InputStream.cpp
+    io/OutputStream.cpp
     math/Noise.cpp
     math/Rect.cpp
+    math/StringHash.cpp
     math/Vec2i.cpp
     math/Vec3i.cpp
     math/Vec4i.cpp
     physics/PhysicsWorld.cpp
-    renderer/deferred/AmbientLight.cpp
-    renderer/deferred/DeferredLight.cpp
-    renderer/deferred/DeferredLightCompPass.cpp
-    renderer/deferred/DeferredShadingManager.cpp
-    renderer/deferred/GBufferMaterialGenerator.cpp
-    renderer/deferred/GBufferSchemeHandler.cpp
-    renderer/deferred/LightMaterialGenerator.cpp
-    renderer/deferred/MaterialGenerator.cpp
-    renderer/GeometryUtils.cpp
+    renderer/Material.cpp
+    renderer/Mesh.cpp
+    renderer/Node.cpp
     renderer/Renderer.cpp
-    renderer/SpriteManager.cpp
-    scene/space/AsteroidBelt.cpp
-    scene/space/Barycentre.cpp
-    scene/space/Galaxy.cpp
-    scene/space/Orbit.cpp
-    scene/space/Planet.cpp
-    scene/space/Star.cpp
-    scene/space/StarSystem.cpp
-    scene/space/SystemBody.cpp
-    scene/Camera.cpp
-    scene/DefaultCamera.cpp
-    scene/Entity.cpp
+    renderer/Shader.cpp
+    renderer/ShaderSource.cpp
+    renderer/Texture.cpp
+    resource/Resource.cpp
+    resource/ResourceCache.cpp
     scene/Position.cpp
-    scene/RigidEntity.cpp
     scene/SceneManager.cpp
-    script/LuaState.cpp
-    ui/Console.cpp
-    ui/ImGuiInterface.cpp
-    ui/Layout.cpp
-    ui/RocketInterface.cpp
-    ui/UI.cpp)
-
-if(APPLE)
-    set(H_FILES ${H_FILES} renderer/OSXGetNSView.h)
-    set(CPP_FILES ${CPP_FILES} renderer/OSXGetNSView.mm)
-endif()
+    script/LuaState.cpp)
 
 # Project
 add_library(Dawn SHARED ${CPP_FILES} ${H_FILES})
+enable_cpp14(Dawn)
+enable_maximum_warnings(Dawn)
 add_dependencies(Dawn ${EXTERNAL_DEPS})
 set_output_dir(Dawn ${CMAKE_BINARY_DIR}/lib)
 set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
@@ -126,16 +91,8 @@ set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)
 get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
-if(WIN32)
-    add_custom_command(TARGET Dawn POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${DEPS_DIR}/irrKlang.dll ${LIB_DIR})
-    # TODO: Use SDL2_LIBRARIES
-    add_custom_command(TARGET Dawn POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_INCLUDE_DIR}/../lib/x86/SDL2.dll ${LIB_DIR})
-elseif(APPLE)
+if(APPLE)
     set_target_properties(Dawn PROPERTIES FRAMEWORK TRUE)
-    add_custom_command(TARGET Dawn POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${DEPS_DIR}/libirrklang.dylib ${LIB_DIR})
 endif()
 
 # Cotire

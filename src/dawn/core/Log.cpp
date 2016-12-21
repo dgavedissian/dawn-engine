@@ -3,93 +3,104 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "core/Utils.h"
+#include "core/StringUtils.h"
 
-NAMESPACE_BEGIN
-
-LogListener::LogListener()
-{
-    Log::inst().addListener(this);
-}
-
-LogListener::~LogListener()
-{
-    Log::inst().removeListener(this);
-}
-
-void PlatformLog::logWrite(const String& message)
-{
-    // Output to stdout
-    std::cout << message << std::endl;
-
-    // Output to VS debug screen
-#if DW_PLATFORM == DW_WIN32 && defined(DW_DEBUG)
-    String debugLine = message + "\n";
-    OutputDebugStringA(debugLine.c_str());
+#if DW_PLATFORM == DW_WIN32
+#include <Windows.h>
 #endif
+
+namespace dw {
+
+class PlatformLogMessageHandler : public LogMessageHandler {
+public:
+    void onMessage(LogLevel level, const String &message) override {
+        switch (level) {
+            case LogLevel::Debug:
+            case LogLevel::Info:
+                std::cout << message;
+                break;
+
+            case LogLevel::Warning:
+            case LogLevel::Error:
+                std::cerr << message;
+                break;
+        }
+
+#if DW_PLATFORM == DW_WIN32 && defined(DW_DEBUG)
+        // Output a debug string to the Visual Studio console
+        String debugLine = message + "\n";
+        OutputDebugStringA(debugLine.c_str());
+#endif
+    }
+};
+
+Logger::Logger(Context* context) : Object{context} {
+    addLogMessageHandler(makeUnique<PlatformLogMessageHandler>());
 }
 
-Log::Stream::Stream(Log* log, LogLevel level, const String& message)
-    : mLogger(log),
-      mLevel(level),
-      mMessage(message)
-{
+void Logger::addLogMessageHandler(UniquePtr<LogMessageHandler>&& handler) {
+    _handlers.emplace_back(std::move(handler));
 }
 
-Log::Stream::~Stream()
-{
-    mLogger->write(mMessage, mLevel);
+void Logger::dispatchLogMessage(LogLevel level, const String& message) {
+    for (auto& handler : _handlers) {
+        handler->onMessage(level, message);
+    }
 }
 
-Log::Log(const String& filename) : mLogFile(filename)
-{
+/*
+Log::StreamEndpoint::StreamEndpoint(Log* log, LogLevel level) : mLogger(log), mLevel(level) {
+}
+
+Log::Log(Context* context, const String& filename)
+    : Object(context),
+      info(this, LOG_INFO),
+      warning(this, LOG_WARN),
+      error(this, LOG_ERROR),
+      mLogFile(filename) {
     mLogFile << "Dawn Engine " << DW_VERSION_STR << std::endl;
     mLogFile << "-------------------------------------" << std::endl;
 }
 
-Log::~Log()
-{
+Log::~Log() {
     mLogFile.close();
 }
 
-void Log::write(const String& message, LogLevel level)
-{
+void Log::write(const String& message, LogLevel level) {
     // Get the time of day
+    // TODO(David): Use time::format(...)
     time_t t = ::time(nullptr);
     tm* now = localtime(&t);
-    std::stringstream ss;
+    StringStream ss;
     ss << "[" << (now->tm_hour < 10 ? "0" : "") << now->tm_hour << ":"
        << (now->tm_min < 10 ? "0" : "") << now->tm_min << ":" << (now->tm_sec < 10 ? "0" : "")
        << now->tm_sec << "]";
     String timeStr = ss.str();
 
     Vector<String> lines;
-    splitString(message, '\n', lines);
+    str::split(message, '\n', lines);
 
     // TODO: threading - add lock here
-    for (uint i = 0; i < lines.size(); ++i)
-    {
+    for (uint l = 0; l < lines.size(); ++l) {
         String levelStr = "";
-        switch (level)
-        {
-        case LOG_WARN:
-            levelStr = "[warning] ";
-            break;
+        switch (level) {
+            case LOG_WARN:
+                levelStr = "[warning] ";
+                break;
 
-        case LOG_ERROR:
-            levelStr = "[error] ";
-            break;
+            case LOG_ERROR:
+                levelStr = "[error] ";
+                break;
 
-        default:
-            break;
+            default:
+                break;
         }
 
-        String line = timeStr + " " + levelStr + " " + lines[i];
+        String line = timeStr + " " + levelStr + " " + lines[l];
 
         // Convert tab characters into spaces
         const int tabSize = 4;
-        for (uint i = 0; i < line.size(); ++i)
-        {
+        for (uint i = 0; i < line.size(); ++i) {
             int noSpaces = tabSize - (i % tabSize);
             if (line[i] == '\t')
                 line.replace(i, 1, String(noSpaces, ' '));
@@ -110,24 +121,21 @@ void Log::write(const String& message, LogLevel level)
     }
 }
 
-Log::Stream Log::getStream(LogLevel level)
-{
+Log::Stream Log::getStream(LogLevel level) {
     return Stream(this, level, "");
 }
 
-void Log::addListener(LogListener* Listener)
-{
+void Log::addListener(LogListener_OLD* Listener) {
     mListeners.push_back(Listener);
 }
 
-void Log::removeListener(LogListener* Listener)
-{
+void Log::removeListener(LogListener_OLD* Listener) {
     mListeners.erase(std::find(mListeners.begin(), mListeners.end(), Listener));
 }
 
-const Vector<String>& Log::getBuffer() const
-{
+const Vector<String>& Log::getBuffer() const {
     return mLogBuffer;
 }
+ */
 
-NAMESPACE_END
+}

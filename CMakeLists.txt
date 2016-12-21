@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.0)
 project(Dawn)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_MACOSX_RPATH 1)
 
 
 ###############################################
@@ -22,8 +23,6 @@ set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug)
 ###############################################
 
 include(Utilities)
-enable_cpp11()
-enable_maximum_warnings()
 
 
 ###############################################
@@ -51,6 +50,10 @@ function(add_game GAME_NAME)
     # Add executable
     add_executable(${GAME_NAME} ${TYPE} ${ARGN})
 
+    # Compile in C++14 mode
+    enable_cpp14(${GAME_NAME})
+    enable_maximum_warnings(${GAME_NAME})
+
     # Add include directories
     get_target_property(DAWN_INCLUDE_DIRS Dawn INCLUDE_DIRECTORIES)
     target_include_directories(${GAME_NAME} PRIVATE
@@ -76,16 +79,13 @@ function(add_game GAME_NAME)
     if(WIN32)
         add_custom_command(TARGET ${GAME_NAME} POST_BUILD
             COMMAND if exist ${LIB_DIR}/Dawn_d.dll ${CMAKE_COMMAND} -E copy ${LIB_DIR}/Dawn_d.dll ${BIN_DIR}
-            COMMAND if exist ${LIB_DIR}/Dawn.dll ${CMAKE_COMMAND} -E copy ${LIB_DIR}/Dawn.dll ${BIN_DIR}
-            COMMAND ${CMAKE_COMMAND} -E copy ${LIB_DIR}/irrKlang.dll ${BIN_DIR}
-            COMMAND ${CMAKE_COMMAND} -E copy ${LIB_DIR}/SDL2.dll ${BIN_DIR})
+            COMMAND if exist ${LIB_DIR}/Dawn.dll ${CMAKE_COMMAND} -E copy ${LIB_DIR}/Dawn.dll ${BIN_DIR})
     elseif(APPLE)
         set(BUNDLE_DIR ${BIN_DIR}/${GAME_NAME}.app)
         set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)
         add_custom_command(TARGET ${GAME_NAME} POST_BUILD
+            COMMAND mkdir -p ${FRAMEWORKS_DIR}
             COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR}/Dawn.framework)
-        add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-            COMMAND cp ${LIB_DIR}/libirrklang.dylib ${FRAMEWORKS_DIR})
     else()
         # TODO: Linux
     endif()

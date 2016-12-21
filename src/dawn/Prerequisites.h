@@ -8,11 +8,10 @@
 
 // Mark this header as a system header
 #if defined(DW_GCC) || defined(DW_CLANG)
-#   pragma GCC system_header
+#pragma GCC system_header
 #elif defined(DW_MSVC)
-#   pragma warning(push, 0)
+#pragma warning(push, 0)
 #endif
-
 
 //
 // Standard library
@@ -23,10 +22,10 @@
 #include <ctime>
 
 #include <exception>
+#include <string>
 #include <list>
 #include <map>
 #include <unordered_map>
-#include <string>
 #include <vector>
 #include <iostream>
 #include <iomanip>
@@ -39,79 +38,54 @@
 #include <thread>
 #include <limits>
 #include <typeinfo>
-
+#include <chrono>
+#include <mutex>
 
 //
 // External Libraries
 //
 
+// bgfx
+#include <bgfx/bgfx.h>
+
+// glfw
+#include <GLFW/glfw3.h>
+
 // Bullet
 #include <btBulletDynamicsCommon.h>
-
-// irrKlang
-#include <irrKlang.h>
 
 // Lua
 #include <lua.hpp>
 
-// Ogre
-#define OGRE_STATIC_LIB
-#include <Ogre.h>
-#include <RenderSystems/GL3Plus/OgreGL3PlusPlugin.h>
-
 // MathGeoLib
 #define MATH_ENABLE_STL_SUPPORT
 #define MATH_ENABLE_UNCOMMON_OPERATIONS
-#define MATH_OGRE_INTEROP
 #define MATH_BULLET_INTEROP
-#define MATH_IRRKLANG_INTEROP
 #define LOGGING_SUPPORT_DISABLED
 #include <MathGeoLib.h>
 #ifdef LOG
-#   undef LOG
+#undef LOG
 #endif
-
-// Rocket
-#define ROCKET_STATIC_LIB
-#include <Rocket/Core.h>
-#include <Rocket/Controls.h>
-#include <Rocket/Controls/DataSource.h>
-#include <Rocket/Debugger.h>
-
-// SDL
-#include <SDL.h>
-
-// Undefine conflicting names define by stupid platform SDKs
-#ifdef PlaySound
-#   undef PlaySound
-#endif
-#ifdef None
-#   undef None
-#endif
-#ifdef Nil
-#   undef Nil
-#endif
-
 
 //
 // Bundled Libraries
 //
 
-// Bullet/Ogre utility functions
-#include "BtOgreGP.h"
-#include "BtOgrePG.h"
-
 // Lua C++ interface
-#include "LuaBridge.h"
+#include "sol.hpp"
 
-// imgui debugging UI
+// imgui
 #include "imgui.h"
 
 // FastDelegate
 #include "FastDelegate.h"
 
-
 // Re-enable warnings
 #if defined(DW_MSVC)
-#   pragma warning(pop)
+#pragma warning(pop)
+#endif
+
+// Disable "warning C4251: '...' needs to have dll-interface to be used by clients of class '...'"
+#if defined(DW_MSVC)
+#pragma warning(disable: 4251)
 #endif

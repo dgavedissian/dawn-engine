@@ -3,26 +3,32 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "DawnEngine.h"
-#include "SandboxState.h"
+#include "io/File.h"
 
-int main(int argc, char** argv)
-{
-	// Set up the engine
-    dw::Engine* engine = new dw::Engine("Sandbox", "1.0.0");
-	engine->setup();
+class Sandbox : public dw::App {
+public:
+    DW_OBJECT(Sandbox);
 
-	// Add resource locations
-	// TODO: move this out of the renderer class
-	engine->getRenderer()->addResourceLocation(engine->getBasePath() + "media/sandbox");
+    virtual void init(int argc, char** argv) override {
+        getSubsystem<dw::FileSystem>()->setWorkingDir("media");
 
-	// Register the sandbox state and switch to it
-	engine->getStateMgr()->registerState(dw::makeShared<SandboxState>(engine));
-	engine->getStateMgr()->changeTo(S_SANDBOX);
+        dw::File file(mContext, "sandbox/test.txt", dw::FileMode::Read);
+        getLog().info("File contents: %s", dw::stream::read<dw::u8>(file));
+    }
 
-	// Run the engine
-	engine->run([](float) {});
+    virtual void update(float dt) override {
+    }
 
-	// Shutdown and exit
-    engine->shutdown();
-    return 0;
-}
+    virtual void shutdown() override {
+    }
+
+    virtual dw::String getGameName() override {
+        return "Sandbox";
+    }
+
+    virtual dw::String getGameVersion() override {
+        return "1.0.0";
+    }
+};
+
+DW_IMPLEMENT_MAIN(Sandbox);

@@ -3,16 +3,13 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "renderer/Renderer.h"
 #include "input/Input.h"
-#include "scene/RigidEntity.h"
 #include "PhysicsWorld.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
-PhysicsWorld::PhysicsWorld(Renderer* rs)
-{
-    LOG << "Bullet Version " << (btGetVersion() / 100) << "." << (btGetVersion() % 100);
+PhysicsWorld::PhysicsWorld(Context* context) : Object(context) {
+    getLog().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
 
     mBroadphase.reset(new btDbvtBroadphase());
     mCollisionConfig.reset(new btDefaultCollisionConfiguration());
@@ -20,69 +17,48 @@ PhysicsWorld::PhysicsWorld(Renderer* rs)
     mSolver.reset(new btSequentialImpulseConstraintSolver);
     mWorld.reset(new btDiscreteDynamicsWorld(mDispatcher.get(), mBroadphase.get(), mSolver.get(),
                                              mCollisionConfig.get()));
-    mDebugDrawer.reset(new BtOgre::DebugDrawer(rs->getRootSceneNode(), mWorld.get()));
 
     // Set the properties of the world
     mWorld->setGravity(btVector3(0.0f, 0.0f, 0.0f));
-    mWorld->setInternalTickCallback(BulletTickCallback);
-    mWorld->setDebugDrawer(mDebugDrawer.get());
-    mDebugDrawer->setDebugMode(false);
+    mWorld->setInternalTickCallback(bulletTickCallback);
 
     // Register event delegates
     ADD_LISTENER(PhysicsWorld, EvtData_KeyDown);
 }
 
-PhysicsWorld::~PhysicsWorld()
-{
+PhysicsWorld::~PhysicsWorld() {
     REMOVE_LISTENER(PhysicsWorld, EvtData_KeyDown);
 
-    LOG << "Bullet cleaned up";
+    getLog().info("Bullet cleaned up");
 }
 
-void PhysicsWorld::update(float dt, Camera* camera)
-{
+void PhysicsWorld::update(float dt, Camera* camera) {
     // Call PreSimulationStep on each rigid body
-    for (auto body : mRigidBodyList)
-        static_cast<RigidEntity*>(body->getUserPointer())->PreSimulationStep(camera);
+    // for (auto body : mRigidBodyList)
+    //   static_cast<RigidEntity*>(body->getUserPointer())->PreSimulationStep(camera);
 
     // Step the simulation
     mWorld->stepSimulation(dt, 0);
-    mDebugDrawer->step();
+    // mDebugDrawer->step();
 }
 
-void PhysicsWorld::handleEvent(EventDataPtr eventData)
-{
-    if (eventIs<EvtData_KeyDown>(eventData))
-    {
+void PhysicsWorld::handleEvent(EventDataPtr eventData) {
+    if (eventIs<EvtData_KeyDown>(eventData)) {
         auto castedEventData = castEvent<EvtData_KeyDown>(eventData);
-        if (castedEventData->keycode == SDLK_F2)
-            mDebugDrawer->setDebugMode(!mDebugDrawer->getDebugMode());
+        if (castedEventData->key == Key::F2)
+            ;  // mDebugDrawer->setDebugMode(!mDebugDrawer->getDebugMode());
     }
 }
 
-void PhysicsWorld::AddToWorld(btRigidBody* body)
-{
-    mWorld->addRigidBody(body);
-    mRigidBodyList.push_back(body);
-}
-
-void PhysicsWorld::RemoveFromWorld(btRigidBody* body)
-{
-    mRigidBodyList.remove(body);
-    mWorld->removeRigidBody(body);
-}
-
 bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera* camera,
-                                  PhysicsRaycastResult& result)
-{
+                            PhysicsRaycastResult& result) {
     // Make sure this is done in camera-space
     btVector3 startCS = start.toCameraSpace(camera);
     btVector3 endCS = end.toCameraSpace(camera);
 
     // Ensure that the direction can be normalised
     btVector3 delta = endCS - startCS;
-    if (!delta.fuzzyZero())
-    {
+    if (!delta.fuzzyZero()) {
         btCollisionWorld::ClosestRayResultCallback raycast(startCS, endCS);
         mWorld->rayTest(startCS, endCS, raycast);
 
@@ -96,9 +72,7 @@ bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera* 
                 btRigidBody::upcast(raycast.m_collisionObject)->getUserPointer());
         else
             result.body = nullptr;
-    }
-    else
-    {
+    } else {
         result.position = Vec3::zero;
         result.normal = Vec3::zero;
         result.hit = false;
@@ -109,8 +83,6 @@ bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera* 
     return result.hit;
 }
 
-void PhysicsWorld::BulletTickCallback(btDynamicsWorld* world, btScalar timestep)
-{
+void PhysicsWorld::bulletTickCallback(btDynamicsWorld* world, btScalar timestep) {
 }
-
-NAMESPACE_END
+}

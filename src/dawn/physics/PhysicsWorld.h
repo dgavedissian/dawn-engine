@@ -4,7 +4,7 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
 class Renderer;
 class RigidEntity;
@@ -12,8 +12,7 @@ class Camera;
 
 // Structure to hold the result of a raycast
 // TODO: merge this with RendererRaycastResult
-struct DW_API PhysicsRaycastResult
-{
+struct DW_API PhysicsRaycastResult {
     RigidEntity* body;
     Position position;
     Vec3 normal;
@@ -21,10 +20,11 @@ struct DW_API PhysicsRaycastResult
 };
 
 // Manages the Bullet physics library and provides some helper functions.
-class DW_API PhysicsWorld
-{
+class DW_API PhysicsWorld : public Object {
 public:
-    PhysicsWorld(Renderer* rs);
+    DW_OBJECT(PhysicsWorld);
+
+    PhysicsWorld(Context* context);
     ~PhysicsWorld();
 
     // Takes a step of dt seconds in the simulation
@@ -35,7 +35,7 @@ public:
 
     // Performs a raycast query
     bool rayQuery(const Position& start, const Position& end, Camera* camera,
-                      PhysicsRaycastResult& result);
+                  PhysicsRaycastResult& result);
 
 private:
     SharedPtr<btBroadphaseInterface> mBroadphase;
@@ -43,22 +43,14 @@ private:
     SharedPtr<btCollisionDispatcher> mDispatcher;
     SharedPtr<btConstraintSolver> mSolver;
     SharedPtr<btDynamicsWorld> mWorld;
-    SharedPtr<BtOgre::DebugDrawer> mDebugDrawer;
 
     List<btRigidBody*> mRigidBodyList;
 
-    // Adds a btRigidBody to the btDynamicsWorld
-    void AddToWorld(btRigidBody* body);
-
-    // Removes a btRigidBody from the btDynamicsWorld
-    void RemoveFromWorld(btRigidBody* body);
-
     // Dispatch collision events
-    static void BulletTickCallback(btDynamicsWorld* world, btScalar timestep);
+    static void bulletTickCallback(btDynamicsWorld* world, btScalar timestep);
 
     // Grant RigidEntity access to AddToWorld/RemoveFromWorld
     friend class RigidEntity;
 };
-
-NAMESPACE_END
+}
 // TODO physics events

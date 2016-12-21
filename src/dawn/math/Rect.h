@@ -6,10 +6,9 @@
 
 #include "math/Vec2i.h"
 
-NAMESPACE_BEGIN
+namespace dw {
 
-class DW_API Rect
-{
+class DW_API Rect {
 public:
     Vec2i begin, end;
 
@@ -20,7 +19,5 @@ public:
 
     /// Merge a rect into this one
     Rect& merge(const Rect& other);
-
 };
-
-NAMESPACE_END
+}

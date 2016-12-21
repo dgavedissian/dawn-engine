@@ -4,10 +4,9 @@
  */
 #pragma once
 
-NAMESPACE_BEGIN
+namespace dw {
 
-class DW_API Vec4i
-{
+class DW_API Vec4i {
 public:
     int x, y, z, w;
 
@@ -28,5 +27,4 @@ public:
     const Vec4i operator*(int scalar) const;
     const Vec4i operator/(int scalar) const;
 };
-
-NAMESPACE_END
+}
