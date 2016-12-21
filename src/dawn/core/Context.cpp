@@ -13,7 +13,6 @@ Context::Context(String basePath, String prefPath) : mBasePath(basePath), mPrefP
 Context::~Context() {
 }
 
-
 void Context::addSubsystem(Object* subsystem) {
     mSubsystems[subsystem->getType()] = UniquePtr<Object>(subsystem);
 }

@@ -8,12 +8,7 @@
 
 namespace dw {
 
-enum class LogLevel {
-    Debug,
-    Info,
-    Warning,
-    Error
-};
+enum class LogLevel { Debug, Info, Warning, Error };
 
 class DW_API LogMessageHandler {
 public:
@@ -32,40 +27,32 @@ public:
 
     void addLogMessageHandler(UniquePtr<LogMessageHandler>&& handler);
 
-    template <typename ...T>
-    String formatMessage(const String& format, const T&... args) {
+    template <typename... T> String formatMessage(const String& format, const T&... args) {
         return tfm::format(format.c_str(), args...);
     }
 
-    template <typename ...T>
-    void log(LogLevel level, const String& format, const T&... args) {
+    template <typename... T> void log(LogLevel level, const String& format, const T&... args) {
         dispatchLogMessage(level, formatMessage(format, args...));
     }
 
-    template <typename ...T>
-    void debug(const String& format, const T&... args) {
+    template <typename... T> void debug(const String& format, const T&... args) {
         log(LogLevel::Debug, format, args...);
     }
 
-    template <typename ...T>
-    void info(const String& format, const T&... args) {
+    template <typename... T> void info(const String& format, const T&... args) {
         log(LogLevel::Info, format, args...);
     }
 
-    template <typename ...T>
-    void warn(const String& format, const T&... args) {
+    template <typename... T> void warn(const String& format, const T&... args) {
         log(LogLevel::Warning, format, args...);
     }
 
-    template <typename ...T>
-    void error(const String& format, const T&... args) {
+    template <typename... T> void error(const String& format, const T&... args) {
         log(LogLevel::Error, format, args...);
     }
-
 
 private:
     void dispatchLogMessage(LogLevel level, const String& message);
     Vector<UniquePtr<LogMessageHandler>> _handlers;
 };
-
 }

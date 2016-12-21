@@ -24,7 +24,8 @@ Option<bgfx::UniformHandle> Shader::getUniformHandle(const String &name,
         if (type == (*it).second.second) {
             return (*it).second.first;
         } else {
-            getLog().error("Unable to set uniform '%s', mismatched type %s != %s", name, type, (*it).second.second);
+            getLog().error("Unable to set uniform '%s', mismatched type %s != %s", name, type,
+                           (*it).second.second);
             return Option<bgfx::UniformHandle>();
         }
     } else {

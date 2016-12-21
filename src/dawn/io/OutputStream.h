@@ -23,9 +23,9 @@ template <typename T> void write(OutputStream& stream, const T& value) {
 }
 
 // Implement write for primitive types
-#define IMPL_WRITE(T)                                              \
-    template <> inline void write<T>(OutputStream& stream, const T& value) { \
-        stream.write(&value, sizeof(T));                           \
+#define IMPL_WRITE(T)                                                         \
+    template <> inline void write<T>(OutputStream & stream, const T& value) { \
+        stream.write(&value, sizeof(T));                                      \
     }
 
 IMPL_WRITE(i8)

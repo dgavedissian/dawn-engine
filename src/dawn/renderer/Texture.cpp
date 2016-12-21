@@ -33,13 +33,14 @@ Texture::~Texture() {
 
 bool Texture::beginLoad(InputStream& src) {
     stbi_io_callbacks callbacks = {
-        &imageCallbackRead,
-        &imageCallbackSkip,
-        &imageCallbackEof,
+        &imageCallbackRead, &imageCallbackSkip, &imageCallbackEof,
     };
     int width, height, bpp;
-    byte* data = stbi_load_from_callbacks(&callbacks, reinterpret_cast<void*>(&src), &width, &height, &bpp, 4);
-    mTextureHandle = bgfx::createTexture2D(static_cast<uint16_t>(width), static_cast<uint16_t>(height), 1, bgfx::TextureFormat::RGBA8, 0, bgfx::copy(data, width * height * bpp));
+    byte* data = stbi_load_from_callbacks(&callbacks, reinterpret_cast<void*>(&src), &width,
+                                          &height, &bpp, 4);
+    mTextureHandle = bgfx::createTexture2D(
+        static_cast<uint16_t>(width), static_cast<uint16_t>(height), 1, bgfx::TextureFormat::RGBA8,
+        0, bgfx::copy(data, width * height * bpp));
     stbi_image_free(data);
     return true;
 }
@@ -50,5 +51,4 @@ void Texture::endLoad() {
 bgfx::TextureHandle Texture::getTextureHandle() const {
     return mTextureHandle;
 }
-
 }

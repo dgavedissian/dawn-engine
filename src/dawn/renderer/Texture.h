@@ -22,7 +22,5 @@ public:
 
 private:
     bgfx::TextureHandle mTextureHandle;
-
 };
-
 }

@@ -87,5 +87,5 @@
 
 // Disable "warning C4251: '...' needs to have dll-interface to be used by clients of class '...'"
 #if defined(DW_MSVC)
-#pragma warning(disable: 4251)
+#pragma warning(disable : 4251)
 #endif

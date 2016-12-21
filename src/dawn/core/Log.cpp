@@ -13,7 +13,7 @@ namespace dw {
 
 class PlatformLogMessageHandler : public LogMessageHandler {
 public:
-    void onMessage(LogLevel level, const String &message) override {
+    void onMessage(LogLevel level, const String& message) override {
         switch (level) {
             case LogLevel::Debug:
             case LogLevel::Info:
@@ -137,5 +137,4 @@ const Vector<String>& Log::getBuffer() const {
     return mLogBuffer;
 }
  */
-
 }

@@ -60,7 +60,7 @@ public:
 
 private:
     HashMap<StringHash, UniquePtr<Object>> mSubsystems;
-    
+
     // Engine configuration
     json mConfig;
 

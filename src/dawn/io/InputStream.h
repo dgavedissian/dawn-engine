@@ -46,11 +46,11 @@ template <class T> T read(InputStream& stream) {
 }
 
 // Implement read for primitive types
-#define IMPL_READ(T)                          \
-    template <> inline T read<T>(InputStream& stream) { \
-        T value;                              \
-        stream.read(&value, sizeof(T));       \
-        return value;                         \
+#define IMPL_READ(T)                                     \
+    template <> inline T read<T>(InputStream & stream) { \
+        T value;                                         \
+        stream.read(&value, sizeof(T));                  \
+        return value;                                    \
     }
 
 IMPL_READ(i8)
