@@ -4,6 +4,9 @@
  */
 #pragma once
 
+#include <json.hpp>
+using json = nlohmann::json;
+
 #include "math/StringHash.h"
 
 namespace dw {
@@ -31,11 +34,11 @@ public:
         removeSubsystem(T::getTypeStatic());
     }
 
-    /// Access the config node
-    ConfigNode& getConfig();
+    /// Access the config root
+    json& getConfig();
 
-    /// Access the config node
-    const ConfigNode& getConfig() const;
+    /// Access the config root
+    const json& getConfig() const;
 
     /// Load the configuration
     void loadConfig(const String& configFile);
@@ -59,7 +62,7 @@ private:
     HashMap<StringHash, UniquePtr<Object>> mSubsystems;
     
     // Engine configuration
-    UniquePtr<ConfigNode> mConfig;
+    json mConfig;
 
     // File paths
     String mBasePath;

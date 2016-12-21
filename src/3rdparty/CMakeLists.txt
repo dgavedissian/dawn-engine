@@ -17,11 +17,11 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/FastDelegate
     ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include
     ${CMAKE_CURRENT_SOURCE_DIR}/ImGui
+    ${CMAKE_CURRENT_SOURCE_DIR}/json
     ${CMAKE_CURRENT_SOURCE_DIR}/ontology/include
     ${CMAKE_CURRENT_SOURCE_DIR}/sol
     ${CMAKE_CURRENT_SOURCE_DIR}/stb_image
-    ${CMAKE_CURRENT_SOURCE_DIR}/tinyformat
-    ${CMAKE_CURRENT_SOURCE_DIR}/YamlCpp/include)
+    ${CMAKE_CURRENT_SOURCE_DIR}/tinyformat)
 if(MSVC)
     set(INCLUDE_DIRS ${INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/bx/include/compat/msvc)
@@ -245,14 +245,6 @@ enable_cpp14(ontology)
 target_include_directories(ontology PRIVATE ${INCLUDE_DIRS})
 set_target_properties(ontology PROPERTIES FOLDER "3rdparty")
 set(LIBS ${LIBS} ontology)
-
-# YamlCpp
-file(GLOB YAML_CPP_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} YamlCpp/src/*.cpp)
-add_library(YamlCpp ${YAML_CPP_SRC})
-enable_cpp14(YamlCpp)
-target_include_directories(YamlCpp PRIVATE ${INCLUDE_DIRS})
-set_target_properties(YamlCpp PROPERTIES FOLDER "3rdparty")
-set(LIBS ${LIBS} YamlCpp)
 
 
 ##############################################################

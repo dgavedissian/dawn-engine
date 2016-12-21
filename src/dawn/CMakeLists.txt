@@ -13,8 +13,6 @@ set(H_FILES
     core/StringUtils.h
     core/Timer.h
     engine/App.h
-    engine/ConfigNode.h
-    engine/ConfigNode.i.h
     engine/Engine.h
     input/Input.h
     io/File.h
@@ -56,7 +54,6 @@ set(CPP_FILES
     core/StringUtils.cpp
     core/Timer.cpp
     engine/App.cpp
-    engine/ConfigNode.cpp
     engine/Engine.cpp
     input/Input.cpp
     io/File.cpp

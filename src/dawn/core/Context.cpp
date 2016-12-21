@@ -3,15 +3,11 @@
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
 #include "Common.h"
-#include "core/Context.h"
-
-#include "engine/ConfigNode.h"
 #include "io/File.h"
 
 namespace dw {
 
 Context::Context(String basePath, String prefPath) : mBasePath(basePath), mPrefPath(prefPath) {
-    mConfig = makeUnique<ConfigNode>(this);
 }
 
 Context::~Context() {
@@ -34,21 +30,21 @@ void Context::clearSubsystems() {
     mSubsystems.clear();
 }
 
-ConfigNode& Context::getConfig() {
-    return *mConfig;
+json& Context::getConfig() {
+    return mConfig;
 }
 
-const ConfigNode& Context::getConfig() const {
-    return *mConfig;
+const json& Context::getConfig() const {
+    return mConfig;
 }
 
 void Context::loadConfig(const String& configFile) {
     File inFile(this, configFile, FileMode::Read);
-    mConfig->load(inFile);
+    mConfig = json::parse(stream::read<String>(inFile));
 }
 
 void Context::saveConfig(const String& configFile) {
     File outFile(this, configFile, FileMode::Write);
-    mConfig->save(outFile);
+    stream::write(outFile, mConfig.dump(4));
 }
 }
