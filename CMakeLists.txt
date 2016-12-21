@@ -12,7 +12,7 @@ set(CMAKE_MACOSX_RPATH 1)
 ###############################################
 
 # Include modules
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Limit configuration types
 set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug)
