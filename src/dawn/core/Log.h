@@ -4,7 +4,16 @@
  */
 #pragma once
 
+#if defined(DW_MSVC)
+#pragma warning(push)
+#pragma warning(disable : 4127 4100)
+#endif
+
 #include <tinyformat.h>
+
+#if defined(DW_MSVC)
+#pragma warning(pop)
+#endif
 
 namespace dw {
 
@@ -23,7 +32,10 @@ public:
     DW_OBJECT(Logger);
 
     Logger(Context* context);
+	Logger(Logger& other) = delete;
     ~Logger() = default;
+
+	Logger& operator=(const Logger& other) = delete;
 
     void addLogMessageHandler(UniquePtr<LogMessageHandler>&& handler);
 

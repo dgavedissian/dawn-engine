@@ -17,7 +17,10 @@ class ConfigNode;
 class DW_API Context {
 public:
     Context(String basePath, String prefPath);
+	Context(Context& other) = delete;
     ~Context();
+
+	Context& operator=(const Context& other) = delete;
 
     // Subsystems
     void addSubsystem(Object* subsystem);

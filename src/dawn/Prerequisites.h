@@ -54,9 +54,6 @@
 // Bullet
 #include <btBulletDynamicsCommon.h>
 
-// Lua
-#include <lua.hpp>
-
 // MathGeoLib
 #define MATH_ENABLE_STL_SUPPORT
 #define MATH_ENABLE_UNCOMMON_OPERATIONS
@@ -70,9 +67,6 @@
 //
 // Bundled Libraries
 //
-
-// Lua C++ interface
-#include "sol.hpp"
 
 // imgui
 #include "imgui.h"

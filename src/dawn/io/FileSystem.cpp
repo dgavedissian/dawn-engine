@@ -25,7 +25,7 @@ FileSystem::~FileSystem() {
 bool FileSystem::setWorkingDir(const Path& path) {
 #if DW_PLATFORM == DW_WIN32
     if (SetCurrentDirectoryA(path.c_str()) == FALSE) {
-        LOGERR << "Failed to change directory to " << path;
+        getLog().error("Failed to change directory to %s", path);
         return false;
     }
 #else

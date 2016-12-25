@@ -2,12 +2,15 @@
  * Dawn Engine
  * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
  */
-#include "Common.h"
-#include "core/StringUtils.h"
 
 #if DW_PLATFORM == DW_WIN32
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
+
+#include "Common.h"
+#include "core/StringUtils.h"
 
 namespace dw {
 

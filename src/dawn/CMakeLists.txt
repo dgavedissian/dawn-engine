@@ -95,14 +95,6 @@ if(APPLE)
     set_target_properties(Dawn PROPERTIES FRAMEWORK TRUE)
 endif()
 
-# Cotire
-if(WIN32)
-    include(cotire)
-    set_target_properties(Dawn PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
-    set_target_properties(Dawn PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "Prerequisites.h")
-    cotire(Dawn)
-endif()
-
 # Random extras
 mirror_physical_directories(${CPP_FILES} ${H_FILES})
 set_target_properties(Dawn PROPERTIES DEBUG_POSTFIX _d)

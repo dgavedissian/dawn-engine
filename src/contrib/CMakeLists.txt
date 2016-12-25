@@ -59,11 +59,23 @@ endif()
 # General include directory for all external dependencies
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include)
 
+# Assimp
+ExternalProject_Add(Assimp
+    PREFIX ${EXTERNAL_PREFIX}
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    URL https://github.com/assimp/assimp/archive/v3.3.1.zip
+    UPDATE_COMMAND ""
+    CMAKE_ARGS ${EXTERNAL_ARGS}
+        -DASSIMP_BUILD_ASSIMP_TOOLS=0
+        -DASSIMP_BUILD_TESTS=0
+)
+set_target_properties(Assimp PROPERTIES FOLDER "contrib")
+
 # Bullet
 ExternalProject_Add(Bullet
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
+    URL https://github.com/bulletphysics/bullet3/archive/2.85.1.zip
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_EXTRAS=0
@@ -71,8 +83,9 @@ ExternalProject_Add(Bullet
         -DBUILD_BULLET3=0
         -DBUILD_UNIT_TESTS=0
         -DINSTALL_LIBS=1
-        -DUSE_MSVC_RUNTIME_LIBRARY_DLL=1)
-set_target_properties(Bullet PROPERTIES FOLDER "3rdparty")
+        -DUSE_MSVC_RUNTIME_LIBRARY_DLL=1
+)
+set_target_properties(Bullet PROPERTIES FOLDER "contrib")
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include/bullet)
 if(WIN32)
     set(LIBS ${LIBS}
@@ -93,11 +106,12 @@ endif()
 ExternalProject_Add(MathGeoLib
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    GIT_REPOSITORY https://github.com/davedissian/dawnengine-MathGeoLib.git
+    URL https://github.com/davedissian/dawnengine-MathGeoLib/archive/master.zip
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DBUILD_SHARED_LIBS=0)
-set_target_properties(MathGeoLib PROPERTIES FOLDER "3rdparty")
+        -DBUILD_SHARED_LIBS=0
+)
+set_target_properties(MathGeoLib PROPERTIES FOLDER "contrib")
 set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${EXTERNAL_INSTALL}/include/MathGeoLib)
 if(WIN32)
@@ -111,46 +125,29 @@ else()
 endif()
 
 # Luajit
+if (MSVC)
+    set(LUAJIT_BUILD_CMD cd src && msvcbuild static)
+endif()
 ExternalProject_Add(Luajit
     PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_INSTALL}
-    GIT_REPOSITORY https://github.com/davedissian/dawnengine-luajit.git
+    URL http://luajit.org/download/LuaJIT-2.1.0-beta2.zip
     UPDATE_COMMAND ""
-    CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DBUILD_SHARED_LIBS=0
-        -DLUA_BUILD_WLUA=0)
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ${LUAJIT_BUILD_CMD}
+    BUILD_IN_SOURCE 1
+    BUILD_ALWAYS 0
+)
+set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_PREFIX}/src/Luajit/src)
 if(WIN32)
     set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/lua.lib)
+        ${EXTERNAL_PREFIX}/src/Luajit/src/lua51.lib)
 else()
     set(LIBS ${LIBS}
         ${EXTERNAL_INSTALL}/lib/liblua.a)
 endif()
-set_target_properties(Luajit PROPERTIES FOLDER "3rdparty")
+set_target_properties(Luajit PROPERTIES FOLDER "contrib")
 
-# RakNet
-ExternalProject_Add(RakNet
-    PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_INSTALL}
-    GIT_REPOSITORY https://github.com/davedissian/dawnengine-RakNet.git
-    UPDATE_COMMAND ""
-    CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DRAKNET_ENABLE_DLL=0
-        -DRAKNET_ENABLE_SAMPLES=0)
-set_target_properties(RakNet PROPERTIES FOLDER "3rdparty")
-if(WIN32)
-    set(LIBS ${LIBS}
-    	ws2_32.lib
-        debug ${EXTERNAL_INSTALL}/lib/RakNetLibStatic_d.lib
-        optimized ${EXTERNAL_INSTALL}/lib/RakNetLibStatic.lib)
-else()
-    set(LIBS ${LIBS}
-    	pthread
-        debug ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic_d.a
-        optimized ${EXTERNAL_INSTALL}/lib/libRakNetLibStatic.a)
-endif()
-
-set(EXTERNAL_DEPS Bullet MathGeoLib Luajit RakNet PARENT_SCOPE)
+set(EXTERNAL_DEPS Assimp Bullet MathGeoLib Luajit PARENT_SCOPE)
 
 
 ##############################################################
@@ -161,14 +158,6 @@ set(EXTERNAL_DEPS Bullet MathGeoLib Luajit RakNet PARENT_SCOPE)
 if(UNIX) # TODO: If is Clang or GCC
     add_definitions(-fPIC)
 endif()
-
-# assimp
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-add_subdirectory(assimp)
-target_include_directories(assimp PRIVATE ${INCLUDE_DIRS})
-set_target_properties(assimp PROPERTIES FOLDER "3rdparty")
-set(LIBS ${LIBS} assimp)
 
 # bgfx
 add_definitions(-DBGFX_CONFIG_RENDERER_OPENGL=33)
@@ -183,7 +172,7 @@ if(APPLE)
     target_link_libraries(bgfx ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY})
 endif()
 target_include_directories(bgfx PRIVATE ${INCLUDE_DIRS})
-set_target_properties(bgfx PROPERTIES FOLDER "3rdparty")
+set_target_properties(bgfx PROPERTIES FOLDER "contrib")
 set(LIBS ${LIBS} bgfx)
 if(WIN32)
     set(LIBS ${LIBS} psapi.lib)
@@ -224,13 +213,19 @@ target_include_directories(shaderc PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/src/mesa
     ${CMAKE_CURRENT_SOURCE_DIR}/bx/include)
 
+# enet
+add_subdirectory(enet)
+set(LIBS ${LIBS} enet)
+set_target_properties(enet PROPERTIES FOLDER "contrib")
+
 # glfw
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 add_subdirectory(glfw)
 target_include_directories(glfw PRIVATE ${INCLUDE_DIRS})
-set_target_properties(glfw PROPERTIES FOLDER "3rdparty")
+set_target_properties(glfw PROPERTIES FOLDER "contrib")
 set(LIBS ${LIBS} glfw)
 
 # ImGui
@@ -239,14 +234,14 @@ add_library(ImGui
     ImGui/imgui_demo.cpp
     ImGui/imgui_draw.cpp)
 target_include_directories(ImGui PRIVATE ${INCLUDE_DIRS})
-set_target_properties(ImGui PROPERTIES FOLDER "3rdparty")
+set_target_properties(ImGui PROPERTIES FOLDER "contrib")
 set(LIBS ${LIBS} ImGui)
 
 # ontology
 add_subdirectory(ontology)
 enable_cpp14(ontology)
 target_include_directories(ontology PRIVATE ${INCLUDE_DIRS})
-set_target_properties(ontology PROPERTIES FOLDER "3rdparty")
+set_target_properties(ontology PROPERTIES FOLDER "contrib")
 set(LIBS ${LIBS} ontology)
 
 
