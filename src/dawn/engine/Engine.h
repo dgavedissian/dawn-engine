@@ -10,8 +10,6 @@ class App;
 
 typedef std::function<void(float)> EngineTickCallback;
 
-int runEngine(App* app, int argc, char** argv);
-
 class DW_API Engine : public Object {
 public:
     DW_OBJECT(Engine);

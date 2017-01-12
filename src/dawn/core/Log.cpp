@@ -3,6 +3,9 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 
+// Required by DW_* macros
+#include "Platform.h"
+
 #if DW_PLATFORM == DW_WIN32
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN

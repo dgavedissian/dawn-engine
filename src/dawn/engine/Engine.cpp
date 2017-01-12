@@ -9,20 +9,6 @@
 
 namespace dw {
 
-// TODO(David): Implement this in a better way. For now this is just a wrapper over how apps were
-// created before
-int runEngine(App* app, int argc, char** argv) {
-    dw::Engine engine(app->getGameName(), app->getGameVersion());
-    engine.setup();
-    app->_setContext(engine.getContext());
-    app->init(argc, argv);
-    engine.run([&app](float dt) { app->update(dt); });
-    app->shutdown();
-    delete app;
-    engine.shutdown();
-    return EXIT_SUCCESS;
-}
-
 Engine::Engine(const String& game, const String& version)
     : Object(nullptr),
       mInitialised(false),
@@ -108,7 +94,7 @@ void Engine::setup() {
      */
 
     // Display startup info
-    getLog().info("Current Working Directory: ", getSubsystem<FileSystem>()->getWorkingDir());
+    getLog().info("Current Working Directory: %s", getSubsystem<FileSystem>()->getWorkingDir());
 
     // The engine is now initialised
     mInitialised = true;
