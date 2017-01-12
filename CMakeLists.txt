@@ -75,19 +75,15 @@ function(add_game GAME_NAME)
 
     # Copy over shared library dependencies
     get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
-    set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
-    if(WIN32)
-        add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-            COMMAND if exist ${LIB_DIR}/Dawn_d.dll ${CMAKE_COMMAND} -E copy ${LIB_DIR}/Dawn_d.dll ${BIN_DIR}
-            COMMAND if exist ${LIB_DIR}/Dawn.dll ${CMAKE_COMMAND} -E copy ${LIB_DIR}/Dawn.dll ${BIN_DIR})
-    elseif(APPLE)
-        set(BUNDLE_DIR ${BIN_DIR}/${GAME_NAME}.app)
+    if(APPLE)
+        set(BUNDLE_DIR ${CMAKE_SOURCE_DIR}/bin/${GAME_NAME}.app)
         set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)
         add_custom_command(TARGET ${GAME_NAME} POST_BUILD
             COMMAND mkdir -p ${FRAMEWORKS_DIR}
             COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR}/Dawn.framework)
     else()
-        # TODO: Linux
+        add_custom_command(TARGET ${GAME_NAME} POST_BUILD COMMAND
+            ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Dawn> $<TARGET_FILE_DIR:${GAME_NAME}>)
     endif()
 endfunction()
 
