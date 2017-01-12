@@ -9,24 +9,24 @@ class Sandbox : public dw::App {
 public:
     DW_OBJECT(Sandbox);
 
-    virtual void init(int argc, char** argv) override {
+    void init(int argc, char** argv) override {
         getSubsystem<dw::FileSystem>()->setWorkingDir("media");
 
         dw::File file(mContext, "sandbox/test.txt", dw::FileMode::Read);
         getLog().info("File contents: %s", dw::stream::read<dw::u8>(file));
     }
 
-    virtual void update(float dt) override {
+    void update(float dt) override {
     }
 
-    virtual void shutdown() override {
+    void shutdown() override {
     }
 
-    virtual dw::String getGameName() override {
+    dw::String getGameName() override {
         return "Sandbox";
     }
 
-    virtual dw::String getGameVersion() override {
+    dw::String getGameVersion() override {
         return "1.0.0";
     }
 };
