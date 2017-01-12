@@ -127,6 +127,10 @@ endif()
 # Luajit
 if (MSVC)
     set(LUAJIT_BUILD_CMD cd src && msvcbuild static)
+    set(LUAJIT_BUILD_CMD "")
+else()
+    set(LUAJIT_INSTALL_CMD make PREFIX=${EXTERNAL_INSTALL})
+    set(LUAJIT_INSTALL_CMD make install PREFIX=${EXTERNAL_INSTALL})
 endif()
 ExternalProject_Add(Luajit
     PREFIX ${EXTERNAL_PREFIX}
@@ -134,6 +138,7 @@ ExternalProject_Add(Luajit
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ${LUAJIT_BUILD_CMD}
+    INSTALL_COMMAND ${LUAJIT_INSTALL_CMD}
     BUILD_IN_SOURCE 1
     BUILD_ALWAYS 0
 )
@@ -143,7 +148,7 @@ if(WIN32)
         ${EXTERNAL_PREFIX}/src/Luajit/src/lua51.lib)
 else()
     set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/liblua.a)
+        ${EXTERNAL_INSTALL}/lib/libluajit-5.1.a)
 endif()
 set_target_properties(Luajit PROPERTIES FOLDER "contrib")
 
