@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
 #include "engine/App.h"
@@ -57,7 +57,8 @@ int runApp(App* app, int argc, char** argv) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // This is free from race conditions as long as returnCode is accessed after mainThread.join()
+    // NOTE: This is free from race conditions as long as returnCode is accessed after
+    // mainThread.join()
     return returnCode;
 }
 }

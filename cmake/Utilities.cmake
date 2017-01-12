@@ -1,6 +1,6 @@
 # Useful CMake utility functions
-# Last Updated: 2/8/2016
-# Copyright (c) 2015-16 David Avedissian (git@davedissian.com)
+# Last Updated: 12/1/2017
+# Copyright (c) 2015-17 David Avedissian (git@dga.me.uk)
 cmake_minimum_required(VERSION 3.1)
 
 # Create a vcproj userfile which correctly runs the binary in a specified working directory when debugging
