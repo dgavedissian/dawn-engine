@@ -4,17 +4,17 @@
  */
 #include "Common.h"
 #include "io/InputStream.h"
-#include "renderer/ShaderSource.h"
+#include "renderer/ShaderProgram.h"
 
 namespace dw {
 
-ShaderSource::ShaderSource(Context* context) : Resource(context) {
+ShaderProgram::ShaderProgram(Context* context) : Resource(context) {
 }
 
-ShaderSource::~ShaderSource() {
+ShaderProgram::~ShaderProgram() {
 }
 
-bool ShaderSource::beginLoad(InputStream& src) {
+bool ShaderProgram::beginLoad(InputStream& src) {
     // TODO(David): Sanity checking here?
     mSrcLen = (u32)src.getSize();
     assert(mSrcLen != 0);
@@ -27,14 +27,14 @@ bool ShaderSource::beginLoad(InputStream& src) {
     return true;
 }
 
-void ShaderSource::endLoad() {
+void ShaderProgram::endLoad() {
     // Create bgfx shader and free memory
     mHandle = bgfx::createShader(bgfx::makeRef(mSrcData, mSrcLen));
     delete[] mSrcData;
     mSrcData = nullptr;
 }
 
-bgfx::ShaderHandle ShaderSource::getHandle() const {
+bgfx::ShaderHandle ShaderProgram::getHandle() const {
     return mHandle;
 }
 }

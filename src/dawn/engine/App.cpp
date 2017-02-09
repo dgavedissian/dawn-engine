@@ -40,9 +40,7 @@ int runApp(App* app, int argc, char** argv) {
         // App lifecycle
         app->_setContext(engine.getContext());
         app->init(argc, argv);
-        engine.run([&app](float dt) {
-            app->update(dt);
-        });
+        engine.run([&app](float dt) { app->update(dt); });
         app->shutdown();
         delete app;
 

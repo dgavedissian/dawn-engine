@@ -4,11 +4,12 @@
  */
 #pragma once
 
+#include "renderer/Geometry.h"
 #include "resource/Resource.h"
 
 namespace dw {
 
-class Mesh : public Resource {
+class Mesh : public Resource, public Geometry {
 public:
     DW_OBJECT(Mesh);
 

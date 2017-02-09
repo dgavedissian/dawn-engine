@@ -127,9 +127,9 @@ endif()
 # Luajit
 if (MSVC)
     set(LUAJIT_BUILD_CMD cd src && msvcbuild static)
-    set(LUAJIT_BUILD_CMD "")
+    set(LUAJIT_INSTALL_CMD "")
 else()
-    set(LUAJIT_INSTALL_CMD make PREFIX=${EXTERNAL_INSTALL})
+    set(LUAJIT_BUILD_CMD make PREFIX=${EXTERNAL_INSTALL})
     set(LUAJIT_INSTALL_CMD make install PREFIX=${EXTERNAL_INSTALL})
 endif()
 ExternalProject_Add(Luajit

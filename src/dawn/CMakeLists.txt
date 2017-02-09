@@ -28,12 +28,12 @@ set(H_FILES
     math/Vec3i.h
     math/Vec4i.h
     physics/PhysicsWorld.h
+    renderer/Geometry.h
     renderer/Material.h
     renderer/Mesh.h
     renderer/Node.h
     renderer/Renderer.h
-    renderer/Shader.h
-    renderer/ShaderSource.h
+    renderer/ShaderProgram.h
     renderer/Texture.h
     resource/Resource.h
     resource/ResourceCache.h
@@ -71,8 +71,7 @@ set(CPP_FILES
     renderer/Mesh.cpp
     renderer/Node.cpp
     renderer/Renderer.cpp
-    renderer/Shader.cpp
-    renderer/ShaderSource.cpp
+    renderer/ShaderProgram.cpp
     renderer/Texture.cpp
     resource/Resource.cpp
     resource/ResourceCache.cpp

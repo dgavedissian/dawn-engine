@@ -8,12 +8,12 @@
 
 namespace dw {
 
-class ShaderSource : public Resource {
+class ShaderProgram : public Resource {
 public:
-    DW_OBJECT(ShaderSource);
+    DW_OBJECT(ShaderProgram);
 
-    ShaderSource(Context* context);
-    ~ShaderSource();
+    ShaderProgram(Context* context);
+    ~ShaderProgram();
 
     bool beginLoad(InputStream& src) override;
     void endLoad() override;

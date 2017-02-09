@@ -8,5 +8,6 @@ AllowShortLoopsOnASingleLine: false
 ColumnLimit: 100
 IndentWidth: 4
 SortIncludes: false
+DerivePointerAlignment: false
 PointerAlignment: Left
 ...

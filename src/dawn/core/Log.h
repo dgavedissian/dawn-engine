@@ -32,10 +32,10 @@ public:
     DW_OBJECT(Logger);
 
     Logger(Context* context);
-	Logger(Logger& other) = delete;
+    Logger(Logger& other) = delete;
     ~Logger() = default;
 
-	Logger& operator=(const Logger& other) = delete;
+    Logger& operator=(const Logger& other) = delete;
 
     void addLogMessageHandler(UniquePtr<LogMessageHandler>&& handler);
 

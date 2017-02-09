@@ -15,16 +15,16 @@ Node::Node(Context* context) : Object(context) {
 Node::~Node() {
 }
 
-void Node::setMesh(Mesh* mesh) {
-    mMesh = mesh;
+void Node::setGeometry(Geometry* geometry) {
+    mGeometry = geometry;
 }
 
 void Node::setMaterial(Material* material) {
     mMaterial = material;
 }
 
-Mesh* Node::getMesh() {
-    return mMesh;
+Geometry* Node::getGeometry() {
+    return mGeometry;
 }
 
 Material* Node::getMaterial() {

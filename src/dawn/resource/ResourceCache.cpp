@@ -9,18 +9,18 @@
 
 namespace dw {
 
-ResourceCache::ResourceCache(Context *context) : Object(context) {
+ResourceCache::ResourceCache(Context* context) : Object(context) {
 }
 
 ResourceCache::~ResourceCache() {
 }
 
-void ResourceCache::addResourcePath(const Path &path) {
+void ResourceCache::addResourcePath(const Path& path) {
     mResourcePaths.push_back(path);
 }
 
-SharedPtr<File> ResourceCache::getFile(const Path &filename) {
-    for (const Path &resPath : mResourcePaths) {
+SharedPtr<File> ResourceCache::getFile(const Path& filename) {
+    for (const Path& resPath : mResourcePaths) {
         Path fullPath = resPath + "/" + filename;
         if (getSubsystem<FileSystem>()->fileExists(fullPath)) {
             return makeShared<File>(getContext(), fullPath, FileMode::Read);

@@ -4,6 +4,9 @@
  */
 #pragma once
 
+#include "renderer/Geometry.h"
+#include "renderer/Material.h"
+
 namespace dw {
 
 class Node : public Object {
@@ -13,14 +16,14 @@ public:
     Node(Context* context);
     ~Node();
 
-    void setMesh(Mesh* mesh);
+    void setGeometry(Geometry* geometry);
     void setMaterial(Material* material);
 
-    Mesh* getMesh();
+    Geometry* getGeometry();
     Material* getMaterial();
 
 private:
-    Mesh* mMesh;
+    Geometry* mGeometry;
     Material* mMaterial;
 };
 }
