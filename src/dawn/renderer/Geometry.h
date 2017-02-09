@@ -6,7 +6,7 @@
 
 namespace dw {
 
-class Geometry {
+class DW_API Geometry {
 public:
     Geometry() = default;
     virtual ~Geometry() = default;

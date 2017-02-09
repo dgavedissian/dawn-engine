@@ -8,7 +8,7 @@
 
 namespace dw {
 
-class ResourceCache : public Object {
+class DW_API ResourceCache : public Object {
 public:
     DW_OBJECT(ResourceCache);
 

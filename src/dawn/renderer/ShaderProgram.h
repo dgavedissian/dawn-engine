@@ -8,7 +8,7 @@
 
 namespace dw {
 
-class ShaderProgram : public Resource {
+class DW_API ShaderProgram : public Resource {
 public:
     DW_OBJECT(ShaderProgram);
 

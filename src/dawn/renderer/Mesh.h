@@ -9,7 +9,7 @@
 
 namespace dw {
 
-class Mesh : public Resource, public Geometry {
+class DW_API Mesh : public Resource, public Geometry {
 public:
     DW_OBJECT(Mesh);
 

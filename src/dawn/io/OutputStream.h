@@ -6,7 +6,7 @@
 
 namespace dw {
 
-class OutputStream {
+class DW_API OutputStream {
 public:
     virtual ~OutputStream();
 

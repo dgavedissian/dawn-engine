@@ -21,7 +21,7 @@ struct FileMode {
     };
 };
 
-class File : public Object, public InputStream, public OutputStream {
+class DW_API File : public Object, public InputStream, public OutputStream {
 public:
     DW_OBJECT(File);
 

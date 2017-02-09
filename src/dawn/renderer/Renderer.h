@@ -6,7 +6,7 @@
 
 namespace dw {
 
-class Renderer : public Object {
+class DW_API Renderer : public Object {
 public:
     DW_OBJECT(Renderer);
 

@@ -9,7 +9,7 @@
 
 namespace dw {
 
-class Resource : public Object {
+class DW_API Resource : public Object {
 public:
     DW_OBJECT(Resource);
 

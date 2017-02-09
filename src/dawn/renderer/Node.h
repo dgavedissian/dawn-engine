@@ -9,7 +9,7 @@
 
 namespace dw {
 
-class Node : public Object {
+class DW_API Node : public Object {
 public:
     DW_OBJECT(Node);
 

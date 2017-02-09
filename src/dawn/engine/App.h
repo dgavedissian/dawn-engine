@@ -9,7 +9,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #define DW_IMPLEMENT_MAIN(AppClass)                         \
-    int WINAPI WinMain(HINSTANCE, HINSTANCE, LPCSTR, int) { \
+    int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) { \
         return dw::runApp(new AppClass, __argc, __argv);    \
     }
 #else
@@ -21,7 +21,7 @@
 
 namespace dw {
 
-class App : public Object {
+class DW_API App : public Object {
 public:
     App() : Object(nullptr) {
     }
@@ -40,5 +40,5 @@ public:
     virtual String getGameVersion() = 0;
 };
 
-int runApp(App* app, int argc, char** argv);
+DW_API int runApp(App* app, int argc, char** argv);
 }

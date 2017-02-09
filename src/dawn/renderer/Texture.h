@@ -8,7 +8,7 @@
 
 namespace dw {
 
-class Texture : public Resource {
+class DW_API Texture : public Resource {
 public:
     DW_OBJECT(Texture);
 

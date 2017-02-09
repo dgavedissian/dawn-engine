@@ -6,7 +6,7 @@
 
 namespace dw {
 
-class InputStream {
+class DW_API InputStream {
 public:
     InputStream();
     InputStream(u64 size);

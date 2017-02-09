@@ -8,7 +8,7 @@
 
 namespace dw {
 
-class Material : public Resource {
+class DW_API Material : public Resource {
 public:
     DW_OBJECT(Material);
 
