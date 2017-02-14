@@ -15,19 +15,19 @@ Node::Node(Context* context) : Object(context) {
 Node::~Node() {
 }
 
-void Node::setGeometry(Geometry* geometry) {
+void Node::setGeometry(SharedPtr<Geometry> geometry) {
     mGeometry = geometry;
 }
 
-void Node::setMaterial(Material* material) {
+void Node::setMaterial(SharedPtr<Material> material) {
     mMaterial = material;
 }
 
 Geometry* Node::getGeometry() {
-    return mGeometry;
+    return mGeometry.get();
 }
 
 Material* Node::getMaterial() {
-    return mMaterial;
+    return mMaterial.get();
 }
 }

@@ -14,7 +14,7 @@ public:
     DW_OBJECT(Resource);
 
     Resource(Context* context);
-    virtual ~Resource();
+    virtual ~Resource() = default;
 
     bool load(InputStream& src);
     virtual bool beginLoad(InputStream& src) = 0;

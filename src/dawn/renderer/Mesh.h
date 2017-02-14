@@ -8,7 +8,6 @@
 #include "resource/Resource.h"
 
 namespace dw {
-
 class DW_API Mesh : public Resource, public Geometry {
 public:
     DW_OBJECT(Mesh);

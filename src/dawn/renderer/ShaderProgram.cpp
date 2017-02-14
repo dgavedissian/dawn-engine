@@ -7,7 +7,6 @@
 #include "renderer/ShaderProgram.h"
 
 namespace dw {
-
 ShaderProgram::ShaderProgram(Context* context) : Resource(context) {
 }
 

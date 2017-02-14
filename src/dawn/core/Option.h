@@ -32,14 +32,14 @@ template <class T> Option<T>::Option() : mSetFlag(false) {
 }
 
 template <class T> Option<T>::Option(const Option<T>& other) : mSetFlag(other.mSetFlag) {
-    // Use copy constructor to initialise mData
+    // Use copy constructor to initialise mData.
     if (mSetFlag) {
         new (mData) T(other.get());
     }
 }
 
 template <class T> Option<T>::Option(Option<T>&& other) : mSetFlag(other.mSetFlag) {
-    // Use move constructor to initialise mData
+    // Use move constructor to initialise mData.
     if (mSetFlag) {
         new (mData) T(std::move(other.get()));
     }

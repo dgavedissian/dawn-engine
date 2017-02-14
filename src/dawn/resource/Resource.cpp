@@ -11,9 +11,6 @@ namespace dw {
 Resource::Resource(Context* context) : Object(context) {
 }
 
-Resource::~Resource() {
-}
-
 bool Resource::load(InputStream& src) {
     if (!beginLoad(src))
         return false;

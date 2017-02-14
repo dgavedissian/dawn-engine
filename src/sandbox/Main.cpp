@@ -14,6 +14,8 @@ public:
 
         dw::File file(mContext, "sandbox/test.txt", dw::FileMode::Read);
         getLog().info("File contents: %s", dw::stream::read<dw::u8>(file));
+
+        // Create a node.
     }
 
     void update(float dt) override {

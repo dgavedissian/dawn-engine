@@ -17,6 +17,8 @@
 
 namespace dw {
 
+// Internal.
+namespace {
 int imageCallbackRead(void* user, char* data, int size) {
     InputStream& stream = *reinterpret_cast<InputStream*>(user);
     return static_cast<int>(stream.read(data, size));
@@ -30,6 +32,7 @@ void imageCallbackSkip(void* user, int n) {
 int imageCallbackEof(void* user) {
     InputStream& stream = *reinterpret_cast<InputStream*>(user);
     return stream.eof() ? 1 : 0;
+}
 }
 
 Texture::Texture(Context* context) : Resource(context) {

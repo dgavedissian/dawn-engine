@@ -8,9 +8,9 @@
 #define WIN32_LEAN_AND_MIN
 #define NOMINMAX
 #include <Windows.h>
-#define DW_IMPLEMENT_MAIN(AppClass)                         \
+#define DW_IMPLEMENT_MAIN(AppClass)                        \
     int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) { \
-        return dw::runApp(new AppClass, __argc, __argv);    \
+        return dw::runApp(new AppClass, __argc, __argv);   \
     }
 #else
 #define DW_IMPLEMENT_MAIN(AppClass)                  \

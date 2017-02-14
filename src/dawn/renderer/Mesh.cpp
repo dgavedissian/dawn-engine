@@ -7,7 +7,6 @@
 #include "renderer/Mesh.h"
 
 namespace dw {
-
 Mesh::Mesh(Context* context) : Resource(context) {
 }
 

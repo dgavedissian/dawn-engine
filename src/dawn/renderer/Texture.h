@@ -7,7 +7,6 @@
 #include "resource/Resource.h"
 
 namespace dw {
-
 class DW_API Texture : public Resource {
 public:
     DW_OBJECT(Texture);
@@ -18,7 +17,7 @@ public:
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
 
-    bgfx::TextureHandle getTextureHandle() const;
+    DEPRECATED bgfx::TextureHandle getTextureHandle() const;
 
 private:
     bgfx::TextureHandle mTextureHandle;

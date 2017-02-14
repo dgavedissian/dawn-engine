@@ -5,6 +5,7 @@
 #pragma once
 
 #include "renderer/ShaderProgram.h"
+#include "renderer/Texture.h"
 
 namespace dw {
 
@@ -12,11 +13,13 @@ class DW_API Material : public Resource {
 public:
     DW_OBJECT(Material);
 
-    Material(Context* context, ShaderProgram* vs, ShaderProgram* ps);
+    Material(Context* context, SharedPtr<ShaderProgram> vs, SharedPtr<ShaderProgram> fs);
     ~Material();
 
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
+
+    void setTextureUnit(SharedPtr<Texture> texture, uint unit = 0);
 
     template <typename T> void setUniform(const String& name, const T& value) {
     }
@@ -27,8 +30,9 @@ private:
 
     HashMap<String, Pair<bgfx::UniformHandle, bgfx::UniformType::Enum>> mUniformHandleTable;
 
-    ShaderProgram* mVertexShader;
-    ShaderProgram* mFragmentShader;
+    SharedPtr<ShaderProgram> mVertexShader;
+    SharedPtr<ShaderProgram> mFragmentShader;
+    Array<Texture, 8> mTextureUnits;
 
     bgfx::ProgramHandle mHandle;
 };

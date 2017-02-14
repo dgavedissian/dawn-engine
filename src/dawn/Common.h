@@ -69,6 +69,7 @@ template <class... T> inline Tuple<T...> makeTuple(T&&... args) {
 }
 
 // Containers
+template <class T, int N> using Array = std::array<T, N>;
 template <class T> using Vector = std::vector<T>;
 template <class T> using List = std::list<T>;
 template <class K, class T> using Map = std::map<K, T>;

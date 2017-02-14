@@ -17,27 +17,27 @@ public:
 
     void addResourcePath(const Path& path);
 
-    template <typename T> T* getResource(const Path& filename) {
-        StringHash nameHash(String(filename.c_str()));
+    template <typename T> SharedPtr<T> get(const Path& filename) {
+        String name(String(filename.c_str()));
 
         // If the resource already exists, cache hit
-        auto it = mResourceCache.find(nameHash);
+        auto it = mResourceCache.find(name);
         if (it != mResourceCache.end()) {
-            return static_cast<T*>((*it).second.get());
+            return staticPointerCast<T>((*it).second);
         }
 
         // Get the file which contains this resource data
         SharedPtr<File> file = getFile(filename);
         SharedPtr<T> resource = makeShared<T>(getContext());
-        mResourceCache.insert(makePair(nameHash, resource));
+        mResourceCache.insert(makePair(name, resource));
         resource->load(*file.get());
-        return resource.get();
+        return resource;
     }
 
 private:
     SharedPtr<File> getFile(const Path& filename);
 
     Vector<Path> mResourcePaths;
-    HashMap<StringHash, SharedPtr<Resource>> mResourceCache;
+    HashMap<String, SharedPtr<Resource>> mResourceCache;
 };
 }

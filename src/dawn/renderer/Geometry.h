@@ -5,7 +5,6 @@
 #pragma once
 
 namespace dw {
-
 class DW_API Geometry {
 public:
     Geometry() = default;

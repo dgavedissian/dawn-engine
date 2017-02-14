@@ -8,7 +8,6 @@
 #include "renderer/Material.h"
 
 namespace dw {
-
 class DW_API Node : public Object {
 public:
     DW_OBJECT(Node);
@@ -16,14 +15,14 @@ public:
     Node(Context* context);
     ~Node();
 
-    void setGeometry(Geometry* geometry);
-    void setMaterial(Material* material);
+    void setGeometry(SharedPtr<Geometry> geometry);
+    void setMaterial(SharedPtr<Material> material);
 
     Geometry* getGeometry();
     Material* getMaterial();
 
 private:
-    Geometry* mGeometry;
-    Material* mMaterial;
+    SharedPtr<Geometry> mGeometry;
+    SharedPtr<Material> mMaterial;
 };
 }

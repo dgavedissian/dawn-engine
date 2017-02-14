@@ -5,7 +5,6 @@
 #pragma once
 
 namespace dw {
-
 class DW_API Renderer : public Object {
 public:
     DW_OBJECT(Renderer);
