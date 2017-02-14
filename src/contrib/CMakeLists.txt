@@ -64,6 +64,7 @@ ExternalProject_Add(Assimp
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/assimp/assimp/archive/v3.3.1.zip
+    URL_MD5 c20ae75c10d1569cd6fa435eef079f56
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DASSIMP_BUILD_ASSIMP_TOOLS=0
@@ -75,7 +76,8 @@ set_target_properties(Assimp PROPERTIES FOLDER "contrib")
 ExternalProject_Add(Bullet
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    URL https://github.com/bulletphysics/bullet3/archive/2.85.1.zip
+    URL https://github.com/bulletphysics/bullet3/archive/2.86.zip
+    URL_MD5 8b57278946186e9792824069637bbc97
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_EXTRAS=0
@@ -107,6 +109,7 @@ ExternalProject_Add(MathGeoLib
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/davedissian/dawnengine-MathGeoLib/archive/master.zip
+    URL_MD5 d1fd2ed6aa2284049234f377c6a6f1e9
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0
@@ -126,22 +129,28 @@ endif()
 
 # Luajit
 if (MSVC)
-    set(LUAJIT_BUILD_CMD cd src && msvcbuild static)
-    set(LUAJIT_INSTALL_CMD "")
+    ExternalProject_Add(Luajit
+        PREFIX ${EXTERNAL_PREFIX}
+        URL http://luajit.org/download/LuaJIT-2.1.0-beta2.zip
+        URL_MD5 b5d943c0174ca217736e2ddc2d9721c3
+        BINARY_DIR ${EXTERNAL_PREFIX}/src/Luajit/src
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND msvcbuild.bat static
+        INSTALL_COMMAND ""
+        UPDATE_COMMAND ""
+    )
 else()
-    set(LUAJIT_BUILD_CMD make PREFIX=${EXTERNAL_INSTALL})
-    set(LUAJIT_INSTALL_CMD make install PREFIX=${EXTERNAL_INSTALL})
+    ExternalProject_Add(Luajit
+        PREFIX ${EXTERNAL_PREFIX}
+        URL http://luajit.org/download/LuaJIT-2.1.0-beta2.zip
+        URL_MD5 b5d943c0174ca217736e2ddc2d9721c3
+        BUILD_IN_SOURCE 1
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ${MAKE} PREFIX=${EXTERNAL_INSTALL}
+        INSTALL_COMMAND ${MAKE} install PREFIX=${EXTERNAL_INSTALL}
+        UPDATE_COMMAND ""
+    )
 endif()
-ExternalProject_Add(Luajit
-    PREFIX ${EXTERNAL_PREFIX}
-    URL http://luajit.org/download/LuaJIT-2.1.0-beta2.zip
-    UPDATE_COMMAND ""
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ${LUAJIT_BUILD_CMD}
-    INSTALL_COMMAND ${LUAJIT_INSTALL_CMD}
-    BUILD_IN_SOURCE 1
-    BUILD_ALWAYS 0
-)
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_PREFIX}/src/Luajit/src)
 if(WIN32)
     set(LIBS ${LIBS}
