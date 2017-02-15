@@ -32,7 +32,7 @@ private:
 
     SharedPtr<ShaderProgram> mVertexShader;
     SharedPtr<ShaderProgram> mFragmentShader;
-    Array<Texture, 8> mTextureUnits;
+    Array<SharedPtr<Texture>, 8> mTextureUnits;
 
     bgfx::ProgramHandle mHandle;
 };

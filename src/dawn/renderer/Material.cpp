@@ -7,7 +7,7 @@
 
 namespace dw {
 
-Material::Material(Context* context, ShaderProgram* vs, ShaderProgram* fs)
+Material::Material(Context* context, SharedPtr<ShaderProgram> vs, SharedPtr<ShaderProgram> fs)
     : Resource(context), mVertexShader(vs), mFragmentShader(fs) {
     mHandle = bgfx::createProgram(vs->getHandle(), fs->getHandle());
     // TODO(David): error checking
