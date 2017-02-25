@@ -4,10 +4,10 @@
  */
 #pragma once
 
+#include "io/Path.h"
 #include "resource/Resource.h"
 
 namespace dw {
-
 class DW_API ResourceCache : public Object {
 public:
     DW_OBJECT(ResourceCache);

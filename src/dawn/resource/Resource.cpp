@@ -8,13 +8,15 @@
 
 namespace dw {
 
-Resource::Resource(Context* context) : Object(context) {
+Resource::Resource(Context* context) : Object(context), mLoaded(false) {
 }
 
 bool Resource::load(InputStream& src) {
-    if (!beginLoad(src))
+    if (!beginLoad(src)) {
         return false;
+    }
     endLoad();
+    mLoaded = true;
     return true;
 }
 

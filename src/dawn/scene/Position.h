@@ -37,13 +37,13 @@ public:
     Position& operator-=(const Vec3& other);
     Position& operator*=(float scalar);
     Position& operator/=(float scalar);
-    const Position operator-() const;
-    const Position operator+(const Position& other) const;
-    const Position operator+(const Vec3& other) const;
-    const Position operator-(const Position& other) const;
-    const Position operator-(const Vec3& other) const;
-    const Position operator*(float scalar) const;
-    const Position operator/(float scalar) const;
+    Position operator-() const;
+    Position operator+(const Position& other) const;
+    Position operator+(const Vec3& other) const;
+    Position operator-(const Position& other) const;
+    Position operator-(const Vec3& other) const;
+    Position operator*(float scalar) const;
+    Position operator/(float scalar) const;
 
     // Components
     double x;

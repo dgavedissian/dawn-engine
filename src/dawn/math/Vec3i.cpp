@@ -13,7 +13,8 @@ Vec3i::Vec3i() : x(0), y(0), z(0) {
 Vec3i::Vec3i(int _x, int _y, int _z) : x(_x), y(_y), z(_z) {
 }
 
-Vec3i::Vec3i(const Vec3& v) : x((int)v.x), y((int)v.y), z((int)v.z) {
+Vec3i::Vec3i(const Vec3& v)
+    : x(static_cast<int>(v.x)), y(static_cast<int>(v.y)), z(static_cast<int>(v.z)) {
 }
 
 Vec3i& Vec3i::operator=(const Vec3i& other) {
@@ -51,23 +52,23 @@ Vec3i& Vec3i::operator/=(int scalar) {
     return *this;
 }
 
-const Vec3i Vec3i::operator-() const {
+Vec3i Vec3i::operator-() const {
     return Vec3i(-x, -y, -z);
 }
 
-const Vec3i Vec3i::operator+(const Vec3i& other) const {
+Vec3i Vec3i::operator+(const Vec3i& other) const {
     return Vec3i(x + other.x, y + other.y, z + other.z);
 }
 
-const Vec3i Vec3i::operator-(const Vec3i& other) const {
+Vec3i Vec3i::operator-(const Vec3i& other) const {
     return Vec3i(x - other.x, y - other.y, z - other.z);
 }
 
-const Vec3i Vec3i::operator*(int scalar) const {
+Vec3i Vec3i::operator*(int scalar) const {
     return Vec3i(x * scalar, y * scalar, z * scalar);
 }
 
-const Vec3i Vec3i::operator/(int scalar) const {
+Vec3i Vec3i::operator/(int scalar) const {
     return Vec3i(x / scalar, y / scalar, z / scalar);
 }
 }

@@ -6,10 +6,10 @@
 #include "renderer/IndexBuffer.h"
 
 namespace dw {
-    IndexBuffer::IndexBuffer(Context* context) : Object(context) {
+IndexBuffer::IndexBuffer(Context* context) : Object(context) {
 }
 
-    IndexBuffer::~IndexBuffer() {
+IndexBuffer::~IndexBuffer() {
 }
 
 bgfx::IndexBufferHandle IndexBuffer::getInternalHandle() const {

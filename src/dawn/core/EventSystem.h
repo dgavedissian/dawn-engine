@@ -28,7 +28,7 @@ public:
     virtual ~EventData() {
     }
     virtual const EventType& getType() const = 0;
-    virtual const String getName() const = 0;
+    virtual String getName() const = 0;
 };
 
 typedef SharedPtr<EventData> EventDataPtr;
@@ -36,6 +36,8 @@ typedef fastdelegate::FastDelegate1<SharedPtr<EventData>> EventListenerDelegate;
 
 // Event listener interface
 class DW_API EventListener {
+public:
+    virtual ~EventListener() = default;
     virtual void handleEvent(EventDataPtr eventData) = 0;
 };
 
@@ -114,10 +116,12 @@ public:
 
     EvtData_Exit() {
     }
-    virtual const EventType& getType() const override {
+
+    const EventType& getType() const override {
         return eventType;
     }
-    virtual const String getName() const override {
+
+    String getName() const override {
         return "EvtData_ExitEvent";
     }
 };
@@ -128,10 +132,12 @@ public:
 
     EvtData_SendMessage(const String& s, const String& m) : sender(s), message(m) {
     }
-    virtual const EventType& getType() const override {
+
+    const EventType& getType() const override {
         return eventType;
     }
-    virtual const String getName() const override {
+
+    String getName() const override {
         return "EvtData_SendMessage";
     }
 
@@ -145,10 +151,12 @@ public:
 
     EvtData_Message(const String& s, const String& m) : sender(s), message(m) {
     }
-    virtual const EventType& getType() const override {
+
+    const EventType& getType() const override {
         return eventType;
     }
-    virtual const String getName() const override {
+
+    String getName() const override {
         return "EvtData_Message";
     }
 

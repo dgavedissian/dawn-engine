@@ -11,7 +11,7 @@ const StringHash StringHash::ZERO;
 StringHash::StringHash() : mValue(0) {
 }
 
-StringHash::StringHash(uint32_t value) : mValue(value) {
+StringHash::StringHash(HashType value) : mValue(value) {
 }
 
 StringHash::StringHash(const char* str) : mValue(calculate(str)) {
@@ -62,12 +62,14 @@ String StringHash::toString() const {
 uint32_t StringHash::calculate(const char* str) {
     uint32_t hash = 0;
 
-    if (!str)
+    if (!str) {
         return hash;
+    }
 
     // Perform a case-insensitive hash using the SDBM algorithm
-    while (*str)
-        hash = (uint32_t)tolower(*str++) + (hash << 6) + (hash << 16) - hash;
+    while (*str) {
+        hash = static_cast<uint32_t>(tolower(*str++)) + (hash << 6) + (hash << 16) - hash;
+    }
     return hash;
 }
 }

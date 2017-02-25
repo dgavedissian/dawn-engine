@@ -21,10 +21,10 @@ public:
     Vec2i& operator-=(const Vec2i& other);
     Vec2i& operator*=(int scalar);
     Vec2i& operator/=(int scalar);
-    const Vec2i operator-() const;
-    const Vec2i operator+(const Vec2i& other) const;
-    const Vec2i operator-(const Vec2i& other) const;
-    const Vec2i operator*(int scalar) const;
-    const Vec2i operator/(int scalar) const;
+    Vec2i operator-() const;
+    Vec2i operator+(const Vec2i& other) const;
+    Vec2i operator-(const Vec2i& other) const;
+    Vec2i operator*(int scalar) const;
+    Vec2i operator/(int scalar) const;
 };
 }

@@ -4,8 +4,9 @@
  */
 #pragma once
 
-namespace dw {
+#include "io/Path.h"
 
+namespace dw {
 class DW_API FileSystem : public Object {
 public:
     DW_OBJECT(FileSystem);
@@ -13,9 +14,8 @@ public:
     FileSystem(Context* context);
     ~FileSystem();
 
-    bool setWorkingDir(const Path& path);
+    bool setWorkingDir(const Path& path) const;
     Path getWorkingDir() const;
-
-    bool fileExists(const Path& path);
+    bool fileExists(const Path& path) const;
 };
 }

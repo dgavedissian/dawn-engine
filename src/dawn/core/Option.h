@@ -10,12 +10,12 @@ template <class T> class Option {
 public:
     Option();
     Option(const Option<T>& other);
-    Option(Option<T>&& other);
+    Option(Option<T>&& other) noexcept;
     Option(const T& other);
     Option(T&& other);
 
     Option<T>& operator=(const Option<T>& other);
-    Option<T>& operator=(Option<T>&& other);
+    Option<T>& operator=(Option<T>&& other) noexcept;
     Option<T>& operator=(const T& other);
     Option<T>& operator=(T&& other);
 
@@ -38,7 +38,7 @@ template <class T> Option<T>::Option(const Option<T>& other) : mSetFlag(other.mS
     }
 }
 
-template <class T> Option<T>::Option(Option<T>&& other) : mSetFlag(other.mSetFlag) {
+template <class T> Option<T>::Option(Option<T>&& other) noexcept : mSetFlag(other.mSetFlag) {
     // Use move constructor to initialise mData.
     if (mSetFlag) {
         new (mData) T(std::move(other.get()));
@@ -56,21 +56,25 @@ template <class T> Option<T>::Option(T&& other) : mSetFlag(true) {
 template <class T> Option<T>& Option<T>::operator=(const Option<T>& other) {
     mSetFlag = other.mSetFlag;
     get() = other.get();
+    return *this;
 }
 
-template <class T> Option<T>& Option<T>::operator=(Option<T>&& other) {
+template <class T> Option<T>& Option<T>::operator=(Option<T>&& other) noexcept {
     mSetFlag = other.mSetFlag;
     get() = std::move(other.get());
+    return *this;
 }
 
 template <class T> Option<T>& Option<T>::operator=(const T& other) {
     mSetFlag = true;
     get() = other.get();
+    return *this;
 }
 
 template <class T> Option<T>& Option<T>::operator=(T&& other) {
     mSetFlag = true;
     get() = std::move(other.get());
+    return *this;
 }
 
 template <class T> bool Option<T>::isSet() const {

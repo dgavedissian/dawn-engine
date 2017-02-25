@@ -47,6 +47,9 @@ public:
         mHolder.setInstance(mInstance);
     }
 
+    Singleton(const Singleton<T>&) = delete;
+    Singleton& operator=(const Singleton<T>&) = delete;
+
     // Deallocate the instance
     static void release() {
         mHolder.release();
@@ -64,10 +67,6 @@ public:
     }
 
 private:
-    // Do not allow copying
-    Singleton(const Singleton<T>&);
-    Singleton& operator=(const Singleton<T>&);
-
     static Holder mHolder;
     static T* mInstance;
 };

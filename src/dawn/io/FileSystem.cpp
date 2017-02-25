@@ -22,7 +22,7 @@ FileSystem::FileSystem(Context* context) : Object(context) {
 FileSystem::~FileSystem() {
 }
 
-bool FileSystem::setWorkingDir(const Path& path) {
+bool FileSystem::setWorkingDir(const Path& path) const {
 #if DW_PLATFORM == DW_WIN32
     if (SetCurrentDirectoryA(path.c_str()) == FALSE) {
         getLog().error("Failed to change directory to %s", path);
@@ -49,7 +49,7 @@ Path FileSystem::getWorkingDir() const {
     return Path(path);
 }
 
-bool FileSystem::fileExists(const Path& path) {
+bool FileSystem::fileExists(const Path& path) const {
 #if DW_PLATFORM == DW_WIN32
     DWORD attributes = GetFileAttributesA(path.c_str());
     if (attributes == INVALID_FILE_ATTRIBUTES || attributes & FILE_ATTRIBUTE_DIRECTORY)

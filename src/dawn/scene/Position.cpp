@@ -17,7 +17,9 @@ Position::Position(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {
 }
 
 Position::Position(const Vec3& vector)
-    : x((double)vector.x), y((double)vector.y), z((double)vector.z) {
+    : x(static_cast<double>(vector.x)),
+      y(static_cast<double>(vector.y)),
+      z(static_cast<double>(vector.z)) {
 }
 
 Position::Position(const Position& other) : x(other.x), y(other.y), z(other.z) {
@@ -25,7 +27,8 @@ Position::Position(const Position& other) : x(other.x), y(other.y), z(other.z) {
 
 Vec3 Position::getRelativeTo(const Position& point) const {
     Position delta = *this - point;
-    return Vec3((float)delta.x, (float)delta.y, (float)delta.z);
+    return Vec3(static_cast<float>(delta.x), static_cast<float>(delta.y),
+                static_cast<float>(delta.z));
 }
 
 Vec3 Position::toCameraSpace(Camera* camera) const {
@@ -92,31 +95,31 @@ Position& Position::operator/=(float scalar) {
     return *this *= (1.0f / scalar);
 }
 
-const Position Position::operator-() const {
+Position Position::operator-() const {
     return Position(-x, -y, -z);
 }
 
-const Position Position::operator+(const Position& other) const {
+Position Position::operator+(const Position& other) const {
     return Position(x + other.x, y + other.y, z + other.z);
 }
 
-const Position Position::operator+(const Vec3& other) const {
+Position Position::operator+(const Vec3& other) const {
     return *this + Position(other);
 }
 
-const Position Position::operator-(const Position& other) const {
+Position Position::operator-(const Position& other) const {
     return Position(x - other.x, y - other.y, z - other.z);
 }
 
-const Position Position::operator-(const Vec3& other) const {
+Position Position::operator-(const Vec3& other) const {
     return *this - Position(other);
 }
 
-const Position Position::operator*(float scalar) const {
+Position Position::operator*(float scalar) const {
     return Position(x * scalar, y * scalar, z * scalar);
 }
 
-const Position Position::operator/(float scalar) const {
+Position Position::operator/(float scalar) const {
     return *this * (1.0f / scalar);
 }
 }

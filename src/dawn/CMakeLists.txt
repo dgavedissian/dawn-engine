@@ -1,96 +1,97 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
 
-set(H_FILES
+set(SOURCE_FILES
+    core/Collections.h
+    core/Context.cpp
     core/Context.h
+    core/EventSystem.cpp
     core/EventSystem.h
     core/FixedMemoryPool.h
+    core/Log.cpp
     core/Log.h
+    core/Object.cpp
     core/Object.h
     core/Option.h
     core/Singleton.h
+    core/StateManager.cpp
     core/StateManager.h
+    core/StringUtils.cpp
     core/StringUtils.h
+    core/Timer.cpp
     core/Timer.h
+    engine/App.cpp
     engine/App.h
+    engine/Engine.cpp
     engine/Engine.h
+    input/Input.cpp
     input/Input.h
+    io/File.cpp
     io/File.h
+    io/FileSystem.cpp
     io/FileSystem.h
+    io/InputStream.cpp
     io/InputStream.h
+    io/OutputStream.cpp
     io/OutputStream.h
+    io/Path.cpp
+    io/Path.h
     math/Colour.h
     math/Defs.h
+    math/Noise.cpp
     math/Noise.h
+    math/Rect.cpp
     math/Rect.h
+    math/StringHash.cpp
     math/StringHash.h
+    math/Vec2i.cpp
     math/Vec2i.h
+    math/Vec3i.cpp
     math/Vec3i.h
+    math/Vec4i.cpp
     math/Vec4i.h
+    physics/PhysicsWorld.cpp
     physics/PhysicsWorld.h
     renderer/Geometry.h
+    renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h
+    renderer/ManualMesh.cpp
     renderer/ManualMesh.h
+    renderer/Material.cpp
     renderer/Material.h
+    renderer/Mesh.cpp
     renderer/Mesh.h
+    renderer/MeshBuilder.cpp
     renderer/MeshBuilder.h
+    renderer/Node.cpp
     renderer/Node.h
+    renderer/Renderer.cpp
     renderer/Renderer.h
+    renderer/ShaderProgram.cpp
     renderer/ShaderProgram.h
+    renderer/Texture.cpp
     renderer/Texture.h
+    renderer/TriangleBuffer.cpp
     renderer/TriangleBuffer.h
+    renderer/VertexBuffer.cpp
     renderer/VertexBuffer.h
+    resource/Resource.cpp
     resource/Resource.h
+    resource/ResourceCache.cpp
     resource/ResourceCache.h
+    scene/Position.cpp
     scene/Position.h
+    scene/SceneManager.cpp
     scene/SceneManager.h
+    script/LuaState.cpp
     script/LuaState.h
     Common.h
     DawnEngine.h
     Platform.h
     Prerequisites.h)
 
-set(CPP_FILES
-    core/Context.cpp
-    core/EventSystem.cpp
-    core/Log.cpp
-    core/Object.cpp
-    core/StateManager.cpp
-    core/StringUtils.cpp
-    core/Timer.cpp
-    engine/App.cpp
-    engine/Engine.cpp
-    input/Input.cpp
-    io/File.cpp
-    io/FileSystem.cpp
-    io/InputStream.cpp
-    io/OutputStream.cpp
-    math/Noise.cpp
-    math/Rect.cpp
-    math/StringHash.cpp
-    math/Vec2i.cpp
-    math/Vec3i.cpp
-    math/Vec4i.cpp
-    physics/PhysicsWorld.cpp
-    renderer/IndexBuffer.cpp
-    renderer/ManualMesh.cpp
-    renderer/Material.cpp
-    renderer/Mesh.cpp
-    renderer/MeshBuilder.cpp
-    renderer/Node.cpp
-    renderer/Renderer.cpp
-    renderer/ShaderProgram.cpp
-    renderer/Texture.cpp
-    renderer/TriangleBuffer.cpp
-    renderer/VertexBuffer.cpp
-    resource/Resource.cpp
-    resource/ResourceCache.cpp
-    scene/Position.cpp
-    scene/SceneManager.cpp
-    script/LuaState.cpp)
-
 # Project
-add_library(Dawn SHARED ${CPP_FILES} ${H_FILES})
+add_library(Dawn SHARED ${SOURCE_FILES})
 enable_cpp14(Dawn)
 enable_maximum_warnings(Dawn)
 add_dependencies(Dawn ${EXTERNAL_DEPS})
@@ -105,7 +106,7 @@ if(APPLE)
 endif()
 
 # Random extras
-mirror_physical_directories(${CPP_FILES} ${H_FILES})
+mirror_physical_directories(${SOURCE_FILES})
 set_target_properties(Dawn PROPERTIES DEBUG_POSTFIX _d)
 
 # Add include dirs and libraries

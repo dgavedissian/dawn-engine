@@ -21,10 +21,10 @@ public:
     Vec3i& operator-=(const Vec3i& other);
     Vec3i& operator*=(int scalar);
     Vec3i& operator/=(int scalar);
-    const Vec3i operator-() const;
-    const Vec3i operator+(const Vec3i& other) const;
-    const Vec3i operator-(const Vec3i& other) const;
-    const Vec3i operator*(int scalar) const;
-    const Vec3i operator/(int scalar) const;
+    Vec3i operator-() const;
+    Vec3i operator+(const Vec3i& other) const;
+    Vec3i operator-(const Vec3i& other) const;
+    Vec3i operator*(int scalar) const;
+    Vec3i operator/(int scalar) const;
 };
 }

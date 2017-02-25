@@ -9,7 +9,7 @@
 
 namespace dw {
 
-enum MouseButton {
+enum class MouseButton {
     None,
     Left,
     Middle,
@@ -146,7 +146,7 @@ public:
 
     /// Toggles the relative mouse mode, which fixes the position and hides
     /// the cursor
-    /// @param visible True if relative, false otherwise
+    /// @param relative True if relative, false otherwise
     void lockCursor(bool relative);
 
     // Check the current state of the input devices
@@ -166,10 +166,12 @@ public:
 
     EvtData_KeyDown(Key k, u16 m) : key(k), mod(m) {
     }
+
     const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override {
+
+    String getName() const override {
         return "EvtData_KeyDown";
     }
 
@@ -183,10 +185,12 @@ public:
 
     EvtData_KeyUp(Key k, u16 m) : key(k), mod(m) {
     }
+
     const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override {
+
+    String getName() const override {
         return "EvtData_KeyDown";
     }
 
@@ -203,7 +207,8 @@ public:
     const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override {
+
+    String getName() const override {
         return "EvtData_TextInput";
     }
 
@@ -216,10 +221,12 @@ public:
 
     EvtData_MouseDown(uint b) : button(b) {
     }
+
     const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override {
+
+    String getName() const override {
         return "EvtData_MouseDown";
     }
 
@@ -232,10 +239,12 @@ public:
 
     EvtData_MouseUp(uint b) : button(b) {
     }
+
     const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override {
+
+    String getName() const override {
         return "EvtData_MouseUp";
     }
 
@@ -249,10 +258,12 @@ public:
     EvtData_MouseMove(const Vec2i& p, const Vec2& pr, const Vec2i& m)
         : pos(p), posRel(pr), motion(m) {
     }
+
     const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override {
+
+    String getName() const override {
         return "EvtData_MouseMove";
     }
 
@@ -267,10 +278,12 @@ public:
 
     EvtData_MouseWheel(const Vec2i& m) : motion(m) {
     }
+
     const EventType& getType() const override {
         return eventType;
     }
-    const String getName() const override {
+
+    String getName() const override {
         return "EvtData_MouseWheel";
     }
 

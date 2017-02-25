@@ -39,7 +39,6 @@ private:
     String mLogFile;
     String mConfigFile;
 
-private:
     void printSystemInfo();
     void update(float dt);
     void preRender(Camera* camera);

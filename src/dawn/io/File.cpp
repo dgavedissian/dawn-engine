@@ -19,8 +19,9 @@ File::~File() {
 }
 
 u32 File::read(void* dest, u32 size) {
-    if (!mHandle)
+    if (!mHandle) {
         return 0;
+    }
 
     size_t ret = fread(dest, size, 1, mHandle);
     if (ret != 1) {
@@ -39,21 +40,24 @@ u32 File::read(void* dest, u32 size) {
 }
 
 void File::seek(u64 position) {
-    if (!mHandle)
+    if (!mHandle) {
         return;
+    }
 
     // If writing, then sparse seeks are allowed (where the cursor can be positioned past the end of
     // the file)
-    if (!(mMode & FileMode::Write) && position > mSize)
+    if (!(mMode & FileMode::Write) && position > mSize) {
         position = mSize;
+    }
 
     fseek(mHandle, position, SEEK_SET);
     mPosition = position;
 }
 
 u32 File::write(const void* src, u32 size) {
-    if (!mHandle)
+    if (!mHandle) {
         return 0;
+    }
 
     fwrite(src, size, 1, mHandle);
     mPosition += size;

@@ -27,7 +27,7 @@ String InputStream::readLine(char delim) {
     return out;
 }
 
-bool InputStream::eof() {
+bool InputStream::eof() const {
     return mPosition >= mSize;
 }
 

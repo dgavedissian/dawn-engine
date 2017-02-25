@@ -9,7 +9,7 @@ namespace dw {
 class DW_API InputStream {
 public:
     InputStream();
-    InputStream(u64 size);
+    explicit InputStream(u64 size);
     virtual ~InputStream();
 
     /// Read an arbitrary amount of bytes from the stream.
@@ -21,7 +21,7 @@ public:
     virtual void seek(u64 position) = 0;
 
     /// Check if the end of the stream has been reached
-    bool eof();
+    bool eof() const;
 
     /// Reads a string up to a certain character
     /// @param delim Delimeter character

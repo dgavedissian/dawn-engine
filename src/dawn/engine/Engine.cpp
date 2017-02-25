@@ -104,12 +104,14 @@ void Engine::setup() {
 }
 
 void Engine::shutdown() {
-    if (!mInitialised)
+    if (!mInitialised) {
         return;
+    }
 
     // Save config
-    if (mSaveConfigOnExit)
+    if (mSaveConfigOnExit) {
         mContext->saveConfig(mConfigFile);
+    }
 
     // Remove subsystems
     mContext->removeSubsystem<StateManager>();

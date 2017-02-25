@@ -5,7 +5,7 @@
 #include "DawnEngine.h"
 #include "io/File.h"
 #include "renderer/Node.h"
-#include "renderer/SpherePrefab.h"
+#include "renderer/MeshBuilder.h"
 #include "renderer/Material.h"
 #include "resource/ResourceCache.h"
 
@@ -28,7 +28,8 @@ public:
         SharedPtr<Material> material =
             makeShared<Material>(getContext(), rc->get<ShaderProgram>("sandbox/sphere.vs"),
                                  rc->get<ShaderProgram>("sandbox/sphere.fs"));
-        node->setGeometry(makeShared<SpherePrefab>(10.0f));
+        node->setGeometry(
+            MeshBuilder(getContext()).withNormals(false).withTexcoords(false).createSphere(10.0f));
         node->setMaterial(material);
     }
 

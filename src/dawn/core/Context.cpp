@@ -6,7 +6,6 @@
 #include "io/File.h"
 
 namespace dw {
-
 Context::Context(String basePath, String prefPath) : mBasePath(basePath), mPrefPath(prefPath) {
 }
 

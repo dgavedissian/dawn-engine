@@ -33,7 +33,6 @@ using byte = u8;
 // String
 using String = std::string;
 using StringStream = std::stringstream;
-using Path = String;
 
 // Smart pointers
 template <class T> using SharedPtr = std::shared_ptr<T>;
@@ -52,23 +51,6 @@ template <class T1, class T2> inline SharedPtr<T1> staticPointerCast(const Share
 template <class T1, class T2> inline SharedPtr<T1> dynamicPointerCast(const SharedPtr<T2>& other) {
     return std::dynamic_pointer_cast<T1, T2>(other);
 }
-
-// Pair and tuples
-template <class T1, class T2> using Pair = std::pair<T1, T2>;
-template <class... T> using Tuple = std::tuple<T...>;
-template <class T1, class T2> inline Pair<T1, T2> makePair(T1&& a, T2&& b) {
-    return std::pair<T1, T2>(std::forward<T1>(a), std::forward<T2>(b));
-}
-template <class... T> inline Tuple<T...> makeTuple(T&&... args) {
-    return std::tuple<T...>(std::forward<T>(args)...);
-}
-
-// Containers
-template <class T, int N> using Array = std::array<T, N>;
-template <class T> using Vector = std::vector<T>;
-template <class T> using List = std::list<T>;
-template <class K, class T> using Map = std::map<K, T>;
-template <class K, class T> using HashMap = std::unordered_map<K, T>;
 
 // Threads
 using Thread = std::thread;
@@ -94,6 +76,7 @@ class Camera {};  // TODO(David) stub until ECS is integrated
     }
 
 // Common includes
+#include "core/Collections.h"
 #include "core/Context.h"
 #include "core/Object.h"
 #include "core/Option.h"
