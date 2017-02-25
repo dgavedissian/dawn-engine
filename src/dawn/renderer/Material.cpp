@@ -9,7 +9,7 @@ namespace dw {
 
 Material::Material(Context* context, SharedPtr<ShaderProgram> vs, SharedPtr<ShaderProgram> fs)
     : Resource(context), mVertexShader(vs), mFragmentShader(fs) {
-    mHandle = bgfx::createProgram(vs->getHandle(), fs->getHandle());
+    mHandle = bgfx::createProgram(vs->getInternalHandle(), fs->getInternalHandle());
     // TODO(David): error checking
 }
 
@@ -23,6 +23,10 @@ bool Material::beginLoad(InputStream& src) {
 }
 
 void Material::endLoad() {
+}
+
+bgfx::ProgramHandle Material::getProgramInternalHandle() {
+    return mHandle;
 }
 
 Option<bgfx::UniformHandle> Material::getUniformHandle(const String& name,

@@ -4,10 +4,14 @@
 */
 #pragma once
 
+#include "renderer/Material.h"
+
 namespace dw {
 class DW_API Geometry {
 public:
     Geometry() = default;
     virtual ~Geometry() = default;
+
+    virtual void draw(SharedPtr<Material> material) = 0;
 };
 }

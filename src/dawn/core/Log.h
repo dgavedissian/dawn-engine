@@ -9,6 +9,7 @@
 #pragma warning(disable : 4127 4100)
 #endif
 
+#define TINYFORMAT_USE_VARIADIC_TEMPLATES
 #include <tinyformat.h>
 
 #if defined(DW_MSVC)

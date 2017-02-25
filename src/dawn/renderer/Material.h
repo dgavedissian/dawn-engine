@@ -24,6 +24,8 @@ public:
     template <typename T> void setUniform(const String& name, const T& value) {
     }
 
+    bgfx::ProgramHandle getProgramInternalHandle();
+
 private:
     Option<bgfx::UniformHandle> getUniformHandle(const String& name, bgfx::UniformType::Enum type,
                                                  int count);

@@ -7,7 +7,6 @@
 #include "resource/Resource.h"
 
 namespace dw {
-
 class DW_API ShaderProgram : public Resource {
 public:
     DW_OBJECT(ShaderProgram);
@@ -18,7 +17,7 @@ public:
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
 
-    bgfx::ShaderHandle getHandle() const;
+    bgfx::ShaderHandle getInternalHandle() const;
 
 private:
     byte* mSrcData;

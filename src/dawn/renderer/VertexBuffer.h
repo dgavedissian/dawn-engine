@@ -5,7 +5,6 @@
 #pragma once
 
 namespace dw {
-namespace renderer {
 class DW_API VertexBuffer : public Object {
 public:
     DW_OBJECT(VertexBuffer);
@@ -13,10 +12,9 @@ public:
     VertexBuffer(Context* context);
     ~VertexBuffer();
 
-    bgfx::VertexBufferHandle getInternalHandle();
+    bgfx::VertexBufferHandle getInternalHandle() const;
 
 private:
     bgfx::VertexBufferHandle mHandle;
 };
-}
 }

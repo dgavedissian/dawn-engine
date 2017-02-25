@@ -4,18 +4,32 @@
  */
 #include "DawnEngine.h"
 #include "io/File.h"
+#include "renderer/Node.h"
+#include "renderer/SpherePrefab.h"
+#include "renderer/Material.h"
+#include "resource/ResourceCache.h"
 
-class Sandbox : public dw::App {
+using namespace dw;
+
+class Sandbox : public App {
 public:
     DW_OBJECT(Sandbox);
 
     void init(int argc, char** argv) override {
-        getSubsystem<dw::FileSystem>()->setWorkingDir("media");
+        getSubsystem<FileSystem>()->setWorkingDir("media");
 
-        dw::File file(mContext, "sandbox/test.txt", dw::FileMode::Read);
-        getLog().info("File contents: %s", dw::stream::read<dw::u8>(file));
+        File file(mContext, "sandbox/test.txt", FileMode::Read);
+        getLog().info("File contents: %s", stream::read<u8>(file));
+
+        auto rc = getSubsystem<ResourceCache>();
 
         // Create a node.
+        SharedPtr<Node> node = makeShared<Node>(getContext());
+        SharedPtr<Material> material =
+            makeShared<Material>(getContext(), rc->get<ShaderProgram>("sandbox/sphere.vs"),
+                                 rc->get<ShaderProgram>("sandbox/sphere.fs"));
+        node->setGeometry(makeShared<SpherePrefab>(10.0f));
+        node->setMaterial(material);
     }
 
     void update(float dt) override {

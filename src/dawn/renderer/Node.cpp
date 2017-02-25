@@ -8,7 +8,6 @@
 #include "renderer/Node.h"
 
 namespace dw {
-
 Node::Node(Context* context) : Object(context) {
 }
 

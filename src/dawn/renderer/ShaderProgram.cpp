@@ -33,7 +33,7 @@ void ShaderProgram::endLoad() {
     mSrcData = nullptr;
 }
 
-bgfx::ShaderHandle ShaderProgram::getHandle() const {
+bgfx::ShaderHandle ShaderProgram::getInternalHandle() const {
     return mHandle;
 }
 }

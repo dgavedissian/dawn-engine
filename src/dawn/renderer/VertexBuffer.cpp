@@ -6,8 +6,6 @@
 #include "renderer/VertexBuffer.h"
 
 namespace dw {
-namespace renderer {
-
 VertexBuffer::VertexBuffer(Context* context) : Object(context) {
 }
 
@@ -16,6 +14,5 @@ VertexBuffer::~VertexBuffer() {
 
 bgfx::VertexBufferHandle VertexBuffer::getInternalHandle() const {
     return mHandle;
-}
 }
 }

@@ -5,14 +5,14 @@
 #pragma once
 
 #include <json.hpp>
-using json = nlohmann::json;
-
 #include "math/StringHash.h"
 
 namespace dw {
 
 class Object;
 class ConfigNode;
+
+using json = nlohmann::json;
 
 class DW_API Context {
 public:

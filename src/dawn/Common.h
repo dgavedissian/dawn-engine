@@ -41,12 +41,7 @@ template <class T> using WeakPtr = std::weak_ptr<T>;
 template <class T> using UniquePtr = std::unique_ptr<T>;
 template <class T> using EnableSharedFromThis = std::enable_shared_from_this<T>;
 template <class T, class... Args> inline SharedPtr<T> makeShared(Args&&... args) {
-#ifdef DW_MSVC
-    // MSVC's implementation of make_shared seems to crash in seemingly random scenarios
-    return SharedPtr<T>(new T(std::forward<Args>(args)...));
-#else
     return std::make_shared<T>(std::forward<Args>(args)...);
-#endif
 }
 template <class T, class... Args> inline UniquePtr<T> makeUnique(Args&&... args) {
     return std::make_unique<T>(std::forward<Args>(args)...);
