@@ -8,15 +8,15 @@
 
 namespace dw {
 ManualMesh::ManualMesh(Context* context, SharedPtr<VertexBuffer> vb, SharedPtr<IndexBuffer> ib)
-    : Object(context), mVertexBuffer(vb), mIndexBuffer(ib) {
+    : Renderable{context}, vertex_buffer_{vb}, index_buffer_{ib} {
 }
 
 ManualMesh::~ManualMesh() {
 }
 
-void ManualMesh::draw(SharedPtr<Material> material) {
-    bgfx::setVertexBuffer(mVertexBuffer->getInternalHandle());
-    bgfx::setIndexBuffer(mIndexBuffer->getInternalHandle());
-    bgfx::submit(0, material->getProgramInternalHandle());
+void ManualMesh::Draw() {
+    bgfx::setVertexBuffer(vertex_buffer_->getInternalHandle());
+    bgfx::setIndexBuffer(index_buffer_->getInternalHandle());
+    bgfx::submit(0, GetMaterial()->getProgramInternalHandle());
 }
 }

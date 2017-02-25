@@ -4,10 +4,10 @@
  */
 #include "DawnEngine.h"
 #include "io/File.h"
-#include "renderer/Node.h"
 #include "renderer/MeshBuilder.h"
 #include "renderer/Material.h"
 #include "resource/ResourceCache.h"
+#include "scene/Node.h"
 
 using namespace dw;
 
@@ -28,7 +28,7 @@ public:
         SharedPtr<Material> material =
             makeShared<Material>(getContext(), rc->get<ShaderProgram>("sandbox/sphere.vs"),
                                  rc->get<ShaderProgram>("sandbox/sphere.fs"));
-        node->setGeometry(
+        node->SetRenderable(
             MeshBuilder(getContext()).withNormals(false).withTexcoords(false).createSphere(10.0f));
         node->setMaterial(material);
     }

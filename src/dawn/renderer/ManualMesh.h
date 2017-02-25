@@ -4,12 +4,12 @@
 */
 #pragma once
 
-#include "renderer/Geometry.h"
+#include "renderer/Renderable.h"
 #include "renderer/VertexBuffer.h"
 #include "renderer/IndexBuffer.h"
 
 namespace dw {
-class DW_API ManualMesh : public Object, public Geometry {
+class DW_API ManualMesh : public Renderable {
 public:
     DW_OBJECT(ManualMesh);
 
@@ -17,10 +17,10 @@ public:
                SharedPtr<IndexBuffer> indexBuffer);
     ~ManualMesh();
 
-    void draw(SharedPtr<Material> material) override;
+    void Draw() override;
 
 private:
-    SharedPtr<VertexBuffer> mVertexBuffer;
-    SharedPtr<IndexBuffer> mIndexBuffer;
+    SharedPtr<VertexBuffer> vertex_buffer_;
+    SharedPtr<IndexBuffer> index_buffer_;
 };
 }

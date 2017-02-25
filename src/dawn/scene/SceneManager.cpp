@@ -16,6 +16,10 @@ SceneManager::~SceneManager() {
 void SceneManager::update(float dt) {
 }
 
+Node* SceneManager::GetRootNode() const {
+	return root_node_.get();
+}
+
 void SceneManager::preRender(Camera* camera) {
 }
 }

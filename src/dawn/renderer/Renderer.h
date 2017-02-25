@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "renderer/Node.h"
+
 namespace dw {
 class DW_API Renderer : public Object {
 public:
@@ -12,9 +14,21 @@ public:
     Renderer(Context* context);
     ~Renderer();
 
-    void frame();
+	Node* GetRootNode() const;
+
+	/// @brief Render a single frame.
+    void Frame();
 
 private:
-    uint mWidth, mHeight;
+    uint width_, height_;
+
+    // Scene graph.
+    SharedPtr<Node> root_node_;
+
+    // O(1) add, O(N) removal. Optimised for iteration speed.
+    Vector<Renderable*> render_queue_;
+    friend class Renderable;
+    void AddToRenderQueue(Renderable* renderable);
+    void RemoveFromRenderQueue(Renderable* renderable);
 };
 }

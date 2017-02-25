@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/Geometry.h"
+#include "renderer/Renderable.h"
 #include "renderer/Material.h"
 
 namespace dw {
@@ -15,14 +15,11 @@ public:
     Node(Context* context);
     ~Node();
 
-    void setGeometry(SharedPtr<Geometry> geometry);
-    void setMaterial(SharedPtr<Material> material);
+    void SetRenderable(SharedPtr<Renderable> renderable);
 
-    Geometry* getGeometry();
-    Material* getMaterial();
+    Renderable* GetRenderable() const;
 
 private:
-    SharedPtr<Geometry> mGeometry;
-    SharedPtr<Material> mMaterial;
+    SharedPtr<Renderable> renderable_;
 };
 }

@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "scene/Node.h"
+
 namespace dw {
 
 /// Class used to keep track of entities being updated
@@ -18,9 +20,15 @@ public:
     /// @param dt Time elapsed
     void update(float dt);
 
+    Node* GetRootNode() const {
+        return root_node_.get();
+    }
+
     /// Calls PreRender on each entity
     void preRender(Camera* camera);
 
 private:
+
+    SharedPtr<Node> root_node_;
 };
 }

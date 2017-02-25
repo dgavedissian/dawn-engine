@@ -52,7 +52,6 @@ set(SOURCE_FILES
     math/Vec4i.h
     physics/PhysicsWorld.cpp
     physics/PhysicsWorld.h
-    renderer/Geometry.h
     renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h
     renderer/ManualMesh.cpp
@@ -63,10 +62,11 @@ set(SOURCE_FILES
     renderer/Mesh.h
     renderer/MeshBuilder.cpp
     renderer/MeshBuilder.h
-    renderer/Node.cpp
-    renderer/Node.h
+    renderer/Renderable.h
+    renderer/Renderable.cpp
     renderer/Renderer.cpp
     renderer/Renderer.h
+    renderer/RenderTask.h
     renderer/ShaderProgram.cpp
     renderer/ShaderProgram.h
     renderer/Texture.cpp
@@ -79,6 +79,8 @@ set(SOURCE_FILES
     resource/Resource.h
     resource/ResourceCache.cpp
     resource/ResourceCache.h
+    scene/Node.cpp
+    scene/Node.h
     scene/Position.cpp
     scene/Position.h
     scene/SceneManager.cpp
