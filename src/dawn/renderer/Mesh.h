@@ -8,7 +8,7 @@
 #include "resource/Resource.h"
 
 namespace dw {
-class DW_API Mesh : public Resource, public Renderable {
+class DW_API Mesh : public Resource {
 public:
     DW_OBJECT(Mesh);
 
@@ -17,7 +17,5 @@ public:
 
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
-
-private:
 };
 }

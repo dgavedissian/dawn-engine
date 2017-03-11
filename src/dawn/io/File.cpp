@@ -71,7 +71,7 @@ bool File::open(const Path& path, int mode) {
     String modeStr = fileModeMapper(mode);
     mHandle = fopen(path.c_str(), modeStr.c_str());
     if (!mHandle) {
-        getLog().error("Failed to open file: %s", path);
+        log().error("Failed to open file: %s", path);
         return false;
     }
 

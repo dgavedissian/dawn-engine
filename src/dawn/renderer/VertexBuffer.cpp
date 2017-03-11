@@ -12,7 +12,7 @@ VertexBuffer::VertexBuffer(Context* context) : Object(context) {
 VertexBuffer::~VertexBuffer() {
 }
 
-bgfx::VertexBufferHandle VertexBuffer::getInternalHandle() const {
-    return mHandle;
+bgfx::VertexBufferHandle VertexBuffer::internalHandle() const {
+    return handle_;
 }
 }

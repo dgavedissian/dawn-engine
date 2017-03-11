@@ -5,12 +5,15 @@
 #pragma once
 
 #include <json.hpp>
+#include "ontology/World.hpp"
+#include "core/Collections.h"
 #include "math/StringHash.h"
 
 namespace dw {
 
 class Object;
 class ConfigNode;
+class Entity;
 
 using json = nlohmann::json;
 
@@ -23,52 +26,57 @@ public:
     Context& operator=(const Context& other) = delete;
 
     // Subsystems
-    void addSubsystem(Object* subsystem);
-    Object* getSubsystem(StringHash subsystemType);
+    Object* subsystem(StringHash subsystemType);
+    void addSubsystem(UniquePtr<Object> subsystem);
     void removeSubsystem(StringHash subsystemType);
     void clearSubsystems();
 
     // Convenient template methods for subsystems
-    template <class T> T* getSubsystem() {
-        return static_cast<T*>(getSubsystem(T::getTypeStatic()));
+    template <typename T> T* subsystem() {
+        return static_cast<T*>(subsystem(T::getTypeStatic()));
     }
 
-    template <class T> void removeSubsystem() {
+    template <typename T, typename... Args> void addSubsystem(Args... args) {
+        addSubsystem(makeUnique<T>(std::forward<Args>(args)...));
+    }
+
+    template <typename T> void removeSubsystem() {
         removeSubsystem(T::getTypeStatic());
     }
 
-    /// Access the config root
-    json& getConfig();
+    /// Access the config root.
+    json& config();
 
-    /// Access the config root
-    const json& getConfig() const;
+    /// Access the config root.
+    const json& config() const;
 
-    /// Load the configuration
+    /// Load the configuration.
     void loadConfig(const String& configFile);
 
-    /// Save the configuration
+    /// Save the configuration.
     void saveConfig(const String& configFile);
 
-    /// Get the base path of the application
+    /// Get the base path of the application.
     /// @returns The base path
-    const String& getBasePath() const {
-        return mBasePath;
-    }
+    const String& basePath() const;
 
-    /// Get the preferences path of the application
+    /// Get the preferences path of the application.
     /// @returns The pref path
-    const String& getPrefPath() const {
-        return mPrefPath;
-    }
+    const String& prefPath() const;
 
 private:
-    HashMap<StringHash, UniquePtr<Object>> mSubsystems;
+    HashMap<StringHash, UniquePtr<Object>> subsystems_;
 
-    // Engine configuration
-    json mConfig;
+    // Engine configuration.
+    json config_;
 
-    // File paths
-    String mBasePath;
-    String mPrefPath;
+    // File paths.
+    String base_path_;
+    String pref_path_;
+
+    // Ontology world.
+    Ontology::World ontology_world_;
+    friend class EntityManager;
+    friend class SystemManager;
 };
 }

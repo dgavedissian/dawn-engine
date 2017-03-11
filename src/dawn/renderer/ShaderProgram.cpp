@@ -7,7 +7,8 @@
 #include "renderer/ShaderProgram.h"
 
 namespace dw {
-ShaderProgram::ShaderProgram(Context* context) : Resource(context) {
+ShaderProgram::ShaderProgram(Context* context)
+    : Resource{context}, src_data_{nullptr}, src_len_{0} {
 }
 
 ShaderProgram::~ShaderProgram() {
@@ -15,10 +16,10 @@ ShaderProgram::~ShaderProgram() {
 
 bool ShaderProgram::beginLoad(InputStream& src) {
     // TODO(David): Sanity checking here?
-    mSrcLen = (u32)src.getSize();
-    assert(mSrcLen != 0);
-    mSrcData = new byte[mSrcLen];
-    src.read(mSrcData, src.getSize());
+    src_len_ = static_cast<u32>(src.getSize());
+    assert(src_len_ != 0);
+    src_data_ = new byte[src_len_];
+    src.read(src_data_, src.getSize());
 
     // Does this require compilation?
     /// TODO(David): Execute shaderc on source file
@@ -28,12 +29,12 @@ bool ShaderProgram::beginLoad(InputStream& src) {
 
 void ShaderProgram::endLoad() {
     // Create bgfx shader and free memory
-    mHandle = bgfx::createShader(bgfx::makeRef(mSrcData, mSrcLen));
-    delete[] mSrcData;
-    mSrcData = nullptr;
+    handle_ = bgfx::createShader(bgfx::makeRef(src_data_, src_len_));
+    delete[] src_data_;
+    src_data_ = nullptr;
 }
 
-bgfx::ShaderHandle ShaderProgram::getInternalHandle() const {
-    return mHandle;
+bgfx::ShaderHandle ShaderProgram::internalHandle() const {
+    return handle_;
 }
 }

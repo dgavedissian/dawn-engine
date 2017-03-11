@@ -69,6 +69,9 @@
 // FastDelegate
 #include "FastDelegate.h"
 
+// sol
+#include "sol.hpp"
+
 // Re-enable warnings
 #if defined(DW_MSVC)
 #pragma warning(pop)

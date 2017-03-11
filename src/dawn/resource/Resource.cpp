@@ -26,7 +26,7 @@ void Resource::endLoad() {
 void Resource::save(OutputStream& dest) {
     // Just wanted to say this is kinda nice as getTypeName() is virtual so whichever resource type
     // doesn't implement saving will write "Save not supported for UnsavableResource" to the log.
-    getLog().error("Save not supported for %s", getTypeName());
+    log().error("Save not supported for %s", getTypeName());
 }
 
 bool Resource::hasLoaded() const {

@@ -18,7 +18,6 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include
     ${CMAKE_CURRENT_SOURCE_DIR}/ImGui
     ${CMAKE_CURRENT_SOURCE_DIR}/json
-    ${CMAKE_CURRENT_SOURCE_DIR}/ontology/include
     ${CMAKE_CURRENT_SOURCE_DIR}/sol
     ${CMAKE_CURRENT_SOURCE_DIR}/stb_image
     ${CMAKE_CURRENT_SOURCE_DIR}/tinyformat)
@@ -250,13 +249,6 @@ add_library(ImGui
 target_include_directories(ImGui PRIVATE ${INCLUDE_DIRS})
 set_target_properties(ImGui PROPERTIES FOLDER "contrib")
 set(LIBS ${LIBS} ImGui)
-
-# ontology
-add_subdirectory(ontology)
-enable_cpp14(ontology)
-target_include_directories(ontology PRIVATE ${INCLUDE_DIRS})
-set_target_properties(ontology PROPERTIES FOLDER "contrib")
-set(LIBS ${LIBS} ontology)
 
 
 ##############################################################

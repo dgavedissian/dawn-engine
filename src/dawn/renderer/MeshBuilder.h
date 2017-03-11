@@ -20,7 +20,7 @@ public:
     SharedPtr<ManualMesh> createSphere(float radius, uint rings = 25, uint segments = 25);
 
 private:
-    bool mWithNormals;
-    bool mWithTexcoords;
+    bool with_normals_;
+    bool with_texcoords_;
 };
 }

@@ -3,9 +3,9 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #pragma once
+#include "scene/Position.h"
 
 namespace dw {
-
 class Renderer;
 class RigidEntity;
 class Camera;

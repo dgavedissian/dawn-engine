@@ -9,19 +9,16 @@
 namespace dw {
 
 Renderable::Renderable(Context* context) : Object(context) {
-    getSubsystem<Renderer>()->AddToRenderQueue(this);	
 }
 
 Renderable::~Renderable() {
-    getSubsystem<Renderer>()->RemoveFromRenderQueue(this);
 }
 
-void Renderable::SetMaterial(SharedPtr<Material> material) {
+void Renderable::setMaterial(SharedPtr<Material> material) {
     material_ = material;
 }
 
-Material* Renderable::GetMaterial() const {
+Material* Renderable::material() const {
     return material_.get();
 }
-
 }

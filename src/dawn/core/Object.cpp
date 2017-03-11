@@ -20,17 +20,17 @@ String TypeInfo::getTypeName() const {
     return mTypeName;
 }
 
-Object::Object(Context* context) : mContext(context) {
+Object::Object(Context* context) : context_(context) {
 }
 
 Object::~Object() {
 }
 
-Context* Object::getContext() const {
-    return mContext;
+Context* Object::context() const {
+    return context_;
 }
 
-Logger& Object::getLog() const {
-    return *getSubsystem<Logger>();
+Logger& Object::log() const {
+    return *subsystem<Logger>();
 }
 }

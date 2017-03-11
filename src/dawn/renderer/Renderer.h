@@ -4,31 +4,31 @@
  */
 #pragma once
 
-#include "renderer/Node.h"
+#include "renderer/RenderTask.h"
+#include "ecs/System.h"
 
 namespace dw {
-class DW_API Renderer : public Object {
+class DW_API Renderer : public System {
 public:
     DW_OBJECT(Renderer);
 
     Renderer(Context* context);
     ~Renderer();
 
-	Node* GetRootNode() const;
+    /// @brief Render a single frame.
+    void frame();
 
-	/// @brief Render a single frame.
-    void Frame();
+    void processEntity(Entity& entity) override;
 
 private:
     uint width_, height_;
 
-    // Scene graph.
-    SharedPtr<Node> root_node_;
+    Vector<RenderTask> render_tasks_;
 
     // O(1) add, O(N) removal. Optimised for iteration speed.
-    Vector<Renderable*> render_queue_;
-    friend class Renderable;
-    void AddToRenderQueue(Renderable* renderable);
-    void RemoveFromRenderQueue(Renderable* renderable);
+    // Vector<Renderable*> render_queue_;
+    // friend class Renderable;
+    // void AddToRenderQueue(Renderable* renderable);
+    // void RemoveFromRenderQueue(Renderable* renderable);
 };
 }

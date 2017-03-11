@@ -3,7 +3,7 @@
 * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
 */
 #pragma once
-
+#include "math/Defs.h"
 #include "renderer/VertexBuffer.h"
 #include "renderer/IndexBuffer.h"
 

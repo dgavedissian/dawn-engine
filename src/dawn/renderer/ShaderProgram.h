@@ -17,11 +17,11 @@ public:
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
 
-    bgfx::ShaderHandle getInternalHandle() const;
+    bgfx::ShaderHandle internalHandle() const;
 
 private:
-    byte* mSrcData;
-    u32 mSrcLen;
-    bgfx::ShaderHandle mHandle;
+    byte* src_data_;
+    u32 src_len_;
+    bgfx::ShaderHandle handle_;
 };
 }

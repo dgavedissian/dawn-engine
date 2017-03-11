@@ -20,6 +20,13 @@ set(SOURCE_FILES
     core/StringUtils.h
     core/Timer.cpp
     core/Timer.h
+    ecs/Component.h
+    ecs/Entity.h
+    ecs/EntityManager.cpp
+    ecs/EntityManager.h
+    ecs/System.h
+    ecs/SystemManager.cpp
+    ecs/SystemManager.h
     engine/App.cpp
     engine/App.h
     engine/Engine.cpp
@@ -81,10 +88,12 @@ set(SOURCE_FILES
     resource/ResourceCache.h
     scene/Node.cpp
     scene/Node.h
+    scene/Parent.h
     scene/Position.cpp
     scene/Position.h
     scene/SceneManager.cpp
     scene/SceneManager.h
+    scene/Transform.h
     script/LuaState.cpp
     script/LuaState.h
     Common.h
@@ -92,13 +101,50 @@ set(SOURCE_FILES
     Platform.h
     Prerequisites.h)
 
+# TODO: Replace prototype Ontology based ECS with custom implementation.
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ecs/ontology/include)
+set (SOURCE_FILES
+    ${SOURCE_FILES}
+    ecs/ontology/include/ontology/Config.hpp
+    ecs/ontology/include/ontology/Component.hpp
+    ecs/ontology/include/ontology/Entity.hpp
+    ecs/ontology/include/ontology/Entity.hxx
+    ecs/ontology/include/ontology/EntityManager.hpp
+    ecs/ontology/include/ontology/EntityManagerInterface.hpp
+    ecs/ontology/include/ontology/EntityManagerListener.hpp
+    ecs/ontology/include/ontology/Exception.hpp
+    ecs/ontology/include/ontology/ListenerDispatcher.hpp
+    ecs/ontology/include/ontology/ListenerDispatcher.hxx
+    ecs/ontology/include/ontology/System.hpp
+    ecs/ontology/include/ontology/System.hxx
+    ecs/ontology/include/ontology/SystemManager.hpp
+    ecs/ontology/include/ontology/SystemManager.hxx
+    ecs/ontology/include/ontology/Type.hpp
+    ecs/ontology/include/ontology/Type.hxx
+    ecs/ontology/include/ontology/TypeContainers.hpp
+    ecs/ontology/include/ontology/World.hpp
+    ecs/ontology/include/ontology/Ontology.hpp
+    ecs/ontology/src/Component.cpp
+    ecs/ontology/src/Entity.cpp
+    ecs/ontology/src/EntityManager.cpp
+    ecs/ontology/src/EntityManagerListener.cpp
+    ecs/ontology/src/Exception.cpp
+    ecs/ontology/src/System.cpp
+    ecs/ontology/src/SystemManager.cpp
+    ecs/ontology/src/Type.cpp
+    ecs/ontology/src/World.cpp
+)
+
 # Project
-add_library(Dawn SHARED ${SOURCE_FILES})
+set(BUILD_SHARED OFF)
+add_library(Dawn ${SOURCE_FILES})
 enable_cpp14(Dawn)
 enable_maximum_warnings(Dawn)
 add_dependencies(Dawn ${EXTERNAL_DEPS})
 set_output_dir(Dawn ${CMAKE_BINARY_DIR}/lib)
-set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
+if(BUILD_SHARED)
+    set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
+endif()
 
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)

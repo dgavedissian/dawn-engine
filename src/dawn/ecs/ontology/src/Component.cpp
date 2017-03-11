@@ -10,13 +10,11 @@
 namespace Ontology {
 
 // ----------------------------------------------------------------------------
-Component::Component()
-{
+Component::Component() {
 }
 
 // ----------------------------------------------------------------------------
-Component::~Component()
-{
+Component::~Component() {
 }
 
-} // namespace Ontology
+}  // namespace Ontology

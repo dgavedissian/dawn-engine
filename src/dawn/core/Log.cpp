@@ -13,10 +13,9 @@
 #endif
 
 #include "Common.h"
-#include "core/StringUtils.h"
+#include "core/Log.h"
 
 namespace dw {
-
 class PlatformLogMessageHandler : public LogMessageHandler {
 public:
     void onMessage(LogLevel level, const String& message) override {

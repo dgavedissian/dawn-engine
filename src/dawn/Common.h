@@ -7,9 +7,6 @@
 // Include library prerequisites
 #include "Prerequisites.h"
 
-// Determine platform
-#include "Platform.h"
-
 // Version Information
 #define DW_VERSION_MAJOR 0
 #define DW_VERSION_MINOR 2
@@ -71,16 +68,12 @@ class Camera {};  // TODO(David) stub until ECS is integrated
 // Error macros
 #define ERROR_FATAL(x)               \
     {                                \
-        getLog().error(x);           \
+        log().error(x);              \
         throw std::runtime_error(x); \
     }
 
-// Common includes
-#include "core/Collections.h"
+// Common includes.
 #include "core/Context.h"
 #include "core/Object.h"
-#include "core/Option.h"
 #include "core/Log.h"
-#include "math/Defs.h"
-#include "scene/Position.h"
-#include "core/EventSystem.h"  // TODO(David): Event Data pointer only?
+#include "core/EventSystem.h"

@@ -51,14 +51,14 @@ public:
     Object(Context* context);
     virtual ~Object();
 
-    Context* getContext() const;
+    Context* context() const;
 
     // Convenient access to the logger via the context
-    Logger& getLog() const;
+    Logger& log() const;
 
     // Convenient access to context methods
-    template <class T> T* getSubsystem() const {
-        return mContext->getSubsystem<T>();
+    template <class T> T* subsystem() const {
+        return context_->subsystem<T>();
     }
 
     virtual StringHash getType() const = 0;
@@ -66,6 +66,6 @@ public:
     virtual TypeInfo getTypeInfo() const = 0;
 
 protected:
-    Context* mContext;
+    Context* context_;
 };
 }

@@ -4,56 +4,60 @@
  */
 #pragma once
 
-// Determine build type
+// Determine build type.
 #ifdef _DEBUG
 #define DW_DEBUG
 #endif
 
-// Determine architecture
-#ifdef __x86_64__
+// Determine architecture.
+#if defined(__x86_64__) || defined(_M_X64)
 #define DW_ARCH_64
 #else
 #define DW_ARCH_32
 #endif
 
-// Determine platform
+// Determine platform.
 #define DW_WIN32 0
-#define DW_MAC_OSX 1
+#define DW_MACOS 1
 #define DW_LINUX 2
 #if defined(__WIN32__) || defined(_WIN32)
 #define DW_PLATFORM DW_WIN32
 #elif defined(__APPLE_CC__)
-#define DW_PLATFORM DW_MAC_OSX
+#define DW_PLATFORM DW_MACOS
 #else
 #define DW_PLATFORM DW_LINUX
 #endif
 
-// Determine compiler
+// Determine compiler.
 #if defined(_MSC_VER)
 #define DW_MSVC
 #elif defined(__clang__)
 #define DW_CLANG
 #elif defined(__GNUC__)
-#if DW_PLATFORM == DW_WIN32
-#define DW_MINGW
-#endif
 #define DW_GCC
 #else
 #error This compiler is not recognised!
 #endif
 
-// DLL Import/Export specifiers
-#if defined(DW_DLL) && DW_PLATFORM == DW_WIN32
-#ifdef DW_BUILD
-#define DW_API __declspec(dllexport)
+// Define platform/build dependent visibility macro helpers.
+#if defined(DW_DLL)
+#if DW_PLATFORM == DW_WIN32
+#define DW_HELPER_API_EXPORT __declspec(dllexport)
+#define DW_HELPER_API_IMPORT __declspec(dllimport)
 #else
-#define DW_API __declspec(dllimport)
+#define DW_HELPER_API_EXPORT
+#define DW_HELPER_API_IMPORT
+#endif
+#ifdef DW_BUILD
+#define DW_API DW_HELPER_API_EXPORT
+#else
+#define DW_API DW_HELPER_API_IMPORT
 #endif
 #else
 #define DW_API
 #endif
 
-// Deprecated
+// Define deprecated marker.
 #ifdef DEPRECATED
 #undef DEPRECATED
 #endif

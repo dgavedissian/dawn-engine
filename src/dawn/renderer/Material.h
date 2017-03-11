@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "core/Option.h"
+#include "math/Defs.h"
 #include "renderer/ShaderProgram.h"
 #include "renderer/Texture.h"
 
@@ -24,23 +26,23 @@ public:
     template <typename T> void setUniform(const String& name, const T& value) {
     }
 
-    bgfx::ProgramHandle getProgramInternalHandle();
+    bgfx::ProgramHandle internalHandle();
 
 private:
-    Option<bgfx::UniformHandle> getUniformHandle(const String& name, bgfx::UniformType::Enum type,
-                                                 int count);
+    Option<bgfx::UniformHandle> uniformHandle(const String& name, bgfx::UniformType::Enum type,
+                                              int count);
 
-    HashMap<String, Pair<bgfx::UniformHandle, bgfx::UniformType::Enum>> mUniformHandleTable;
+    HashMap<String, Pair<bgfx::UniformHandle, bgfx::UniformType::Enum>> uniform_handle_table_;
 
-    SharedPtr<ShaderProgram> mVertexShader;
-    SharedPtr<ShaderProgram> mFragmentShader;
-    Array<SharedPtr<Texture>, 8> mTextureUnits;
+    SharedPtr<ShaderProgram> vertex_shader_;
+    SharedPtr<ShaderProgram> fragment_shader_;
+    Array<SharedPtr<Texture>, 8> texture_units_;
 
-    bgfx::ProgramHandle mHandle;
+    bgfx::ProgramHandle handle_;
 };
 
 template <> inline void Material::setUniform<float>(const String& name, const float& value) {
-    Option<bgfx::UniformHandle> handle = getUniformHandle(name, bgfx::UniformType::Vec4, 1);
+    Option<bgfx::UniformHandle> handle = uniformHandle(name, bgfx::UniformType::Vec4, 1);
     if (handle.isSet()) {
         Vec4 value_v4(value, 0.0f, 0.0f, 0.0f);
         bgfx::setUniform(handle.get(), &value_v4);
@@ -48,7 +50,7 @@ template <> inline void Material::setUniform<float>(const String& name, const fl
 }
 
 template <> inline void Material::setUniform<Vec2>(const String& name, const Vec2& value) {
-    Option<bgfx::UniformHandle> handle = getUniformHandle(name, bgfx::UniformType::Vec4, 1);
+    Option<bgfx::UniformHandle> handle = uniformHandle(name, bgfx::UniformType::Vec4, 1);
     if (handle.isSet()) {
         Vec4 value_v4(value.x, value.y, 0.0f, 0.0f);
         bgfx::setUniform(handle.get(), &value_v4);
@@ -56,7 +58,7 @@ template <> inline void Material::setUniform<Vec2>(const String& name, const Vec
 }
 
 template <> inline void Material::setUniform<Vec3>(const String& name, const Vec3& value) {
-    Option<bgfx::UniformHandle> handle = getUniformHandle(name, bgfx::UniformType::Vec4, 1);
+    Option<bgfx::UniformHandle> handle = uniformHandle(name, bgfx::UniformType::Vec4, 1);
     if (handle.isSet()) {
         Vec4 value_v4(value, 0.0f);
         bgfx::setUniform(handle.get(), &value_v4);
@@ -64,7 +66,7 @@ template <> inline void Material::setUniform<Vec3>(const String& name, const Vec
 }
 
 template <> inline void Material::setUniform<Vec4>(const String& name, const Vec4& value) {
-    Option<bgfx::UniformHandle> handle = getUniformHandle(name, bgfx::UniformType::Vec4, 1);
+    Option<bgfx::UniformHandle> handle = uniformHandle(name, bgfx::UniformType::Vec4, 1);
     if (handle.isSet()) {
         bgfx::setUniform(handle.get(), &value);
     }

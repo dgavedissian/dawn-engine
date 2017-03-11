@@ -8,36 +8,36 @@
 namespace dw {
 
 Material::Material(Context* context, SharedPtr<ShaderProgram> vs, SharedPtr<ShaderProgram> fs)
-    : Resource(context), mVertexShader(vs), mFragmentShader(fs) {
-    mHandle = bgfx::createProgram(vs->getInternalHandle(), fs->getInternalHandle());
+    : Resource(context), vertex_shader_(vs), fragment_shader_(fs) {
+    handle_ = bgfx::createProgram(vs->internalHandle(), fs->internalHandle());
     // TODO(David): error checking
 }
 
 Material::~Material() {
-    bgfx::destroyProgram(mHandle);
+    bgfx::destroyProgram(handle_);
 }
 
 bool Material::beginLoad(InputStream& src) {
-    getLog().error("Material loading unimplemented");
+    log().error("Material loading unimplemented");
     return false;
 }
 
 void Material::endLoad() {
 }
 
-bgfx::ProgramHandle Material::getProgramInternalHandle() {
-    return mHandle;
+bgfx::ProgramHandle Material::internalHandle() {
+    return handle_;
 }
 
-Option<bgfx::UniformHandle> Material::getUniformHandle(const String& name,
-                                                       bgfx::UniformType::Enum type, int count) {
-    auto it = mUniformHandleTable.find(name);
-    if (it != mUniformHandleTable.end()) {
+Option<bgfx::UniformHandle> Material::uniformHandle(const String& name,
+                                                    bgfx::UniformType::Enum type, int count) {
+    auto it = uniform_handle_table_.find(name);
+    if (it != uniform_handle_table_.end()) {
         if (type == (*it).second.second) {
             return (*it).second.first;
         } else {
-            getLog().error("Unable to set uniform '%s', mismatched type %s != %s", name, type,
-                           (*it).second.second);
+            log().error("Unable to set uniform '%s', mismatched type %s != %s", name, type,
+                        (*it).second.second);
             return Option<bgfx::UniformHandle>();
         }
     } else {

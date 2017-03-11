@@ -12,9 +12,9 @@ public:
     IndexBuffer(Context* context);
     ~IndexBuffer();
 
-    bgfx::IndexBufferHandle getInternalHandle() const;
+    bgfx::IndexBufferHandle internalHandle() const;
 
 private:
-    bgfx::IndexBufferHandle mHandle;
+    bgfx::IndexBufferHandle handle_;
 };
 }

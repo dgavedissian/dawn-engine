@@ -4,7 +4,7 @@
  */
 #include "Common.h"
 #include "renderer/Renderable.h"
-#include "renderer/Node.h"
+#include "scene/Node.h"
 
 namespace dw {
 Node::Node(Context* context) : Object(context) {

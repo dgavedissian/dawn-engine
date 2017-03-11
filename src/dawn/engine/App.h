@@ -8,14 +8,14 @@
 #define WIN32_LEAN_AND_MIN
 #define NOMINMAX
 #include <Windows.h>
-#define DW_IMPLEMENT_MAIN(AppClass)                        \
-    int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) { \
-        return dw::runApp(new AppClass, __argc, __argv);   \
+#define DW_IMPLEMENT_MAIN(AppClass)                                \
+    int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {         \
+        return dw::runApp(makeUnique<AppClass>(), __argc, __argv); \
     }
 #else
-#define DW_IMPLEMENT_MAIN(AppClass)                  \
-    int main(int argc, char** argv) {                \
-        return dw::runApp(new AppClass, argc, argv); \
+#define DW_IMPLEMENT_MAIN(AppClass)                            \
+    int main(int argc, char** argv) {                          \
+        return dw::runApp(makeUnique<AppClass>(), argc, argv); \
     }
 #endif
 
@@ -23,13 +23,9 @@ namespace dw {
 
 class DW_API App : public Object {
 public:
-    App() : Object(nullptr) {
+    App() : Object{nullptr} {
     }
     virtual ~App() {
-    }
-
-    void _setContext(Context* context) {
-        mContext = context;
     }
 
     virtual void init(int argc, char** argv) = 0;
@@ -38,7 +34,9 @@ public:
 
     virtual String getGameName() = 0;
     virtual String getGameVersion() = 0;
+
+    friend DW_API int runApp(UniquePtr<App> app, int argc, char** argv);
 };
 
-DW_API int runApp(App* app, int argc, char** argv);
+DW_API int runApp(UniquePtr<App> app, int argc, char** argv);
 }

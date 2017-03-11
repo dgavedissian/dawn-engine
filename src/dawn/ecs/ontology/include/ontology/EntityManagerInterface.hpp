@@ -17,7 +17,7 @@ class Component;
 class Entity;
 class World;
 
-struct EntityManagerInterface
+struct ONTOLOGY_PUBLIC_API EntityManagerInterface
 {
     EntityManagerInterface(World* world) : world(world) {}
     virtual ~EntityManagerInterface() {}

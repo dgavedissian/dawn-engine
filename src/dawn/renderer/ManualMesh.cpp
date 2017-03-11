@@ -14,9 +14,10 @@ ManualMesh::ManualMesh(Context* context, SharedPtr<VertexBuffer> vb, SharedPtr<I
 ManualMesh::~ManualMesh() {
 }
 
-void ManualMesh::Draw() {
-    bgfx::setVertexBuffer(vertex_buffer_->getInternalHandle());
-    bgfx::setIndexBuffer(index_buffer_->getInternalHandle());
-    bgfx::submit(0, GetMaterial()->getProgramInternalHandle());
+RenderTask ManualMesh::draw(const Mat4& modelMatrix) {
+    return RenderTask{
+        modelMatrix, vertex_buffer_->internalHandle(), index_buffer_->internalHandle(),
+        material_->internalHandle(),
+    };
 }
 }

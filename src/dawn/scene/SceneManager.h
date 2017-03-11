@@ -20,15 +20,12 @@ public:
     /// @param dt Time elapsed
     void update(float dt);
 
-    Node* GetRootNode() const {
-        return root_node_.get();
-    }
+    Node* GetRootNode() const;
 
     /// Calls PreRender on each entity
     void preRender(Camera* camera);
 
 private:
-
     SharedPtr<Node> root_node_;
 };
 }

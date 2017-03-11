@@ -5,11 +5,10 @@
 #include "Common.h"
 #include "io/FileSystem.h"
 
-#define MAX_PATH 256
-
 #if DW_PLATFORM == DW_WIN32
 #include <Windows.h>
 #else
+#define MAX_PATH 256
 #include <unistd.h>
 #include <sys/stat.h>
 #endif
@@ -25,12 +24,12 @@ FileSystem::~FileSystem() {
 bool FileSystem::setWorkingDir(const Path& path) const {
 #if DW_PLATFORM == DW_WIN32
     if (SetCurrentDirectoryA(path.c_str()) == FALSE) {
-        getLog().error("Failed to change directory to %s", path);
+        log().error("Failed to change directory to %s", path);
         return false;
     }
 #else
     if (chdir(path.c_str()) != 0) {
-        getLog().error("Failed to change directory to %s", path);
+        log().error("Failed to change directory to %s", path);
         return false;
     }
 #endif

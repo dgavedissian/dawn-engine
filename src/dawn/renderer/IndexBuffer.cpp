@@ -12,7 +12,7 @@ IndexBuffer::IndexBuffer(Context* context) : Object(context) {
 IndexBuffer::~IndexBuffer() {
 }
 
-bgfx::IndexBufferHandle IndexBuffer::getInternalHandle() const {
-    return mHandle;
+bgfx::IndexBufferHandle IndexBuffer::internalHandle() const {
+    return handle_;
 }
 }

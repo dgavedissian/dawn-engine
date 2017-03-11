@@ -12,7 +12,7 @@ namespace dw {
 
 static int returnCode = EXIT_SUCCESS;
 
-int runApp(App* app, int argc, char** argv) {
+int runApp(UniquePtr<App> app, int argc, char** argv) {
     // TODO(David) Load config
     // TODO(David) Move config into the main thread
 
@@ -33,19 +33,19 @@ int runApp(App* app, int argc, char** argv) {
     bgfx::renderFrame();
 
     // Launch main thread
-    Thread mainThread([app, argc, argv]() {
+    Thread mainThread([argc, argv](UniquePtr<App> app) {
         dw::Engine engine{app->getGameName(), app->getGameVersion()};
         engine.setup();
 
         // App lifecycle
-        app->_setContext(engine.getContext());
+        app->context_ = engine.context();
         app->init(argc, argv);
         engine.run([&app](float dt) { app->update(dt); });
         app->shutdown();
-        delete app;
+        app.reset();
 
         engine.shutdown();
-    });
+    }, std::move(app));
 
     // Enter event loop
     bool exit = false;

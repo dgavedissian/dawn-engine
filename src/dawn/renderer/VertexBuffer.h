@@ -12,9 +12,9 @@ public:
     VertexBuffer(Context* context);
     ~VertexBuffer();
 
-    bgfx::VertexBufferHandle getInternalHandle() const;
+    bgfx::VertexBufferHandle internalHandle() const;
 
 private:
-    bgfx::VertexBufferHandle mHandle;
+    bgfx::VertexBufferHandle handle_;
 };
 }

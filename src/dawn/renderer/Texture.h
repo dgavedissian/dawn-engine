@@ -17,9 +17,9 @@ public:
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
 
-    DEPRECATED bgfx::TextureHandle getTextureHandle() const;
+    bgfx::TextureHandle internalHandle() const;
 
 private:
-    bgfx::TextureHandle mTextureHandle;
+    bgfx::TextureHandle handle_;
 };
 }
