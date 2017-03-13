@@ -5,58 +5,57 @@
 #include "Common.h"
 
 namespace dw {
-
 const StringHash StringHash::ZERO;
 
-StringHash::StringHash() : mValue(0) {
+StringHash::StringHash() : value_{0} {
 }
 
-StringHash::StringHash(HashType value) : mValue(value) {
+StringHash::StringHash(HashType value) : value_{value} {
 }
 
-StringHash::StringHash(const char* str) : mValue(calculate(str)) {
+StringHash::StringHash(const char* str) : value_{calculate(str)} {
 }
 
-StringHash::StringHash(const String& str) : mValue(calculate(str.c_str())) {
+StringHash::StringHash(const String& str) : value_{calculate(str.c_str())} {
 }
 
 StringHash StringHash::operator+(const StringHash& rhs) const {
     StringHash ret;
-    ret.mValue = mValue + rhs.mValue;
+    ret.value_ = value_ + rhs.value_;
     return ret;
 }
 
 StringHash& StringHash::operator+=(const StringHash& rhs) {
-    mValue += rhs.mValue;
+    value_ += rhs.value_;
     return *this;
 }
 
 bool StringHash::operator==(const StringHash& rhs) const {
-    return mValue == rhs.mValue;
+    return value_ == rhs.value_;
 }
 
 bool StringHash::operator!=(const StringHash& rhs) const {
-    return mValue != rhs.mValue;
+    return value_ != rhs.value_;
 }
 
 bool StringHash::operator<(const StringHash& rhs) const {
-    return mValue < rhs.mValue;
+    return value_ < rhs.value_;
 }
 
 bool StringHash::operator>(const StringHash& rhs) const {
-    return mValue > rhs.mValue;
+    return value_ > rhs.value_;
 }
 
 StringHash::operator bool() const {
-    return mValue != 0;
+    return value_ != 0;
 }
 
 uint32_t StringHash::value() const {
-    return mValue;
+    return value_;
 }
 
 String StringHash::toString() const {
-    return std::to_string(mValue);
+    return std::to_string(value_);
 }
 
 uint32_t StringHash::calculate(const char* str) {

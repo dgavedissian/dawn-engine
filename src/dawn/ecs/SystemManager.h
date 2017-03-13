@@ -21,7 +21,8 @@ public:
     /// @tparam Args List of constructor argument types.
     /// @param args Constructor arguments.
     template <typename T, typename... Args> T* addSystem(Args... args) {
-        return &system_manager_.addSystem<OntologySystemAdapter<T>>(std::move(makeUnique<T>(std::forward(args)...)));
+        return &system_manager_.addSystem<OntologySystemAdapter<T>>(
+            std::move(makeUnique<T>(std::forward(args)...)));
     }
 
     /// @brief Looks up an entity system in the context.

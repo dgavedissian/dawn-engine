@@ -5,9 +5,7 @@
 #pragma once
 
 #if DW_PLATFORM == DW_WIN32
-#define WIN32_LEAN_AND_MIN
-#define NOMINMAX
-#include <Windows.h>
+//#include "platform/Windows.h"
 #define DW_IMPLEMENT_MAIN(AppClass)                                \
     int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {         \
         return dw::runApp(makeUnique<AppClass>(), __argc, __argv); \
@@ -32,8 +30,8 @@ public:
     virtual void update(float dt) = 0;
     virtual void shutdown() = 0;
 
-    virtual String getGameName() = 0;
-    virtual String getGameVersion() = 0;
+    virtual String gameName() = 0;
+    virtual String gameVersion() = 0;
 
     friend DW_API int runApp(UniquePtr<App> app, int argc, char** argv);
 };

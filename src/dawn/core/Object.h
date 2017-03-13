@@ -8,7 +8,6 @@
 #include "math/StringHash.h"
 
 namespace dw {
-
 class Logger;
 
 class DW_API TypeInfo {
@@ -16,34 +15,34 @@ public:
     TypeInfo(const std::type_info& t);
     ~TypeInfo();
 
-    StringHash getType() const;
-    String getTypeName() const;
+    StringHash type() const;
+    String typeName() const;
 
 private:
-    StringHash mType;
-    String mTypeName;
+    StringHash type_;
+    String type_name_;
 };
 
-#define DW_OBJECT(T)                                    \
-    typedef T Type;                                     \
-    virtual dw::StringHash getType() const override {   \
-        return getTypeInfo().getType();                 \
-    }                                                   \
-    virtual dw::String getTypeName() const override {   \
-        return getTypeInfo().getTypeName();             \
-    }                                                   \
-    virtual dw::TypeInfo getTypeInfo() const override { \
-        return getTypeInfoStatic();                     \
-    }                                                   \
-    static dw::StringHash getTypeStatic() {             \
-        return getTypeInfoStatic().getType();           \
-    }                                                   \
-    static dw::String getTypeNameStatic() {             \
-        return getTypeInfoStatic().getTypeName();       \
-    }                                                   \
-    static const dw::TypeInfo& getTypeInfoStatic() {    \
-        static dw::TypeInfo ti(typeid(Type));           \
-        return ti;                                      \
+#define DW_OBJECT(T)                                 \
+    typedef T Type;                                  \
+    virtual dw::StringHash type() const override {   \
+        return typeInfo().type();                    \
+    }                                                \
+    virtual dw::String typeName() const override {   \
+        return typeInfo().typeName();                \
+    }                                                \
+    virtual dw::TypeInfo typeInfo() const override { \
+        return typeInfoStatic();                     \
+    }                                                \
+    static dw::StringHash typeStatic() {             \
+        return typeInfoStatic().type();              \
+    }                                                \
+    static dw::String typeNameStatic() {             \
+        return typeInfoStatic().typeName();          \
+    }                                                \
+    static const dw::TypeInfo& typeInfoStatic() {    \
+        static dw::TypeInfo ti(typeid(Type));        \
+        return ti;                                   \
     }
 
 class DW_API Object {
@@ -61,9 +60,9 @@ public:
         return context_->subsystem<T>();
     }
 
-    virtual StringHash getType() const = 0;
-    virtual String getTypeName() const = 0;
-    virtual TypeInfo getTypeInfo() const = 0;
+    virtual StringHash type() const = 0;
+    virtual String typeName() const = 0;
+    virtual TypeInfo typeInfo() const = 0;
 
 protected:
     Context* context_;

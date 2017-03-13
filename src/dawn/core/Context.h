@@ -33,7 +33,7 @@ public:
 
     // Convenient template methods for subsystems
     template <typename T> T* subsystem() {
-        return static_cast<T*>(subsystem(T::getTypeStatic()));
+        return static_cast<T*>(subsystem(T::typeStatic()));
     }
 
     template <typename T, typename... Args> void addSubsystem(Args... args) {
@@ -41,7 +41,7 @@ public:
     }
 
     template <typename T> void removeSubsystem() {
-        removeSubsystem(T::getTypeStatic());
+        removeSubsystem(T::typeStatic());
     }
 
     /// Access the config root.

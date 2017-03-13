@@ -11,13 +11,13 @@ namespace dw {
 
 Engine::Engine(const String& game, const String& version)
     : Object(nullptr),
-      mInitialised(false),
-      mRunning(true),
-      mSaveConfigOnExit(true),
-      mGameName(game),
-      mGameVersion(version),
-      mLogFile("engine.log"),
-      mConfigFile("engine.cfg") {
+      initialised_(false),
+      running_(true),
+      save_config_on_exit_(true),
+      game_name_(game),
+      game_version_(version),
+      log_file_("engine.log"),
+      config_file_("engine.cfg") {
     // TODO(David): Implement base path (where resources are located) and pref path (where to save
     // settings)
     String basePath = "";
@@ -28,8 +28,8 @@ Engine::Engine(const String& game, const String& version)
 
     // Initialise logging
     context_->addSubsystem<Logger>(context_);
-    // TODO(david): Add a file logger to prefPath + mLogFile
-    log().info("Starting %s %s", mGameName, mGameVersion);
+    // TODO(david): Add a file logger to prefPath + log_file_
+    log().info("Starting %s %s", game_name_, game_version_);
 #ifdef DW_DEBUG
     log().warn("NOTE: This is a debug build!");
 #endif
@@ -41,18 +41,18 @@ Engine::~Engine() {
 }
 
 void Engine::setup() {
-    assert(!mInitialised);
+    assert(!initialised_);
 
     // Low-level subsystems
     context_->addSubsystem<EventSystem>(context_);
     context_->addSubsystem<FileSystem>(context_);
 
     // Load configuration
-    if (context_->subsystem<FileSystem>()->fileExists(mConfigFile)) {
-        log().info("Loading configuration from %s", mConfigFile);
-        context_->loadConfig(mConfigFile);
+    if (context_->subsystem<FileSystem>()->fileExists(config_file_)) {
+        log().info("Loading configuration from %s", config_file_);
+        context_->loadConfig(config_file_);
     } else {
-        log().info("Configuration does not exist, creating %s", mConfigFile);
+        log().info("Configuration does not exist, creating %s", config_file_);
     }
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
@@ -60,9 +60,9 @@ void Engine::setup() {
     // TODO(David): bind engine services to lua?
 
     // Build window title
-    String gameTitle(mGameName);
+    String gameTitle(game_name_);
     gameTitle += " ";
-    gameTitle += mGameVersion;
+    gameTitle += game_version_;
 #ifdef DW_DEBUG
     gameTitle += " (debug)";
 #endif
@@ -97,20 +97,20 @@ void Engine::setup() {
     log().info("Current Working Directory: %s", subsystem<FileSystem>()->getWorkingDir());
 
     // The engine is now initialised
-    mInitialised = true;
+    initialised_ = true;
 
     // Register event delegate
     ADD_LISTENER(Engine, EvtData_Exit);
 }
 
 void Engine::shutdown() {
-    if (!mInitialised) {
+    if (!initialised_) {
         return;
     }
 
     // Save config
-    if (mSaveConfigOnExit) {
-        context_->saveConfig(mConfigFile);
+    if (save_config_on_exit_) {
+        context_->saveConfig(config_file_);
     }
 
     // Remove subsystems
@@ -118,7 +118,7 @@ void Engine::shutdown() {
     context_->clearSubsystems();
 
     // The engine is no longer initialised
-    mInitialised = false;
+    initialised_ = false;
 }
 
 void Engine::run(EngineTickCallback tickFunc) {
@@ -129,7 +129,7 @@ void Engine::run(EngineTickCallback tickFunc) {
     const float dt = 1.0f / 60.0f;
     time::TimePoint previousTime = time::beginTiming();
     double accumulator = 0.0;
-    while (mRunning) {
+    while (running_) {
         // mUI->beginFrame();
 
         // Update game logic
@@ -175,6 +175,6 @@ void Engine::preRender(Camera* camera) {
 
 void Engine::handleEvent(EventDataPtr eventData) {
     assert(eventIs<EvtData_Exit>(eventData));
-    mRunning = false;
+    running_ = false;
 }
 }

@@ -66,6 +66,6 @@ public:
 
 private:
     void dispatchLogMessage(LogLevel level, const String& message);
-    Vector<UniquePtr<LogMessageHandler>> _handlers;
+    Vector<UniquePtr<LogMessageHandler>> handlers_;
 };
 }

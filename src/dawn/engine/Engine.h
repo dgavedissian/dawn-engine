@@ -28,16 +28,16 @@ public:
     void run(EngineTickCallback tickFunc);
 
 private:
-    bool mInitialised;
-    bool mRunning;
-    bool mSaveConfigOnExit;
+    bool initialised_;
+    bool running_;
+    bool save_config_on_exit_;
 
-    String mGameName;
-    String mGameVersion;
+    String game_name_;
+    String game_version_;
 
     // Filenames
-    String mLogFile;
-    String mConfigFile;
+    String log_file_;
+    String config_file_;
 
     void printSystemInfo();
     void update(float dt);

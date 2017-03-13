@@ -25,7 +25,7 @@ int runApp(UniquePtr<App> app, int argc, char** argv) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(1280, 720, app->getGameName().c_str(), nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, app->gameName().c_str(), nullptr, nullptr);
     glfwMakeContextCurrent(window);
 
     // Bind bgfx to glfw, and prevent bgfx from spawning a render thread
@@ -33,19 +33,21 @@ int runApp(UniquePtr<App> app, int argc, char** argv) {
     bgfx::renderFrame();
 
     // Launch main thread
-    Thread mainThread([argc, argv](UniquePtr<App> app) {
-        dw::Engine engine{app->getGameName(), app->getGameVersion()};
-        engine.setup();
+    Thread mainThread(
+        [argc, argv](UniquePtr<App> app) {
+            dw::Engine engine{app->gameName(), app->gameVersion()};
+            engine.setup();
 
-        // App lifecycle
-        app->context_ = engine.context();
-        app->init(argc, argv);
-        engine.run([&app](float dt) { app->update(dt); });
-        app->shutdown();
-        app.reset();
+            // App lifecycle
+            app->context_ = engine.context();
+            app->init(argc, argv);
+            engine.run([&app](float dt) { app->update(dt); });
+            app->shutdown();
+            app.reset();
 
-        engine.shutdown();
-    }, std::move(app));
+            engine.shutdown();
+        },
+        std::move(app));
 
     // Enter event loop
     bool exit = false;

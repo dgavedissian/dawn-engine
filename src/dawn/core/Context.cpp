@@ -21,7 +21,7 @@ Object* Context::subsystem(StringHash subsystemType) {
 }
 
 void Context::addSubsystem(UniquePtr<Object> subsystem) {
-    subsystems_.emplace(subsystem->getType(), std::move(subsystem));
+    subsystems_.emplace(subsystem->type(), std::move(subsystem));
 }
 
 void Context::removeSubsystem(StringHash subsystemType) {

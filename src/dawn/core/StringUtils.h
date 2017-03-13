@@ -10,7 +10,7 @@ namespace str {
 
 //// Command Line
 
-typedef Map<String, String> CommandLineArgs;
+using CommandLineArgs = Map<String, String> ;
 DW_API CommandLineArgs parseCommandArgs(int argc, char** argv);
 
 //// String

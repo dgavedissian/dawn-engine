@@ -66,11 +66,11 @@ public:
     void shutdown() override {
     }
 
-    String getGameName() override {
+    String gameName() override {
         return "Sandbox";
     }
 
-    String getGameVersion() override {
+    String gameVersion() override {
         return "1.0.0";
     }
 };

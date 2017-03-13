@@ -6,18 +6,18 @@
 
 namespace dw {
 
-TypeInfo::TypeInfo(const std::type_info& t) : mType(mTypeName), mTypeName(t.name()) {
+TypeInfo::TypeInfo(const std::type_info& t) : type_(type_name_), type_name_(t.name()) {
 }
 
 TypeInfo::~TypeInfo() {
 }
 
-StringHash TypeInfo::getType() const {
-    return mType;
+StringHash TypeInfo::type() const {
+    return type_;
 }
 
-String TypeInfo::getTypeName() const {
-    return mTypeName;
+String TypeInfo::typeName() const {
+    return type_name_;
 }
 
 Object::Object(Context* context) : context_(context) {

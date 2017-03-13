@@ -9,6 +9,9 @@ namespace dw {
 // Internal game states
 enum { S_NO_STATE = -1, S_SANDBOX, S_USER_ID_BEGIN };
 
+// State ID.
+using StateId = uint;
+
 // Empty game state
 class DW_API State {
 public:
@@ -18,27 +21,31 @@ public:
     }
 
     // Called when the state is entered
-    virtual void enter(){};
+    virtual void enter() {
+    }
 
     // Called when the state exits (either on pop or change)
-    virtual void exit(){};
+    virtual void exit() {
+    }
 
     // Updates this state
-    virtual void update(float){};
+    virtual void update(float) {
+    }
 
     // Called before rendering
     // Use this to blit sprites
-    virtual void preRender(){};
+    virtual void preRender() {
+    }
 
     // Get the ID of this state
-    virtual uint getId() const = 0;
+    virtual StateId id() const = 0;
 
     // Returns the name of this state for debugging purposes
-    virtual String getName() const = 0;
+    virtual String name() const = 0;
 };
 
 // State modality - does it own the screen or is it a pop-up?
-enum StateModality { SM_EXCLUSIVE, SM_POP_UP };
+enum class StateModality { SM_EXCLUSIVE, SM_POP_UP };
 
 // Manages the games states
 class DW_API StateManager : public Object {
@@ -52,10 +59,10 @@ public:
     void registerState(SharedPtr<State> state);
 
     // Switches the game to a new state. This will clear all current active pop-up states
-    void changeTo(int id);
+    void changeTo(StateId id);
 
     // Pushes a new pop-up state to the top of the state stack
-    void push(int id);
+    void push(StateId id);
 
     // Pops a state from the top of the state stack
     void pop();
@@ -76,11 +83,11 @@ public:
     void handleEvent(EventDataPtr e);
 
     // Accessors
-    int getTop() const;
-    SharedPtr<State> getStateById(uint id);
+    StateId top() const;
+    SharedPtr<State> stateById(StateId id);
 
 private:
-    Map<int, SharedPtr<State>> mStateMap;
-    Vector<SharedPtr<State>> mStateStack;
+    Map<StateId, SharedPtr<State>> state_map_;
+    Vector<SharedPtr<State>> state_stack_;
 };
 }

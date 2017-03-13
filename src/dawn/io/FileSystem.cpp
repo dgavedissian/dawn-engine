@@ -6,7 +6,7 @@
 #include "io/FileSystem.h"
 
 #if DW_PLATFORM == DW_WIN32
-#include <Windows.h>
+#include "platform/Windows.h"
 #else
 #define MAX_PATH 256
 #include <unistd.h>

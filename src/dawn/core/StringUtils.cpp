@@ -28,10 +28,11 @@ CommandLineArgs parseCommandArgs(Logger& logger, int argc, char** argv) {
             name = String(argv[i]).substr(1);
             param.clear();
         } else {
-            if (!param.empty())
+            if (!param.empty()) {
                 logger.info("Extra argument specified, ignoring");
-            else
+            } else {
                 param = String(argv[i]);
+            }
         }
     }
 
@@ -43,32 +44,37 @@ CommandLineArgs parseCommandArgs(Logger& logger, int argc, char** argv) {
 
 String generateName(const String& prefix /*= "Unnamed"*/) {
     static Map<String, int> countMap;
-    if (countMap.find(prefix) == countMap.end())
+    if (countMap.find(prefix) == countMap.end()) {
         countMap[prefix] = 0;
+    }
     return prefix + std::to_string(++countMap[prefix]);
 }
 
 String padString(const String& str, uint length) {
     String out = str;
-    if (length > out.size())
+    if (length > out.size()) {
         out.insert(out.size(), length - out.size(), ' ');
+    }
     return out;
 }
 
 Vector<String>& split(const String& s, char delim, Vector<String>& elems) {
     std::stringstream ss(s);
     String item;
-    while (std::getline(ss, item, delim))
+    while (std::getline(ss, item, delim)) {
         elems.push_back(item);
+    }
     return elems;
 }
 
 String concat(const Vector<String>& vec, const String& delim) {
     String out;
-    for (uint i = 0; i < vec.size() - 1; ++i)
-        out += vec[i];
-    if (!vec.empty())
+    for (uint i = 0; i < vec.size() - 1; ++i) {
+        out += vec[i] + delim;
+    }
+    if (!vec.empty()) {
         out += vec.back();
+    }
     return out;
 }
 

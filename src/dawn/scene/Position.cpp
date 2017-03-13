@@ -8,12 +8,12 @@
 
 namespace dw {
 
-const Position Position::origin;
+    const Position Position::origin;
 
-Position::Position() : x(0.0), y(0.0), z(0.0) {
-}
+    Position::Position() : x{0.0}, y{ 0.0 }, z{ 0.0 } {
+    }
 
-Position::Position(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {
+    Position::Position(double x, double y, double z) : x{ x }, y{ y }, z{ z } {
 }
 
 Position::Position(const Vec3& vector)
@@ -22,7 +22,7 @@ Position::Position(const Vec3& vector)
       z(static_cast<double>(vector.z)) {
 }
 
-Position::Position(const Position& other) : x(other.x), y(other.y), z(other.z) {
+Position::Position(const Position& other) : x{ other.x }, y{ other.y }, z{ other.z } {
 }
 
 Vec3 Position::getRelativeTo(const Position& point) const {

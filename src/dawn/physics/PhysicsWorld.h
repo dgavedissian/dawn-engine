@@ -38,13 +38,13 @@ public:
                   PhysicsRaycastResult& result);
 
 private:
-    SharedPtr<btBroadphaseInterface> mBroadphase;
-    SharedPtr<btCollisionConfiguration> mCollisionConfig;
-    SharedPtr<btCollisionDispatcher> mDispatcher;
-    SharedPtr<btConstraintSolver> mSolver;
-    SharedPtr<btDynamicsWorld> mWorld;
+    SharedPtr<btBroadphaseInterface> broadphase_;
+    SharedPtr<btCollisionConfiguration> collision_config_;
+    SharedPtr<btCollisionDispatcher> dispatcher_;
+    SharedPtr<btConstraintSolver> solver_;
+    SharedPtr<btDynamicsWorld> world_;
 
-    List<btRigidBody*> mRigidBodyList;
+    List<btRigidBody*> rigid_body_list_;
 
     // Dispatch collision events
     static void bulletTickCallback(btDynamicsWorld* world, btScalar timestep);

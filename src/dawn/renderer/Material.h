@@ -26,7 +26,7 @@ public:
     template <typename T> void setUniform(const String& name, const T& value) {
     }
 
-    bgfx::ProgramHandle internalHandle();
+    bgfx::ProgramHandle internalHandle() const;
 
 private:
     Option<bgfx::UniformHandle> uniformHandle(const String& name, bgfx::UniformType::Enum type,
@@ -41,9 +41,12 @@ private:
     bgfx::ProgramHandle handle_;
 };
 
+// Note: https://github.com/bkaradzic/bgfx/issues/653
+// bgfx maps to hardware uniform types only. OpenGL and D3D map float/vec2/vec3 to a padded vec4 type, for example.
+
 template <> inline void Material::setUniform<float>(const String& name, const float& value) {
     Option<bgfx::UniformHandle> handle = uniformHandle(name, bgfx::UniformType::Vec4, 1);
-    if (handle.isSet()) {
+    if (handle.isPresent()) {
         Vec4 value_v4(value, 0.0f, 0.0f, 0.0f);
         bgfx::setUniform(handle.get(), &value_v4);
     }
@@ -51,7 +54,7 @@ template <> inline void Material::setUniform<float>(const String& name, const fl
 
 template <> inline void Material::setUniform<Vec2>(const String& name, const Vec2& value) {
     Option<bgfx::UniformHandle> handle = uniformHandle(name, bgfx::UniformType::Vec4, 1);
-    if (handle.isSet()) {
+    if (handle.isPresent()) {
         Vec4 value_v4(value.x, value.y, 0.0f, 0.0f);
         bgfx::setUniform(handle.get(), &value_v4);
     }
@@ -59,7 +62,7 @@ template <> inline void Material::setUniform<Vec2>(const String& name, const Vec
 
 template <> inline void Material::setUniform<Vec3>(const String& name, const Vec3& value) {
     Option<bgfx::UniformHandle> handle = uniformHandle(name, bgfx::UniformType::Vec4, 1);
-    if (handle.isSet()) {
+    if (handle.isPresent()) {
         Vec4 value_v4(value, 0.0f);
         bgfx::setUniform(handle.get(), &value_v4);
     }
@@ -67,7 +70,7 @@ template <> inline void Material::setUniform<Vec3>(const String& name, const Vec
 
 template <> inline void Material::setUniform<Vec4>(const String& name, const Vec4& value) {
     Option<bgfx::UniformHandle> handle = uniformHandle(name, bgfx::UniformType::Vec4, 1);
-    if (handle.isSet()) {
+    if (handle.isPresent()) {
         bgfx::setUniform(handle.get(), &value);
     }
 }

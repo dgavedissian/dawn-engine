@@ -15,40 +15,41 @@ StateManager::StateManager(Context* context) : Object(context) {
 StateManager::~StateManager() {
     REMOVE_LISTENER(StateManager, EvtData_KeyDown);
 
-    while (!mStateStack.empty())
+    while (!state_stack_.empty()) {
         pop();
-    mStateMap.clear();
+    }
+    state_map_.clear();
 }
 
 void StateManager::registerState(SharedPtr<State> state) {
-    mStateMap[state->getId()] = state;
+    state_map_[state->id()] = state;
 }
 
-void StateManager::changeTo(int id) {
-    if (mStateStack.size() > 0) {
+void StateManager::changeTo(StateId id) {
+    if (state_stack_.size() > 0) {
         pop();
     }
     push(id);
 }
 
-void StateManager::push(int id) {
+void StateManager::push(StateId id) {
     if (id == S_NO_STATE) {
         return;
     }
 
     // TODO: We need some kind of way to "pause" the frame timer
-    SharedPtr<State> newState = getStateById(id);
-    mStateStack.push_back(newState);
+    SharedPtr<State> newState = stateById(id);
+    state_stack_.push_back(newState);
     newState->enter();
-    log().info("Pushed %s", newState->getName());
+    log().info("Pushed %s", newState->name());
 }
 
 void StateManager::pop() {
-    if (mStateStack.size() > 0) {
-        SharedPtr<State> back = mStateStack.back();
+    if (state_stack_.size() > 0) {
+        SharedPtr<State> back = state_stack_.back();
         back->exit();
-        mStateStack.pop_back();
-        log().info("Popped %s", back->getName());
+        state_stack_.pop_back();
+        log().info("Popped %s", back->name());
     } else {
         // TODO(#21): Deal with this error correctly.
         log().error("Trying to pop a state when no states are on the stack");
@@ -56,32 +57,32 @@ void StateManager::pop() {
 }
 
 void StateManager::reload() {
-    int top = getTop();
+    StateId top_id = top();
     pop();
-    push(top);
+    push(top_id);
 }
 
 void StateManager::clear() {
-    while (mStateStack.size() > 0)
+    while (state_stack_.size() > 0)
         pop();
 }
 
 void StateManager::update(float dt) {
-    u64 size = mStateStack.size();
+    u64 size = state_stack_.size();
     for (uint i = 0; i < size; ++i) {
-        mStateStack[i]->update(dt);
+        state_stack_[i]->update(dt);
     }
 }
 
 void StateManager::preRender() {
-    for (uint i = 0; i < mStateStack.size(); ++i) {
-        mStateStack[i]->preRender();
+    for (uint i = 0; i < state_stack_.size(); ++i) {
+        state_stack_[i]->preRender();
     }
 }
 
-int StateManager::getTop() const {
-    if (mStateStack.size() > 0) {
-        return mStateStack.back()->getId();
+StateId StateManager::top() const {
+    if (state_stack_.size() > 0) {
+        return state_stack_.back()->id();
     }
     return S_NO_STATE;
 }
@@ -96,9 +97,9 @@ void StateManager::handleEvent(EventDataPtr eventData) {
     }
 }
 
-SharedPtr<State> StateManager::getStateById(uint id) {
-    auto it = mStateMap.find(id);
-    assert(it != mStateMap.end());
+SharedPtr<State> StateManager::stateById(StateId id) {
+    auto it = state_map_.find(id);
+    assert(it != state_map_.end());
     return (*it).second;
 }
 }

@@ -7,12 +7,13 @@
 #include "renderer/Mesh.h"
 
 namespace dw {
-Mesh::Mesh(Context* context) : Resource(context) {}
+Mesh::Mesh(Context* context) : Resource(context) {
+}
 
 Mesh::~Mesh() {
 }
 
-bool Mesh::beginLoad(InputStream& src) {
+bool Mesh::beginLoad(InputStream&) {
     log().error("Mesh loading unimplemented");
     return false;
 }

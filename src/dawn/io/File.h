@@ -40,8 +40,8 @@ public:
     void close();
 
 private:
-    FILE* mHandle;
-    int mMode;
+    FILE* handle_;
+    int mode_;
 
     String fileModeMapper(int mode);
 };

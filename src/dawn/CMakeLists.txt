@@ -59,6 +59,8 @@ set(SOURCE_FILES
     math/Vec4i.h
     physics/PhysicsWorld.cpp
     physics/PhysicsWorld.h
+    platform/Defines.h
+    platform/Windows.h
     renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h
     renderer/ManualMesh.cpp
@@ -98,7 +100,6 @@ set(SOURCE_FILES
     script/LuaState.h
     Common.h
     DawnEngine.h
-    Platform.h
     Prerequisites.h)
 
 # TODO: Replace prototype Ontology based ECS with custom implementation.
