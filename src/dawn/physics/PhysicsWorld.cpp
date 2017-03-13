@@ -71,8 +71,7 @@ bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera* 
         if (raycast.m_collisionObject) {
             result.body = static_cast<RigidEntity*>(
                 btRigidBody::upcast(raycast.m_collisionObject)->getUserPointer());
-        }
-        else {
+        } else {
             result.body = nullptr;
         }
     } else {

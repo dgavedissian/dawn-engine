@@ -45,21 +45,21 @@ Option<bgfx::UniformHandle> Material::uniformHandle(const String& name,
         }
         auto uniform_type = [](bgfx::UniformType::Enum type) -> String {
             switch (type) {
-            case bgfx::UniformType::Int1:
-                return "Int1";
-            case bgfx::UniformType::Vec4:
-                return "Vec4";
-            case bgfx::UniformType::Mat3:
-                return "Mat3";
-            case bgfx::UniformType::Mat4:
-                return "Mat4";
-            default:
-                return tfm::format("UNKNOWN(%s)", type);
+                case bgfx::UniformType::Int1:
+                    return "Int1";
+                case bgfx::UniformType::Vec4:
+                    return "Vec4";
+                case bgfx::UniformType::Mat3:
+                    return "Mat3";
+                case bgfx::UniformType::Mat4:
+                    return "Mat4";
+                default:
+                    return tfm::format("UNKNOWN(%s)", type);
             }
         };
-	    log().error("Unable to obtain uniform '%s', mismatched type: %s != %s.", name, uniform_type(type),
-            uniform_type((*it).second.second));
-	    return Option<bgfx::UniformHandle>();
+        log().error("Unable to obtain uniform '%s', mismatched type: %s != %s.", name,
+                    uniform_type(type), uniform_type((*it).second.second));
+        return Option<bgfx::UniformHandle>();
     }
     auto handle = bgfx::createUniform(name.c_str(), type, count);
     if (handle.idx == bgfx::invalidHandle) {

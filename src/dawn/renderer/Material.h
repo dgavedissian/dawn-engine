@@ -42,7 +42,8 @@ private:
 };
 
 // Note: https://github.com/bkaradzic/bgfx/issues/653
-// bgfx maps to hardware uniform types only. OpenGL and D3D map float/vec2/vec3 to a padded vec4 type, for example.
+// bgfx maps to hardware uniform types only. OpenGL and D3D map float/vec2/vec3 to a padded vec4
+// type, for example.
 
 template <> inline void Material::setUniform<float>(const String& name, const float& value) {
     Option<bgfx::UniformHandle> handle = uniformHandle(name, bgfx::UniformType::Vec4, 1);

@@ -78,10 +78,8 @@ inline Position estimateHit(const Position& position, float speed, const Positio
     float t;
 
     if (t1 > t2 && t2 > 0) {
-	    
         t = t2;
-    }
-    else {
+    } else {
         t = t1;
     }
 
