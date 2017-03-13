@@ -32,17 +32,17 @@ void Context::clearSubsystems() {
     subsystems_.clear();
 }
 
-json& Context::config() {
+Json& Context::config() {
     return config_;
 }
 
-const json& Context::config() const {
+const Json& Context::config() const {
     return config_;
 }
 
 void Context::loadConfig(const String& configFile) {
     File inFile(this, configFile, FileMode::Read);
-    config_ = json::parse(stream::read<String>(inFile));
+    config_ = Json::parse(stream::read<String>(inFile));
 }
 
 void Context::saveConfig(const String& configFile) {

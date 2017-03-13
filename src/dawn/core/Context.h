@@ -15,7 +15,7 @@ class Object;
 class ConfigNode;
 class Entity;
 
-using json = nlohmann::json;
+using Json = nlohmann::json;
 
 class DW_API Context {
 public:
@@ -45,10 +45,10 @@ public:
     }
 
     /// Access the config root.
-    json& config();
+    Json& config();
 
     /// Access the config root.
-    const json& config() const;
+    const Json& config() const;
 
     /// Load the configuration.
     void loadConfig(const String& configFile);
@@ -68,7 +68,7 @@ private:
     HashMap<StringHash, UniquePtr<Object>> subsystems_;
 
     // Engine configuration.
-    json config_;
+    Json config_;
 
     // File paths.
     String base_path_;
