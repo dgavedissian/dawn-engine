@@ -40,32 +40,41 @@ public:
 
     void addLogMessageHandler(UniquePtr<LogMessageHandler>&& handler);
 
-    template <typename... T> String formatMessage(const String& format, const T&... args) {
-        return tfm::format(format.c_str(), args...);
-    }
-
-    template <typename... T> void log(LogLevel level, const String& format, const T&... args) {
-        dispatchLogMessage(level, formatMessage(format, args...));
-    }
-
-    template <typename... T> void debug(const String& format, const T&... args) {
-        log(LogLevel::Debug, format, args...);
-    }
-
-    template <typename... T> void info(const String& format, const T&... args) {
-        log(LogLevel::Info, format, args...);
-    }
-
-    template <typename... T> void warn(const String& format, const T&... args) {
-        log(LogLevel::Warning, format, args...);
-    }
-
-    template <typename... T> void error(const String& format, const T&... args) {
-        log(LogLevel::Error, format, args...);
-    }
+    template <typename... Args> String formatMessage(const String& format, const Args&... args);
+    template <typename... Args> void log(LogLevel level, const String& format, const Args&... args);
+    template <typename... Args> void debug(const String& format, const Args&... args);
+    template <typename... Args> void info(const String& format, const Args&... args);
+    template <typename... Args> void warn(const String& format, const Args&... args);
+    template <typename... Args> void error(const String& format, const Args&... args);
 
 private:
     void dispatchLogMessage(LogLevel level, const String& message);
     Vector<UniquePtr<LogMessageHandler>> handlers_;
 };
+
+template <typename... Args>
+String Logger::formatMessage(const String& format, const Args&... args) {
+    return tfm::format(format.c_str(), args...);
+}
+
+template <typename... Args>
+void Logger::log(LogLevel level, const String& format, const Args&... args) {
+    dispatchLogMessage(level, formatMessage(format, args...));
+}
+
+template <typename... Args> void Logger::debug(const String& format, const Args&... args) {
+    log(LogLevel::Debug, format, args...);
+}
+
+template <typename... Args> void Logger::info(const String& format, const Args&... args) {
+    log(LogLevel::Info, format, args...);
+}
+
+template <typename... Args> void Logger::warn(const String& format, const Args&... args) {
+    log(LogLevel::Warning, format, args...);
+}
+
+template <typename... Args> void Logger::error(const String& format, const Args&... args) {
+    log(LogLevel::Error, format, args...);
+}
 }

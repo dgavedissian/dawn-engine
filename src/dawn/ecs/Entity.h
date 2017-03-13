@@ -11,10 +11,10 @@
 // ReSharper restore CppUnusedIncludeDirective
 
 namespace dw {
-/// @brief Entity identifier.
+/// Entity identifier.
 using EntityId = Ontology::Entity::ID;
 
-/// @brief Entity object. Currently implemented as an Ontology::Entity wrapper.
+/// Entity object. Currently implemented as an Ontology::Entity wrapper.
 class Entity : public Object {
 public:
     DW_OBJECT(Entity);
@@ -25,20 +25,20 @@ public:
 
     virtual ~Entity() = default;
 
-    /// @brief Accesses a component contained within this entity.
+    /// Accesses a component contained within this entity.
     /// @tparam T Component type.
     /// @return The data for this component type.
     template <typename T> T* component() {
         return internal_entity_.getComponentPtr<T>();
     }
 
-    /// @brief Determines whether this entity contains a component type.
+    /// Determines whether this entity contains a component type.
     /// @tparam T Component type.
     template <typename T> bool hasComponent() {
         return component<T>() != nullptr;
     }
 
-    /// @brief Initialises and adds a new component to the entity.
+    /// Initialises and adds a new component to the entity.
     /// @tparam T Component type.
     /// @tparam Args Component constructor argument types.
     /// @param args Component constructor arguments.
@@ -46,7 +46,7 @@ public:
         return internal_entity_.addComponent<T, Args>(std::forward(args)...);
     };
 
-    /// @brief Returns the identifier of this entity.
+    /// Returns the identifier of this entity.
     EntityId id() const {
         return internal_entity_.getID();
     }

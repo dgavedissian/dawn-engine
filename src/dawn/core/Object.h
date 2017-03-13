@@ -24,7 +24,7 @@ private:
 };
 
 #define DW_OBJECT(T)                                 \
-    typedef T Type;                                  \
+    using Type = T;                                  \
     virtual dw::StringHash type() const override {   \
         return typeInfo().type();                    \
     }                                                \
@@ -50,15 +50,16 @@ public:
     Object(Context* context);
     virtual ~Object();
 
+    /// Returns the context that this object is associated with.
     Context* context() const;
 
-    // Convenient access to the logger via the context
+    /// A convenient wrapper for context().subsystem<Logger>().
     Logger& log() const;
 
-    // Convenient access to context methods
-    template <class T> T* subsystem() const {
-        return context_->subsystem<T>();
-    }
+    /// A convenient wrapper for context().subsystem<T>().
+    /// @tparam T Subsystem type.
+    /// @return Subsystem instance.
+    template <class T> T* subsystem() const;
 
     virtual StringHash type() const = 0;
     virtual String typeName() const = 0;
@@ -67,4 +68,8 @@ public:
 protected:
     Context* context_;
 };
+
+template <class T> T* Object::subsystem() const {
+    return context_->subsystem<T>();
+}
 }

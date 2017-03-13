@@ -16,7 +16,7 @@ public:
     SystemManager(Context* context);
     virtual ~SystemManager() = default;
 
-    /// @brief Constructs a new entity system of the specified type.
+    /// Constructs a new entity system of the specified type.
     /// @tparam T Entity system type.
     /// @tparam Args List of constructor argument types.
     /// @param args Constructor arguments.
@@ -25,14 +25,14 @@ public:
             std::move(makeUnique<T>(std::forward(args)...)));
     }
 
-    /// @brief Looks up an entity system in the context.
+    /// Looks up an entity system in the context.
     /// @tparam T Entity system type.
     /// @return Instance of the entity system type.
     template <typename T> T* getSystem() {
         return system_manager_.getSystem<OntologySystemAdapter<T>>().system();
     }
 
-    /// @brief Removes the entity system from the context.
+    /// Removes the entity system from the context.
     /// @tparam T Entity system type.
     template <typename T> void removeSystem() {
         system_manager_.removeSystem<OntologySystemAdapter<T>>();

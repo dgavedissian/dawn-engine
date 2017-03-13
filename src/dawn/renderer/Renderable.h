@@ -16,15 +16,15 @@ public:
     Renderable(Context* context);
     virtual ~Renderable();
 
-    /// @brief Returns the material of this Renderable.
+    /// Returns the material of this Renderable.
     /// @return The material currently assigned to this Renderable.
     Material* material() const;
 
-    /// @brief Changes the material used to render this Renderable object.
+    /// Changes the material used to render this Renderable object.
     /// @param material The material to assign to this Renderable.
     void setMaterial(SharedPtr<Material> material);
 
-    /// @brief Generates a render task.
+    /// Generates a render task.
     /// @return A generated render task for this draw event.
     virtual RenderTask draw(const Mat4& modelMatrix) = 0;
 

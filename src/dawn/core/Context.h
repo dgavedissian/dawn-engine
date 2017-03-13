@@ -29,36 +29,36 @@ public:
     /// Non-copyable.
     Context& operator=(const Context& other) = delete;
 
-    /// @brief Accesses a subsystem by type hash. Requires a downcast.
+    /// Accesses a subsystem by type hash. Requires a downcast.
     /// @param subsystemType Subsystem type hash.
     /// @return A pointer to the subsystem instance, or nullptr otherwise.
     Object* subsystem(StringHash subsystemType);
 
-    /// @brief Adds a subsystem to this context.
+    /// Adds a subsystem to this context.
     /// @param subsystem Subsystem instance.
     void addSubsystem(UniquePtr<Object> subsystem);
 
-    /// @brief Removes a subsystem contained within the context, calling the subsystems
+    /// Removes a subsystem contained within the context, calling the subsystems
     /// deconstructor.
     /// @param subsystemType Subsystem type hash.
     void removeSubsystem(StringHash subsystemType);
 
-    /// @brief Clears all subsystems from this context. Equivalent to calling removeSubsystem on
+    /// Clears all subsystems from this context. Equivalent to calling removeSubsystem on
     /// every subsystem.
     void clearSubsystems();
 
-    /// @brief Accesses a subsystem by type.
+    /// Accesses a subsystem by type.
     /// @tparam T Subsystem type.
     /// @return A pointer to the subsystem instance, or nullptr otherwise.
     template <typename T> T* subsystem();
 
-    /// @brief Constructs a new subsystem and adds it to the context.
+    /// Constructs a new subsystem and adds it to the context.
     /// @tparam T Subsystem type.
     /// @tparam Args Argument types.
     /// @param args Arguments to the subsystem constructor.
     template <typename T, typename... Args> void addSubsystem(Args... args);
 
-    /// @brief Removes a subsystem contained within this context, calling the subsystems
+    /// Removes a subsystem contained within this context, calling the subsystems
     /// deconstructor.
     /// @tparam T Subsystem type.
     template <typename T> void removeSubsystem();
@@ -70,20 +70,17 @@ public:
     const Json& config() const;
 
     /// Load the configuration.
-    /// @param configFile Configuration file.
     void loadConfig(const String& configFile);
 
     /// Save the configuration.
-    /// @param configFile Configuration file.
     void saveConfig(const String& configFile);
 
-    /// Get the base path of the application. Deprecated in favour of "engine/base_path" setting.
-    /// @returns The base path
+    /// Get the base path of the application.
+    /// @deprecated in favour of the "engine/base_path" setting.
     DEPRECATED const String& basePath() const;
 
-    /// Get the preferences path of the application. Deprecated in favour of "engine/pref_path"
-    /// setting.
-    /// @returns The pref path
+    /// Get the preferences path of the application.
+    /// @deprecated in favour of the "engine/pref_path" setting.
     DEPRECATED const String& prefPath() const;
 
 private:

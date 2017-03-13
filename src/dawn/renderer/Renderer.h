@@ -15,7 +15,7 @@ public:
     Renderer(Context* context);
     ~Renderer();
 
-    /// @brief Render a single frame.
+    /// Render a single frame.
     void frame();
 
     void processEntity(Entity& entity) override;

@@ -40,7 +40,7 @@ public:
     System(Context* context) : Object{context}, ontology_system_{nullptr} {};
     virtual ~System() = default;
 
-    /// @brief Specifies a product of component types which constrains which entities are
+    /// Specifies a product of component types which constrains which entities are
     ///        received which is processed by this system.
     /// @tparam T List of component types.
     /// @return This system.
@@ -49,7 +49,7 @@ public:
         return *this;
     }
 
-    /// @brief Specifies a list of systems which this system depends on.
+    /// Specifies a list of systems which this system depends on.
     /// @tparam T List of system types.
     /// @return This system.
     template <typename... T> System& executesAfter() {
@@ -57,7 +57,7 @@ public:
         return *this;
     }
 
-    /// @brief Processes a single entity which matches the constraints set up by SupportsComponents.
+    /// Processes a single entity which matches the constraints set up by SupportsComponents.
     /// @param entity Entity to process.
     virtual void processEntity(Entity& entity) = 0;
 

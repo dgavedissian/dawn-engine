@@ -14,16 +14,16 @@ public:
     EntityManager(Context* context);
     virtual ~EntityManager() = default;
 
-    /// @brief Creates a new empty entity.
+    /// Creates a new empty entity.
     /// @return A newly created entity.
     Entity* createEntity();
 
-    /// @brief Looks up an entity by its ID.
+    /// Looks up an entity by its ID.
     /// @param id Entity ID.
     /// @return The entity which corresponds to this entity ID.
     Entity* getEntity(EntityId id);
 
-    /// @brief Removes an entity from the engine.
+    /// Removes an entity from the engine.
     /// @param entity Entity to remove.
     void removeEntity(Entity* entity);
 
