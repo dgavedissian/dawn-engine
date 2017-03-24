@@ -12,7 +12,7 @@ Context::Context(String basePath, String prefPath) : base_path_{basePath}, pref_
 Context::~Context() {
 }
 
-Object* Context::subsystem(StringHash subsystemType) {
+Object* Context::subsystem(StringHash subsystemType) const {
     auto it = subsystems_.find(subsystemType);
     if (it != subsystems_.end()) {
         return (*it).second.get();
@@ -20,8 +20,10 @@ Object* Context::subsystem(StringHash subsystemType) {
     return nullptr;
 }
 
-void Context::addSubsystem(UniquePtr<Object> subsystem) {
+Object* Context::addSubsystem(UniquePtr<Object> subsystem) {
+    Object* subsystem_ptr = subsystem.get();
     subsystems_.emplace(subsystem->type(), std::move(subsystem));
+    return subsystem_ptr;
 }
 
 void Context::removeSubsystem(StringHash subsystemType) {

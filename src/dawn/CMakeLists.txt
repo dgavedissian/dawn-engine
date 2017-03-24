@@ -61,6 +61,8 @@ set(SOURCE_FILES
     physics/PhysicsWorld.h
     platform/Defines.h
     platform/Windows.h
+    renderer/EntityRenderer.cpp
+    renderer/EntityRenderer.h
     renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h
     renderer/ManualMesh.cpp

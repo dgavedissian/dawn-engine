@@ -16,7 +16,7 @@ SceneManager::~SceneManager() {
 void SceneManager::update(float dt) {
 }
 
-Node* SceneManager::GetRootNode() const {
+Node* SceneManager::getRootNode() const {
     return root_node_.get();
 }
 

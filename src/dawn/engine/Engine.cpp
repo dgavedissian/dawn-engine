@@ -44,8 +44,8 @@ void Engine::setup() {
     assert(!initialised_);
 
     // Low-level subsystems
-    context_->addSubsystem<EventSystem>(context_);
-    context_->addSubsystem<FileSystem>(context_);
+    context_->addSubsystem<EventSystem>();
+    context_->addSubsystem<FileSystem>();
 
     // Load configuration
     if (context_->subsystem<FileSystem>()->fileExists(config_file_)) {
@@ -56,7 +56,7 @@ void Engine::setup() {
     }
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
-    context_->addSubsystem<LuaState>(context_);
+    context_->addSubsystem<LuaState>();
     // TODO(David): bind engine services to lua?
 
     // Build window title
@@ -67,15 +67,20 @@ void Engine::setup() {
     gameTitle += " (debug)";
 #endif
 
-    // Create the engine systems
-    context_->addSubsystem<Input>(context_);
-    context_->addSubsystem<Renderer>(context_);
+    // Create the engine subsystems.
+    context_->addSubsystem<Input>();
+    context_->addSubsystem<Renderer>();
     // mUI = new UI(mRenderer, mInput, mLuaState);
     // mAudio = new Audio;
     // mPhysicsWorld = new PhysicsWorld(mRenderer);
     // mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->getSceneMgr());
     // mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
-    context_->addSubsystem<StateManager>(context_);
+    context_->addSubsystem<StateManager>();
+
+    // Set up the ECS architecture.
+    auto& em = *context_->addSubsystem<EntityManager>();
+    auto& sm = *context_->addSubsystem<SystemManager>();
+    sm.addSystem<EntityRenderer>();
 
     // Set input viewport size
     /*
@@ -121,32 +126,32 @@ void Engine::shutdown() {
     initialised_ = false;
 }
 
-void Engine::run(EngineTickCallback tickFunc) {
+void Engine::run(EngineTickCallback tick_func) {
     // TODO(David) stub
-    Camera* mMainCamera = nullptr;
+    Camera* main_camera = nullptr;
 
-    // Start the main loop
+    // Start the main loop.
     const float dt = 1.0f / 60.0f;
-    time::TimePoint previousTime = time::beginTiming();
+    time::TimePoint previous_time = time::beginTiming();
     double accumulator = 0.0;
     while (running_) {
         // mUI->beginFrame();
 
-        // Update game logic
+        // Update game logic.
         while (accumulator >= dt) {
             update(dt);
-            tickFunc(dt);
+            tick_func(dt);
             accumulator -= dt;
         }
 
-        // Render a frame
-        preRender(mMainCamera);
+        // Render a frame.
+        preRender(main_camera);
         context_->subsystem<Renderer>()->frame();
 
-        // Calculate frameTime
-        time::TimePoint currentTime = time::beginTiming();
-        accumulator += time::elapsed(previousTime, currentTime);
-        previousTime = currentTime;
+        // Calculate frameTime.
+        time::TimePoint current_time = time::beginTiming();
+        accumulator += time::elapsed(previous_time, current_time);
+        previous_time = current_time;
     }
 
     // Ensure that all states have been exited so no crashes occur later
@@ -166,6 +171,8 @@ void Engine::update(float dt) {
     context_->subsystem<EventSystem>()->update(0.02f);
     context_->subsystem<StateManager>()->update(dt);
     context_->subsystem<SceneManager>()->update(dt);
+
+    context_->subsystem<SystemManager>()->update();
 }
 
 void Engine::preRender(Camera* camera) {

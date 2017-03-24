@@ -32,11 +32,11 @@ public:
     /// Accesses a subsystem by type hash. Requires a downcast.
     /// @param subsystemType Subsystem type hash.
     /// @return A pointer to the subsystem instance, or nullptr otherwise.
-    Object* subsystem(StringHash subsystemType);
+    Object* subsystem(StringHash subsystemType) const;
 
     /// Adds a subsystem to this context.
     /// @param subsystem Subsystem instance.
-    void addSubsystem(UniquePtr<Object> subsystem);
+    Object* addSubsystem(UniquePtr<Object> subsystem);
 
     /// Removes a subsystem contained within the context, calling the subsystems
     /// deconstructor.
@@ -50,13 +50,13 @@ public:
     /// Accesses a subsystem by type.
     /// @tparam T Subsystem type.
     /// @return A pointer to the subsystem instance, or nullptr otherwise.
-    template <typename T> T* subsystem();
+    template <typename T> T* subsystem() const;
 
     /// Constructs a new subsystem and adds it to the context.
     /// @tparam T Subsystem type.
     /// @tparam Args Argument types.
     /// @param args Arguments to the subsystem constructor.
-    template <typename T, typename... Args> void addSubsystem(Args... args);
+    template <typename T, typename... Args> T* addSubsystem(Args... args);
 
     /// Removes a subsystem contained within this context, calling the subsystems
     /// deconstructor.
@@ -99,12 +99,12 @@ private:
     friend class SystemManager;
 };
 
-template <typename T> T* Context::subsystem() {
+template <typename T> T* Context::subsystem() const {
     return static_cast<T*>(subsystem(T::typeStatic()));
 }
 
-template <typename T, typename... Args> void Context::addSubsystem(Args... args) {
-    addSubsystem(makeUnique<T>(std::forward<Args>(args)...));
+template <typename T, typename... Args> T* Context::addSubsystem(Args... args) {
+    return static_cast<T*>(addSubsystem(makeUnique<T>(this, std::forward<Args>(args)...)));
 }
 
 template <typename T> void Context::removeSubsystem() {

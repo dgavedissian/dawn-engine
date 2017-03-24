@@ -20,25 +20,34 @@ public:
     /// @tparam T Entity system type.
     /// @tparam Args List of constructor argument types.
     /// @param args Constructor arguments.
-    template <typename T, typename... Args> T* addSystem(Args... args) {
-        return &system_manager_.addSystem<OntologySystemAdapter<T>>(
-            std::move(makeUnique<T>(std::forward(args)...)));
-    }
+    template <typename T, typename... Args> T* addSystem(Args... args);
 
     /// Looks up an entity system in the context.
     /// @tparam T Entity system type.
     /// @return Instance of the entity system type.
-    template <typename T> T* getSystem() {
-        return system_manager_.getSystem<OntologySystemAdapter<T>>().system();
-    }
+    template <typename T> T* getSystem();
 
     /// Removes the entity system from the context.
     /// @tparam T Entity system type.
-    template <typename T> void removeSystem() {
-        system_manager_.removeSystem<OntologySystemAdapter<T>>();
-    }
+    template <typename T> void removeSystem();
+
+    /// Update the world.
+    void update();
 
 private:
     Ontology::SystemManager& system_manager_;
 };
+
+template <typename T, typename... Args> T* SystemManager::addSystem(Args... args) {
+    return &system_manager_.addSystem<OntologySystemAdapter<T>>(
+        std::move(makeUnique<T>(std::forward(args)...)));
+}
+
+template <typename T> T* SystemManager::getSystem() {
+    return system_manager_.getSystem<OntologySystemAdapter<T>>().system();
+}
+
+template <typename T> void SystemManager::removeSystem() {
+    system_manager_.removeSystem<OntologySystemAdapter<T>>();
+}
 }

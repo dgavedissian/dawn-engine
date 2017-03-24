@@ -20,7 +20,7 @@ public:
     /// @param dt Time elapsed
     void update(float dt);
 
-    Node* GetRootNode() const;
+    Node* getRootNode() const;
 
     /// Calls PreRender on each entity
     void preRender(Camera* camera);
