@@ -29,3 +29,4 @@ void Renderer::frame() {
     render_tasks_.clear();
     bgfx::frame();
 }
+}

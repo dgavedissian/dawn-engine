@@ -13,7 +13,9 @@
 */
 #include "Common.h"
 #include "core/Log.h"
+#if DW_PLATFORM == DW_WIN32
 #include "platform/Windows.h"
+#endif
 
 namespace dw {
 class PlatformLogMessageHandler : public LogMessageHandler {

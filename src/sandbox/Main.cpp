@@ -15,6 +15,8 @@
 using namespace dw;
 
 struct PositionData : public Component {
+    PositionData(float x, float y, float z) : x{x}, y{y}, z{z} {
+    }
     float x;
     float y;
     float z;
@@ -23,10 +25,10 @@ struct PositionData : public Component {
 class Test : public System {
 public:
     Test(Context* context) : System{context} {
-        SupportsComponents<PositionData>();
+        supportsComponents<PositionData>();
     }
-    void ProcessEntity(Entity* e) override {
-        auto pos = *e->component<PositionData>();
+    void processEntity(Entity& e) override {
+        auto pos = *e.component<PositionData>();
         pos.x = 3;
         pos.y = 5;
         pos.z += 1;

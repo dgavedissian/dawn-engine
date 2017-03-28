@@ -28,7 +28,7 @@ public:
 
         // Get the file which contains this resource data
         SharedPtr<File> file = getFile(filename);
-        SharedPtr<T> resource = makeShared<T>(getContext());
+        SharedPtr<T> resource = makeShared<T>(context());
         mResourceCache.insert(makePair(name, resource));
         resource->load(*file.get());
         return resource;

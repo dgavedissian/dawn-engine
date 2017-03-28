@@ -39,8 +39,8 @@ private:
 };
 
 template <typename T, typename... Args> T* SystemManager::addSystem(Args... args) {
-    return &system_manager_.addSystem<OntologySystemAdapter<T>>(
-        std::move(makeUnique<T>(std::forward(args)...)));
+    auto system = makeUnique<T>(context(), std::forward(args)...);
+    return system_manager_.addSystem<OntologySystemAdapter<T>>(std::move(system)).system();
 }
 
 template <typename T> T* SystemManager::getSystem() {

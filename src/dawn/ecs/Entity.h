@@ -61,6 +61,7 @@ template <typename T> bool Entity::hasComponent() const {
 }
 
 template <typename T, typename... Args> Entity& Entity::addComponent(Args... args) {
-    return internal_entity_.addComponent<T, Args>(std::forward(args)...);
+    internal_entity_.addComponent<T, Args...>(std::forward<Args>(args)...);
+    return *this;
 }
 }

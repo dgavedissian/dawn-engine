@@ -11,7 +11,7 @@
 namespace dw {
 EntityRenderer::EntityRenderer(Context* context) : System{context} {
     supportsComponents<Renderable, Transform, Parent>();
-    render_tasks_by_camera_.emplace("main_camera", {});
+    render_tasks_by_camera_.emplace(makePair<String, Vector<RenderTask>>("main_camera", {}));
 }
 
 void EntityRenderer::processEntity(Entity& entity) {
@@ -31,11 +31,11 @@ void EntityRenderer::processEntity(Entity& entity) {
 
 void EntityRenderer::dispatchRenderTasks() {
     auto& renderer = *subsystem<Renderer>();
-	for (auto render_tasks_list : render_tasks_by_camera_) {
+    for (auto render_tasks_list : render_tasks_by_camera_) {
         for (auto render_task : render_tasks_list.second) {
             renderer.pushRenderTask(std::move(render_task));
         }
         render_tasks_list.second.clear();
-	}
+    }
 }
 }

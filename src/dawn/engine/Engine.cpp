@@ -27,7 +27,7 @@ Engine::Engine(const String& game, const String& version)
     context_ = new Context(basePath, prefPath);
 
     // Initialise logging
-    context_->addSubsystem<Logger>(context_);
+    context_->addSubsystem<Logger>();
     // TODO(david): Add a file logger to prefPath + log_file_
     log().info("Starting %s %s", game_name_, game_version_);
 #ifdef DW_DEBUG

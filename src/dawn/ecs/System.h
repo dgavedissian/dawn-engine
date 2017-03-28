@@ -10,7 +10,8 @@
 namespace dw {
 template <typename T> class OntologySystemAdapter : public Ontology::System {
 public:
-    OntologySystemAdapter(UniquePtr<T> wrapped_system) : wrapped_system_{wrapped_system} {
+    OntologySystemAdapter(UniquePtr<T>&& wrapped_system)
+        : wrapped_system_{std::move(wrapped_system)} {
         wrapped_system_->internalSetOntologyAdapter(this);
     }
 
@@ -18,7 +19,7 @@ public:
     }
 
     void processEntity(Ontology::Entity& entity) override {
-        Entity wrapped_entity{wrapped_system_.context(), entity};
+        Entity wrapped_entity{wrapped_system_->context(), entity};
         wrapped_system_->processEntity(wrapped_entity);
     }
 

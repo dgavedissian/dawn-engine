@@ -19,7 +19,7 @@ namespace Ontology {
 template <class T, class... Args>
 inline T& SystemManager::addSystem(Args&&... args)
 {
-    return this->addPolymorphicSystem<T, T>(args...);
+    return this->addPolymorphicSystem<T, T>(std::forward<Args>(args)...);
 }
 
 // ----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ Derived& SystemManager::addPolymorphicSystem(Args&&... args)
         std::string("System of type \"") + getTypeName<Base>() + "\" already registered with this manager"
     )
     
-    Derived* system = new Derived(args...);
+    Derived* system = new Derived(std::forward<Args>(args)...);
     m_SystemList.emplace_back(
         &typeid(Base),
         std::unique_ptr<Base>(system)
