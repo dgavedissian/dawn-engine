@@ -9,7 +9,7 @@
 #include "renderer/RenderTask.h"
 
 namespace dw {
-class DW_API Renderable : public Object, public Component {
+class DW_API Renderable : public Object {
 public:
     DW_OBJECT(Renderable);
 
@@ -31,4 +31,9 @@ public:
 protected:
     SharedPtr<Material> material_;
 };
+
+    struct RenderableComponent : public Component {
+        RenderableComponent(Renderable* renderable) : renderable{renderable} {}
+        Renderable* renderable;
+    };
 }

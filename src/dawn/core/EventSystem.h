@@ -4,17 +4,15 @@
  */
 #pragma once
 
-#include "core/Singleton.h"
-
 // Macros to make adding/removing event Listeners more sane
 #define ADD_LISTENER(LISTENER, EVENT)                                                             \
-    dw::EventSystem::inst().addListener(fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), \
+    context_->subsystem<EventSystem>()->addListener(fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), \
                                         EVENT::eventType);
 #define REMOVE_LISTENER(LISTENER, EVENT)    \
-    dw::EventSystem::inst().removeListener( \
+    context_->subsystem<EventSystem>()->removeListener( \
         fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), EVENT::eventType);
 #define REMOVE_ALL_LISTENERS(LISTENER)          \
-    dw::EventSystem::inst().removeAllListeners( \
+    context().subsystem<EventSystem>()->removeAllListeners( \
         fastdelegate::MakeDelegate(this, &LISTENER::handleEvent))
 
 namespace dw {
@@ -51,7 +49,7 @@ template <class T> SharedPtr<T> castEvent(const EventDataPtr eventData) {
     return staticPointerCast<T>(eventData);
 }
 
-class DW_API EventSystem : public Singleton<EventSystem>, public Object {
+class DW_API EventSystem : public Object {
 public:
     DW_OBJECT(EventSystem);
 

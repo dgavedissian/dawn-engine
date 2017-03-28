@@ -15,9 +15,9 @@ public:
     Node(Context* context);
     ~Node();
 
-    void SetRenderable(SharedPtr<Renderable> renderable);
+    void setRenderable(SharedPtr <Renderable> renderable);
 
-    Renderable* GetRenderable() const;
+    Renderable* renderable() const;
 
 private:
     SharedPtr<Renderable> renderable_;

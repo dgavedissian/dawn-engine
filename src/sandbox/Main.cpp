@@ -11,9 +11,11 @@
 #include "resource/ResourceCache.h"
 #include "scene/Node.h"
 #include "scene/Parent.h"
+#include "scene/Transform.h"
 
 using namespace dw;
 
+/*
 struct PositionData : public Component {
     PositionData(float x, float y, float z) : x{x}, y{y}, z{z} {
     }
@@ -34,10 +36,13 @@ public:
         pos.z += 1;
     }
 };
+ */
 
 class Sandbox : public App {
 public:
     DW_OBJECT(Sandbox);
+
+    UniquePtr<Node> node;
 
     void init(int argc, char** argv) override {
         subsystem<FileSystem>()->setWorkingDir("media");
@@ -48,18 +53,21 @@ public:
         auto rc = subsystem<ResourceCache>();
 
         // Create a node.
-        SharedPtr<Node> node = makeShared<Node>(context());
+        node = makeUnique<Node>(context());
         SharedPtr<Material> material =
             makeShared<Material>(context(), rc->get<ShaderProgram>("sandbox/sphere.vs"),
                                  rc->get<ShaderProgram>("sandbox/sphere.fs"));
-        node->SetRenderable(
-            MeshBuilder(context()).withNormals(false).withTexcoords(false).createSphere(10.0f));
-        node->GetRenderable()->setMaterial(material);
+        node->setRenderable(
+                MeshBuilder(context()).withNormals(false).withTexcoords(false).createSphere(10.0f));
+        node->renderable()->setMaterial(material);
 
         auto sm = subsystem<SystemManager>();
         auto em = subsystem<EntityManager>();
-        sm->addSystem<Test>();
-        em->createEntity()->addComponent<PositionData>(0.0f, 0.0f, 0.0f).addComponent<Parent>(1);
+        //sm->addSystem<Test>();
+        //em->createEntity()->addComponent<PositionData>(0.0f, 0.0f, 0.0f).addComponent<Parent>(1);
+        em->createEntity()
+                ->addComponent<RenderableComponent>(node->renderable())
+                .addComponent<Transform>(Position(), Quat::identity);
     }
 
     void update(float dt) override {

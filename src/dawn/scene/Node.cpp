@@ -13,11 +13,11 @@ Node::Node(Context* context) : Object(context) {
 Node::~Node() {
 }
 
-void Node::SetRenderable(SharedPtr<Renderable> geometry) {
+void Node::setRenderable(SharedPtr<Renderable> geometry) {
     renderable_ = geometry;
 }
 
-Renderable* Node::GetRenderable() const {
+Renderable* Node::renderable() const {
     return renderable_.get();
 }
 }

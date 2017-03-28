@@ -78,12 +78,12 @@ function(add_game GAME_NAME)
     if(APPLE)
         set(BUNDLE_DIR ${CMAKE_SOURCE_DIR}/bin/${GAME_NAME}.app)
         set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)
-        add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-            COMMAND mkdir -p ${FRAMEWORKS_DIR}
-            COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR}/Dawn.framework)
+        #add_custom_command(TARGET ${GAME_NAME} POST_BUILD
+        #    COMMAND mkdir -p ${FRAMEWORKS_DIR}
+        #    COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR}/Dawn.framework)
     else()
-        add_custom_command(TARGET ${GAME_NAME} POST_BUILD COMMAND
-            ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Dawn> $<TARGET_FILE_DIR:${GAME_NAME}>)
+        #add_custom_command(TARGET ${GAME_NAME} POST_BUILD COMMAND
+        #    ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Dawn> $<TARGET_FILE_DIR:${GAME_NAME}>)
     endif()
 endfunction()
 

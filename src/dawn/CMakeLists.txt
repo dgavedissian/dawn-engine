@@ -13,7 +13,6 @@ set(SOURCE_FILES
     core/Object.cpp
     core/Object.h
     core/Option.h
-    core/Singleton.h
     core/StateManager.cpp
     core/StateManager.h
     core/StringUtils.cpp

@@ -6,10 +6,19 @@
 #include "math/Defs.h"
 
 namespace dw {
+enum class RenderTaskType { SetCameraMatrices, Primitive };
+
 struct RenderTask {
-    Mat4 model_matrix;
-    bgfx::VertexBufferHandle vb;
-    bgfx::IndexBufferHandle ib;
-    bgfx::ProgramHandle shader;
+    RenderTaskType type;
+        struct {
+            Mat4 view_matrix;
+            Mat4 proj_matrix;
+        } camera;
+        struct {
+            Mat4 model_matrix;
+            bgfx::VertexBufferHandle vb;
+            bgfx::IndexBufferHandle ib;
+            bgfx::ProgramHandle shader;
+        } primitive;
 };
 }

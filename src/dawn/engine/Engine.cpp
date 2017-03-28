@@ -146,6 +146,7 @@ void Engine::run(EngineTickCallback tick_func) {
 
         // Render a frame.
         preRender(main_camera);
+        context_->subsystem<SystemManager>()->subsystem<EntityRenderer>()->dispatchRenderTasks();
         context_->subsystem<Renderer>()->frame();
 
         // Calculate frameTime.

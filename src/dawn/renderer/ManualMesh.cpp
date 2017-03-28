@@ -15,9 +15,10 @@ ManualMesh::~ManualMesh() {
 }
 
 RenderTask ManualMesh::draw(const Mat4& modelMatrix) {
-    return RenderTask{
-        modelMatrix, vertex_buffer_->internalHandle(), index_buffer_->internalHandle(),
-        material_->internalHandle(),
-    };
+    RenderTask task;
+    task.type = RenderTaskType::Primitive;
+    task.primitive = {modelMatrix, vertex_buffer_->internalHandle(),
+                      index_buffer_->internalHandle(), material_->internalHandle()};
+    return task;
 }
 }
