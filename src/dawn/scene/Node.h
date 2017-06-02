@@ -15,11 +15,11 @@ public:
     Node(Context* context);
     ~Node();
 
-    void setRenderable(SharedPtr <Renderable> renderable);
+    void setRenderable(SharedPtr<Renderable> renderable);
 
     Renderable* renderable() const;
 
 private:
     SharedPtr<Renderable> renderable_;
 };
-}
+}  // namespace dw

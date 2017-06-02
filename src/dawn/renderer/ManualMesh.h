@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #pragma once
 
 #include "renderer/Renderable.h"
@@ -23,4 +23,4 @@ private:
     SharedPtr<VertexBuffer> vertex_buffer_;
     SharedPtr<IndexBuffer> index_buffer_;
 };
-}
+}  // namespace dw

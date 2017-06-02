@@ -64,4 +64,4 @@ protected:
     virtual ~DeferredLightCompositionPass() {
     }
 };
-}
+}  // namespace dw

@@ -52,5 +52,5 @@ private:
     // Grant RigidEntity access to AddToWorld/RemoveFromWorld
     friend class RigidEntity;
 };
-}
+}  // namespace dw
 // TODO physics events

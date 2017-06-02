@@ -61,4 +61,4 @@ protected:
 
     Position mPosition;
 };
-}
+}  // namespace dw

@@ -26,4 +26,4 @@ public:
 protected:
     bool mLoaded;
 };
-}
+}  // namespace dw

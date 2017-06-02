@@ -49,5 +49,5 @@ template <> inline void write<String>(OutputStream& stream, const String& str) {
     char nullByte = '\0';
     stream.write(&nullByte, sizeof(char));
 }
-}
-}
+}  // namespace stream
+}  // namespace dw

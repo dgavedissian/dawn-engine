@@ -68,4 +68,4 @@ int runApp(UniquePtr<App> app, int argc, char** argv) {
     // mainThread.join()
     return returnCode;
 }
-}
+}  // namespace dw

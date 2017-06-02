@@ -277,4 +277,4 @@ void DeferredShadingManager::SetActive(bool active) {
         SetDebugMode(mDebug);
     }
 }
-}
+}  // namespace dw

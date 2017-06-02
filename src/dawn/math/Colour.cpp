@@ -9,4 +9,4 @@ namespace dw {
 
 Colour::Colour(float r, float g, float b, float a) : mComponents(r, g, b, a) {
 }
-}
+}  // namespace dw

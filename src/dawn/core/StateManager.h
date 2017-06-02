@@ -90,4 +90,4 @@ private:
     Map<StateId, SharedPtr<State>> state_map_;
     Vector<SharedPtr<State>> state_stack_;
 };
-}
+}  // namespace dw

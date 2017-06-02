@@ -27,7 +27,8 @@ void Renderer::frame() {
             auto& task_data = task.camera;
             task_data.view_matrix.Transpose();
             task_data.proj_matrix.Transpose();
-            bgfx::setViewTransform(0, &task_data.view_matrix.v[0][0], &task_data.proj_matrix.v[0][0]);
+            bgfx::setViewTransform(0, &task_data.view_matrix.v[0][0],
+                                   &task_data.proj_matrix.v[0][0]);
         }
         // Render.
         if (task.type == RenderTaskType::Primitive) {
@@ -42,4 +43,4 @@ void Renderer::frame() {
     render_tasks_.clear();
     bgfx::frame();
 }
-}
+}  // namespace dw

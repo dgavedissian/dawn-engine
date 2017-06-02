@@ -30,4 +30,4 @@ private:
     typedef Map<Ogre::CompositorInstance*, Ogre::CompositorInstance::Listener*> ListenerMap;
     ListenerMap mListeners;
 };
-}
+}  // namespace dw

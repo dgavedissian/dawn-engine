@@ -109,4 +109,4 @@ String File::fileModeMapper(int mode) {
     assert(false && "Invalid file mode specified");
     return "rb";
 }
-}
+}  // namespace dw

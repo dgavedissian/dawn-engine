@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #pragma once
 
 #include <ontology/SystemManager.hpp>
@@ -50,4 +50,4 @@ template <typename T> T* SystemManager::getSystem() {
 template <typename T> void SystemManager::removeSystem() {
     system_manager_.removeSystem<OntologySystemAdapter<T>>();
 }
-}
+}  // namespace dw

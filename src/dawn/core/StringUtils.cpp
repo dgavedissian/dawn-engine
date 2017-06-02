@@ -86,7 +86,7 @@ String replace(String subject, const String& search, const String& replace) {
     }
     return subject;
 }
-}
+}  // namespace str
 
 std::default_random_engine engine;
 
@@ -125,4 +125,4 @@ Vec4 randomVec4(const Vec4& min /*= Vec4(-1.0f)*/, const Vec4& max /*= Vec4(1.0f
 }
 
 namespace time {}
-}
+}  // namespace dw

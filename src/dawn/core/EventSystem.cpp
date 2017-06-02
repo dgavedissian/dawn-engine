@@ -190,4 +190,4 @@ bool EventSystem::update(double maxDuration) {
 
     return queueFlushed;
 }
-}
+}  // namespace dw

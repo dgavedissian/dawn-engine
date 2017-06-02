@@ -87,4 +87,4 @@ bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera* 
 
 void PhysicsWorld::bulletTickCallback(btDynamicsWorld* /*world*/, btScalar /*timestep*/) {
 }
-}
+}  // namespace dw

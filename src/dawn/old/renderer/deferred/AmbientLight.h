@@ -34,4 +34,4 @@ protected:
     Ogre::Real mRadius;
     Ogre::MaterialPtr mMaterialPtr;
 };
-}
+}  // namespace dw

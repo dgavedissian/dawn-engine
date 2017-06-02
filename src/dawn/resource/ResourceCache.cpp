@@ -29,4 +29,4 @@ SharedPtr<File> ResourceCache::getFile(const Path& filename) {
 
     return SharedPtr<File>();
 }
-}
+}  // namespace dw

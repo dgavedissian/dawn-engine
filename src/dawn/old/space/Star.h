@@ -49,4 +49,4 @@ private:
     // Light
     Ogre::Light* mLight;
 };
-}
+}  // namespace dw

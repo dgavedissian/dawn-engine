@@ -128,4 +128,4 @@ public:
     String id;
     Parameters parameters;
 };
-}
+}  // namespace dw

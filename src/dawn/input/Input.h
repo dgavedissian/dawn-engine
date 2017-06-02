@@ -289,4 +289,4 @@ public:
 
     Vec2i motion;
 };
-}
+}  // namespace dw

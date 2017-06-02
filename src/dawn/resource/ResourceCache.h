@@ -40,4 +40,4 @@ private:
     Vector<Path> mResourcePaths;
     HashMap<String, SharedPtr<Resource>> mResourceCache;
 };
-}
+}  // namespace dw

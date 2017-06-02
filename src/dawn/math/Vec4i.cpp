@@ -79,4 +79,4 @@ Vec4i Vec4i::operator*(int scalar) const {
 Vec4i Vec4i::operator/(int scalar) const {
     return Vec4i(x / scalar, y / scalar, z / scalar, w / scalar);
 }
-}
+}  // namespace dw

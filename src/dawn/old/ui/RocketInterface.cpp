@@ -433,4 +433,4 @@ void RocketInterface::setupKeymap() {
     mKeyMap[SDLK_LGUI] = KI_LMETA;
     mKeyMap[SDLK_RGUI] = KI_RMETA;
 }
-}
+}  // namespace dw

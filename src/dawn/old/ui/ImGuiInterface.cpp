@@ -234,4 +234,4 @@ void ImGuiInterface::renderDrawLists(ImDrawData* drawData) {
 void ImGuiInterface::renderDrawListsCallback(ImDrawData* drawData) {
     gCurrentImGuiInterface->renderDrawLists(drawData);
 }
-}
+}  // namespace dw

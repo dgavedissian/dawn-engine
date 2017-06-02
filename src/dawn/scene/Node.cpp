@@ -20,4 +20,4 @@ void Node::setRenderable(SharedPtr<Renderable> geometry) {
 Renderable* Node::renderable() const {
     return renderable_.get();
 }
-}
+}  // namespace dw

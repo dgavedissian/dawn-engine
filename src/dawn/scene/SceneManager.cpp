@@ -22,4 +22,4 @@ Node* SceneManager::getRootNode() const {
 
 void SceneManager::preRender(Camera* camera) {
 }
-}
+}  // namespace dw

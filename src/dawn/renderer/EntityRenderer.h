@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #pragma once
 
 #include "renderer/Renderer.h"
@@ -22,4 +22,4 @@ public:
 private:
     HashMap<String, Vector<RenderTask>> render_tasks_by_camera_;
 };
-}
+}  // namespace dw

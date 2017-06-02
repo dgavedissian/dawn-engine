@@ -24,4 +24,4 @@ private:
     u32 src_len_;
     bgfx::ShaderHandle handle_;
 };
-}
+}  // namespace dw

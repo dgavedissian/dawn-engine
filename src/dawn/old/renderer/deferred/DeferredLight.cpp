@@ -255,4 +255,4 @@ void DeferredLight::updateFromCamera(Ogre::Camera* camera) {
             params->setNamedConstant("shadowFarClip", shadowCam.getFarClipDistance());
     }
 }
-}
+}  // namespace dw

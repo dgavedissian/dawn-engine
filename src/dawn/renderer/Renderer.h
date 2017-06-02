@@ -24,4 +24,4 @@ private:
     u16 width_, height_;
     Vector<RenderTask> render_tasks_;
 };
-}
+}  // namespace dw

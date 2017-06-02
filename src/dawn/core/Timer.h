@@ -40,5 +40,5 @@ DW_API SystemTimePoint now();
 
 // Format a timepoint as a string
 DW_API String format(SystemTimePoint time, const String& format);
-}
-}
+}  // namespace time
+}  // namespace dw

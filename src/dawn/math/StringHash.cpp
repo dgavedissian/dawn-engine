@@ -71,4 +71,4 @@ uint32_t StringHash::calculate(const char* str) {
     }
     return hash;
 }
-}
+}  // namespace dw

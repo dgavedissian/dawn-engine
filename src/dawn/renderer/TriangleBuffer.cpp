@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #include "Common.h"
 #include "renderer/VertexBuffer.h"
 #include "renderer/IndexBuffer.h"
@@ -53,4 +53,4 @@ void TriangleBuffer::triangle(uint v0, uint v1, uint v2) {
     mIndices.emplace_back(v1);
     mIndices.emplace_back(v2);
 }
-}
+}  // namespace dw

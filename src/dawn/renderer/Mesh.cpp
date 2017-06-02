@@ -20,4 +20,4 @@ bool Mesh::beginLoad(InputStream&) {
 
 void Mesh::endLoad() {
 }
-}
+}  // namespace dw

@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #include "Common.h"
 #include "engine/App.h"
 #include "core/Timer.h"
@@ -185,4 +185,4 @@ void Engine::handleEvent(EventDataPtr eventData) {
     assert(eventIs<EvtData_Exit>(eventData));
     running_ = false;
 }
-}
+}  // namespace dw

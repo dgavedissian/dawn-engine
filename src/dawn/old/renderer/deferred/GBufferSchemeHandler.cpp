@@ -187,4 +187,4 @@ void GBufferSchemeHandler::FillPass(Ogre::Pass* gBufferPass, Ogre::Pass* origina
     gBufferPass->setCullingMode(originalPass->getCullingMode());
     gBufferPass->setLightingEnabled(false);
 }
-}
+}  // namespace dw

@@ -98,4 +98,4 @@ void SystemBody::calculatePosition(double time) {
     for (auto i = mSatellites.begin(); i != mSatellites.end(); ++i)
         (*i)->calculatePosition(time);
 }
-}
+}  // namespace dw

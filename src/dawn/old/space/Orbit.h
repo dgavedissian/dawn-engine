@@ -38,4 +38,4 @@ private:
 
 // Hyperbolic
 // e > 1
-}
+}  // namespace dw

@@ -61,4 +61,4 @@ bool FileSystem::fileExists(const Path& path) const {
 
     return true;
 }
-}
+}  // namespace dw

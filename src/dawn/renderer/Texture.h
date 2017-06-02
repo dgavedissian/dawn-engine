@@ -22,4 +22,4 @@ public:
 private:
     bgfx::TextureHandle handle_;
 };
-}
+}  // namespace dw

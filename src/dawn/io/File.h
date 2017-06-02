@@ -45,4 +45,4 @@ private:
 
     String fileModeMapper(int mode);
 };
-}
+}  // namespace dw

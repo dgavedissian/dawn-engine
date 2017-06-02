@@ -28,4 +28,4 @@ public:
 private:
     SharedPtr<Node> root_node_;
 };
-}
+}  // namespace dw

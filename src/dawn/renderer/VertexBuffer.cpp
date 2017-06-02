@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #include "Common.h"
 #include "renderer/VertexBuffer.h"
 
@@ -15,4 +15,4 @@ VertexBuffer::~VertexBuffer() {
 bgfx::VertexBufferHandle VertexBuffer::internalHandle() const {
     return handle_;
 }
-}
+}  // namespace dw

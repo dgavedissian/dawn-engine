@@ -149,4 +149,4 @@ void LightMaterialGenerator::SetupBaseParameters(
             params->setNamedAutoConstant(AUTO_PARAMS[i].name, AUTO_PARAMS[i].type);
     }
 }
-}
+}  // namespace dw

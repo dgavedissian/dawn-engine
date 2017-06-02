@@ -35,4 +35,4 @@ private:
     String GetPPDefines(Perm permutation);
     void SetupBaseParameters(const Ogre::GpuProgramParametersSharedPtr& params);
 };
-}
+}  // namespace dw

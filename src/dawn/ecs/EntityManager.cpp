@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #include "Common.h"
 #include "ecs/EntityManager.h"
 
@@ -28,4 +28,4 @@ Entity* EntityManager::getEntity(EntityId id) {
 void EntityManager::removeEntity(Entity* entity) {
     entity_lookup_table_.erase(entity->id());
 }
-}
+}  // namespace dw

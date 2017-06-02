@@ -20,4 +20,4 @@ public:
     /// Merge a rect into this one
     Rect& merge(const Rect& other);
 };
-}
+}  // namespace dw

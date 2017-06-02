@@ -9,4 +9,4 @@ namespace dw {
 
 OutputStream::~OutputStream() {
 }
-}
+}  // namespace dw

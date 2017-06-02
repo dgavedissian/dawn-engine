@@ -30,5 +30,5 @@ String format(SystemTimePoint time, const String& format) {
     out << std::put_time(std::gmtime(&tt), format.c_str());
     return out.str();
 }
-}
-}
+}  // namespace time
+}  // namespace dw

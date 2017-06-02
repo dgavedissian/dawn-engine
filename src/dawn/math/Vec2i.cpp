@@ -65,4 +65,4 @@ Vec2i Vec2i::operator*(int scalar) const {
 Vec2i Vec2i::operator/(int scalar) const {
     return Vec2i(x / scalar, y / scalar);
 }
-}
+}  // namespace dw

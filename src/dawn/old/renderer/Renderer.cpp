@@ -614,4 +614,4 @@ void Renderer::rayToTriangleCheck(Ogre::Vector3& corner1, Ogre::Vector3& corner2
         normal = v2.crossProduct(v1).normalisedCopy();
     }
 }
-}
+}  // namespace dw

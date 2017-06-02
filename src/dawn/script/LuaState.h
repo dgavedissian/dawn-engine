@@ -16,4 +16,4 @@ public:
 
 private:
 };
-}
+}  // namespace dw

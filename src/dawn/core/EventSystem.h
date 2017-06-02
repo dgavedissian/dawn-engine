@@ -5,13 +5,13 @@
 #pragma once
 
 // Macros to make adding/removing event Listeners more sane
-#define ADD_LISTENER(LISTENER, EVENT)                                                             \
-    context_->subsystem<EventSystem>()->addListener(fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), \
-                                        EVENT::eventType);
-#define REMOVE_LISTENER(LISTENER, EVENT)    \
+#define ADD_LISTENER(LISTENER, EVENT)                \
+    context_->subsystem<EventSystem>()->addListener( \
+        fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), EVENT::eventType);
+#define REMOVE_LISTENER(LISTENER, EVENT)                \
     context_->subsystem<EventSystem>()->removeListener( \
         fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), EVENT::eventType);
-#define REMOVE_ALL_LISTENERS(LISTENER)          \
+#define REMOVE_ALL_LISTENERS(LISTENER)                      \
     context().subsystem<EventSystem>()->removeAllListeners( \
         fastdelegate::MakeDelegate(this, &LISTENER::handleEvent))
 
@@ -161,4 +161,4 @@ public:
     String sender;
     String message;
 };
-}
+}  // namespace dw

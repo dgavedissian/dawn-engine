@@ -122,4 +122,4 @@ void DeferredLightRenderOperation::execute(Ogre::SceneManager* sm, Ogre::RenderS
         injectTechnique(sm, tech, dLight, &ll);
     }
 }
-}
+}  // namespace dw

@@ -18,4 +18,4 @@ public:
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
 };
-}
+}  // namespace dw

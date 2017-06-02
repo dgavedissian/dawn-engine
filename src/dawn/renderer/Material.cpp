@@ -69,4 +69,4 @@ Option<bgfx::UniformHandle> Material::uniformHandle(const String& name,
     uniform_handle_table_.emplace(name, makePair(handle, type));
     return Option<bgfx::UniformHandle>(handle);
 }
-}
+}  // namespace dw

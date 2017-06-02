@@ -85,4 +85,4 @@ private:
     // Camera velocity
     Position mLastCameraPosition;
 };
-}
+}  // namespace dw

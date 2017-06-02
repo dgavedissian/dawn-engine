@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #include "Common.h"
 #include "renderer/EntityRenderer.h"
 #include "renderer/Renderable.h"
@@ -26,7 +26,8 @@ void EntityRenderer::processEntity(Entity& entity) {
     model = model * DeriveWorldTransform(parent.entity);
     }
     */
-    render_tasks_by_camera_["main_camera"].emplace_back(renderable->renderable->draw(Mat4::identity));
+    render_tasks_by_camera_["main_camera"].emplace_back(
+        renderable->renderable->draw(Mat4::identity));
 }
 
 void EntityRenderer::dispatchRenderTasks() {
@@ -35,10 +36,8 @@ void EntityRenderer::dispatchRenderTasks() {
         // Setup camera matrices.
         RenderTask setup_camera;
         setup_camera.type = RenderTaskType::SetCameraMatrices;
-        setup_camera.camera = {
-                math::TranslateOp(0.0f, 0.0f, -20.0f).ToFloat4x4().Inverted(),
-                Mat4::OpenGLPerspProjLH(0.1f, 1000.0f, 60.0f, 60.0f)
-        };
+        setup_camera.camera = {math::TranslateOp(0.0f, 0.0f, -20.0f).ToFloat4x4().Inverted(),
+                               Mat4::OpenGLPerspProjLH(0.1f, 1000.0f, 60.0f, 60.0f)};
         renderer.pushRenderTask(std::move(setup_camera));
 
         // Push render tasks for this camera.
@@ -48,4 +47,4 @@ void EntityRenderer::dispatchRenderTasks() {
         render_tasks_list.second.clear();
     }
 }
-}
+}  // namespace dw

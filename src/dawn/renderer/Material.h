@@ -75,4 +75,4 @@ template <> inline void Material::setUniform<Vec4>(const String& name, const Vec
         bgfx::setUniform(handle.get(), &value);
     }
 }
-}
+}  // namespace dw

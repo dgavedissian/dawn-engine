@@ -77,4 +77,4 @@ template <typename... Args> void Logger::warn(const String& format, const Args&.
 template <typename... Args> void Logger::error(const String& format, const Args&... args) {
     log(LogLevel::Error, format, args...);
 }
-}
+}  // namespace dw

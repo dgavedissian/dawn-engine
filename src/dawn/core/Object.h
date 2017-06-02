@@ -72,4 +72,4 @@ protected:
 template <class T> T* Object::subsystem() const {
     return context_->subsystem<T>();
 }
-}
+}  // namespace dw

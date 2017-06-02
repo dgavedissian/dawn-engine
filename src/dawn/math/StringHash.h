@@ -32,7 +32,7 @@ public:
 private:
     HashType value_;
 };
-}
+}  // namespace dw
 
 // Specialisation of std::hash used for HashMap<K, V>.
 namespace std {
@@ -43,4 +43,4 @@ template <> struct hash<dw::StringHash> {
         return s.value();
     }
 };
-}
+}  // namespace std

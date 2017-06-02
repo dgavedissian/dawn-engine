@@ -37,4 +37,4 @@ void ShaderProgram::endLoad() {
 bgfx::ShaderHandle ShaderProgram::internalHandle() const {
     return handle_;
 }
-}
+}  // namespace dw

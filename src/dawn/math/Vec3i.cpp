@@ -71,4 +71,4 @@ Vec3i Vec3i::operator*(int scalar) const {
 Vec3i Vec3i::operator/(int scalar) const {
     return Vec3i(x / scalar, y / scalar, z / scalar);
 }
-}
+}  // namespace dw

@@ -56,7 +56,7 @@ using ScopedMutex = std::lock_guard<std::mutex>;
 
 // Stubs
 class Camera {};  // TODO(David) stub until ECS is integrated
-}
+}  // namespace dw
 
 // Safe delete macros
 #define SAFE_DELETE(x) \

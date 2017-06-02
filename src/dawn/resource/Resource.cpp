@@ -32,4 +32,4 @@ void Resource::save(OutputStream&) {
 bool Resource::hasLoaded() const {
     return mLoaded;
 }
-}
+}  // namespace dw

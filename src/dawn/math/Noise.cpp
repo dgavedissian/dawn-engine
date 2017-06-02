@@ -286,4 +286,4 @@ void PerlinNoise::normalise3(float v[3]) {
     v[1] = v[1] * s;
     v[2] = v[2] * s;
 }
-}
+}  // namespace dw

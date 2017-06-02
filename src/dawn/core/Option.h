@@ -88,4 +88,4 @@ template <class T> T& Option<T>::get() {
 template <class T> const T& Option<T>::get() const {
     return *reinterpret_cast<const T*>(data_);
 }
-}
+}  // namespace dw

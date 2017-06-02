@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #pragma once
 
 #include "renderer/Material.h"
@@ -32,8 +32,9 @@ protected:
     SharedPtr<Material> material_;
 };
 
-    struct RenderableComponent : public Component {
-        RenderableComponent(Renderable* renderable) : renderable{renderable} {}
-        Renderable* renderable;
-    };
-}
+struct RenderableComponent : public Component {
+    RenderableComponent(Renderable* renderable) : renderable{renderable} {
+    }
+    Renderable* renderable;
+};
+}  // namespace dw

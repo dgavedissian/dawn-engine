@@ -18,4 +18,4 @@ public:
     Path getWorkingDir() const;
     bool fileExists(const Path& path) const;
 };
-}
+}  // namespace dw

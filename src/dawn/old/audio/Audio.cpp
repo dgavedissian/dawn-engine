@@ -128,4 +128,4 @@ void Audio::destroySound(Sound* sound) {
         i++;
     }
 }
-}
+}  // namespace dw

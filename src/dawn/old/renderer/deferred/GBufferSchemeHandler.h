@@ -67,4 +67,4 @@ public:
         return emptyTech;
     }
 };
-}
+}  // namespace dw

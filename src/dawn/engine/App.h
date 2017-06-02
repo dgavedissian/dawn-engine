@@ -37,4 +37,4 @@ public:
 };
 
 DW_API int runApp(UniquePtr<App> app, int argc, char** argv);
-}
+}  // namespace dw

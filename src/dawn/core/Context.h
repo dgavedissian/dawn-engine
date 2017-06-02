@@ -110,4 +110,4 @@ template <typename T, typename... Args> T* Context::addSubsystem(Args... args) {
 template <typename T> void Context::removeSubsystem() {
     removeSubsystem(T::typeStatic());
 }
-}
+}  // namespace dw

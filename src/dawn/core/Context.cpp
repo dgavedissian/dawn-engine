@@ -59,4 +59,4 @@ const String& Context::basePath() const {
 const String& Context::prefPath() const {
     return pref_path_;
 }
-}
+}  // namespace dw

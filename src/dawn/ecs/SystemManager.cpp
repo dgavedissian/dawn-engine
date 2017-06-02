@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #include "Common.h"
 #include "ecs/SystemManager.h"
 
@@ -13,4 +13,4 @@ SystemManager::SystemManager(Context* context)
 void SystemManager::update() {
     context_->ontology_world_.update();
 }
-}
+}  // namespace dw

@@ -144,4 +144,4 @@ const Vector<String>& Log::getBuffer() const {
     return mLogBuffer;
 }
  */
-}
+}  // namespace dw

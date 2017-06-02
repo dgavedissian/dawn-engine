@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #include "Common.h"
 #include "renderer/ManualMesh.h"
 #include "renderer/TriangleBuffer.h"
@@ -77,4 +77,4 @@ SharedPtr<ManualMesh> MeshBuilder::createSphere(float radius, uint num_rings, ui
     auto builtMesh = buffer.end();
     return makeShared<ManualMesh>(context_, builtMesh.first, builtMesh.second);
 }
-}
+}  // namespace dw

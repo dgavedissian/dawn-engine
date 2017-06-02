@@ -93,4 +93,4 @@ Rocket::Core::Element* Layout::getElementById(Rocket::Core::String id) {
 Rocket::Core::ElementDocument* Layout::getDocument() {
     return mDocument;
 }
-}
+}  // namespace dw

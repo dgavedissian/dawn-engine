@@ -61,4 +61,4 @@ private:
     T* mBlock;
     List<T*> mFreeList;
 };
-}
+}  // namespace dw

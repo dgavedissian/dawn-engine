@@ -38,4 +38,4 @@ u64 InputStream::getPosition() const {
 u64 InputStream::getSize() const {
     return mSize;
 }
-}
+}  // namespace dw

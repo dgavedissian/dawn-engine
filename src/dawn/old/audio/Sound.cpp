@@ -73,4 +73,4 @@ void Sound::setVolume(float volume) {
 float Sound::getVolume() const {
     return mSound->getVolume();
 }
-}
+}  // namespace dw

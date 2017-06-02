@@ -51,4 +51,4 @@ private:
     Rocket::Core::ElementDocument* mDocument;
     List<std::tuple<String, String, Rocket::Core::EventListener*>> mListeners;
 };
-}
+}  // namespace dw

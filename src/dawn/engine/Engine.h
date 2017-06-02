@@ -44,4 +44,4 @@ private:
     void preRender(Camera* camera);
     void handleEvent(EventDataPtr eventData);
 };
-}
+}  // namespace dw

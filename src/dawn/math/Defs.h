@@ -269,4 +269,4 @@ template <class T> T convUnit(T input, MassUnits outUnit, MassUnits inUnit = UNI
     };
     return (input / lookup[inUnit]) * lookup[outUnit];
 }
-}
+}  // namespace dw

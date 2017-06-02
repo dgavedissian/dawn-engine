@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #include "Common.h"
 #include "renderer/ManualMesh.h"
 #include "renderer/Material.h"
@@ -21,4 +21,4 @@ RenderTask ManualMesh::draw(const Mat4& modelMatrix) {
                       index_buffer_->internalHandle(), material_->internalHandle()};
     return task;
 }
-}
+}  // namespace dw

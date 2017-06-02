@@ -70,5 +70,5 @@ IMPL_READ(double)
 template <> inline String read<String>(InputStream& stream) {
     return stream.readLine('\0');
 }
-}
-}
+}  // namespace stream
+}  // namespace dw

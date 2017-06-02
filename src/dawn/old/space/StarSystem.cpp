@@ -117,4 +117,4 @@ const Vector<SharedPtr<Star>>& StarSystem::getStars() const {
 Ogre::SceneNode* StarSystem::getRootSceneNode() {
     return mBackgroundSceneNode;
 }
-}
+}  // namespace dw

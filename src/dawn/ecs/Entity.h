@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #pragma once
 
 #include "ontology/Entity.hpp"
@@ -64,4 +64,4 @@ template <typename T, typename... Args> Entity& Entity::addComponent(Args... arg
     internal_entity_.addComponent<T, Args...>(std::forward<Args>(args)...);
     return *this;
 }
-}
+}  // namespace dw

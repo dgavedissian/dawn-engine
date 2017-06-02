@@ -122,4 +122,4 @@ Position Position::operator*(float scalar) const {
 Position Position::operator/(float scalar) const {
     return *this * (1.0f / scalar);
 }
-}
+}  // namespace dw

@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #pragma once
 
 #include <tuple>
@@ -26,4 +26,4 @@ template <class T1, class T2> inline Pair<T1, T2> makePair(T1&& a, T2&& b) {
 template <class... T> inline Tuple<T...> makeTuple(T&&... args) {
     return std::tuple<T...>(std::forward<T>(args)...);
 }
-}
+}  // namespace dw

@@ -20,4 +20,4 @@ public:
     /// @param config Config filename
     StarSystem* loadStarSystem(const String& config);
 };
-}
+}  // namespace dw

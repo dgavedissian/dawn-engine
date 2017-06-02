@@ -48,4 +48,4 @@ private:
     Position mPosition;
     Position mOldPosition;
 };
-}
+}  // namespace dw

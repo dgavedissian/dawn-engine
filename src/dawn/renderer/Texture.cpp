@@ -33,7 +33,7 @@ int imageCallbackEof(void* user) {
     InputStream& stream = *reinterpret_cast<InputStream*>(user);
     return stream.eof() ? 1 : 0;
 }
-}
+}  // namespace
 
 Texture::Texture(Context* context) : Resource(context) {
 }
@@ -61,4 +61,4 @@ void Texture::endLoad() {
 bgfx::TextureHandle Texture::internalHandle() const {
     return handle_;
 }
-}
+}  // namespace dw

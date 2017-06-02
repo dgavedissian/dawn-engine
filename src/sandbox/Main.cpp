@@ -58,16 +58,16 @@ public:
             makeShared<Material>(context(), rc->get<ShaderProgram>("sandbox/sphere.vs"),
                                  rc->get<ShaderProgram>("sandbox/sphere.fs"));
         node->setRenderable(
-                MeshBuilder(context()).withNormals(false).withTexcoords(false).createSphere(10.0f));
+            MeshBuilder(context()).withNormals(false).withTexcoords(false).createSphere(10.0f));
         node->renderable()->setMaterial(material);
 
         auto sm = subsystem<SystemManager>();
         auto em = subsystem<EntityManager>();
-        //sm->addSystem<Test>();
-        //em->createEntity()->addComponent<PositionData>(0.0f, 0.0f, 0.0f).addComponent<Parent>(1);
+        // sm->addSystem<Test>();
+        // em->createEntity()->addComponent<PositionData>(0.0f, 0.0f, 0.0f).addComponent<Parent>(1);
         em->createEntity()
-                ->addComponent<RenderableComponent>(node->renderable())
-                .addComponent<Transform>(Position(), Quat::identity);
+            ->addComponent<RenderableComponent>(node->renderable())
+            .addComponent<Transform>(Position(), Quat::identity);
     }
 
     void update(float dt) override {

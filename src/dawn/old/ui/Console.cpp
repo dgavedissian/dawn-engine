@@ -86,4 +86,4 @@ void Console::ProcessEvent(Rocket::Core::Event& event) {
         }
     }
 }
-}
+}  // namespace dw

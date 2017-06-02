@@ -28,7 +28,7 @@ DW_API Vector<String>& split(const String& s, char delim, Vector<String>& elems)
 DW_API String concat(const Vector<String>& vec, const String& delim);
 
 DW_API String replace(String subject, const String& search, const String& replace);
-}
+}  // namespace str
 
 //// Random Number Generator
 
@@ -42,4 +42,4 @@ DW_API DEPRECATED Vec3 randomVec3(const Vec3& min = Vec3(-1.0f, -1.0f, -1.0f),
                                   const Vec3& max = Vec3(1.0f, 1.0f, 1.0f));
 DW_API DEPRECATED Vec4 randomVec4(const Vec4& min = Vec4(-1.0f, -1.0f, -1.0f, -1.0f),
                                   const Vec4& max = Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-}
+}  // namespace dw

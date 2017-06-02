@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #pragma once
 
 #include "ecs/Component.h"
@@ -16,4 +16,4 @@ struct Transform : public Component {
     Position position;
     Quat orientation;
 };
-}
+}  // namespace dw

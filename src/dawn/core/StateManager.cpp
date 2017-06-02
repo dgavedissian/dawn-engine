@@ -102,4 +102,4 @@ SharedPtr<State> StateManager::stateById(StateId id) {
     assert(it != state_map_.end());
     return (*it).second;
 }
-}
+}  // namespace dw

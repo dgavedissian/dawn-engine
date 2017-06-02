@@ -86,4 +86,4 @@ inline Position estimateHit(const Position& position, float speed, const Positio
     // Now we have the time before impact - calculate the position at the time
     return targetPosition + targetVelocity * t;
 }
-}
+}  // namespace dw

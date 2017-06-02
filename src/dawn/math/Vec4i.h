@@ -28,4 +28,4 @@ public:
     Vec4i operator*(int scalar) const;
     Vec4i operator/(int scalar) const;
 };
-}
+}  // namespace dw

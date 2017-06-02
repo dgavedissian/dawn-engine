@@ -157,4 +157,4 @@ private:
     // Ring System
     SharedPtr<Rings> mRingSystem;
 };
-}
+}  // namespace dw

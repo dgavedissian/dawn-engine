@@ -1,7 +1,7 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #include "Common.h"
 #include "renderer/Renderable.h"
 #include "renderer/Renderer.h"
@@ -21,4 +21,4 @@ void Renderable::setMaterial(SharedPtr<Material> material) {
 Material* Renderable::material() const {
     return material_.get();
 }
-}
+}  // namespace dw

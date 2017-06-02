@@ -22,4 +22,4 @@ Position CircularOrbit::calculatePosition(double time) {
         return Position(sin(angle), 0.0, -cos(angle)) * mRadius;
     }
 }
-}
+}  // namespace dw

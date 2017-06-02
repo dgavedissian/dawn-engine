@@ -72,4 +72,4 @@ const Ogre::MaterialPtr& MaterialGenerator::GetTemplateMaterial(Perm permutation
         return mTemplateMatMap[permutation];
     }
 }
-}
+}  // namespace dw
