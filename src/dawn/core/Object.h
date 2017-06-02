@@ -19,8 +19,8 @@ public:
     String typeName() const;
 
 private:
-    StringHash type_;
     String type_name_;
+    StringHash type_name_hash_;
 };
 
 #define DW_OBJECT(T)                                 \

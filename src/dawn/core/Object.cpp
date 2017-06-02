@@ -6,21 +6,21 @@
 
 namespace dw {
 
-TypeInfo::TypeInfo(const std::type_info& t) : type_(type_name_), type_name_(t.name()) {
+TypeInfo::TypeInfo(const std::type_info& t) : type_name_{t.name()}, type_name_hash_{type_name_} {
 }
 
 TypeInfo::~TypeInfo() {
 }
 
 StringHash TypeInfo::type() const {
-    return type_;
+    return type_name_hash_;
 }
 
 String TypeInfo::typeName() const {
     return type_name_;
 }
 
-Object::Object(Context* context) : context_(context) {
+Object::Object(Context* context) : context_{context} {
 }
 
 Object::~Object() {
@@ -33,4 +33,4 @@ Context* Object::context() const {
 Logger& Object::log() const {
     return *subsystem<Logger>();
 }
-}
+}  // namespace dw
