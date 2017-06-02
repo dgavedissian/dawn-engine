@@ -5,7 +5,7 @@
 #pragma once
 
 #if DW_PLATFORM == DW_WIN32
-//#include "platform/Windows.h"
+#include "platform/Windows.h"
 #define DW_IMPLEMENT_MAIN(AppClass)                                \
     int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {         \
         return dw::runApp(makeUnique<AppClass>(), __argc, __argv); \

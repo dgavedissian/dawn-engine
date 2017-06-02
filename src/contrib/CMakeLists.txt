@@ -39,6 +39,7 @@ set(EXTERNAL_INSTALL ${EXTERNAL_PREFIX}/install)
 
 # Arguments to be passed to all calls to CMake
 set(EXTERNAL_ARGS
+    -G ${CMAKE_GENERATOR}
     -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL}
     # ExternalProject needs to have these passed in.
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
