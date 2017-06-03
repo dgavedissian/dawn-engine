@@ -10,14 +10,14 @@ EntityManager::EntityManager(Context* context)
     : Object{context}, entity_manager_{context->ontology_world_.getEntityManager()} {
 }
 
-Entity* EntityManager::createEntity() {
+Entity& EntityManager::createEntity() {
     UniquePtr<Entity> entity = makeUnique<Entity>(context(), entity_manager_.createEntity(""));
     Entity* entityPtr = entity.get();
     entity_lookup_table_.emplace(makePair(entity->id(), std::move(entity)));
-    return entityPtr;
+    return *entityPtr;
 }
 
-Entity* EntityManager::getEntity(EntityId id) {
+Entity* EntityManager::findEntity(EntityId id) {
     auto it = entity_lookup_table_.find(id);
     if (it != entity_lookup_table_.end()) {
         return it->second.get();

@@ -16,12 +16,12 @@ public:
 
     /// Creates a new empty entity.
     /// @return A newly created entity.
-    Entity* createEntity();
+    Entity& createEntity();
 
     /// Looks up an entity by its ID.
     /// @param id Entity ID.
     /// @return The entity which corresponds to this entity ID.
-    Entity* getEntity(EntityId id);
+    Entity* findEntity(EntityId id);
 
     /// Removes an entity from the engine.
     /// @param entity Entity to remove.

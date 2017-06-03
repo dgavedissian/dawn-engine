@@ -65,9 +65,9 @@ public:
         auto sm = subsystem<SystemManager>();
         auto em = subsystem<EntityManager>();
         // sm->addSystem<Test>();
-        // em->createEntity()->addComponent<PositionData>(0.0f, 0.0f, 0.0f).addComponent<Parent>(1);
+        // em->createEntity().addComponent<PositionData>(0.0f, 0.0f, 0.0f).addComponent<Parent>(1);
         em->createEntity()
-            ->addComponent<RenderableComponent>(node->renderable())
+            .addComponent<RenderableComponent>(node->renderable())
             .addComponent<Transform>(Position(), Quat::identity);
     }
 
