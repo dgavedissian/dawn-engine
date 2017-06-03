@@ -35,13 +35,17 @@ TEST_F(FileTest, WriteThenRead) {
 
     auto filename = fs.tempDir() + "/write_test";
     dw::u32 data = 0xdeadbeef;
-
-    dw::File out_file(context_, filename, dw::FileMode::Write);
-    out_file.write(&data, sizeof(dw::u32));
-
     dw::u32 in_data;
-    dw::File in_file(context_, filename, dw::FileMode::Read);
-    in_file.read(&in_data, sizeof(dw::u32));
+
+    {
+        dw::File out_file(context_, filename, dw::FileMode::Write);
+        out_file.write(&data, sizeof(dw::u32));
+    }
+
+    {
+        dw::File in_file(context_, filename, dw::FileMode::Read);
+        in_file.read(&in_data, sizeof(dw::u32));
+    }
 
     fs.deleteFile(filename);
 

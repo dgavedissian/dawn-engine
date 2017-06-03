@@ -19,11 +19,10 @@ InputStream::~InputStream() {
 String InputStream::readLine(char delim) {
     String out;
     char c;
-    read(&c, sizeof(char));
-    while (c != delim && !eof()) {
-        out += c;
+    do {
         read(&c, sizeof(char));
-    }
+        out += c;
+    } while (c != delim && !eof());
     return out;
 }
 
