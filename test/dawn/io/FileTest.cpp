@@ -51,3 +51,33 @@ TEST_F(FileTest, WriteThenRead) {
 
     EXPECT_EQ(data, in_data);
 }
+
+TEST_F(FileTest, WriteThenAppendThenRead) {
+    auto& fs = *context_->subsystem<dw::FileSystem>();
+
+    auto filename = fs.tempDir() + "/append_test";
+    dw::u32 data = 0xdeadbeef;
+
+    // Write
+    {
+        dw::File out_file(context_, filename, dw::FileMode::Write);
+        out_file.write(&data, sizeof(dw::u32));
+    }
+
+    // Append
+    {
+        dw::File append_file(context_, filename, dw::FileMode::Write | dw::FileMode::Append);
+        append_file.write(&data, sizeof(dw::u32));
+    }
+
+    // Read
+    dw::u64 in_data;
+    {
+        dw::File in_file(context_, filename, dw::FileMode::Read);
+        in_file.read(&in_data, sizeof(dw::u64));
+    }
+
+    fs.deleteFile(filename);
+
+    EXPECT_EQ(0xdeadbeefdeadbeef, in_data);
+}
