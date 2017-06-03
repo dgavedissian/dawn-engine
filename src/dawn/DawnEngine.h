@@ -23,5 +23,6 @@
 #include "physics/PhysicsWorld.h"
 #include "renderer/EntityRenderer.h"
 #include "renderer/Renderer.h"
+#include "resource/ResourceCache.h"
 #include "scene/SceneManager.h"
 #include "script/LuaState.h"

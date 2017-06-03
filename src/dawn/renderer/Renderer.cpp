@@ -4,7 +4,8 @@
  */
 #include "Common.h"
 #include "renderer/Renderer.h"
-#include "RenderTask.h"
+
+#include <bgfx/bgfx.h>
 
 namespace dw {
 Renderer::Renderer(Context* context) : Object{context}, width_{1280}, height_{800} {

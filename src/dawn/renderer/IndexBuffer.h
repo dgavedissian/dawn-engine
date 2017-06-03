@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "renderer/Bgfx.h"
+
 namespace dw {
 class DW_API IndexBuffer : public Object {
 public:

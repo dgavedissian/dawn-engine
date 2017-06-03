@@ -9,8 +9,9 @@
 #undef M_PI
 #endif
 
-namespace dw {
+#include "math/MathGeoLib.h"
 
+namespace dw {
 static const float M_PI = 3.14159265358979323846264338327950288f;
 static const float M_HALF_PI = M_PI * 0.5f;
 static const float M_EPSILON = std::numeric_limits<float>::epsilon();

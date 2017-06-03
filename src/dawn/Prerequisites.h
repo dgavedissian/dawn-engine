@@ -40,37 +40,15 @@
 // External Libraries
 //
 
-// bgfx
-#include <bgfx/bgfx.h>
-
-// glfw
-#include <GLFW/glfw3.h>
-
-// Bullet
-#include <btBulletDynamicsCommon.h>
-
-// MathGeoLib
-#define MATH_ENABLE_STL_SUPPORT
-#define MATH_ENABLE_UNCOMMON_OPERATIONS
-#define MATH_BULLET_INTEROP
-#define LOGGING_SUPPORT_DISABLED
-#include <MathGeoLib.h>
-#ifdef LOG
-#undef LOG
-#endif
-
 //
 // Bundled Libraries
 //
 
 // imgui
-#include "imgui.h"
+//#include "imgui.h"
 
 // FastDelegate
 #include "FastDelegate.h"
-
-// sol
-#include "sol.hpp"
 
 // Re-enable warnings
 #if defined(DW_MSVC)

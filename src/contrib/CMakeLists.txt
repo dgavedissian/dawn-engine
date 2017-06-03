@@ -14,13 +14,7 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty
     ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/khronos
     ${CMAKE_CURRENT_SOURCE_DIR}/bx/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/FastDelegate
-    ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/ImGui
-    ${CMAKE_CURRENT_SOURCE_DIR}/json
-    ${CMAKE_CURRENT_SOURCE_DIR}/sol
-    ${CMAKE_CURRENT_SOURCE_DIR}/stb_image
-    ${CMAKE_CURRENT_SOURCE_DIR}/tinyformat)
+    ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
 if(MSVC)
     set(INCLUDE_DIRS ${INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/bx/include/compat/msvc)
@@ -70,7 +64,7 @@ ExternalProject_Add(Assimp
         -DASSIMP_BUILD_ASSIMP_TOOLS=0
         -DASSIMP_BUILD_TESTS=0
 )
-set_target_properties(Assimp PROPERTIES FOLDER "contrib")
+set_target_properties(Assimp PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 # Bullet
 ExternalProject_Add(Bullet
@@ -87,7 +81,7 @@ ExternalProject_Add(Bullet
         -DINSTALL_LIBS=1
         -DUSE_MSVC_RUNTIME_LIBRARY_DLL=1
 )
-set_target_properties(Bullet PROPERTIES FOLDER "contrib")
+set_target_properties(Bullet PROPERTIES EXCLUDE_FROM_ALL TRUE)
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include/bullet)
 if(WIN32)
     set(LIBS ${LIBS}
@@ -114,7 +108,7 @@ ExternalProject_Add(MathGeoLib
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0
 )
-set_target_properties(MathGeoLib PROPERTIES FOLDER "contrib")
+set_target_properties(MathGeoLib PROPERTIES EXCLUDE_FROM_ALL TRUE)
 set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${EXTERNAL_INSTALL}/include/MathGeoLib)
 if(WIN32)
@@ -151,6 +145,7 @@ else()
         UPDATE_COMMAND ""
     )
 endif()
+set_target_properties(Luajit PROPERTIES EXCLUDE_FROM_ALL TRUE)
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_PREFIX}/src/Luajit/src)
 if(WIN32)
     set(LIBS ${LIBS}
@@ -159,7 +154,6 @@ else()
     set(LIBS ${LIBS}
         ${EXTERNAL_INSTALL}/lib/libluajit-5.1.a)
 endif()
-set_target_properties(Luajit PROPERTIES FOLDER "contrib")
 
 set(EXTERNAL_DEPS Assimp Bullet MathGeoLib Luajit PARENT_SCOPE)
 
@@ -176,9 +170,9 @@ endif()
 # bgfx
 add_definitions(-DBGFX_CONFIG_RENDERER_OPENGL=33)
 if(APPLE)
-    add_library(bgfx bgfx/src/amalgamated.mm)
+    add_library(bgfx EXCLUDE_FROM_ALL bgfx/src/amalgamated.mm)
 else()
-    add_library(bgfx bgfx/src/amalgamated.cpp)
+    add_library(bgfx EXCLUDE_FROM_ALL bgfx/src/amalgamated.cpp)
 endif()
 if(APPLE)
     find_library(COCOA_LIBRARY Cocoa)
@@ -186,7 +180,6 @@ if(APPLE)
     target_link_libraries(bgfx ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY})
 endif()
 target_include_directories(bgfx PRIVATE ${INCLUDE_DIRS})
-set_target_properties(bgfx PROPERTIES FOLDER "contrib")
 set(LIBS ${LIBS} bgfx)
 if(WIN32)
     set(LIBS ${LIBS} psapi.lib)
@@ -228,28 +221,53 @@ target_include_directories(shaderc PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/bx/include)
 
 # enet
-add_subdirectory(enet)
+add_subdirectory(enet EXCLUDE_FROM_ALL)
 set(LIBS ${LIBS} enet)
-set_target_properties(enet PROPERTIES FOLDER "contrib")
+
+# FastDelegate
+add_library(FastDelegate INTERFACE)
+target_include_directories(FastDelegate INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/FastDelegate)
+set(LIBS ${LIBS} FastDelegate)
 
 # glfw
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-add_subdirectory(glfw)
+add_subdirectory(glfw EXCLUDE_FROM_ALL)
 target_include_directories(glfw PRIVATE ${INCLUDE_DIRS})
-set_target_properties(glfw PROPERTIES FOLDER "contrib")
 set(LIBS ${LIBS} glfw)
 
+# gtest
+add_subdirectory(gtest EXCLUDE_FROM_ALL)
+
 # ImGui
-add_library(ImGui
+add_library(ImGui EXCLUDE_FROM_ALL
     ImGui/imgui.cpp
     ImGui/imgui_demo.cpp
     ImGui/imgui_draw.cpp)
-target_include_directories(ImGui PRIVATE ${INCLUDE_DIRS})
-set_target_properties(ImGui PROPERTIES FOLDER "contrib")
+target_include_directories(ImGui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ImGui)
 set(LIBS ${LIBS} ImGui)
+
+# json
+add_library(json INTERFACE)
+target_include_directories(json INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/json)
+set(LIBS ${LIBS} json)
+
+# sol
+add_library(sol INTERFACE)
+target_include_directories(sol INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/sol)
+set(LIBS ${LIBS} sol)
+
+# stb_image
+add_library(stb_image INTERFACE)
+target_include_directories(stb_image INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb_image)
+set(LIBS ${LIBS} stb_image)
+
+# tinyformat
+add_library(tinyformat INTERFACE)
+target_include_directories(tinyformat INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tinyformat)
+set(LIBS ${LIBS} tinyformat)
 
 
 ##############################################################

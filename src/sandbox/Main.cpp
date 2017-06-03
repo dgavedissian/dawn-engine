@@ -45,18 +45,19 @@ public:
     UniquePtr<Node> node;
 
     void init(int argc, char** argv) override {
-        subsystem<FileSystem>()->setWorkingDir("media");
-
-        File file(context_, "sandbox/test.txt", FileMode::Read);
+        File file(context_, "media/sandbox/test.txt", FileMode::Read);
         log().info("File contents: %s", stream::read<u8>(file));
 
         auto rc = subsystem<ResourceCache>();
+        assert(rc);
+        rc->addResourcePath("media/base");
+        rc->addResourcePath("media/sandbox");
 
         // Create a node.
         node = makeUnique<Node>(context());
         SharedPtr<Material> material =
-            makeShared<Material>(context(), rc->get<ShaderProgram>("sandbox/sphere.vs"),
-                                 rc->get<ShaderProgram>("sandbox/sphere.fs"));
+            makeShared<Material>(context(), rc->get<ShaderProgram>("shaders/bin/sphere.vs"),
+                                 rc->get<ShaderProgram>("shaders/bin/sphere.fs"));
         node->setRenderable(
             MeshBuilder(context()).withNormals(false).withTexcoords(false).createSphere(10.0f));
         node->renderable()->setMaterial(material);

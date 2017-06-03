@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "sol.hpp"
+
 namespace dw {
 
 // Manages the Lua virtual machine and provides some helper functions

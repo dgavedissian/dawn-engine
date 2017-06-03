@@ -30,7 +30,7 @@ public:
 
 class DW_API Logger : public Object {
 public:
-    DW_OBJECT(Logger);
+    DW_OBJECT(Logger)
 
     Logger(Context* context);
     Logger(Logger& other) = delete;

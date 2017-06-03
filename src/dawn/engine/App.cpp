@@ -6,6 +6,8 @@
 #include "engine/App.h"
 #include "engine/Engine.h"
 
+#include <GLFW/glfw3.h>
+#include <bgfx/bgfx.h>
 #include <bgfx/bgfxplatform.h>
 
 namespace dw {

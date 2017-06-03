@@ -176,6 +176,13 @@ PUBLIC:
      */
     ONTOLOGY_LOCAL_API void update();
 
+// BEGIN DAVID
+    ONTOLOGY_LOCAL_API void setTypeSets(TypeSet& supportedComponents, TypeSet& dependingSystems) {
+        m_SupportedComponents = supportedComponents;
+        m_DependingSystems = dependingSystems;
+    }
+// END DAVID
+
 PROTECTED:
 
     /*!

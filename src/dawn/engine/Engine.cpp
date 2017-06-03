@@ -76,6 +76,7 @@ void Engine::setup() {
     // mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->getSceneMgr());
     // mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
     context_->addSubsystem<StateManager>();
+    context_->addSubsystem<ResourceCache>();
 
     // Set up the ECS architecture.
     auto& em = *context_->addSubsystem<EntityManager>();

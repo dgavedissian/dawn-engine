@@ -6,6 +6,7 @@
 
 #include "core/Option.h"
 #include "math/Defs.h"
+#include "renderer/Bgfx.h"
 #include "renderer/ShaderProgram.h"
 #include "renderer/Texture.h"
 

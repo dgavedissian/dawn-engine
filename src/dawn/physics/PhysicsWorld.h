@@ -5,6 +5,9 @@
 #pragma once
 #include "scene/Position.h"
 
+// Bullet
+#include <btBulletDynamicsCommon.h>
+
 namespace dw {
 class Renderer;
 class RigidEntity;

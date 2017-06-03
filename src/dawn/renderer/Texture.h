@@ -5,6 +5,7 @@
 #pragma once
 
 #include "resource/Resource.h"
+#include "renderer/Bgfx.h"
 
 namespace dw {
 class DW_API Texture : public Resource {

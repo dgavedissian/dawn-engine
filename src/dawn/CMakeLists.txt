@@ -104,7 +104,6 @@ set(SOURCE_FILES
     Prerequisites.h)
 
 # TODO: Replace prototype Ontology based ECS with custom implementation.
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ecs/ontology/include)
 set (SOURCE_FILES
     ${SOURCE_FILES}
     ecs/ontology/include/ontology/Config.hpp
@@ -147,6 +146,9 @@ set_output_dir(Dawn ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED)
     set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
 endif()
+target_include_directories(Dawn PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/ecs/ontology/include)
 
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)

@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "io/Path.h"
+#include "io/File.h"
 #include "resource/Resource.h"
 
 namespace dw {
@@ -20,16 +20,19 @@ public:
     template <typename T> SharedPtr<T> get(const Path& filename) {
         String name(String(filename.c_str()));
 
-        // If the resource already exists, cache hit
+        // If the resource already exists, return it.
         auto it = mResourceCache.find(name);
         if (it != mResourceCache.end()) {
             return staticPointerCast<T>((*it).second);
         }
 
-        // Get the file which contains this resource data
+        // Load the file which contains this resource data.
         SharedPtr<File> file = getFile(filename);
+        if (!file) {
+            return nullptr;
+        }
         SharedPtr<T> resource = makeShared<T>(context());
-        mResourceCache.insert(makePair(name, resource));
+        mResourceCache.emplace(name, resource);
         resource->load(*file.get());
         return resource;
     }

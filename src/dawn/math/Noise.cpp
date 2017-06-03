@@ -3,7 +3,9 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
+
 #include "math/Noise.h"
+#include "math/MathGeoLib.h"
 
 #define B SAMPLE_SIZE
 #define BM (SAMPLE_SIZE - 1)

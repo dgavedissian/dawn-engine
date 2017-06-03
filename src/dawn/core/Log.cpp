@@ -24,12 +24,12 @@ public:
         switch (level) {
             case LogLevel::Debug:
             case LogLevel::Info:
-                std::cout << message;
+                std::cout << message << std::endl;
                 break;
 
             case LogLevel::Warning:
             case LogLevel::Error:
-                std::cerr << message;
+                std::cerr << message << std::endl;
                 break;
         }
 
