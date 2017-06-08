@@ -44,6 +44,7 @@ set(SOURCE_FILES
     io/Path.h
     math/Colour.h
     math/Defs.h
+	math/MathGeoLib.h
     math/Noise.cpp
     math/Noise.h
     math/Rect.cpp
@@ -56,6 +57,7 @@ set(SOURCE_FILES
     math/Vec3i.h
     math/Vec4i.cpp
     math/Vec4i.h
+	physics/BulletDynamics.h
     physics/PhysicsWorld.cpp
     physics/PhysicsWorld.h
     platform/Defines.h
@@ -99,6 +101,7 @@ set(SOURCE_FILES
     scene/Transform.h
     script/LuaState.cpp
     script/LuaState.h
+    script/Sol.h
     Common.h
     DawnEngine.h
     Prerequisites.h)
@@ -137,13 +140,13 @@ set (SOURCE_FILES
 )
 
 # Project
-set(BUILD_SHARED OFF)
+set(BUILD_SHARED_LIBS OFF)
 add_library(Dawn ${SOURCE_FILES})
 enable_cpp14(Dawn)
 enable_maximum_warnings(Dawn)
 add_dependencies(Dawn ${EXTERNAL_DEPS})
 set_output_dir(Dawn ${CMAKE_BINARY_DIR}/lib)
-if(BUILD_SHARED)
+if(BUILD_SHARED_LIBS)
     set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
 endif()
 target_include_directories(Dawn PUBLIC
@@ -153,7 +156,7 @@ target_include_directories(Dawn PUBLIC
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)
 get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
-if(APPLE)
+if(APPLE AND BUILD_SHARED_LIBS)
     set_target_properties(Dawn PROPERTIES FRAMEWORK TRUE)
 endif()
 

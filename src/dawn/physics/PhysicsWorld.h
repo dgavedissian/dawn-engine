@@ -6,7 +6,7 @@
 #include "scene/Position.h"
 
 // Bullet
-#include <btBulletDynamicsCommon.h>
+#include "physics/BulletDynamics.h"
 
 namespace dw {
 class Renderer;

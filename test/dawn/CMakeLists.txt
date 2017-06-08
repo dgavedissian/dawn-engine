@@ -6,6 +6,7 @@ set(TEST_FILES
     Testing.h)
 
 add_executable(DawnTest ${TEST_FILES})
+mirror_physical_directories(${TEST_FILES})
 enable_cpp14(DawnTest)
 target_link_libraries(DawnTest Dawn gtest gtest_main)
 target_include_directories(DawnTest SYSTEM PRIVATE . ${CMAKE_SOURCE_DIR}/src/dawn ${INCLUDE_DIRS})

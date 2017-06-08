@@ -66,7 +66,7 @@ function(add_game GAME_NAME)
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
 
     # Currently, Dawn can only be linked dynamically
-    set_target_properties(${GAME_NAME} PROPERTIES COMPILE_FLAGS "-DDW_DLL")
+    #set_target_properties(${GAME_NAME} PROPERTIES COMPILE_FLAGS "-DDW_DLL")
 
     # LuaJIT on 64-bit OS X requires these linker flags for executables
     if(APPLE)
@@ -76,8 +76,8 @@ function(add_game GAME_NAME)
     # Copy over shared library dependencies
     get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
     if(APPLE)
-        set(BUNDLE_DIR ${CMAKE_SOURCE_DIR}/bin/${GAME_NAME}.app)
-        set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)
+        #set(BUNDLE_DIR ${CMAKE_SOURCE_DIR}/bin/${GAME_NAME}.app)
+        #set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)
         #add_custom_command(TARGET ${GAME_NAME} POST_BUILD
         #    COMMAND mkdir -p ${FRAMEWORKS_DIR}
         #    COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR}/Dawn.framework)

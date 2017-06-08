@@ -8,18 +8,6 @@ set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 # Force everything to be statically linked
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
-# Add bundled external libraries
-set(INCLUDE_DIRS ${INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/khronos
-    ${CMAKE_CURRENT_SOURCE_DIR}/bx/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
-if(MSVC)
-    set(INCLUDE_DIRS ${INCLUDE_DIRS}
-        ${CMAKE_CURRENT_SOURCE_DIR}/bx/include/compat/msvc)
-endif()
-
 
 ##############################################################
 # External Projects
@@ -167,6 +155,13 @@ if(UNIX) # TODO: If is Clang or GCC
     add_definitions(-fPIC)
 endif()
 
+# bx (bgfx dependency)
+add_library(bx INTERFACE)
+target_include_directories(bx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/bx/include)
+if(MSVC)
+    target_include_directories(bx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/bx/include/compat/msvc)
+endif()
+
 # bgfx
 add_definitions(-DBGFX_CONFIG_RENDERER_OPENGL=33)
 if(APPLE)
@@ -174,16 +169,20 @@ if(APPLE)
 else()
     add_library(bgfx EXCLUDE_FROM_ALL bgfx/src/amalgamated.cpp)
 endif()
-if(APPLE)
+target_include_directories(bgfx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/include)
+target_include_directories(bgfx PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/khronos)
+target_link_libraries(bgfx bx)
+if(WIN32)
+    # psapi.lib is used by bx::getProcessMemoryUsed().
+    target_link_libraries(bgfx psapi.lib)
+elseif(APPLE)
     find_library(COCOA_LIBRARY Cocoa)
     find_library(FOUNDATION_LIBRARY Foundation)
     target_link_libraries(bgfx ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY})
 endif()
-target_include_directories(bgfx PRIVATE ${INCLUDE_DIRS})
 set(LIBS ${LIBS} bgfx)
-if(WIN32)
-    set(LIBS ${LIBS} psapi.lib)
-endif()
 
 # shaderc (part of bgfx)
 set(BGFX_SHADERC_SRC
@@ -235,10 +234,12 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 add_subdirectory(glfw EXCLUDE_FROM_ALL)
-target_include_directories(glfw PRIVATE ${INCLUDE_DIRS})
+target_include_directories(glfw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
+#target_include_directories(glfw PRIVATE ${INCLUDE_DIRS})
 set(LIBS ${LIBS} glfw)
 
 # gtest
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory(gtest EXCLUDE_FROM_ALL)
 
 # ImGui
