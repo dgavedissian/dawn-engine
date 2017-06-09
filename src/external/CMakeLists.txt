@@ -209,15 +209,14 @@ file(GLOB BGFX_SHADERC_GLSL_OPTIMIZER_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     bgfx/3rdparty/glsl-optimizer/src/util/*.c)
 add_executable(shaderc ${BGFX_SHADERC_SRC} ${BGFX_SHADERC_GLSL_OPTIMIZER_SRC})
 enable_cpp11(shaderc)
-target_link_libraries(shaderc bgfx)
+target_link_libraries(shaderc bx)
 target_include_directories(shaderc PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/include
     ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/fcpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/include
     ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/src
     ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/src/glsl
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/src/mesa
-    ${CMAKE_CURRENT_SOURCE_DIR}/bx/include)
+    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/src/mesa)
 
 # enet
 add_subdirectory(enet EXCLUDE_FROM_ALL)

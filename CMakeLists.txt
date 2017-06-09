@@ -39,7 +39,7 @@ endif()
 # Helpful functions
 ###############################################
 
-function(add_game GAME_NAME)
+function(add_game GAME_NAME SOURCES SHADERS)
     # Executable type
     if(WIN32)
         set(TYPE WIN32)
@@ -48,7 +48,8 @@ function(add_game GAME_NAME)
     endif()
 
     # Add executable
-    add_executable(${GAME_NAME} ${TYPE} ${ARGN})
+    set(SOURCE_FILES ${SOURCES})
+    add_executable(${GAME_NAME} ${TYPE} ${SOURCE_FILES})
 
     # Compile in C++14 mode
     enable_cpp14(${GAME_NAME})
@@ -64,6 +65,21 @@ function(add_game GAME_NAME)
     target_link_libraries(${GAME_NAME} Dawn)
     set_output_dir(${GAME_NAME} ${CMAKE_SOURCE_DIR}/bin)
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
+
+    # Compile shaders
+    set(COMPILED_SHADERS "")
+    set(SHADER_SOURCE_FILES ${SHADERS})
+    set(SHADER_PATH "${CMAKE_SOURCE_DIR}/bin/compiled_shaders")
+    foreach(SHADER ${SHADER_SOURCE_FILES})
+        set(SHADER_OUT "${SHADER_PATH}/${SHADER}")
+        add_custom_command(
+            OUTPUT "${SHADER_OUT}"
+            COMMAND "$<TARGET_FILE:shaderc>" -o "${LUA_COMPILED_SCRIPTS}/${F}"
+            COMMENT "Compiling shader ${SHADER} to binary")
+        list (APPEND LUA_COMPILED_FILES "${SHADER_OUT}")
+    endforeach()
+    add_custom_target(${GAME_NAME}_Shaders ${COMPILED_SHADERS})
+    add_dependencies(${GAME_NAME} ${GAME_NAME}_Shaders)
 
     # Currently, Dawn can only be linked dynamically
     #set_target_properties(${GAME_NAME} PROPERTIES COMPILE_FLAGS "-DDW_DLL")
