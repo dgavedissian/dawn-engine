@@ -39,7 +39,7 @@ endif()
 # Helpful functions
 ###############################################
 
-function(add_game GAME_NAME SOURCES SHADERS)
+function(add_game GAME_NAME SOURCE_FILES SHADER_SOURCE_FILES)
     # Executable type
     if(WIN32)
         set(TYPE WIN32)
@@ -48,7 +48,6 @@ function(add_game GAME_NAME SOURCES SHADERS)
     endif()
 
     # Add executable
-    set(SOURCE_FILES ${SOURCES})
     add_executable(${GAME_NAME} ${TYPE} ${SOURCE_FILES})
 
     # Compile in C++14 mode
@@ -68,7 +67,6 @@ function(add_game GAME_NAME SOURCES SHADERS)
 
     # Compile shaders
     set(COMPILED_SHADERS "")
-    set(SHADER_SOURCE_FILES ${SHADERS})
     set(SHADER_PATH "${CMAKE_SOURCE_DIR}/bin/compiled_shaders")
     foreach(SHADER ${SHADER_SOURCE_FILES})
         set(SHADER_OUT "${SHADER_PATH}/${SHADER}")

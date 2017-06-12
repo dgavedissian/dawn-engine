@@ -81,8 +81,8 @@ if(WIN32)
         optimized ${EXTERNAL_INSTALL}/lib/LinearMath.lib)
 else()
     set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/libBulletCollision.a
         ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a
+        ${EXTERNAL_INSTALL}/lib/libBulletCollision.a
         ${EXTERNAL_INSTALL}/lib/libLinearMath.a)
 endif()
 

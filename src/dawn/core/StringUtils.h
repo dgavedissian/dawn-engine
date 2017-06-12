@@ -3,6 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #pragma once
+
 #include "math/Vec2i.h"
 
 namespace dw {

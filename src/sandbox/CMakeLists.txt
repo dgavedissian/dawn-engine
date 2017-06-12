@@ -8,4 +8,4 @@ set(SHADER_SOURCE_FILES
     media/sandbox/shader.vs
     media/sandbox/shader.fs)
 
-add_game(Sandbox SOURCE_FILES SHADER_SOURCE_FILES)
+add_game(Sandbox "${SOURCE_FILES}" "${SHADER_SOURCE_FILES}")

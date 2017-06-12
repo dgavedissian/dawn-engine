@@ -20,6 +20,7 @@
 #include <cassert>
 #include <cstdint>
 #include <ctime>
+#include <climits>
 
 #include <exception>
 #include <string>
