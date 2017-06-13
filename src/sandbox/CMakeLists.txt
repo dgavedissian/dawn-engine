@@ -5,7 +5,6 @@ set(SOURCE_FILES
     Main.cpp)
 
 set(SHADER_SOURCE_FILES
-    media/sandbox/shader.vs
-    media/sandbox/shader.fs)
+    media/sandbox/shader)
 
 add_game(Sandbox "${SOURCE_FILES}" "${SHADER_SOURCE_FILES}")
