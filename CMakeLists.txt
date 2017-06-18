@@ -66,22 +66,6 @@ function(add_game GAME_NAME SOURCE_FILES SHADER_SOURCE_FILES)
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
 
     # Compile shaders
-    set(COMPILED_SHADERS "")
-    set(SHADER_PATH "${CMAKE_SOURCE_DIR}/bin/compiled_shaders")
-    foreach(SHADER ${SHADER_SOURCE_FILES})
-        set(SHADER_IN "${CMAKE_SOURCE_DIR}/${SHADER}")
-        set(SHADER_OUT "${SHADER_PATH}/${SHADER}")
-        set(VARYING_DEF "${SHADER_IN}.varying.def")
-        add_custom_command(
-            OUTPUT "${SHADER_OUT}"
-            #COMMAND ${CMAKE_COMMAND} -E make_directory ${SHADER_PATH}
-            COMMAND "$<TARGET_FILE:shaderc>" -f "${SHADER_IN}.vs" -o "${SHADER_OUT}" --type "${SHADER_TYPE}" --platform linux
-            COMMAND "$<TARGET_FILE:shaderc>" -f "${SHADER_IN}.fs" -o "${SHADER_OUT}" --type "${SHADER_TYPE}" --platform linux
-            COMMENT "Building shader ${SHADER} for linux")
-        list (APPEND COMPILED_SHADERS "${SHADER_OUT}")
-    endforeach()
-    add_custom_target(${GAME_NAME}_Shaders DEPENDS ${COMPILED_SHADERS})
-    add_dependencies(${GAME_NAME} ${GAME_NAME}_Shaders)
 
     # Currently, Dawn can only be linked dynamically
     #set_target_properties(${GAME_NAME} PROPERTIES COMPILE_FLAGS "-DDW_DLL")

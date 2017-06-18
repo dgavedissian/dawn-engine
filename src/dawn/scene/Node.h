@@ -5,7 +5,7 @@
 #pragma once
 
 #include "renderer/Renderable.h"
-#include "renderer/Material.h"
+#include "renderer/GLProgram.h"
 
 namespace dw {
 class DW_API Node : public Object {

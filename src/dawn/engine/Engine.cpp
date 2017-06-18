@@ -43,6 +43,17 @@ Engine::~Engine() {
 void Engine::setup() {
     assert(!initialised_);
 
+    // Build window title.
+    String window_title(game_name_);
+    window_title += " ";
+    window_title += game_version_;
+#ifdef DW_DEBUG
+    window_title += " (debug)";
+#endif
+
+    // Create the window.
+    window_ = makeUnique<Window>(context_, 1280, 800, window_title);
+
     // Low-level subsystems
     context_->addSubsystem<EventSystem>();
     context_->addSubsystem<FileSystem>();
@@ -59,17 +70,9 @@ void Engine::setup() {
     context_->addSubsystem<LuaState>();
     // TODO(David): bind engine services to lua?
 
-    // Build window title
-    String gameTitle(game_name_);
-    gameTitle += " ";
-    gameTitle += game_version_;
-#ifdef DW_DEBUG
-    gameTitle += " (debug)";
-#endif
-
     // Create the engine subsystems.
     context_->addSubsystem<Input>();
-    context_->addSubsystem<Renderer>();
+    context_->addSubsystem<Renderer>(window_.get());
     // mUI = new UI(mRenderer, mInput, mLuaState);
     // mAudio = new Audio;
     // mPhysicsWorld = new PhysicsWorld(mRenderer);
@@ -114,20 +117,23 @@ void Engine::shutdown() {
         return;
     }
 
-    // Save config
+    // Save config.
     if (save_config_on_exit_) {
         context_->saveConfig(config_file_);
     }
 
-    // Remove subsystems
+    // Remove subsystems.
     context_->removeSubsystem<StateManager>();
     context_->clearSubsystems();
 
-    // The engine is no longer initialised
+    // Destroy window.
+    window_.reset();
+
+    // The engine is no longer initialised.
     initialised_ = false;
 }
 
-void Engine::run(EngineTickCallback tick_func) {
+void Engine::run(EngineTickCallback tick_callback) {
     // TODO(David) stub
     Camera* main_camera = nullptr;
 
@@ -138,16 +144,22 @@ void Engine::run(EngineTickCallback tick_func) {
     while (running_) {
         // mUI->beginFrame();
 
+        // Message pump.
+        window_->pollEvents();
+        if (window_->shouldClose()) {
+            running_ = false;
+        }
+
         // Update game logic.
         while (accumulator >= dt) {
             update(dt);
-            tick_func(dt);
+            tick_callback(dt);
             accumulator -= dt;
         }
 
         // Render a frame.
         preRender(main_camera);
-        context_->subsystem<SystemManager>()->subsystem<EntityRenderer>()->dispatchRenderTasks();
+        context_->subsystem<SystemManager>()->getSystem<EntityRenderer>()->dispatchRenderTasks();
         context_->subsystem<Renderer>()->frame();
 
         // Calculate frameTime.
@@ -156,7 +168,7 @@ void Engine::run(EngineTickCallback tick_func) {
         previous_time = current_time;
     }
 
-    // Ensure that all states have been exited so no crashes occur later
+    // Ensure that all states have been exited so no crashes occur later.
     context_->subsystem<StateManager>()->clear();
 }
 

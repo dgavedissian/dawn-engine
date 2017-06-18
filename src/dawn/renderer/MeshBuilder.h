@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/ManualMesh.h"
+#include "renderer/CustomMesh.h"
 
 namespace dw {
 class DW_API MeshBuilder : public Object {
@@ -17,7 +17,7 @@ public:
     MeshBuilder& withNormals(bool normals);
     MeshBuilder& withTexcoords(bool texcoords);
 
-    SharedPtr<ManualMesh> createSphere(float radius, uint rings = 25, uint segments = 25);
+    SharedPtr<CustomMesh> createSphere(float radius, uint rings = 25, uint segments = 25);
 
 private:
     bool with_normals_;

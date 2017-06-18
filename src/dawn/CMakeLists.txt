@@ -7,6 +7,7 @@ set(SOURCE_FILES
     core/Context.h
     core/EventSystem.cpp
     core/EventSystem.h
+    core/Exception.h
     core/FixedMemoryPool.h
     core/Log.cpp
     core/Log.h
@@ -62,12 +63,22 @@ set(SOURCE_FILES
     physics/PhysicsWorld.h
     platform/Defines.h
     platform/Windows.h
+    renderer/CustomMesh.cpp
+    renderer/CustomMesh.h
     renderer/EntityRenderer.cpp
     renderer/EntityRenderer.h
-    renderer/IndexBuffer.cpp
-    renderer/IndexBuffer.h
-    renderer/ManualMesh.cpp
-    renderer/ManualMesh.h
+    renderer/GL.h
+    renderer/GLFW.h
+    renderer/GLIndexBuffer.cpp
+    renderer/GLIndexBuffer.h
+    renderer/GLShader.cpp
+    renderer/GLShader.h
+    renderer/GLTexture.cpp
+    renderer/GLTexture.h
+    renderer/GLVertexBuffer.cpp
+    renderer/GLVertexBuffer.h
+    renderer/GLProgram.cpp
+    renderer/GLProgram.h
     renderer/Material.cpp
     renderer/Material.h
     renderer/Mesh.cpp
@@ -78,15 +89,12 @@ set(SOURCE_FILES
     renderer/Renderable.cpp
     renderer/Renderer.cpp
     renderer/Renderer.h
+    renderer/RenderTask.cpp
     renderer/RenderTask.h
-    renderer/ShaderProgram.cpp
-    renderer/ShaderProgram.h
-    renderer/Texture.cpp
-    renderer/Texture.h
     renderer/TriangleBuffer.cpp
     renderer/TriangleBuffer.h
-    renderer/VertexBuffer.cpp
-    renderer/VertexBuffer.h
+    renderer/Window.cpp
+    renderer/Window.h
     resource/Resource.cpp
     resource/Resource.h
     resource/ResourceCache.cpp

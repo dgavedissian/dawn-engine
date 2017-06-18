@@ -51,8 +51,9 @@ template <class T1, class T2> inline SharedPtr<T1> dynamicPointerCast(const Shar
 
 // Threads
 using Thread = std::thread;
+template <typename T> using Atomic = std::atomic<T>;
 using Mutex = std::mutex;
-using ScopedMutex = std::lock_guard<std::mutex>;
+using LockGuard = std::lock_guard<std::mutex>;
 
 // Stubs
 class Camera {};  // TODO(David) stub until ECS is integrated
@@ -67,6 +68,7 @@ class Camera {};  // TODO(David) stub until ECS is integrated
 
 // Common includes.
 #include "core/Context.h"
+#include "core/Exception.h"
 #include "core/Object.h"
 #include "core/Log.h"
 #include "core/EventSystem.h"

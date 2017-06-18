@@ -155,68 +155,10 @@ if(UNIX) # TODO: If is Clang or GCC
     add_definitions(-fPIC)
 endif()
 
-# bx (bgfx dependency)
-add_library(bx INTERFACE)
-target_include_directories(bx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/bx/include)
-if(MSVC)
-    target_include_directories(bx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/bx/include/compat/msvc)
-endif()
-
-# bgfx
-add_definitions(-DBGFX_CONFIG_RENDERER_OPENGL=33)
-if(APPLE)
-    add_library(bgfx EXCLUDE_FROM_ALL bgfx/src/amalgamated.mm)
-else()
-    add_library(bgfx EXCLUDE_FROM_ALL bgfx/src/amalgamated.cpp)
-endif()
-target_include_directories(bgfx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/include)
-target_include_directories(bgfx PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/khronos)
-target_link_libraries(bgfx bx)
-if(WIN32)
-    # psapi.lib is used by bx::getProcessMemoryUsed().
-    target_link_libraries(bgfx psapi.lib)
-elseif(APPLE)
-    find_library(COCOA_LIBRARY Cocoa)
-    find_library(FOUNDATION_LIBRARY Foundation)
-    target_link_libraries(bgfx ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY})
-endif()
-set(LIBS ${LIBS} bgfx)
-
-# shaderc (part of bgfx)
-set(BGFX_SHADERC_SRC
-    bgfx/tools/shaderc/shaderc.cpp
-    bgfx/tools/shaderc/shaderc_glsl.cpp
-    bgfx/tools/shaderc/shaderc_hlsl.cpp)
-file(GLOB BGFX_SHADERC_GLSL_OPTIMIZER_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
-    bgfx/3rdparty/fcpp/cpp*.c
-    bgfx/3rdparty/glsl-optimizer/src/glsl/glcpp/*.c
-    bgfx/3rdparty/glsl-optimizer/src/glsl/ast*.cpp
-    bgfx/3rdparty/glsl-optimizer/src/glsl/builtin*.cpp
-    bgfx/3rdparty/glsl-optimizer/src/glsl/glsl*.cpp
-    bgfx/3rdparty/glsl-optimizer/src/glsl/hir*.cpp
-    bgfx/3rdparty/glsl-optimizer/src/glsl/ir*.cpp
-    bgfx/3rdparty/glsl-optimizer/src/glsl/link*.cpp
-    bgfx/3rdparty/glsl-optimizer/src/glsl/loop*.cpp
-    bgfx/3rdparty/glsl-optimizer/src/glsl/lower*.cpp
-    bgfx/3rdparty/glsl-optimizer/src/glsl/opt*.cpp
-    bgfx/3rdparty/glsl-optimizer/src/glsl/standalone_scaffolding.cpp
-    bgfx/3rdparty/glsl-optimizer/src/glsl/s_expression.cpp
-    bgfx/3rdparty/glsl-optimizer/src/glsl/*.c
-    bgfx/3rdparty/glsl-optimizer/src/mesa/main/*.c
-    bgfx/3rdparty/glsl-optimizer/src/mesa/program/*.c
-    bgfx/3rdparty/glsl-optimizer/src/util/*.c)
-add_executable(shaderc ${BGFX_SHADERC_SRC} ${BGFX_SHADERC_GLSL_OPTIMIZER_SRC})
-enable_cpp11(shaderc)
-target_link_libraries(shaderc bx)
-target_include_directories(shaderc PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/fcpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/src/glsl
-    ${CMAKE_CURRENT_SOURCE_DIR}/bgfx/3rdparty/glsl-optimizer/src/mesa)
+# gl3w
+add_library(gl3w EXCLUDE_FROM_ALL gl3w/gl3w.c gl3w/GL/gl3w.h gl3w/GL/glcorearb.h)
+target_include_directories(gl3w PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gl3w)
+set(LIBS ${LIBS} gl3w)
 
 # enet
 add_subdirectory(enet EXCLUDE_FROM_ALL)
@@ -234,7 +176,6 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 add_subdirectory(glfw EXCLUDE_FROM_ALL)
 target_include_directories(glfw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
-#target_include_directories(glfw PRIVATE ${INCLUDE_DIRS})
 set(LIBS ${LIBS} glfw)
 
 # gtest

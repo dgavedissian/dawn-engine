@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "renderer/Window.h"
+
 namespace dw {
 
 class App;
@@ -24,8 +26,8 @@ public:
     void shutdown();
 
     /// Run the main loop
-    /// @param tickFunc Function to run every time the game logic is updated
-    void run(EngineTickCallback tickFunc);
+    /// @param tick_callback Function to run every time the game logic is updated
+    void run(EngineTickCallback tick_callback);
 
 private:
     bool initialised_;
@@ -35,7 +37,10 @@ private:
     String game_name_;
     String game_version_;
 
-    // Filenames
+    // Window.
+    UniquePtr<Window> window_;
+
+    // Configuration.
     String log_file_;
     String config_file_;
 

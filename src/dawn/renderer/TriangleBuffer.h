@@ -5,8 +5,8 @@
 #pragma once
 
 #include "math/Defs.h"
-#include "renderer/VertexBuffer.h"
-#include "renderer/IndexBuffer.h"
+#include "renderer/GLVertexBuffer.h"
+#include "renderer/GLIndexBuffer.h"
 
 namespace dw {
 class DW_API TriangleBuffer : public Object {
@@ -24,7 +24,7 @@ public:
     void begin();
 
     // Compile the vertex and index arrays into GPU buffers.
-    Pair<SharedPtr<VertexBuffer>, SharedPtr<IndexBuffer>> end();
+    Pair<SharedPtr<GLVertexBuffer>, SharedPtr<GLIndexBuffer>> end();
 
     // Add a vertex.
     void position(const Vec3& p);

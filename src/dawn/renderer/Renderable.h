@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/Material.h"
+#include "renderer/GLProgram.h"
 #include "ecs/Component.h"
 #include "renderer/RenderTask.h"
 
@@ -18,18 +18,18 @@ public:
 
     /// Returns the material of this Renderable.
     /// @return The material currently assigned to this Renderable.
-    Material* material() const;
+    GLProgram* material() const;
 
     /// Changes the material used to render this Renderable object.
     /// @param material The material to assign to this Renderable.
-    void setMaterial(SharedPtr<Material> material);
+    void setMaterial(SharedPtr<GLProgram> material);
 
     /// Generates a render task.
     /// @return A generated render task for this draw event.
     virtual RenderTask draw(const Mat4& modelMatrix) = 0;
 
 protected:
-    SharedPtr<Material> material_;
+    SharedPtr<GLProgram> material_;
 };
 
 struct RenderableComponent : public Component {

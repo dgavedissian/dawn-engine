@@ -14,11 +14,11 @@ Renderable::Renderable(Context* context) : Object(context) {
 Renderable::~Renderable() {
 }
 
-void Renderable::setMaterial(SharedPtr<Material> material) {
+void Renderable::setMaterial(SharedPtr<GLProgram> material) {
     material_ = material;
 }
 
-Material* Renderable::material() const {
+GLProgram* Renderable::material() const {
     return material_.get();
 }
 }  // namespace dw

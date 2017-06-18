@@ -19,7 +19,7 @@ public:
     Path tempDir() const;
 
     bool fileExists(const Path& path) const;
-    bool rename(const Path &oldname, const Path& newname) const;
+    bool rename(const Path& oldname, const Path& newname) const;
     bool deleteFile(const Path& path) const;
 };
 }  // namespace dw

@@ -7,7 +7,7 @@
 #include "ecs/SystemManager.h"
 #include "io/File.h"
 #include "renderer/MeshBuilder.h"
-#include "renderer/Material.h"
+#include "renderer/GLProgram.h"
 #include "resource/ResourceCache.h"
 #include "scene/Node.h"
 #include "scene/Parent.h"
@@ -55,9 +55,9 @@ public:
 
         // Create a node.
         node = makeUnique<Node>(context());
-        SharedPtr<Material> material =
-            makeShared<Material>(context(), rc->get<ShaderProgram>("shaders/bin/sphere.vs"),
-                                 rc->get<ShaderProgram>("shaders/bin/sphere.fs"));
+        SharedPtr<GLProgram> material =
+            makeShared<GLProgram>(context(), rc->get<GLShader>("shaders/bin/sphere.vs"),
+                                  rc->get<GLShader>("shaders/bin/sphere.fs"));
         node->setRenderable(
             MeshBuilder(context()).withNormals(false).withTexcoords(false).createSphere(10.0f));
         node->renderable()->setMaterial(material);

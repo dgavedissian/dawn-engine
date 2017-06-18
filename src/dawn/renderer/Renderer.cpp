@@ -5,22 +5,23 @@
 #include "Common.h"
 #include "renderer/Renderer.h"
 
-#include <bgfx/bgfx.h>
-
 namespace dw {
-Renderer::Renderer(Context* context) : Object{context}, width_{1280}, height_{800} {
-    bgfx::init(bgfx::RendererType::OpenGL);
-    bgfx::reset(width_, height_, BGFX_RESET_NONE);
+Renderer::Renderer(Context* context, Window* window)
+    : Object{context}, window_{window->window_}, should_exit_{false} {
+    render_thread_ = Thread{[this]() { renderThread(); }};
+}
 
-    // Set view 0 clear state.
-    bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
+Renderer::~Renderer() {
+    should_exit_ = true;
+    render_thread_.join();
 }
 
 void Renderer::pushRenderTask(RenderTask&& task) {
-    render_tasks_.emplace_back(task);
+    // render_tasks_.emplace_back(task);
 }
 
 void Renderer::frame() {
+    /*
     bgfx::setViewRect(0, 0, 0, width_, height_);
     for (auto task : render_tasks_) {
         // Set camera state.
@@ -43,5 +44,16 @@ void Renderer::frame() {
     }
     render_tasks_.clear();
     bgfx::frame();
+     */
+}
+
+void Renderer::renderThread() {
+    glfwMakeContextCurrent(window_);
+
+    // Enter event loop.
+    while (!should_exit_) {
+        // bgfx::renderFrame();
+        glfwSwapBuffers(window_);
+    }
 }
 }  // namespace dw

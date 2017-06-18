@@ -58,7 +58,7 @@ Path FileSystem::tempDir() const {
     ::GetTempPathA(MAX_PATH + 1, dir);
     return Path(dir);
 #else
-    char const *dir = ::getenv("TMPDIR");
+    char const* dir = ::getenv("TMPDIR");
     if (dir == 0) {
         dir = "/tmp";
     }
@@ -82,12 +82,12 @@ bool FileSystem::fileExists(const Path& path) const {
     return true;
 }
 
-bool FileSystem::rename(const Path &oldname, const Path& newname) const {
+bool FileSystem::rename(const Path& oldname, const Path& newname) const {
     // TODO(David): Error handling by errno
     return ::rename(oldname.c_str(), newname.c_str()) != 0;
 }
 
-bool FileSystem::deleteFile(const Path &path) const {
+bool FileSystem::deleteFile(const Path& path) const {
     return ::remove(path.c_str()) != 0;
 }
 }  // namespace dw

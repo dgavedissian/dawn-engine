@@ -11,7 +11,7 @@
 #pragma warning(push, 0)
 #endif
 
-#include <btBulletDynamicsCommon.h>
+#include <GL/gl3w.h>
 
 // Re-enable warnings
 #if defined(DW_MSVC)

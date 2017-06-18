@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "renderer/ManualMesh.h"
+#include "renderer/CustomMesh.h"
 #include "renderer/TriangleBuffer.h"
 #include "renderer/MeshBuilder.h"
 #include <Math/MathConstants.h>
@@ -26,7 +26,7 @@ MeshBuilder& MeshBuilder::withTexcoords(bool texcoords) {
     return *this;
 }
 
-SharedPtr<ManualMesh> MeshBuilder::createSphere(float radius, uint num_rings, uint num_segments) {
+SharedPtr<CustomMesh> MeshBuilder::createSphere(float radius, uint num_rings, uint num_segments) {
     TriangleBuffer buffer{context_};
 
     buffer.begin();
@@ -75,6 +75,6 @@ SharedPtr<ManualMesh> MeshBuilder::createSphere(float radius, uint num_rings, ui
 
     // Generate the mesh.
     auto builtMesh = buffer.end();
-    return makeShared<ManualMesh>(context_, builtMesh.first, builtMesh.second);
+    return makeShared<CustomMesh>(context_, builtMesh.first, builtMesh.second);
 }
 }  // namespace dw
