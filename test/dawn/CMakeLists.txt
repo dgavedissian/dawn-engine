@@ -2,6 +2,7 @@
 # Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
 
 set(TEST_FILES
+    io/FileSystemTest.cpp
     io/FileTest.cpp
     Testing.h)
 

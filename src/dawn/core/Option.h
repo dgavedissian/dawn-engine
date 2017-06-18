@@ -5,7 +5,6 @@
 #pragma once
 
 namespace dw {
-
 template <class T> class Option {
 public:
     Option();
