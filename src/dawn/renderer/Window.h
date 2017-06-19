@@ -12,7 +12,7 @@ class Window : public Object {
 public:
     DW_OBJECT(Window);
 
-    Window(Context* context, u16 width, u16 height, const String &title);
+    Window(Context* context, u16 width, u16 height, const String& title);
     ~Window();
 
     void pollEvents() const;
@@ -23,4 +23,4 @@ public:
 private:
     GLFWwindow* window_;
 };
-} // namespace dw
+}  // namespace dw

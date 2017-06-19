@@ -6,7 +6,7 @@
 #include "Window.h"
 
 namespace dw {
-Window::Window(Context *context, u16 width, u16 height, const String &title) : Object{context} {
+Window::Window(Context* context, u16 width, u16 height, const String& title) : Object{context} {
     // Initialise GLFW.
     if (!glfwInit()) {
         // TODO: report error correctly.
@@ -34,4 +34,4 @@ void Window::pollEvents() const {
 bool Window::shouldClose() const {
     return glfwWindowShouldClose(window_) != 0;
 }
-} // namespace dw
+}  // namespace dw
