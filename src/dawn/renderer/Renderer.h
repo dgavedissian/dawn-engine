@@ -15,12 +15,28 @@ using ShaderHandle = uint;
 using ProgramHandle = uint;
 using VertexBufferHandle = uint;
 
+// Handle generator.
+template <typename Handle>
+class HandleGenerator {
+public:
+    HandleGenerator() : next_{1} {
+    }
+    ~HandleGenerator() = default;
+
+    Handle next() {
+        return next_++;
+    }
+
+private:
+    Handle next_;
+};
+
 // Shader type.
 enum class ShaderType { VERTEX, FRAGMENT };
 
 // Render command.
 struct RenderCommand {
-    enum class Type { CreateShader };
+    enum class Type { CreateShader, CreateProgram };
 
     Type type;
     union {
@@ -33,6 +49,7 @@ struct RenderCommand {
 };
 
 // Low level renderer.
+// Based off: https://github.com/bkaradzic/bgfx/blob/master/src/bgfx_p.h#L2297
 class DW_API Renderer : public Object {
 public:
     DW_OBJECT(Renderer)
@@ -45,8 +62,11 @@ public:
 
     /// Create program.
     ProgramHandle createProgram();
+    void attachShader(ProgramHandle program, ShaderHandle shader);
+    void linkProgram();
 
-    /// Draw.
+    /// Draw. Based off: https://github.com/bkaradzic/bgfx/blob/master/src/bgfx.cpp#L854
+    void submit(ProgramHandle program);
 
     /// Push render task.
     void pushRenderTask(RenderTask&& task);
@@ -62,8 +82,8 @@ private:
     Thread render_thread_;
 
     // Main thread.
-    ShaderHandle next_shader_handle_;
-    ProgramHandle next_program_handle_;
+    HandleGenerator<ShaderHandle> shader_handle_;
+    HandleGenerator<ProgramHandle> program_handle_;
 
     // Shared.
     Atomic<bool> should_exit_;

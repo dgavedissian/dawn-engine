@@ -10,9 +10,6 @@ namespace dw {
 Renderer::Renderer(Context* context, Window* window)
     : Object{context},
       window_{window->window_},
-      next_shader_handle_{1},
-      next_program_handle_{1},
-      should_exit_{false},
       submit_command_buffer_{0},
       render_command_buffer_{1} {
     // Attach GL context to main thread.
@@ -31,7 +28,7 @@ Renderer::Renderer(Context* context, Window* window)
 }
 
 Renderer::~Renderer() {
-    should_exit_ = true;
+    should_exit_.store(true);
     render_thread_.join();
 }
 
@@ -67,7 +64,7 @@ void Renderer::frame() {
 }
 
 ShaderHandle Renderer::createShader(ShaderType type, const String& source) {
-    ShaderHandle handle = next_shader_handle_++;
+    ShaderHandle handle = shader_handle_.next();
     RenderCommand command;
     command.type = RenderCommand::Type::CreateShader;
     command.create_shader.handle = handle;
@@ -75,6 +72,22 @@ ShaderHandle Renderer::createShader(ShaderType type, const String& source) {
     command.create_shader.source = source;
     pushCommand(std::move(command));
     return handle;
+}
+
+ProgramHandle Renderer::createProgram() {
+    return 0;
+}
+
+void Renderer::attachShader(ProgramHandle program, ShaderHandle shader) {
+
+}
+
+void Renderer::linkProgram() {
+
+}
+
+void Renderer::submit(ProgramHandle program) {
+
 }
 
 void Renderer::pushCommand(RenderCommand command) {
@@ -89,7 +102,7 @@ void Renderer::renderThread() {
     log().info("[Renderer] OpenGL Renderer: %s", glGetString(GL_RENDERER));
 
     // Enter render loop.
-    while (!should_exit_) {
+    while (!should_exit_.load()) {
         glClearColor(0.0f, 0.05f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
