@@ -93,6 +93,8 @@ set(SOURCE_FILES
     renderer/RenderTask.h
     renderer/TriangleBuffer.cpp
     renderer/TriangleBuffer.h
+    renderer/VertexDecl.cpp
+    renderer/VertexDecl.h
     renderer/Window.cpp
     renderer/Window.h
     resource/Resource.cpp

@@ -6,6 +6,7 @@
 
 #include "renderer/RenderTask.h"
 #include "renderer/GL.h"
+#include "renderer/VertexDecl.h
 #include "Window.h"
 
 namespace dw {
@@ -32,7 +33,7 @@ private:
 };
 
 // Shader type.
-enum class ShaderType { VERTEX, FRAGMENT };
+enum class ShaderType { Vertex, Geometry, Fragment };
 
 // Render command.
 struct RenderCommand {
@@ -56,6 +57,9 @@ public:
 
     Renderer(Context* context, Window* window);
     ~Renderer();
+
+    /// Create vertex buffer.
+    VertexBufferHandle createVertexBuffer(const void* data, uint size, const VertexDecl& decl);
 
     /// Create shader.
     ShaderHandle createShader(ShaderType type, const String& source);

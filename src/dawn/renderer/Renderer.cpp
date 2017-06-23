@@ -4,7 +4,6 @@
  */
 #include "Common.h"
 #include "renderer/Renderer.h"
-#include "Renderer.h"
 
 namespace dw {
 Renderer::Renderer(Context* context, Window* window)
