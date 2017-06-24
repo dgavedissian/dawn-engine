@@ -26,7 +26,7 @@ DW_API String padString(const String& str, uint length);
 DW_API Vector<String>& split(const String& s, char delim, Vector<String>& elems);
 
 // Join a vector of strings
-DW_API String join(const Vector<String> &vec, const String &delim);
+DW_API String join(const Vector<String>& vec, const String& delim);
 
 DW_API String replace(String subject, const String& search, const String& replace);
 }  // namespace str

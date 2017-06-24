@@ -33,63 +33,72 @@ private:
 // Shader type.
 enum class ShaderType { Vertex, Geometry, Fragment };
 
-// Render command.
-struct RenderCommand {
-    enum class Type {
-        CreateVertexBuffer,
-        SetVertexBuffer,
-        DeleteVertexBuffer,
-        CreateIndexBuffer,
-        SetIndexBuffer,
-        DeleteIndexBuffer,
-        CreateShader,
-        DeleteShader,
-        CreateProgram,
-        AttachShader,
-        LinkProgram,
-        DeleteProgram,
-        CreateTexture2D,
-        SetTexture,
-        DeleteTexture,
-        Clear,
-        Submit
-    };
+// Memory.
+class Memory {
+public:
+    Memory(const void* data, uint size);
+    ~Memory();
 
-    Type type;
-    union {
-        struct {
-            VertexBufferHandle handle;
-            const byte* data;  // new
-            uint size;
-            VertexDecl* decl;  // new
-        } create_vertex_buffer;
-        struct {
-            VertexBufferHandle handle;
-        } set_vertex_buffer;
-        struct {
-            ShaderHandle handle;
-            ShaderType type;
-            const char* source;  // new
-        } create_shader;
-        struct {
-            ProgramHandle handle;
-        } create_program;
-        struct {
-            ProgramHandle handle;
-            ShaderHandle shader_handle;
-        } attach_shader;
-        struct {
-            ProgramHandle handle;
-        } link_program;
-        struct {
-            float colour[3];
-        } clear;
-        struct {
-            ProgramHandle handle;
-            uint vertex_count;
-        } submit;
-    };
+    // Non-copyable.
+    Memory(const Memory&) = delete;
+    Memory& operator=(const Memory&) = delete;
+
+    // Movable.
+    Memory(Memory&&);
+    Memory& operator=(Memory&&);
+
+    void* data() const;
+    uint size() const;
+
+private:
+    void* data_;
+    uint size_;
 };
+
+// Render command.
+namespace cmd {
+struct CreateVertexBuffer {
+    VertexBufferHandle handle;
+    Memory data;
+    VertexDecl decl;
+};
+
+struct SetVertexBuffer {
+    VertexBufferHandle handle;
+};
+
+struct CreateShader {
+    ShaderHandle handle;
+    ShaderType type;
+    const String source;
+};
+
+struct CreateProgram {
+    ProgramHandle handle;
+};
+
+struct AttachShader {
+    ProgramHandle handle;
+    ShaderHandle shader_handle;
+};
+
+struct LinkProgram {
+    ProgramHandle handle;
+};
+
+struct Clear {
+    Vec3 colour;
+};
+
+struct Submit {
+    ProgramHandle handle;
+    uint vertex_count;
+};
+}  // namespace cmd
+
+using RenderCommand =
+    Variant<cmd::CreateVertexBuffer, cmd::SetVertexBuffer, cmd::CreateShader, cmd::CreateProgram,
+            cmd::AttachShader, cmd::LinkProgram, cmd::Clear, cmd::Submit>;
 
 // Abstract rendering context.
 class DW_API RenderContext : public Object {
@@ -153,7 +162,7 @@ private:
     Vector<RenderCommand> command_buffer_[2];
     uint submit_command_buffer_;
     uint render_command_buffer_;
-    RenderCommand& addCommand(RenderCommand::Type type);
+    void addCommand(RenderCommand command);
 
     // Renderer.
     UniquePtr<RenderContext> r_render_context_;

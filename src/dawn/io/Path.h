@@ -24,4 +24,4 @@ using Path = String;
 //        }
 //        simplified_path = dw::str::join(new_path_components, "/");
 //    }
-}
+}  // namespace dw

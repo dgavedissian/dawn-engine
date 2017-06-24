@@ -7,7 +7,38 @@
 #include "renderer/api/GLRenderContext.h"
 
 namespace dw {
-RenderContext::RenderContext(Context *context) : Object{context} {
+Memory::Memory(const void *data, uint size) : data_{nullptr}, size_{size} {
+    data_ = new byte[size];
+    memcpy(data_, data, size);
+}
+
+Memory::~Memory() {
+    if (data_) {
+        delete[] data_;
+    }
+}
+
+Memory::Memory(Memory &&other) {
+    *this = std::move(other);
+}
+
+Memory& Memory::operator=(Memory&& other) {
+    data_ = other.data_;
+    size_ = other.size_;
+    other.data_ = nullptr;
+    other.size_ = 0;
+    return *this;
+}
+
+void *Memory::data() const {
+    return data_;
+}
+
+uint Memory::size() const {
+    return size_;
+}
+
+RenderContext::RenderContext(Context* context) : Object{context} {
 }
 
 Renderer::Renderer(Context* context, Window* window)
@@ -82,60 +113,45 @@ void Renderer::frame() {
 
 VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size,
                                                 const VertexDecl& decl) {
-    auto& command = addCommand(RenderCommand::Type::CreateVertexBuffer);
-    byte* copied_data = new byte[size];
-    memcpy(copied_data, data, size);
-    command.create_vertex_buffer = {vertex_buffer_handle_.next(), copied_data, size,
-                                    new VertexDecl{decl}};
-    return command.create_vertex_buffer.handle;
+    auto handle = vertex_buffer_handle_.next();
+    addCommand(cmd::CreateVertexBuffer{handle, Memory{data, size}, decl});
+    return handle;
 }
 
 void Renderer::setVertexBuffer(VertexBufferHandle handle) {
-    auto& command = addCommand(RenderCommand::Type::SetVertexBuffer);
-    command.set_vertex_buffer = {handle};
+    addCommand(cmd::SetVertexBuffer{handle});
 }
 
 ShaderHandle Renderer::createShader(ShaderType type, const String& source) {
-    auto& command = addCommand(RenderCommand::Type::CreateShader);
-    char* source_data = new char[source.size() + 1];
-    memcpy(source_data, source.c_str(), source.size() + 1);
-    command.create_shader = {shader_handle_.next(), type, source_data};
-    return command.create_shader.handle;
+    auto handle = shader_handle_.next();
+    addCommand(cmd::CreateShader{handle, type, source});
+    return handle;
 }
 
 ProgramHandle Renderer::createProgram() {
-    auto& command = addCommand(RenderCommand::Type::CreateProgram);
-    command.create_program = {program_handle_.next()};
-    return command.create_program.handle;
+    auto handle = program_handle_.next();
+    addCommand(cmd::CreateProgram{handle});
+    return handle;
 }
 
 void Renderer::attachShader(ProgramHandle program, ShaderHandle shader) {
-    auto& command = addCommand(RenderCommand::Type::AttachShader);
-    command.attach_shader = {program, shader};
+    addCommand(cmd::AttachShader{program, shader});
 }
 
 void Renderer::linkProgram(ProgramHandle program) {
-    auto& command = addCommand(RenderCommand::Type::LinkProgram);
-    command.link_program = {program};
+    addCommand(cmd::LinkProgram{program});
 }
 
 void Renderer::clear(const Vec3& colour) {
-    auto& command = addCommand(RenderCommand::Type::Clear);
-    command.clear.colour[0] = colour.x;
-    command.clear.colour[1] = colour.y;
-    command.clear.colour[2] = colour.z;
+    addCommand(cmd::Clear{colour});
 }
 
 void Renderer::submit(ProgramHandle program, uint vertex_count) {
-    auto& command = addCommand(RenderCommand::Type::Submit);
-    command.submit = {program, vertex_count};
+    addCommand(cmd::Submit{program, vertex_count});
 }
 
-RenderCommand& Renderer::addCommand(RenderCommand::Type type) {
-    command_buffer_[submit_command_buffer_].emplace_back();
-    auto& command = command_buffer_[submit_command_buffer_].back();
-    command.type = type;
-    return command;
+void Renderer::addCommand(RenderCommand command) {
+    command_buffer_[submit_command_buffer_].emplace_back(std::move(command));
 }
 
 void Renderer::renderThread() {

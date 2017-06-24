@@ -211,6 +211,11 @@ add_library(tinyformat INTERFACE)
 target_include_directories(tinyformat INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tinyformat)
 set(LIBS ${LIBS} tinyformat)
 
+# variant
+add_library(variant INTERFACE)
+target_include_directories(variant INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/variant)
+set(LIBS ${LIBS} variant)
+
 
 ##############################################################
 # Push dependencies to the parent scope

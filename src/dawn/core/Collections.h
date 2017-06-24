@@ -10,6 +10,8 @@
 #include <map>
 #include <unordered_map>
 
+#include <variant>
+
 namespace dw {
 template <class T, int N> using Array = std::array<T, N>;
 template <class T> using Vector = std::vector<T>;
@@ -18,6 +20,7 @@ template <class K, class T> using Map = std::map<K, T>;
 template <class K, class T> using HashMap = std::unordered_map<K, T>;
 template <class T1, class T2> using Pair = std::pair<T1, T2>;
 template <class... T> using Tuple = std::tuple<T...>;
+template <typename... T> using Variant = std::experimental::variant<T...>;
 
 template <class T1, class T2> inline Pair<T1, T2> makePair(T1&& a, T2&& b) {
     return std::pair<T1, T2>(std::forward<T1>(a), std::forward<T2>(b));

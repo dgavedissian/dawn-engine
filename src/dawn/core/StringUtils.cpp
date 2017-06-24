@@ -67,7 +67,7 @@ Vector<String>& split(const String& s, char delim, Vector<String>& elems) {
     return elems;
 }
 
-String join(const Vector<String> &vec, const String &delim) {
+String join(const Vector<String>& vec, const String& delim) {
     String out;
     for (uint i = 0; i < vec.size() - 1; ++i) {
         out += vec[i] + delim;
