@@ -6,7 +6,7 @@
 
 #include "renderer/RenderTask.h"
 #include "renderer/GL.h"
-#include "renderer/VertexDecl.h
+#include "renderer/VertexDecl.h"
 #include "Window.h"
 
 namespace dw {
@@ -17,8 +17,7 @@ using ProgramHandle = uint;
 using VertexBufferHandle = uint;
 
 // Handle generator.
-template <typename Handle>
-class HandleGenerator {
+template <typename Handle> class HandleGenerator {
 public:
     HandleGenerator() : next_{1} {
     }
@@ -37,15 +36,46 @@ enum class ShaderType { Vertex, Geometry, Fragment };
 
 // Render command.
 struct RenderCommand {
-    enum class Type { CreateShader, CreateProgram };
+    enum class Type {
+        CreateVertexBuffer,
+        SetVertexBuffer,
+        CreateShader,
+        CreateProgram,
+        AttachShader,
+        LinkProgram,
+        Submit
+    };
 
     Type type;
     union {
         struct {
+            VertexBufferHandle handle;
+            const byte* data;  // new
+            uint size;
+            VertexDecl* decl;  // new
+        } create_vertex_buffer;
+        struct {
+            VertexBufferHandle handle;
+        } set_vertex_buffer;
+        struct {
             ShaderHandle handle;
             ShaderType type;
-            String source;
+            const char* source;  // new
         } create_shader;
+        struct {
+            ProgramHandle handle;
+        } create_program;
+        struct {
+            ProgramHandle handle;
+            ShaderHandle shader_handle;
+        } attach_shader;
+        struct {
+            ProgramHandle handle;
+        } link_program;
+        struct {
+            ProgramHandle handle;
+            uint vertex_count;
+        } submit;
     };
 };
 
@@ -60,6 +90,7 @@ public:
 
     /// Create vertex buffer.
     VertexBufferHandle createVertexBuffer(const void* data, uint size, const VertexDecl& decl);
+    void setVertexBuffer(VertexBufferHandle handle);
 
     /// Create shader.
     ShaderHandle createShader(ShaderType type, const String& source);
@@ -67,10 +98,10 @@ public:
     /// Create program.
     ProgramHandle createProgram();
     void attachShader(ProgramHandle program, ShaderHandle shader);
-    void linkProgram();
+    void linkProgram(ProgramHandle program);
 
     /// Draw. Based off: https://github.com/bkaradzic/bgfx/blob/master/src/bgfx.cpp#L854
-    void submit(ProgramHandle program);
+    void submit(ProgramHandle program, uint vertex_count);
 
     /// Push render task.
     void pushRenderTask(RenderTask&& task);
@@ -86,20 +117,29 @@ private:
     Thread render_thread_;
 
     // Main thread.
+    HandleGenerator<VertexBufferHandle> vertex_buffer_handle_;
     HandleGenerator<ShaderHandle> shader_handle_;
     HandleGenerator<ProgramHandle> program_handle_;
 
     // Shared.
     Atomic<bool> should_exit_;
+    Mutex submit_lock_;
+    Mutex render_lock_;
     Vector<RenderCommand> command_buffer_[2];
     uint submit_command_buffer_;
     uint render_command_buffer_;
 
     // Render thread.
+    struct VertexBuffer {
+        GLuint vbo;
+        Vector<u16> encoded_decl;
+    };
+    HashMap<VertexBufferHandle, GLuint> r_vertex_buffer_map_;
     HashMap<ShaderHandle, GLuint> r_shader_map_;
     HashMap<ProgramHandle, GLuint> r_program_map_;
 
-    void pushCommand(RenderCommand command);
+    RenderCommand& addCommand(RenderCommand::Type type);
     void renderThread();
+    void processCommand(RenderCommand& command);
 };
 }  // namespace dw

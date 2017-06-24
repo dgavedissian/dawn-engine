@@ -24,10 +24,14 @@ Renderer::Renderer(Context* context, Window* window)
 
     // Spawn render thread.
     render_thread_ = Thread{[this]() { renderThread(); }};
+
+    // Acquire submit lock.
+    submit_lock_.lock();
 }
 
 Renderer::~Renderer() {
     should_exit_.store(true);
+    submit_lock_.unlock();  // Allow the render thread to exit.
     render_thread_.join();
 }
 
@@ -60,37 +64,63 @@ void Renderer::frame() {
     render_tasks_.clear();
     bgfx::frame();
      */
+
+    // Synchronise with rendering thread.
+    submit_lock_.unlock();  // Signal to render thread that we are done with cmd buffer.
+    render_lock_.lock();    // Block until buffer swap is complete.
+    render_lock_.unlock();  // Allow render thread to continue once signalled that swap is done.
+    submit_lock_.lock();    // Reacquire lock to submit cmd buffer so render thread waits for us.
+}
+
+VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size,
+                                                const VertexDecl& decl) {
+    auto& command = addCommand(RenderCommand::Type::CreateVertexBuffer);
+    byte* copied_data = new byte[size];
+    memcpy(copied_data, data, size);
+    command.create_vertex_buffer = {vertex_buffer_handle_.next(), copied_data, size,
+                                    new VertexDecl{decl}};
+    return command.create_vertex_buffer.handle;
+}
+
+void Renderer::setVertexBuffer(VertexBufferHandle handle) {
+    auto& command = addCommand(RenderCommand::Type::SetVertexBuffer);
+    command.set_vertex_buffer = {handle};
 }
 
 ShaderHandle Renderer::createShader(ShaderType type, const String& source) {
-    ShaderHandle handle = shader_handle_.next();
-    RenderCommand command;
-    command.type = RenderCommand::Type::CreateShader;
-    command.create_shader.handle = handle;
-    command.create_shader.type = type;
-    command.create_shader.source = source;
-    pushCommand(std::move(command));
-    return handle;
+    auto& command = addCommand(RenderCommand::Type::CreateShader);
+    char* source_data = new char[source.size() + 1];
+    memcpy(source_data, source.c_str(), source.size() + 1);
+    command.create_shader = {shader_handle_.next(), type, source_data};
+    return command.create_shader.handle;
 }
 
 ProgramHandle Renderer::createProgram() {
-    return 0;
+    auto& command = addCommand(RenderCommand::Type::CreateProgram);
+    command.create_program = {program_handle_.next()};
+    return command.create_program.handle;
 }
 
 void Renderer::attachShader(ProgramHandle program, ShaderHandle shader) {
-
+    auto& command = addCommand(RenderCommand::Type::AttachShader);
+    command.attach_shader = {program, shader};
 }
 
-void Renderer::linkProgram() {
-
+void Renderer::linkProgram(ProgramHandle program) {
+    auto& command = addCommand(RenderCommand::Type::LinkProgram);
+    command.link_program = {program};
 }
 
-void Renderer::submit(ProgramHandle program) {
-
+void Renderer::submit(ProgramHandle program, uint vertex_count) {
+    auto& command = addCommand(RenderCommand::Type::Submit);
+    command.submit = {program, vertex_count};
 }
 
-void Renderer::pushCommand(RenderCommand command) {
-    command_buffer_[submit_command_buffer_].emplace_back(std::move(command));
+RenderCommand& Renderer::addCommand(RenderCommand::Type type) {
+    command_buffer_[submit_command_buffer_].emplace_back();
+    auto& command = command_buffer_[submit_command_buffer_].back();
+    command.type = type;
+    return command;
 }
 
 void Renderer::renderThread() {
@@ -101,19 +131,164 @@ void Renderer::renderThread() {
     log().info("[Renderer] OpenGL Renderer: %s", glGetString(GL_RENDERER));
 
     // Enter render loop.
+    render_lock_.lock();
     while (!should_exit_.load()) {
-        glClearColor(0.0f, 0.05f, 0.2f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Drain command buffer.
-        // TODO.
-
-        // Swap command buffers.
-        std::swap(submit_command_buffer_, render_command_buffer_);
-        command_buffer_[submit_command_buffer_].clear();
+        for (auto& command : command_buffer_[render_command_buffer_]) {
+            processCommand(command);
+        }
+        command_buffer_[render_command_buffer_].clear();
 
         // Swap buffers.
         glfwSwapBuffers(window_);
+
+        // Wait for submit thread.
+        submit_lock_.lock();
+
+        // Swap command buffers.
+        std::swap(submit_command_buffer_, render_command_buffer_);
+
+        // Unblock submit thread.
+        submit_lock_.unlock();  // Allow submit thread to reacquire it's lock.
+        render_lock_.unlock();  // Unblock submit thread by signalling that swap is complete.
+        render_lock_.lock();    // Reacquire.
     }
 }
+
+#define CHECK(X) __CHECK(X, __FILE__, __LINE__)
+#define __CHECK(X, FILE, LINE)                                    \
+    X;                                                            \
+    {                                                             \
+        GLuint err = glGetError();                                \
+        if (err != 0) {                                           \
+            log().error("glGetError() returned %s", err);         \
+            log().error("Function: %s in %s:%s", #X, FILE, LINE); \
+            exit(EXIT_FAILURE);                                   \
+        }                                                         \
+    }
+
+void Renderer::processCommand(RenderCommand& command) {
+    switch (command.type) {
+        case RenderCommand::Type::CreateVertexBuffer: {
+            auto& c = command.create_vertex_buffer;
+
+            // Create vertex array object.
+            GLuint vao;
+            glGenVertexArrays(1, &vao);
+            glBindVertexArray(vao);
+
+            // Create vertex buffer object.
+            GLuint vbo;
+            glGenBuffers(1, &vbo);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBufferData(GL_ARRAY_BUFFER, c.size, c.data, GL_STATIC_DRAW);
+            delete[] c.data;
+
+            // Set up vertex array attributes.
+            static HashMap<VertexDecl::AttributeType, GLenum> attribute_type_map = {
+                {VertexDecl::AttributeType::Float, GL_FLOAT},
+                {VertexDecl::AttributeType::Uint8, GL_UNSIGNED_BYTE}};
+            u16 attrib_counter = 0;
+            for (auto& attrib : c.decl->attributes_) {
+                // Decode attribute.
+                VertexDecl::Attribute attribute;
+                uint count;
+                VertexDecl::AttributeType type;
+                VertexDecl::decodeAttributes(attrib.first, attribute, count, type);
+
+                // Convert type.
+                auto gl_type = attribute_type_map.find(type);
+                if (gl_type == attribute_type_map.end()) {
+                    log().warn("[renderer] Unknown attribute type: %i", (uint)type);
+                    continue;
+                }
+
+                log().info("%s %s %s %s %s", attrib_counter, count, (int)gl_type->first,
+                           c.decl->stride_, attrib.second);
+
+                // Set attribute.
+                glEnableVertexAttribArray(attrib_counter);
+                CHECK(glVertexAttribPointer(attrib_counter, count, gl_type->second, GL_TRUE,
+                                            c.decl->stride_, attrib.second));
+                attrib_counter++;
+            }
+            delete c.decl;
+            r_vertex_buffer_map_.emplace(c.handle, vao);
+            break;
+        }
+        case RenderCommand::Type::SetVertexBuffer: {
+            auto& c = command.set_vertex_buffer;
+            glBindVertexArray(r_vertex_buffer_map_[c.handle]);
+            break;
+        }
+        case RenderCommand::Type::CreateShader: {
+            auto& c = command.create_shader;
+            static HashMap<ShaderType, GLenum> shader_type_map = {
+                {ShaderType::Vertex, GL_VERTEX_SHADER},
+                {ShaderType::Geometry, GL_GEOMETRY_SHADER},
+                {ShaderType::Fragment, GL_FRAGMENT_SHADER}};
+            GLuint shader = glCreateShader(shader_type_map[c.type]);
+            glShaderSource(shader, 1, &c.source, nullptr);
+            glCompileShader(shader);
+
+            // Check compilation result.
+            GLint result;
+            glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
+            if (result == GL_FALSE) {
+                int infoLogLength;
+                glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+                char* errorMessage = new char[infoLogLength];
+                glGetShaderInfoLog(shader, infoLogLength, NULL, errorMessage);
+                log().error("Shader Compile Error: %s", errorMessage);
+                delete[] errorMessage;
+
+                // TODO: Error
+            }
+
+            r_shader_map_.emplace(c.handle, shader);
+            delete c.source;
+            break;
+        }
+        case RenderCommand::Type::CreateProgram: {
+            auto& c = command.create_program;
+            GLuint program = glCreateProgram();
+            r_program_map_.emplace(c.handle, program);
+            break;
+        }
+        case RenderCommand::Type::AttachShader: {
+            auto& c = command.attach_shader;
+            glAttachShader(r_program_map_[c.handle], r_shader_map_[c.shader_handle]);
+            break;
+        }
+        case RenderCommand::Type::LinkProgram: {
+            auto& c = command.link_program;
+            GLuint program = r_program_map_[c.handle];
+            glLinkProgram(program);
+
+            // Check the result of the link process.
+            GLint result = GL_FALSE;
+            glGetProgramiv(program, GL_LINK_STATUS, &result);
+            if (result == GL_FALSE) {
+                int infoLogLength;
+                glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
+                char* errorMessage = new char[infoLogLength];
+                glGetProgramInfoLog(program, infoLogLength, NULL, errorMessage);
+                log().error("Shader Link Error: %s", errorMessage);
+                delete[] errorMessage;
+            }
+            break;
+        }
+        case RenderCommand::Type::Submit: {
+            auto& c = command.submit;
+            glUseProgram(r_program_map_[c.handle]);
+            glDrawArrays(GL_TRIANGLES, 0, c.vertex_count);
+            break;
+        }
+    }
+}
+
 }  // namespace dw

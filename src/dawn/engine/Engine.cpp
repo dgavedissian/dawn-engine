@@ -151,6 +151,7 @@ void Engine::run(EngineTickCallback tick_callback) {
         }
 
         // Update game logic.
+        tick_callback(0.01f);
         while (accumulator >= dt) {
             update(dt);
             tick_callback(dt);
