@@ -39,7 +39,7 @@ endif()
 # Helpful functions
 ###############################################
 
-function(add_game GAME_NAME SOURCE_FILES SHADER_SOURCE_FILES)
+function(add_game GAME_NAME SOURCE_FILES)
     # Executable type
     if(WIN32)
         set(TYPE WIN32)
@@ -64,8 +64,6 @@ function(add_game GAME_NAME SOURCE_FILES SHADER_SOURCE_FILES)
     target_link_libraries(${GAME_NAME} Dawn)
     set_output_dir(${GAME_NAME} ${CMAKE_SOURCE_DIR}/bin)
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
-
-    # Compile shaders
 
     # Currently, Dawn can only be linked dynamically
     #set_target_properties(${GAME_NAME} PROPERTIES COMPILE_FLAGS "-DDW_DLL")

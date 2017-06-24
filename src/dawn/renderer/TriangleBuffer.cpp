@@ -3,8 +3,8 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "renderer/GLVertexBuffer.h"
-#include "renderer/GLIndexBuffer.h"
+#include "renderer/VertexBuffer.h"
+#include "renderer/IndexBuffer.h"
 #include "renderer/TriangleBuffer.h"
 
 namespace dw {
@@ -27,8 +27,8 @@ void TriangleBuffer::begin() {
     mIndices.clear();
 }
 
-Pair<SharedPtr<GLVertexBuffer>, SharedPtr<GLIndexBuffer>> TriangleBuffer::end() {
-    SharedPtr<GLVertexBuffer> vb;
+Pair<SharedPtr<VertexBuffer>, SharedPtr<GLIndexBuffer>> TriangleBuffer::end() {
+    SharedPtr<VertexBuffer> vb;
     SharedPtr<GLIndexBuffer> ib;
     // TODO.
     return {vb, ib};

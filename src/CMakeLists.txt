@@ -7,6 +7,9 @@ add_subdirectory(external)
 message("========== DAWN ENGINE ==========")
 add_subdirectory(dawn)
 
+message("========== RENDERER TEST ==========")
+add_subdirectory(renderer-test)
+
 message("========== SANDBOX ==========")
 add_subdirectory(sandbox)
 

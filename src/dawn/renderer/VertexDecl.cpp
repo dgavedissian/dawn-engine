@@ -14,8 +14,8 @@ VertexDecl& VertexDecl::begin() {
 }
 
 VertexDecl& VertexDecl::add(VertexDecl::Attribute attribute, uint count,
-                            VertexDecl::AttributeType type) {
-    attributes_.emplace_back(makePair(encodeAttributes(attribute, count, type),
+                            VertexDecl::AttributeType type, bool normalised) {
+    attributes_.emplace_back(makePair(encodeAttributes(attribute, count, type, normalised),
                                       reinterpret_cast<void*>(static_cast<uintptr_t>(stride_))));
     stride_ += count * getAttributeTypeSize(type);
     return *this;
@@ -26,22 +26,26 @@ VertexDecl& VertexDecl::end() {
 }
 
 u16 VertexDecl::encodeAttributes(VertexDecl::Attribute attribute, uint count,
-                                 VertexDecl::AttributeType type) {
+                                 VertexDecl::AttributeType type, bool normalised) {
     // Attribute: 7
     // Count: 3
-    // AttributeType: 6
-    return static_cast<u16>(static_cast<u16>(attribute) << 9 |
-                            (static_cast<u16>(count) & 0x7) << 6 | (static_cast<u16>(type) & 0x7F));
+    // AttributeType: 5
+    // Normalised: 1
+    return static_cast<u16>((static_cast<u16>(attribute) << 9) |
+                            ((static_cast<u16>(count) & 0x7) << 6) |
+                            ((static_cast<u16>(type) & 0x3F) << 1) | (normalised ? 1 : 0));
 }
 
 void VertexDecl::decodeAttributes(u16 encoded_attribute, Attribute& attribute, uint& count,
-                                  AttributeType& type) {
+                                  AttributeType& type, bool& normalised) {
     // Attribute: 7
     // Count: 3
-    // AttributeType: 6
+    // AttributeType: 5
+    // Normalised: 1
     attribute = static_cast<Attribute>(encoded_attribute >> 9);
     count = static_cast<uint>((encoded_attribute >> 6) & 0x7);
-    type = static_cast<AttributeType>(encoded_attribute & 0x7F);
+    type = static_cast<AttributeType>((encoded_attribute >> 1) & 0x3F);
+    normalised = (encoded_attribute & 0x1) == 1;
 }
 
 uint VertexDecl::getAttributeTypeSize(AttributeType type) {

@@ -23,7 +23,11 @@ Renderer::Renderer(Context* context, Window* window)
     glfwMakeContextCurrent(nullptr);
 
     // Spawn render thread.
-    render_thread_ = Thread{[this]() { renderThread(); }};
+    should_exit_.store(false);
+    render_thread_ = Thread{[this]() {
+        render_lock_.lock();
+        renderThread();
+    }};
 
     // Acquire submit lock.
     submit_lock_.lock();
@@ -131,7 +135,6 @@ void Renderer::renderThread() {
     log().info("[Renderer] OpenGL Renderer: %s", glGetString(GL_RENDERER));
 
     // Enter render loop.
-    render_lock_.lock();
     while (!should_exit_.load()) {
         glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -197,7 +200,8 @@ void Renderer::processCommand(RenderCommand& command) {
                 VertexDecl::Attribute attribute;
                 uint count;
                 VertexDecl::AttributeType type;
-                VertexDecl::decodeAttributes(attrib.first, attribute, count, type);
+                bool normalised;
+                VertexDecl::decodeAttributes(attrib.first, attribute, count, type, normalised);
 
                 // Convert type.
                 auto gl_type = attribute_type_map.find(type);
@@ -211,8 +215,9 @@ void Renderer::processCommand(RenderCommand& command) {
 
                 // Set attribute.
                 glEnableVertexAttribArray(attrib_counter);
-                CHECK(glVertexAttribPointer(attrib_counter, count, gl_type->second, GL_TRUE,
-                                            c.decl->stride_, attrib.second));
+                CHECK(glVertexAttribPointer(attrib_counter, count, gl_type->second,
+                                            normalised ? GL_TRUE : GL_FALSE, c.decl->stride_,
+                                            attrib.second));
                 attrib_counter++;
             }
             delete c.decl;

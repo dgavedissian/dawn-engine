@@ -19,7 +19,7 @@ int runApp(UniquePtr<App> app, int argc, char** argv) {
     // App lifecycle.
     app->context_ = engine.context();
     app->init(argc, argv);
-    engine.run([&app](float dt) { app->update(dt); });
+    engine.run([&app](float dt) { app->update(dt); }, [&app] { app->render(); });
     app->shutdown();
     app.reset();
 

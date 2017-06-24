@@ -76,12 +76,10 @@ public:
     void saveConfig(const String& configFile);
 
     /// Get the base path of the application.
-    /// @deprecated in favour of the "engine/base_path" setting.
-    DEPRECATED const String& basePath() const;
+    const String& basePath() const;
 
     /// Get the preferences path of the application.
-    /// @deprecated in favour of the "engine/pref_path" setting.
-    DEPRECATED const String& prefPath() const;
+    const String& prefPath() const;
 
 private:
     HashMap<StringHash, UniquePtr<Object>> subsystems_;

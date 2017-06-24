@@ -4,16 +4,16 @@
  */
 #include "Common.h"
 #include "io/InputStream.h"
-#include "renderer/GLShader.h"
+#include "renderer/Shader.h"
 
 namespace dw {
-GLShader::GLShader(Context* context) : Resource{context}, src_data_{nullptr}, src_len_{0} {
+Shader::Shader(Context* context) : Resource{context}, src_data_{nullptr}, src_len_{0} {
 }
 
-GLShader::~GLShader() {
+Shader::~Shader() {
 }
 
-bool GLShader::beginLoad(InputStream& src) {
+bool Shader::beginLoad(InputStream& src) {
     // TODO(David): Sanity checking here?
     src_len_ = static_cast<u32>(src.getSize());
     assert(src_len_ != 0);
@@ -26,14 +26,14 @@ bool GLShader::beginLoad(InputStream& src) {
     return true;
 }
 
-void GLShader::endLoad() {
+void Shader::endLoad() {
     // Create bgfx shader and free memory
     //    handle_ = bgfx::createShader(bgfx::makeRef(src_data_, src_len_));
     delete[] src_data_;
     src_data_ = nullptr;
 }
 
-// bgfx::ShaderHandle GLShader::internalHandle() const {
-//    return handle_;
-//}
+ShaderHandle Shader::internalHandle() const {
+    return handle_;
+}
 }  // namespace dw

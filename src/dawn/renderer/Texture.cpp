@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "renderer/GLTexture.h"
+#include "renderer/Texture.h"
 
 #if defined(DW_MSVC)
 #pragma warning(push)
@@ -35,13 +35,13 @@ int imageCallbackEof(void* user) {
 }
 }  // namespace
 
-GLTexture::GLTexture(Context* context) : Resource(context) {
+Texture::Texture(Context* context) : Resource(context) {
 }
 
-GLTexture::~GLTexture() {
+Texture::~Texture() {
 }
 
-bool GLTexture::beginLoad(InputStream& src) {
+bool Texture::beginLoad(InputStream& src) {
     stbi_io_callbacks callbacks = {
         &imageCallbackRead, &imageCallbackSkip, &imageCallbackEof,
     };
@@ -56,10 +56,10 @@ bool GLTexture::beginLoad(InputStream& src) {
     return true;
 }
 
-void GLTexture::endLoad() {
+void Texture::endLoad() {
 }
 
-// bgfx::TextureHandle GLTexture::internalHandle() const {
+// bgfx::TextureHandle Texture::internalHandle() const {
 //    return handle_;
 //}
 }  // namespace dw

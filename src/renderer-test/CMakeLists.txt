@@ -4,4 +4,4 @@
 set(SOURCE_FILES
     Main.cpp)
 
-add_game(Sandbox "${SOURCE_FILES}")
+add_game(RendererTest "${SOURCE_FILES}")

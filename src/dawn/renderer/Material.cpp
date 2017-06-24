@@ -17,7 +17,7 @@ Material::Material(Context* context, SharedPtr<GLProgram> program)
 Material::~Material() {
 }
 
-void Material::setTextureUnit(SharedPtr<GLTexture> texture, uint unit) {
+void Material::setTextureUnit(SharedPtr<Texture> texture, uint unit) {
     program_->setTextureUnit(texture, unit);
 }
 }  // namespace dw

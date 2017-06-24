@@ -5,15 +5,15 @@
 #pragma once
 
 #include "resource/Resource.h"
-#include "renderer/GL.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
-class DW_API GLTexture : public Resource {
+class DW_API Texture : public Resource {
 public:
-    DW_OBJECT(GLTexture);
+    DW_OBJECT(Texture);
 
-    GLTexture(Context* context);
-    ~GLTexture();
+    Texture(Context* context);
+    ~Texture();
 
     bool beginLoad(InputStream& src) override;
     void endLoad() override;

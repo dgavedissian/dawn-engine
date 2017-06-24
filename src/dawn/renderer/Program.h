@@ -7,21 +7,21 @@
 #include "core/Option.h"
 #include "math/Defs.h"
 #include "renderer/GL.h"
-#include "renderer/GLShader.h"
-#include "renderer/GLTexture.h"
+#include "renderer/Shader.h"
+#include "renderer/Texture.h"
 
 namespace dw {
 class DW_API GLProgram : public Resource {
 public:
     DW_OBJECT(GLProgram);
 
-    GLProgram(Context* context, SharedPtr<GLShader> vs, SharedPtr<GLShader> fs);
+    GLProgram(Context* context, SharedPtr<Shader> vs, SharedPtr<Shader> fs);
     ~GLProgram();
 
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
 
-    void setTextureUnit(SharedPtr<GLTexture> texture, uint unit = 0);
+    void setTextureUnit(SharedPtr<Texture> texture, uint unit = 0);
 
     template <typename T> void setUniform(const String& name, const T& value) {
     }
@@ -35,9 +35,9 @@ private:
     //
     //    HashMap<String, Pair<bgfx::UniformHandle, bgfx::UniformType::Enum>> uniform_handle_table_;
 
-    SharedPtr<GLShader> vertex_shader_;
-    SharedPtr<GLShader> fragment_shader_;
-    Array<SharedPtr<GLTexture>, 8> texture_units_;
+    SharedPtr<Shader> vertex_shader_;
+    SharedPtr<Shader> fragment_shader_;
+    Array<SharedPtr<Texture>, 8> texture_units_;
 
     //    bgfx::ProgramHandle handle_;
 };

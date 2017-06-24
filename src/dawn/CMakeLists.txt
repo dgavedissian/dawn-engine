@@ -69,30 +69,30 @@ set(SOURCE_FILES
     renderer/EntityRenderer.h
     renderer/GL.h
     renderer/GLFW.h
-    renderer/GLIndexBuffer.cpp
-    renderer/GLIndexBuffer.h
-    renderer/GLShader.cpp
-    renderer/GLShader.h
-    renderer/GLTexture.cpp
-    renderer/GLTexture.h
-    renderer/GLVertexBuffer.cpp
-    renderer/GLVertexBuffer.h
-    renderer/GLProgram.cpp
-    renderer/GLProgram.h
+    renderer/IndexBuffer.cpp
+    renderer/IndexBuffer.h
     renderer/Material.cpp
     renderer/Material.h
     renderer/Mesh.cpp
     renderer/Mesh.h
     renderer/MeshBuilder.cpp
     renderer/MeshBuilder.h
+    renderer/Program.cpp
+    renderer/Program.h
     renderer/Renderable.h
     renderer/Renderable.cpp
     renderer/Renderer.cpp
     renderer/Renderer.h
     renderer/RenderTask.cpp
     renderer/RenderTask.h
+    renderer/Shader.cpp
+    renderer/Shader.h
+    renderer/Texture.cpp
+    renderer/Texture.h
     renderer/TriangleBuffer.cpp
     renderer/TriangleBuffer.h
+    renderer/VertexBuffer.cpp
+    renderer/VertexBuffer.h
     renderer/VertexDecl.cpp
     renderer/VertexDecl.h
     renderer/Window.cpp

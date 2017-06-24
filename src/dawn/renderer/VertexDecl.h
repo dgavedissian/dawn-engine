@@ -17,17 +17,20 @@ public:
     ~VertexDecl() = default;
 
     VertexDecl& begin();
-    VertexDecl& add(Attribute attribute, uint count, AttributeType type);
+    VertexDecl& add(Attribute attribute, uint count, AttributeType type, bool normalised = false);
     VertexDecl& end();
 
 private:
-    static u16 encodeAttributes(Attribute attribute, uint count, AttributeType type);
+    static u16 encodeAttributes(Attribute attribute, uint count, AttributeType type,
+                                bool normalised);
     static void decodeAttributes(u16 encoded_attribute, Attribute& attribute, uint& count,
-                                 AttributeType& type);
+                                 AttributeType& type, bool& normalised);
     static uint getAttributeTypeSize(AttributeType type);
+
     // Attribute: 7
     // Count: 3
-    // AttributeType: 6
+    // AttributeType: 5
+    // Normalised: 1
     Vector<Pair<u16, void*>> attributes_;
     u16 stride_;
 

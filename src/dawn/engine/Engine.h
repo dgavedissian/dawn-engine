@@ -11,6 +11,7 @@ namespace dw {
 class App;
 
 typedef std::function<void(float)> EngineTickCallback;
+typedef std::function<void()> EngineRenderCallback;
 
 class DW_API Engine : public Object {
 public:
@@ -26,8 +27,9 @@ public:
     void shutdown();
 
     /// Run the main loop
-    /// @param tick_callback Function to run every time the game logic is updated
-    void run(EngineTickCallback tick_callback);
+    /// @param tick_callback Function to run every time the game logic is updated.
+    /// @param render_callback Function to run every time a frame is rendered.
+    void run(EngineTickCallback tick_callback, EngineRenderCallback render_callback);
 
 private:
     bool initialised_;
@@ -45,6 +47,7 @@ private:
     String config_file_;
 
     void printSystemInfo();
+    String getBasePath() const;
     void update(float dt);
     void preRender(Camera* camera);
     void handleEvent(EventDataPtr eventData);

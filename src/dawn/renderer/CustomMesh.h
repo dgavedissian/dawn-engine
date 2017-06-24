@@ -5,22 +5,22 @@
 #pragma once
 
 #include "renderer/Renderable.h"
-#include "renderer/GLVertexBuffer.h"
-#include "renderer/GLIndexBuffer.h"
+#include "renderer/VertexBuffer.h"
+#include "renderer/IndexBuffer.h"
 
 namespace dw {
 class DW_API CustomMesh : public Renderable {
 public:
     DW_OBJECT(CustomMesh);
 
-    CustomMesh(Context* context, SharedPtr<GLVertexBuffer> vertexBuffer,
+    CustomMesh(Context* context, SharedPtr<VertexBuffer> vertexBuffer,
                SharedPtr<GLIndexBuffer> indexBuffer);
     ~CustomMesh();
 
     RenderTask draw(const Mat4& modelMatrix) override;
 
 private:
-    SharedPtr<GLVertexBuffer> vertex_buffer_;
+    SharedPtr<VertexBuffer> vertex_buffer_;
     SharedPtr<GLIndexBuffer> index_buffer_;
 };
 }  // namespace dw

@@ -7,6 +7,12 @@
 #include "core/Timer.h"
 #include "DawnEngine.h"
 
+// Required for getBasePath/getPrefPath.
+#if DW_PLATFORM == DW_MACOS
+#include <CoreFoundation/CoreFoundation.h>
+#define MAX_PATH 256
+#endif
+
 namespace dw {
 
 Engine::Engine(const String& game, const String& version)
@@ -18,22 +24,6 @@ Engine::Engine(const String& game, const String& version)
       game_version_(version),
       log_file_("engine.log"),
       config_file_("engine.cfg") {
-    // TODO(David): Implement base path (where resources are located) and pref path (where to save
-    // settings)
-    String basePath = "";
-    String prefPath = "";
-
-    // Create context
-    context_ = new Context(basePath, prefPath);
-
-    // Initialise logging
-    context_->addSubsystem<Logger>();
-    // TODO(david): Add a file logger to prefPath + log_file_
-    log().info("Starting %s %s", game_name_, game_version_);
-#ifdef DW_DEBUG
-    log().warn("NOTE: This is a debug build!");
-#endif
-    printSystemInfo();
 }
 
 Engine::~Engine() {
@@ -42,6 +32,26 @@ Engine::~Engine() {
 
 void Engine::setup() {
     assert(!initialised_);
+
+    // Create context.
+    context_ = new Context(getBasePath(), "");
+
+    // Initialise file system.
+    context_->addSubsystem<FileSystem>();
+
+    // Initialise logging.
+    context_->addSubsystem<Logger>();
+    // TODO(david): Add a file logger to prefPath + log_file_
+#ifdef DW_DEBUG
+    log().warn("NOTE: This is a debug build!");
+#endif
+
+    // Update working directory.
+    context_->subsystem<FileSystem>()->setWorkingDir(context_->basePath());
+
+    // Print info.
+    log().info("Initialising engine");
+    printSystemInfo();
 
     // Build window title.
     String window_title(game_name_);
@@ -56,7 +66,6 @@ void Engine::setup() {
 
     // Low-level subsystems
     context_->addSubsystem<EventSystem>();
-    context_->addSubsystem<FileSystem>();
 
     // Load configuration
     if (context_->subsystem<FileSystem>()->fileExists(config_file_)) {
@@ -107,6 +116,7 @@ void Engine::setup() {
 
     // The engine is now initialised
     initialised_ = true;
+    log().info("Engine initialised. Starting %s %s", game_name_, game_version_);
 
     // Register event delegate
     ADD_LISTENER(Engine, EvtData_Exit);
@@ -133,7 +143,7 @@ void Engine::shutdown() {
     initialised_ = false;
 }
 
-void Engine::run(EngineTickCallback tick_callback) {
+void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_callback) {
     // TODO(David) stub
     Camera* main_camera = nullptr;
 
@@ -151,7 +161,6 @@ void Engine::run(EngineTickCallback tick_callback) {
         }
 
         // Update game logic.
-        tick_callback(0.01f);
         while (accumulator >= dt) {
             update(dt);
             tick_callback(dt);
@@ -160,6 +169,7 @@ void Engine::run(EngineTickCallback tick_callback) {
 
         // Render a frame.
         preRender(main_camera);
+        render_callback();
         context_->subsystem<SystemManager>()->getSystem<EntityRenderer>()->dispatchRenderTasks();
         context_->subsystem<Renderer>()->frame();
 
@@ -174,15 +184,36 @@ void Engine::run(EngineTickCallback tick_callback) {
 }
 
 void Engine::printSystemInfo() {
-    /*
-    LOG << "\tPlatform: " << SDL_GetPlatform();
-    LOG << "\tBase Path: " << base_path_;
-    LOG << "\tPreferences Path: " << pref_path_;
+    log().info("Platform: %s", "TODO");
+    log().info("Base Path: %s", context()->basePath());
+    log().info("Pref Path: %s", context()->prefPath());
     // TODO: more system info
-     */
+}
+
+String Engine::getBasePath() const {
+#if DW_PLATFORM == DW_MACOS
+    CFBundleRef main_bundle = CFBundleGetMainBundle();
+    CFURLRef resources_url = CFBundleCopyResourcesDirectoryURL(main_bundle);
+    char path[MAX_PATH];
+    if (!CFURLGetFileSystemRepresentation(resources_url, TRUE, (UInt8 *)path, MAX_PATH))
+    {
+        // error
+    }
+    CFRelease(resources_url);
+    String str_path{path};
+    str_path += "/";
+
+    // For debugging, move from Resources folder to bin.
+    str_path += "../../../";
+    return str_path;
+#else
+    return "";
+#endif
 }
 
 void Engine::update(float dt) {
+    log().debug("Frame Time: %f", dt);
+
     context_->subsystem<EventSystem>()->update(0.02f);
     context_->subsystem<StateManager>()->update(dt);
     context_->subsystem<SceneManager>()->update(dt);

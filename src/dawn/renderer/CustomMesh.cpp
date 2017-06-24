@@ -4,10 +4,10 @@
  */
 #include "Common.h"
 #include "renderer/CustomMesh.h"
-#include "renderer/GLProgram.h"
+#include "renderer/Program.h"
 
 namespace dw {
-CustomMesh::CustomMesh(Context* context, SharedPtr<GLVertexBuffer> vb, SharedPtr<GLIndexBuffer> ib)
+CustomMesh::CustomMesh(Context* context, SharedPtr<VertexBuffer> vb, SharedPtr<GLIndexBuffer> ib)
     : Renderable{context}, vertex_buffer_{vb}, index_buffer_{ib} {
 }
 

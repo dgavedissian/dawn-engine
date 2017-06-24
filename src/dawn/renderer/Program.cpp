@@ -3,11 +3,11 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "renderer/GLProgram.h"
+#include "renderer/Program.h"
 
 namespace dw {
 
-GLProgram::GLProgram(Context* context, SharedPtr<GLShader> vs, SharedPtr<GLShader> fs)
+GLProgram::GLProgram(Context* context, SharedPtr<Shader> vs, SharedPtr<Shader> fs)
     : Resource(context), vertex_shader_(vs), fragment_shader_(fs) {
     //    handle_ = bgfx::createProgram(vs->internalHandle(), fs->internalHandle());
 
@@ -29,7 +29,7 @@ bool GLProgram::beginLoad(InputStream&) {
 void GLProgram::endLoad() {
 }
 
-void GLProgram::setTextureUnit(SharedPtr<GLTexture> /*texture*/, uint /*unit*/) {
+void GLProgram::setTextureUnit(SharedPtr<Texture> /*texture*/, uint /*unit*/) {
 }
 
 // bgfx::ProgramHandle GLProgram::internalHandle() const {

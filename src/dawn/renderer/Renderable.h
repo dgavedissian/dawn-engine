@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/GLProgram.h"
+#include "renderer/Program.h"
 #include "ecs/Component.h"
 #include "renderer/RenderTask.h"
 

@@ -6,8 +6,8 @@
 
 #include "core/Option.h"
 #include "math/Defs.h"
-#include "renderer/GLProgram.h"
-#include "renderer/GLTexture.h"
+#include "renderer/Program.h"
+#include "renderer/Texture.h"
 
 namespace dw {
 class DW_API Material : public Object {
@@ -17,7 +17,7 @@ public:
     Material(Context* context, SharedPtr<GLProgram> program);
     ~Material();
 
-    void setTextureUnit(SharedPtr<GLTexture> texture, uint unit = 0);
+    void setTextureUnit(SharedPtr<Texture> texture, uint unit = 0);
 
     template <typename T> void setUniform(const String& name, const T& value) {
         program_->setUniform(name, value);

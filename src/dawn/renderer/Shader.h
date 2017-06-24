@@ -5,24 +5,24 @@
 #pragma once
 
 #include "resource/Resource.h"
-#include "renderer/GL.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
-class DW_API GLShader : public Resource {
+class DW_API Shader : public Resource {
 public:
-    DW_OBJECT(GLShader);
+    DW_OBJECT(Shader);
 
-    GLShader(Context* context);
-    ~GLShader();
+    Shader(Context* context);
+    ~Shader();
 
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
 
-    //    bgfx::ShaderHandle internalHandle() const;
+    ShaderHandle internalHandle() const;
 
 private:
     byte* src_data_;
     u32 src_len_;
-    //    bgfx::ShaderHandle handle_;
+    ShaderHandle handle_;
 };
 }  // namespace dw
