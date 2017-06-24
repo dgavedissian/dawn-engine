@@ -5,9 +5,8 @@
 #pragma once
 
 #include "renderer/RenderTask.h"
-#include "renderer/GL.h"
 #include "renderer/VertexDecl.h"
-#include "Window.h"
+#include "renderer/Window.h"
 
 namespace dw {
 
@@ -43,6 +42,7 @@ struct RenderCommand {
         CreateProgram,
         AttachShader,
         LinkProgram,
+        Clear,
         Submit
     };
 
@@ -73,10 +73,23 @@ struct RenderCommand {
             ProgramHandle handle;
         } link_program;
         struct {
+            float colour[3];
+        } clear;
+        struct {
             ProgramHandle handle;
             uint vertex_count;
         } submit;
     };
+};
+
+// Abstract renderer.
+class DW_API RendererAPI : public Object {
+public:
+    DW_OBJECT(RendererAPI);
+
+    RendererAPI(Context* context);
+    virtual ~RendererAPI() = default;
+    virtual void processCommand(RenderCommand& command) = 0;
 };
 
 // Low level renderer.
@@ -99,6 +112,9 @@ public:
     ProgramHandle createProgram();
     void attachShader(ProgramHandle program, ShaderHandle shader);
     void linkProgram(ProgramHandle program);
+
+    /// Clear.
+    void clear(const Vec3& colour);
 
     /// Draw. Based off: https://github.com/bkaradzic/bgfx/blob/master/src/bgfx.cpp#L854
     void submit(ProgramHandle program, uint vertex_count);
@@ -128,18 +144,12 @@ private:
     Vector<RenderCommand> command_buffer_[2];
     uint submit_command_buffer_;
     uint render_command_buffer_;
-
-    // Render thread.
-    struct VertexBuffer {
-        GLuint vbo;
-        Vector<u16> encoded_decl;
-    };
-    HashMap<VertexBufferHandle, GLuint> r_vertex_buffer_map_;
-    HashMap<ShaderHandle, GLuint> r_shader_map_;
-    HashMap<ProgramHandle, GLuint> r_program_map_;
-
     RenderCommand& addCommand(RenderCommand::Type type);
+
+    // Renderer.
+    UniquePtr<RendererAPI> r_renderer_;
+
+    // Render thread proc.
     void renderThread();
-    void processCommand(RenderCommand& command);
 };
 }  // namespace dw

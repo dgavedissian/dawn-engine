@@ -41,7 +41,7 @@ void Engine::setup() {
 
     // Initialise logging.
     context_->addSubsystem<Logger>();
-    // TODO(david): Add a file logger to prefPath + log_file_
+// TODO(david): Add a file logger to prefPath + log_file_
 #ifdef DW_DEBUG
     log().warn("NOTE: This is a debug build!");
 #endif
@@ -184,7 +184,14 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
 }
 
 void Engine::printSystemInfo() {
-    log().info("Platform: %s", "TODO");
+#if DW_PLATFORM == DW_WIN32
+    String platform = "Windows";
+#elif DW_PLATFORM == DW_MACOS
+    String platform = "macOS";
+#elif DW_PLATFORM == DW_LINUX
+    String platform = "Linux";
+#endif
+    log().info("Platform: %s", platform);
     log().info("Base Path: %s", context()->basePath());
     log().info("Pref Path: %s", context()->prefPath());
     // TODO: more system info
@@ -195,8 +202,7 @@ String Engine::getBasePath() const {
     CFBundleRef main_bundle = CFBundleGetMainBundle();
     CFURLRef resources_url = CFBundleCopyResourcesDirectoryURL(main_bundle);
     char path[MAX_PATH];
-    if (!CFURLGetFileSystemRepresentation(resources_url, TRUE, (UInt8 *)path, MAX_PATH))
-    {
+    if (!CFURLGetFileSystemRepresentation(resources_url, TRUE, (UInt8*)path, MAX_PATH)) {
         // error
     }
     CFRelease(resources_url);

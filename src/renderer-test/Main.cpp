@@ -52,6 +52,7 @@ public:
     }
 
     void render() override {
+        r->clear({0.0f, 0.0f, 0.25f});
         r->setVertexBuffer(vb);
         r->submit(program, 3);
     }

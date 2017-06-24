@@ -24,7 +24,7 @@ public:
     void begin();
 
     // Compile the vertex and index arrays into GPU buffers.
-    Pair<SharedPtr<VertexBuffer>, SharedPtr<GLIndexBuffer>> end();
+    Pair<SharedPtr<VertexBuffer>, SharedPtr<IndexBuffer>> end();
 
     // Add a vertex.
     void position(const Vec3& p);
@@ -40,8 +40,8 @@ private:
         Vec3 normal;
         Vec2 texCoord;
     };
-    Vertex mCurrentVertex;
-    Vector<Vertex> mVertices;
-    Vector<uint> mIndices;
+    Vertex current_vertex_;
+    Vector<Vertex> vertices_;
+    Vector<uint> indices_;
 };
 }  // namespace dw

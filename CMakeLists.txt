@@ -40,6 +40,8 @@ endif()
 ###############################################
 
 function(add_game GAME_NAME SOURCE_FILES)
+    set(OUT_DIR ${CMAKE_SOURCE_DIR}/bin)
+
     # Executable type
     if(WIN32)
         set(TYPE WIN32)
@@ -62,7 +64,7 @@ function(add_game GAME_NAME SOURCE_FILES)
 
     # Add libraries
     target_link_libraries(${GAME_NAME} Dawn)
-    set_output_dir(${GAME_NAME} ${CMAKE_SOURCE_DIR}/bin)
+    set_output_dir(${GAME_NAME} ${OUT_DIR})
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
 
     # Currently, Dawn can only be linked dynamically
@@ -71,6 +73,15 @@ function(add_game GAME_NAME SOURCE_FILES)
     # LuaJIT on 64-bit OS X requires these linker flags for executables
     if(APPLE)
         set_target_properties(${GAME_NAME} PROPERTIES LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
+    endif()
+
+    # Setup macOS app bundle.
+    if(APPLE)
+        set(BUNDLE_DIR ${OUT_DIR}/${GAME_NAME}.app)
+        set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)
+        set(RESOURCES_DIR ${BUNDLE_DIR}/Contents/Resources)
+        add_custom_command(TARGET ${GAME_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${RESOURCES_DIR})
     endif()
 
     # Copy over shared library dependencies

@@ -15,42 +15,42 @@ TriangleBuffer::~TriangleBuffer() {
 }
 
 void TriangleBuffer::estimateVertexCount(uint count) {
-    mVertices.reserve(count);
+    vertices_.reserve(count);
 }
 
 void TriangleBuffer::estimateIndexCount(uint count) {
-    mIndices.reserve(count);
+    indices_.reserve(count);
 }
 
 void TriangleBuffer::begin() {
-    mVertices.clear();
-    mIndices.clear();
+    vertices_.clear();
+    indices_.clear();
 }
 
-Pair<SharedPtr<VertexBuffer>, SharedPtr<GLIndexBuffer>> TriangleBuffer::end() {
+Pair<SharedPtr<VertexBuffer>, SharedPtr<IndexBuffer>> TriangleBuffer::end() {
     SharedPtr<VertexBuffer> vb;
-    SharedPtr<GLIndexBuffer> ib;
+    SharedPtr<IndexBuffer> ib;
     // TODO.
     return {vb, ib};
 }
 
 void TriangleBuffer::position(const Vec3& p) {
-    mVertices.emplace_back(mCurrentVertex);
-    mCurrentVertex = Vertex{};
-    mCurrentVertex.position = p;
+    vertices_.emplace_back(current_vertex_);
+    current_vertex_ = Vertex{};
+    current_vertex_.position = p;
 }
 
 void TriangleBuffer::normal(const Vec3& n) {
-    mCurrentVertex.normal = n;
+    current_vertex_.normal = n;
 }
 
 void TriangleBuffer::texcoord(const Vec2& tc) {
-    mCurrentVertex.texCoord = tc;
+    current_vertex_.texCoord = tc;
 }
 
 void TriangleBuffer::triangle(uint v0, uint v1, uint v2) {
-    mIndices.emplace_back(v0);
-    mIndices.emplace_back(v1);
-    mIndices.emplace_back(v2);
+    indices_.emplace_back(v0);
+    indices_.emplace_back(v1);
+    indices_.emplace_back(v2);
 }
 }  // namespace dw

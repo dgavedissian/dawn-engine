@@ -6,7 +6,7 @@
 
 #include "core/Option.h"
 #include "math/Defs.h"
-#include "renderer/GL.h"
+#include "renderer/api/GL.h"
 #include "renderer/Shader.h"
 #include "renderer/Texture.h"
 

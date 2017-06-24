@@ -4,15 +4,15 @@
  */
 #pragma once
 
-#include "renderer/GL.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
-class DW_API GLIndexBuffer : public Object {
+class DW_API IndexBuffer : public Object {
 public:
-    DW_OBJECT(GLIndexBuffer);
+    DW_OBJECT(IndexBuffer);
 
-    GLIndexBuffer(Context* context);
-    ~GLIndexBuffer();
+    IndexBuffer(Context* context);
+    ~IndexBuffer();
 
     //    bgfx::IndexBufferHandle internalHandle() const;
 

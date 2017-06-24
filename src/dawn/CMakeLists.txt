@@ -63,11 +63,13 @@ set(SOURCE_FILES
     physics/PhysicsWorld.h
     platform/Defines.h
     platform/Windows.h
+    renderer/api/GL.h
+    renderer/api/GLRenderer.cpp
+    renderer/api/GLRenderer.h
     renderer/CustomMesh.cpp
     renderer/CustomMesh.h
     renderer/EntityRenderer.cpp
     renderer/EntityRenderer.h
-    renderer/GL.h
     renderer/GLFW.h
     renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h

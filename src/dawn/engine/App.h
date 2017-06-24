@@ -27,7 +27,8 @@ public:
     }
 
     virtual void init(int argc, char** argv) = 0;
-    virtual void render() {}
+    virtual void render() {
+    }
     virtual void update(float dt) = 0;
     virtual void shutdown() = 0;
 

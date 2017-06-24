@@ -7,7 +7,7 @@
 #include "renderer/Program.h"
 
 namespace dw {
-CustomMesh::CustomMesh(Context* context, SharedPtr<VertexBuffer> vb, SharedPtr<GLIndexBuffer> ib)
+CustomMesh::CustomMesh(Context* context, SharedPtr<VertexBuffer> vb, SharedPtr<IndexBuffer> ib)
     : Renderable{context}, vertex_buffer_{vb}, index_buffer_{ib} {
 }
 

@@ -4,6 +4,7 @@
  */
 #include "Common.h"
 #include "io/FileSystem.h"
+#include "core/StringUtils.h"
 
 #if DW_PLATFORM == DW_WIN32
 #include "platform/Windows.h"
@@ -32,8 +33,7 @@ bool FileSystem::setWorkingDir(const Path& path) const {
     }
 #else
     if (::chdir(path.c_str()) != 0) {
-        // TODO(David): Error handling
-        log().error("Failed to change directory to %s", path);
+        log().error("Failed to change directory to %s (errno %i)", path, errno);
         return false;
     }
 #endif

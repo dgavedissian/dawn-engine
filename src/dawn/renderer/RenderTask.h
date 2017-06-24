@@ -5,7 +5,7 @@
 #pragma once
 
 #include "math/Defs.h"
-#include "renderer/GL.h"
+#include "renderer/api/GL.h"
 
 namespace dw {
 enum class RenderTaskType { SetCameraMatrices, Primitive };

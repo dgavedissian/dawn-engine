@@ -14,13 +14,13 @@ public:
     DW_OBJECT(CustomMesh);
 
     CustomMesh(Context* context, SharedPtr<VertexBuffer> vertexBuffer,
-               SharedPtr<GLIndexBuffer> indexBuffer);
+               SharedPtr<IndexBuffer> indexBuffer);
     ~CustomMesh();
 
     RenderTask draw(const Mat4& modelMatrix) override;
 
 private:
     SharedPtr<VertexBuffer> vertex_buffer_;
-    SharedPtr<GLIndexBuffer> index_buffer_;
+    SharedPtr<IndexBuffer> index_buffer_;
 };
 }  // namespace dw

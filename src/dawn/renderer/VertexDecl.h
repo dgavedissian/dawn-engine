@@ -35,6 +35,7 @@ private:
     u16 stride_;
 
     friend class Renderer;
+    friend class GLRenderer;
 };
 
 }  // namespace dw
