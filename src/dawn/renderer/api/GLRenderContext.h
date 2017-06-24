@@ -7,12 +7,12 @@
 #include "renderer/Renderer.h"
 
 namespace dw {
-class DW_API GLRenderer : public RendererAPI {
+class DW_API GLRenderContext : public RenderContext {
 public:
-    DW_OBJECT(GLRenderer);
+    DW_OBJECT(GLRenderContext);
 
-    GLRenderer(Context* context);
-    virtual ~GLRenderer();
+    GLRenderContext(Context* context);
+    virtual ~GLRenderContext();
 
     void processCommand(RenderCommand& command) override;
 

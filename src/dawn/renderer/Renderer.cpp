@@ -4,10 +4,10 @@
  */
 #include "Common.h"
 #include "renderer/Renderer.h"
-#include "renderer/api/GLRenderer.h"
+#include "renderer/api/GLRenderContext.h"
 
 namespace dw {
-RendererAPI::RendererAPI(Context *context) : Object{context} {
+RenderContext::RenderContext(Context *context) : Object{context} {
 }
 
 Renderer::Renderer(Context* context, Window* window)
@@ -141,13 +141,13 @@ RenderCommand& Renderer::addCommand(RenderCommand::Type type) {
 void Renderer::renderThread() {
     glfwMakeContextCurrent(window_);
 
-    r_renderer_ = makeUnique<GLRenderer>(context());
+    r_render_context_ = makeUnique<GLRenderContext>(context());
 
     // Enter render loop.
     while (!should_exit_.load()) {
         // Drain command buffer.
         for (auto& command : command_buffer_[render_command_buffer_]) {
-            r_renderer_->processCommand(command);
+            r_render_context_->processCommand(command);
         }
         command_buffer_[render_command_buffer_].clear();
 

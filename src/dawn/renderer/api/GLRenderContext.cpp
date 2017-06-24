@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "renderer/api/GLRenderer.h"
+#include "renderer/api/GLRenderContext.h"
 
 #define CHECK(X) __CHECK(X, __FILE__, __LINE__)
 #define __CHECK(X, FILE, LINE)                                    \
@@ -18,16 +18,16 @@
     }
 
 namespace dw {
-GLRenderer::GLRenderer(Context* context) : RendererAPI{context} {
+GLRenderContext::GLRenderContext(Context* context) : RenderContext{context} {
     log().info("[Renderer] OpenGL: %s - GLSL: %s", glGetString(GL_VERSION),
                glGetString(GL_SHADING_LANGUAGE_VERSION));
     log().info("[Renderer] OpenGL Renderer: %s", glGetString(GL_RENDERER));
 }
 
-GLRenderer::~GLRenderer() {
+GLRenderContext::~GLRenderContext() {
 }
 
-void GLRenderer::processCommand(RenderCommand& command) {
+void GLRenderContext::processCommand(RenderCommand& command) {
     switch (command.type) {
         case RenderCommand::Type::CreateVertexBuffer: {
             auto& c = command.create_vertex_buffer;

@@ -38,10 +38,19 @@ struct RenderCommand {
     enum class Type {
         CreateVertexBuffer,
         SetVertexBuffer,
+        DeleteVertexBuffer,
+        CreateIndexBuffer,
+        SetIndexBuffer,
+        DeleteIndexBuffer,
         CreateShader,
+        DeleteShader,
         CreateProgram,
         AttachShader,
         LinkProgram,
+        DeleteProgram,
+        CreateTexture2D,
+        SetTexture,
+        DeleteTexture,
         Clear,
         Submit
     };
@@ -82,13 +91,13 @@ struct RenderCommand {
     };
 };
 
-// Abstract renderer.
-class DW_API RendererAPI : public Object {
+// Abstract rendering context.
+class DW_API RenderContext : public Object {
 public:
-    DW_OBJECT(RendererAPI);
+    DW_OBJECT(RenderContext);
 
-    RendererAPI(Context* context);
-    virtual ~RendererAPI() = default;
+    RenderContext(Context* context);
+    virtual ~RenderContext() = default;
     virtual void processCommand(RenderCommand& command) = 0;
 };
 
@@ -147,7 +156,7 @@ private:
     RenderCommand& addCommand(RenderCommand::Type type);
 
     // Renderer.
-    UniquePtr<RendererAPI> r_renderer_;
+    UniquePtr<RenderContext> r_render_context_;
 
     // Render thread proc.
     void renderThread();

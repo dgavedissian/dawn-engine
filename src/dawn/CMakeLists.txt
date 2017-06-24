@@ -64,8 +64,8 @@ set(SOURCE_FILES
     platform/Defines.h
     platform/Windows.h
     renderer/api/GL.h
-    renderer/api/GLRenderer.cpp
-    renderer/api/GLRenderer.h
+    renderer/api/GLRenderContext.cpp
+    renderer/api/GLRenderContext.h
     renderer/CustomMesh.cpp
     renderer/CustomMesh.h
     renderer/EntityRenderer.cpp
