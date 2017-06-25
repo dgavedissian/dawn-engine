@@ -33,7 +33,7 @@ u16 VertexDecl::encodeAttributes(VertexDecl::Attribute attribute, uint count,
     // Normalised: 1
     return static_cast<u16>((static_cast<u16>(attribute) << 9) |
                             ((static_cast<u16>(count) & 0x7) << 6) |
-                            ((static_cast<u16>(type) & 0x3F) << 1) | (normalised ? 1 : 0));
+                            ((static_cast<u16>(type) & 0x1F) << 1) | (normalised ? 1 : 0));
 }
 
 void VertexDecl::decodeAttributes(u16 encoded_attribute, Attribute& attribute, uint& count,
@@ -44,7 +44,7 @@ void VertexDecl::decodeAttributes(u16 encoded_attribute, Attribute& attribute, u
     // Normalised: 1
     attribute = static_cast<Attribute>(encoded_attribute >> 9);
     count = static_cast<uint>((encoded_attribute >> 6) & 0x7);
-    type = static_cast<AttributeType>((encoded_attribute >> 1) & 0x3F);
+    type = static_cast<AttributeType>((encoded_attribute >> 1) & 0x1F);
     normalised = (encoded_attribute & 0x1) == 1;
 }
 

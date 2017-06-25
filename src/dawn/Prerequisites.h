@@ -36,6 +36,7 @@
 #include <typeinfo>
 #include <chrono>
 #include <mutex>
+#include <type_traits>
 
 //
 // External Libraries

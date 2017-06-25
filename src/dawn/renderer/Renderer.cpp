@@ -41,11 +41,23 @@ uint Memory::size() const {
 RenderContext::RenderContext(Context* context) : Object{context} {
 }
 
+
+void RenderItem::clear() {
+    vb = 0;
+    vertex_count = 0;
+    ib = 0;
+    index_count = 0;
+    program = 0;
+    for (auto& texture : textures) {
+        texture.handle = 0;
+    }
+}
+
 Renderer::Renderer(Context* context, Window* window)
     : Object{context},
       window_{window->window_},
-      submit_command_buffer_{0},
-      render_command_buffer_{1} {
+      submit_{&frames_[0]},
+      render_{&frames_[1]} {
     // Attach GL context to main thread.
     glfwMakeContextCurrent(window_);
 
@@ -119,13 +131,35 @@ VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size,
 }
 
 void Renderer::setVertexBuffer(VertexBufferHandle handle) {
-    addCommand(cmd::SetVertexBuffer{handle});
+    submit_->current_item.vb = handle;
+}
+
+void Renderer::deleteVertexBuffer(VertexBufferHandle handle) {
+    addCommand(cmd::DeleteVertexBuffer{handle});
+}
+
+IndexBufferHandle Renderer::createIndexBuffer(const void *data, uint size, IndexBufferType type) {
+    auto handle = index_buffer_handle_.next();
+    addCommand(cmd::CreateIndexBuffer{handle, Memory{data, size}, type});
+    return handle;
+}
+
+void Renderer::setIndexBuffer(IndexBufferHandle handle) {
+    submit_->current_item.ib = handle;
+}
+
+void Renderer::deleteIndexBuffer(IndexBufferHandle handle) {
+    addCommand(cmd::DeleteIndexBuffer{handle});
 }
 
 ShaderHandle Renderer::createShader(ShaderType type, const String& source) {
     auto handle = shader_handle_.next();
     addCommand(cmd::CreateShader{handle, type, source});
     return handle;
+}
+
+void Renderer::deleteShader(ShaderHandle handle) {
+addCommand(cmd::DeleteShader{handle});
 }
 
 ProgramHandle Renderer::createProgram() {
@@ -142,16 +176,38 @@ void Renderer::linkProgram(ProgramHandle program) {
     addCommand(cmd::LinkProgram{program});
 }
 
+void Renderer::deleteProgram(ProgramHandle program) {
+addCommand(cmd::DeleteProgram{program});
+}
+
+TextureHandle Renderer::createTexture2D() {
+    auto handle = texture_handle_.next();
+    addCommand(cmd::CreateTexture2D{handle});
+    return handle;
+}
+
+void Renderer::setTexture(TextureHandle handle, uint texture_unit) {
+    // TODO: check precondition: texture_unit < MAX_TEXTURE_UNITS
+    submit_->current_item.textures[texture_unit].handle = handle;
+}
+
+void Renderer::deleteTexture(TextureHandle handle) {
+    addCommand(cmd::DeleteTexture{handle});
+}
+
 void Renderer::clear(const Vec3& colour) {
-    addCommand(cmd::Clear{colour});
+    //addCommand(cmd::Clear{colour});
 }
 
 void Renderer::submit(ProgramHandle program, uint vertex_count) {
-    addCommand(cmd::Submit{program, vertex_count});
+    submit_->current_item.program = program;
+    submit_->current_item.vertex_count = vertex_count;
+    submit_->render_items.emplace_back(submit_->current_item);
+    submit_->current_item.clear();
 }
 
 void Renderer::addCommand(RenderCommand command) {
-    command_buffer_[submit_command_buffer_].emplace_back(std::move(command));
+    submit_->commands.emplace_back(std::move(command));
 }
 
 void Renderer::renderThread() {
@@ -162,10 +218,13 @@ void Renderer::renderThread() {
     // Enter render loop.
     while (!should_exit_.load()) {
         // Drain command buffer.
-        for (auto& command : command_buffer_[render_command_buffer_]) {
+        for (auto& command : render_->commands) {
             r_render_context_->processCommand(command);
         }
-        command_buffer_[render_command_buffer_].clear();
+        r_render_context_->submit(render_->render_items);
+        render_->current_item.clear();
+        render_->render_items.clear();
+        render_->commands.clear();
 
         // Swap buffers.
         glfwSwapBuffers(window_);
@@ -174,7 +233,7 @@ void Renderer::renderThread() {
         submit_lock_.lock();
 
         // Swap command buffers.
-        std::swap(submit_command_buffer_, render_command_buffer_);
+        std::swap(submit_, render_);
 
         // Unblock submit thread.
         submit_lock_.unlock();  // Allow submit thread to reacquire it's lock.
@@ -182,4 +241,5 @@ void Renderer::renderThread() {
         render_lock_.lock();    // Reacquire.
     }
 }
+
 }  // namespace dw
