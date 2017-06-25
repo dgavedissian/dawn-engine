@@ -48,8 +48,8 @@ public:
     Memory& operator=(const Memory&) = delete;
 
     // Movable.
-    Memory(Memory&&);
-    Memory& operator=(Memory&&);
+    Memory(Memory&&) noexcept;
+    Memory& operator=(Memory&&) noexcept;
 
     void* data() const;
     uint size() const;
@@ -143,9 +143,21 @@ struct DeleteTexture {
 };
 }  // namespace cmd
 
+// clang-format off
 using RenderCommand =
-    Variant<cmd::CreateVertexBuffer, cmd::DeleteVertexBuffer, cmd::CreateIndexBuffer, cmd::DeleteIndexBuffer, cmd::CreateShader, cmd::DeleteShader, cmd::CreateProgram,
-            cmd::AttachShader, cmd::LinkProgram, cmd::DeleteProgram, cmd::CreateTexture2D, cmd::DeleteTexture>;
+    Variant<cmd::CreateVertexBuffer,
+            cmd::DeleteVertexBuffer,
+            cmd::CreateIndexBuffer,
+            cmd::DeleteIndexBuffer,
+            cmd::CreateShader,
+            cmd::DeleteShader,
+            cmd::CreateProgram,
+            cmd::AttachShader,
+            cmd::LinkProgram,
+            cmd::DeleteProgram,
+            cmd::CreateTexture2D,
+            cmd::DeleteTexture>;
+// clang-format on
 
 // Current render state.
 struct RenderItem {

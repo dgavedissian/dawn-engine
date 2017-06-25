@@ -18,11 +18,11 @@ Memory::~Memory() {
     }
 }
 
-Memory::Memory(Memory &&other) {
+Memory::Memory(Memory &&other) noexcept {
     *this = std::move(other);
 }
 
-Memory& Memory::operator=(Memory&& other) {
+Memory& Memory::operator=(Memory&& other) noexcept {
     data_ = other.data_;
     size_ = other.size_;
     other.data_ = nullptr;

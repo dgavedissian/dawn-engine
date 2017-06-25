@@ -35,6 +35,7 @@
 #include <limits>
 #include <typeinfo>
 #include <chrono>
+#include <atomic>
 #include <mutex>
 #include <type_traits>
 

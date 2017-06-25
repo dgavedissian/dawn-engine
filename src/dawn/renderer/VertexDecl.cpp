@@ -54,6 +54,8 @@ uint VertexDecl::getAttributeTypeSize(AttributeType type) {
             return 1;
         case AttributeType::Float:
             return 4;
+        default:
+            assert(false);
     }
 }
 }  // namespace dw

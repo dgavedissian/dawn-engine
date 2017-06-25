@@ -213,7 +213,7 @@ set(LIBS ${LIBS} tinyformat)
 
 # variant
 add_library(variant INTERFACE)
-target_include_directories(variant INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/variant)
+target_include_directories(variant INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/variant/include)
 set(LIBS ${LIBS} variant)
 
 

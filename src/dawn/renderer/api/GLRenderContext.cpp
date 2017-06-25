@@ -28,7 +28,7 @@ GLRenderContext::~GLRenderContext() {
 }
 
 void GLRenderContext::processCommand(RenderCommand& command) {
-    std::experimental::visit(*this, command);
+    mpark::visit(*this, command);
 }
 
 void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
