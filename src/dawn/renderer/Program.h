@@ -11,12 +11,12 @@
 #include "renderer/Texture.h"
 
 namespace dw {
-class DW_API GLProgram : public Resource {
+class DW_API Program : public Resource {
 public:
-    DW_OBJECT(GLProgram);
+    DW_OBJECT(Program);
 
-    GLProgram(Context* context, SharedPtr<Shader> vs, SharedPtr<Shader> fs);
-    ~GLProgram();
+    Program(Context* context, SharedPtr<Shader> vs, SharedPtr<Shader> fs);
+    ~Program();
 
     bool beginLoad(InputStream& src) override;
     void endLoad() override;

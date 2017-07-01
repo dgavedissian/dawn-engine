@@ -14,7 +14,7 @@ class DW_API Material : public Object {
 public:
     DW_OBJECT(Material);
 
-    Material(Context* context, SharedPtr<GLProgram> program);
+    Material(Context* context, SharedPtr<Program> program);
     ~Material();
 
     void setTextureUnit(SharedPtr<Texture> texture, uint unit = 0);
@@ -24,6 +24,6 @@ public:
     }
 
 private:
-    SharedPtr<GLProgram> program_;
+    SharedPtr<Program> program_;
 };
 }  // namespace dw

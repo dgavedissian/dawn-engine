@@ -18,18 +18,18 @@ public:
 
     /// Returns the material of this Renderable.
     /// @return The material currently assigned to this Renderable.
-    GLProgram* material() const;
+    Program* material() const;
 
     /// Changes the material used to render this Renderable object.
     /// @param material The material to assign to this Renderable.
-    void setMaterial(SharedPtr<GLProgram> material);
+    void setMaterial(SharedPtr<Program> material);
 
     /// Generates a render task.
     /// @return A generated render task for this draw event.
     virtual RenderTask draw(const Mat4& modelMatrix) = 0;
 
 protected:
-    SharedPtr<GLProgram> material_;
+    SharedPtr<Program> material_;
 };
 
 struct RenderableComponent : public Component {

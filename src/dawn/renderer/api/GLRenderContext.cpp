@@ -27,8 +27,10 @@ GLRenderContext::GLRenderContext(Context* context) : RenderContext{context} {
 GLRenderContext::~GLRenderContext() {
 }
 
-void GLRenderContext::processCommand(RenderCommand& command) {
-    mpark::visit(*this, command);
+void GLRenderContext::processCommandList(Vector<RenderCommand>& command_list) {
+    for (auto& command : command_list) {
+        mpark::visit(*this, command);
+    }
 }
 
 void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
@@ -76,11 +78,11 @@ void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
     r_vertex_buffer_map_.emplace(c.handle, vao);
 }
 
-void GLRenderContext::operator()(const cmd::DeleteVertexBuffer &c) {
+void GLRenderContext::operator()(const cmd::DeleteVertexBuffer& c) {
     // TODO: implement.
 }
 
-void GLRenderContext::operator()(const cmd::CreateIndexBuffer &c) {
+void GLRenderContext::operator()(const cmd::CreateIndexBuffer& c) {
     // Create element buffer object.
     GLuint ebo;
     glGenBuffers(1, &ebo);
@@ -88,10 +90,12 @@ void GLRenderContext::operator()(const cmd::CreateIndexBuffer &c) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, c.data.size(), c.data.data(), GL_STATIC_DRAW);
     CHECK();
 
-    r_index_buffer_map_.emplace(c.handle, makePair(ebo, c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT));
+    r_index_buffer_map_.emplace(
+        c.handle,
+        makePair(ebo, c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT));
 }
 
-void GLRenderContext::operator()(const cmd::DeleteIndexBuffer &c) {
+void GLRenderContext::operator()(const cmd::DeleteIndexBuffer& c) {
     // TODO: implement.
 }
 
@@ -123,7 +127,7 @@ void GLRenderContext::operator()(const cmd::CreateShader& c) {
     r_shader_map_.emplace(c.handle, shader);
 }
 
-void GLRenderContext::operator()(const cmd::DeleteShader &c) {
+void GLRenderContext::operator()(const cmd::DeleteShader& c) {
     auto it = r_shader_map_.find(c.handle);
     glDeleteShader(it->second);
     r_shader_map_.erase(it);
@@ -155,23 +159,22 @@ void GLRenderContext::operator()(const cmd::LinkProgram& c) {
     }
 }
 
-void GLRenderContext::operator()(const cmd::DeleteProgram &c) {
+void GLRenderContext::operator()(const cmd::DeleteProgram& c) {
     auto it = r_program_map_.find(c.handle);
     glDeleteProgram(it->second);
     r_program_map_.erase(it);
 }
 
-void GLRenderContext::operator()(const cmd::CreateTexture2D &c) {
-
+void GLRenderContext::operator()(const cmd::CreateTexture2D& c) {
 }
 
-void GLRenderContext::operator()(const cmd::DeleteTexture &c) {
+void GLRenderContext::operator()(const cmd::DeleteTexture& c) {
     auto it = r_texture_map_.find(c.handle);
     glDeleteTextures(1, &it->second);
     r_texture_map_.erase(it);
 }
 
-void GLRenderContext::submit(const Vector<RenderItem> &items) {
+void GLRenderContext::submit(const Vector<RenderItem>& items) {
     glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     for (uint i = 0; i < items.size(); ++i) {
@@ -201,13 +204,12 @@ void GLRenderContext::submit(const Vector<RenderItem> &items) {
 
         // Submit.
         if (current->ib != 0) {
-            glDrawElements(GL_TRIANGLES, current->vertex_count, r_index_buffer_map_[current->ib].second, 0);
+            glDrawElements(GL_TRIANGLES, current->primitive_count * 3,
+                           r_index_buffer_map_[current->ib].second, 0);
         } else {
-            glDrawArrays(GL_TRIANGLES, 0, current->vertex_count);
+            glDrawArrays(GL_TRIANGLES, 0, current->primitive_count * 3);
         }
     }
-
 }
-
 
 }  // namespace dw

@@ -38,16 +38,13 @@ public:
 };
  */
 
-class RendererTest : public App {
+class Sandbox : public App {
 public:
     DW_OBJECT(Sandbox);
 
     UniquePtr<Node> node;
 
     void init(int argc, char** argv) override {
-        File file(context_, "media/sandbox/test.txt", FileMode::Read);
-        log().info("File contents: %s", stream::read<u8>(file));
-
         auto rc = subsystem<ResourceCache>();
         assert(rc);
         rc->addResourcePath("media/base");
@@ -55,9 +52,9 @@ public:
 
         // Create a node.
         node = makeUnique<Node>(context());
-        SharedPtr<GLProgram> material =
-            makeShared<GLProgram>(context(), rc->get<Shader>("shaders/bin/sphere.vs"),
-                                  rc->get<Shader>("shaders/bin/sphere.fs"));
+        SharedPtr<Program> material =
+            makeShared<Program>(context(), rc->get<Shader>("shaders/bin/sphere.vs"),
+                                rc->get<Shader>("shaders/bin/sphere.fs"));
         node->setRenderable(
             MeshBuilder(context()).withNormals(false).withTexcoords(false).createSphere(10.0f));
         node->renderable()->setMaterial(material);

@@ -14,7 +14,7 @@ public:
     GLRenderContext(Context* context);
     virtual ~GLRenderContext();
 
-    void processCommand(RenderCommand& command) override;
+    void processCommandList(Vector<RenderCommand>& command_list) override;
     void submit(const Vector<RenderItem>& items) override;
 
     void operator()(const cmd::CreateVertexBuffer& c);

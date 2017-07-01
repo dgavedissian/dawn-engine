@@ -80,10 +80,7 @@ private:
  */
 
 // Index buffer type.
-enum class IndexBufferType {
-    U16,
-    U32
-};
+enum class IndexBufferType { U16, U32 };
 
 // Render commands.
 namespace cmd {
@@ -169,9 +166,8 @@ struct RenderItem {
 
     // Vertices
     VertexBufferHandle vb;
-    uint vertex_count;
     IndexBufferHandle ib;
-    uint index_count;
+    uint primitive_count;
     ProgramHandle program;
     TextureBinding textures[MAX_TEXTURE_SAMPLERS];
 };
@@ -184,7 +180,8 @@ struct Frame {
 
     RenderItem current_item;
     Vector<RenderItem> render_items;
-    Vector<RenderCommand> commands;
+    Vector<RenderCommand> commands_pre;
+    Vector<RenderCommand> commands_post;
 };
 
 // Abstract rendering context.
@@ -194,7 +191,7 @@ public:
 
     RenderContext(Context* context);
     virtual ~RenderContext() = default;
-    virtual void processCommand(RenderCommand& command) = 0;
+    virtual void processCommandList(Vector<RenderCommand>& command_list) = 0;
     virtual void submit(const Vector<RenderItem>& items) = 0;
 };
 
@@ -253,7 +250,7 @@ private:
 
     // Main thread.
     HandleGenerator<VertexBufferHandle> vertex_buffer_handle_;
-    HandleGenerator<IndexBufferHandle > index_buffer_handle_;
+    HandleGenerator<IndexBufferHandle> index_buffer_handle_;
     HandleGenerator<ShaderHandle> shader_handle_;
     HandleGenerator<ProgramHandle> program_handle_;
     HandleGenerator<TextureHandle> texture_handle_;
@@ -265,7 +262,10 @@ private:
     Frame frames_[2];
     Frame* submit_;
     Frame* render_;
-    void addCommand(RenderCommand command);
+
+    // Add a command to the submit thread.
+    void submitPreFrameCommand(RenderCommand command);
+    void submitPostFrameCommand(RenderCommand command);
 
     // Renderer.
     UniquePtr<RenderContext> r_render_context_;

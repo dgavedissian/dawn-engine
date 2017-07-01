@@ -7,7 +7,7 @@
 #include "renderer/api/GLRenderContext.h"
 
 namespace dw {
-Memory::Memory(const void *data, uint size) : data_{nullptr}, size_{size} {
+Memory::Memory(const void* data, uint size) : data_{nullptr}, size_{size} {
     data_ = new byte[size];
     memcpy(data_, data, size);
 }
@@ -18,7 +18,7 @@ Memory::~Memory() {
     }
 }
 
-Memory::Memory(Memory &&other) noexcept {
+Memory::Memory(Memory&& other) noexcept {
     *this = std::move(other);
 }
 
@@ -30,7 +30,7 @@ Memory& Memory::operator=(Memory&& other) noexcept {
     return *this;
 }
 
-void *Memory::data() const {
+void* Memory::data() const {
     return data_;
 }
 
@@ -41,12 +41,10 @@ uint Memory::size() const {
 RenderContext::RenderContext(Context* context) : Object{context} {
 }
 
-
 void RenderItem::clear() {
     vb = 0;
-    vertex_count = 0;
     ib = 0;
-    index_count = 0;
+    primitive_count = 0;
     program = 0;
     for (auto& texture : textures) {
         texture.handle = 0;
@@ -54,10 +52,7 @@ void RenderItem::clear() {
 }
 
 Renderer::Renderer(Context* context, Window* window)
-    : Object{context},
-      window_{window->window_},
-      submit_{&frames_[0]},
-      render_{&frames_[1]} {
+    : Object{context}, window_{window->window_}, submit_{&frames_[0]}, render_{&frames_[1]} {
     // Attach GL context to main thread.
     glfwMakeContextCurrent(window_);
 
@@ -126,7 +121,7 @@ void Renderer::frame() {
 VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size,
                                                 const VertexDecl& decl) {
     auto handle = vertex_buffer_handle_.next();
-    addCommand(cmd::CreateVertexBuffer{handle, Memory{data, size}, decl});
+    submitPreFrameCommand(cmd::CreateVertexBuffer{handle, Memory{data, size}, decl});
     return handle;
 }
 
@@ -135,12 +130,12 @@ void Renderer::setVertexBuffer(VertexBufferHandle handle) {
 }
 
 void Renderer::deleteVertexBuffer(VertexBufferHandle handle) {
-    addCommand(cmd::DeleteVertexBuffer{handle});
+    submitPostFrameCommand(cmd::DeleteVertexBuffer{handle});
 }
 
-IndexBufferHandle Renderer::createIndexBuffer(const void *data, uint size, IndexBufferType type) {
+IndexBufferHandle Renderer::createIndexBuffer(const void* data, uint size, IndexBufferType type) {
     auto handle = index_buffer_handle_.next();
-    addCommand(cmd::CreateIndexBuffer{handle, Memory{data, size}, type});
+    submitPreFrameCommand(cmd::CreateIndexBuffer{handle, Memory{data, size}, type});
     return handle;
 }
 
@@ -149,40 +144,40 @@ void Renderer::setIndexBuffer(IndexBufferHandle handle) {
 }
 
 void Renderer::deleteIndexBuffer(IndexBufferHandle handle) {
-    addCommand(cmd::DeleteIndexBuffer{handle});
+    submitPostFrameCommand(cmd::DeleteIndexBuffer{handle});
 }
 
 ShaderHandle Renderer::createShader(ShaderType type, const String& source) {
     auto handle = shader_handle_.next();
-    addCommand(cmd::CreateShader{handle, type, source});
+    submitPreFrameCommand(cmd::CreateShader{handle, type, source});
     return handle;
 }
 
 void Renderer::deleteShader(ShaderHandle handle) {
-addCommand(cmd::DeleteShader{handle});
+    submitPostFrameCommand(cmd::DeleteShader{handle});
 }
 
 ProgramHandle Renderer::createProgram() {
     auto handle = program_handle_.next();
-    addCommand(cmd::CreateProgram{handle});
+    submitPreFrameCommand(cmd::CreateProgram{handle});
     return handle;
 }
 
 void Renderer::attachShader(ProgramHandle program, ShaderHandle shader) {
-    addCommand(cmd::AttachShader{program, shader});
+    submitPreFrameCommand(cmd::AttachShader{program, shader});
 }
 
 void Renderer::linkProgram(ProgramHandle program) {
-    addCommand(cmd::LinkProgram{program});
+    submitPreFrameCommand(cmd::LinkProgram{program});
 }
 
 void Renderer::deleteProgram(ProgramHandle program) {
-addCommand(cmd::DeleteProgram{program});
+    submitPostFrameCommand(cmd::DeleteProgram{program});
 }
 
 TextureHandle Renderer::createTexture2D() {
     auto handle = texture_handle_.next();
-    addCommand(cmd::CreateTexture2D{handle});
+    submitPreFrameCommand(cmd::CreateTexture2D{handle});
     return handle;
 }
 
@@ -192,22 +187,26 @@ void Renderer::setTexture(TextureHandle handle, uint texture_unit) {
 }
 
 void Renderer::deleteTexture(TextureHandle handle) {
-    addCommand(cmd::DeleteTexture{handle});
+    submitPostFrameCommand(cmd::DeleteTexture{handle});
 }
 
 void Renderer::clear(const Vec3& colour) {
-    //addCommand(cmd::Clear{colour});
+    // addCommand(cmd::Clear{colour});
 }
 
 void Renderer::submit(ProgramHandle program, uint vertex_count) {
     submit_->current_item.program = program;
-    submit_->current_item.vertex_count = vertex_count;
+    submit_->current_item.primitive_count = vertex_count / 3;
     submit_->render_items.emplace_back(submit_->current_item);
     submit_->current_item.clear();
 }
 
-void Renderer::addCommand(RenderCommand command) {
-    submit_->commands.emplace_back(std::move(command));
+void Renderer::submitPreFrameCommand(RenderCommand command) {
+    submit_->commands_pre.emplace_back(std::move(command));
+}
+
+void Renderer::submitPostFrameCommand(RenderCommand command) {
+    submit_->commands_post.emplace_back(std::move(command));
 }
 
 void Renderer::renderThread() {
@@ -217,14 +216,14 @@ void Renderer::renderThread() {
 
     // Enter render loop.
     while (!should_exit_.load()) {
-        // Drain command buffer.
-        for (auto& command : render_->commands) {
-            r_render_context_->processCommand(command);
-        }
+        // Drain command buffers.
+        r_render_context_->processCommandList(render_->commands_pre);
         r_render_context_->submit(render_->render_items);
+        r_render_context_->processCommandList(render_->commands_post);
         render_->current_item.clear();
         render_->render_items.clear();
-        render_->commands.clear();
+        render_->commands_pre.clear();
+        render_->commands_post.clear();
 
         // Swap buffers.
         glfwSwapBuffers(window_);

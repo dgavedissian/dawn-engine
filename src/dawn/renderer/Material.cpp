@@ -7,7 +7,7 @@
 
 namespace dw {
 
-Material::Material(Context* context, SharedPtr<GLProgram> program)
+Material::Material(Context* context, SharedPtr<Program> program)
     : Object{context}, program_{program} {
     //    handle_ = bgfx::createProgram(vs->internalHandle(), fs->internalHandle());
 

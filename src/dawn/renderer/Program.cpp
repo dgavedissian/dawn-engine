@@ -7,29 +7,29 @@
 
 namespace dw {
 
-GLProgram::GLProgram(Context* context, SharedPtr<Shader> vs, SharedPtr<Shader> fs)
+Program::Program(Context* context, SharedPtr<Shader> vs, SharedPtr<Shader> fs)
     : Resource(context), vertex_shader_(vs), fragment_shader_(fs) {
     //    handle_ = bgfx::createProgram(vs->internalHandle(), fs->internalHandle());
 
     // TODO(David): error checking
 }
 
-GLProgram::~GLProgram() {
+Program::~Program() {
     //    for (auto uniform : uniform_handle_table_) {
     //        bgfx::destroyUniform(uniform.second.first);
     //    }
     //    bgfx::destroyProgram(handle_);
 }
 
-bool GLProgram::beginLoad(InputStream&) {
+bool Program::beginLoad(InputStream&) {
     log().error("Material loading unimplemented");
     return false;
 }
 
-void GLProgram::endLoad() {
+void Program::endLoad() {
 }
 
-void GLProgram::setTextureUnit(SharedPtr<Texture> /*texture*/, uint /*unit*/) {
+void Program::setTextureUnit(SharedPtr<Texture> /*texture*/, uint /*unit*/) {
 }
 
 // bgfx::ProgramHandle GLProgram::internalHandle() const {
