@@ -19,6 +19,8 @@
 
 namespace dw {
 
+class Engine;
+
 class DW_API App : public Object {
 public:
     App() : Object{nullptr} {
@@ -36,6 +38,9 @@ public:
     virtual String gameVersion() = 0;
 
     friend DW_API int runApp(UniquePtr<App> app, int argc, char** argv);
+
+protected:
+    const Engine* engine_;
 };
 
 DW_API int runApp(UniquePtr<App> app, int argc, char** argv);

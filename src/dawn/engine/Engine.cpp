@@ -175,12 +175,17 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
 
         // Calculate frameTime.
         time::TimePoint current_time = time::beginTiming();
-        accumulator += time::elapsed(previous_time, current_time);
+        frame_time_ = time::elapsed(previous_time, current_time);
+        accumulator += frame_time_;
         previous_time = current_time;
     }
 
     // Ensure that all states have been exited so no crashes occur later.
     context_->subsystem<StateManager>()->clear();
+}
+
+double Engine::frameTime() const {
+    return frame_time_;
 }
 
 void Engine::printSystemInfo() {
@@ -218,7 +223,7 @@ String Engine::getBasePath() const {
 }
 
 void Engine::update(float dt) {
-    log().debug("Frame Time: %f", dt);
+    // log().debug("Frame Time: %f", dt);
 
     context_->subsystem<EventSystem>()->update(0.02f);
     context_->subsystem<StateManager>()->update(dt);

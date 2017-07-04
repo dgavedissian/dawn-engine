@@ -31,6 +31,9 @@ public:
     /// @param render_callback Function to run every time a frame is rendered.
     void run(EngineTickCallback tick_callback, EngineRenderCallback render_callback);
 
+    /// Access the frame time
+    double frameTime() const;
+
 private:
     bool initialised_;
     bool running_;
@@ -38,6 +41,8 @@ private:
 
     String game_name_;
     String game_version_;
+
+    double frame_time_;
 
     // Window.
     UniquePtr<Window> window_;

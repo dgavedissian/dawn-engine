@@ -66,8 +66,9 @@ void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
             continue;
         }
 
-        log().info("%s %s %s %s %s", attrib_counter, count, (int)gl_type->first, c.decl.stride_,
-                   attrib.second);
+        log().info("[renderer] Attrib %s: Count='%s' Type='%s' Stride='%s' Offset='%s'",
+                   attrib_counter, count, (int)gl_type->first, c.decl.stride_,
+                   (intptr_t)attrib.second);
 
         // Set attribute.
         glEnableVertexAttribArray(attrib_counter);
@@ -176,7 +177,8 @@ void GLRenderContext::operator()(const cmd::DeleteTexture& c) {
 
 void GLRenderContext::submit(const Vector<RenderItem>& items) {
     glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (uint i = 0; i < items.size(); ++i) {
         auto* previous = i > 0 ? &items[i - 1] : nullptr;
         auto* current = &items[i];
@@ -199,7 +201,51 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
         // Bind Program.
         if (!previous || previous->program != current->program) {
             assert(current->program != 0);
-            glUseProgram(r_program_map_[current->program]);
+            GLuint program = r_program_map_[current->program];
+            glUseProgram(program);
+
+            // Bind Uniforms.
+            for (auto& uniform_pair : current->uniforms) {
+                struct UniformBinder {
+                    GLint uniform_location;
+                    UniformBinder(GLint location) : uniform_location{location} {
+                    }
+
+                    void operator()(const int& value) {
+                        // TODO: implement.
+                    }
+
+                    void operator()(const float& value) {
+                        // TODO: implement.
+                    }
+
+                    void operator()(const Vec2& value) {
+                        // TODO: implement.
+                    }
+
+                    void operator()(const Vec3& value) {
+                        glUniform3f(uniform_location, value.x, value.y, value.z);
+                    }
+
+                    void operator()(const Vec4& value) {
+                        // TODO: implement.
+                    }
+
+                    void operator()(const Mat3& value) {
+                        // TODO: implement.
+                    }
+
+                    void operator()(const Mat4& value) {
+                        glUniformMatrix4fv(uniform_location, 1, GL_TRUE, value.ptr());
+                    }
+                };
+                GLint uniform_location = glGetUniformLocation(program, uniform_pair.first.c_str());
+                if (uniform_location == -1) {
+                    log().warn("Unknown uniform '%s', skipping.", uniform_pair.first);
+                    continue;
+                }
+                mpark::visit(UniformBinder{uniform_location}, uniform_pair.second);
+            }
         }
 
         // Submit.

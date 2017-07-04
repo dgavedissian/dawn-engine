@@ -160,15 +160,20 @@ using RenderCommand =
 struct RenderItem {
     void clear();
 
+    using UniformData = Variant<int, float, Vec2, Vec3, Vec4, Mat3, Mat4>;
+
     struct TextureBinding {
         TextureHandle handle;
     };
 
-    // Vertices
+    // Vertices and Indices.
     VertexBufferHandle vb;
     IndexBufferHandle ib;
     uint primitive_count;
+
+    // Shader program and parameters.
     ProgramHandle program;
+    HashMap<String, UniformData> uniforms;
     TextureBinding textures[MAX_TEXTURE_SAMPLERS];
 };
 
@@ -224,9 +229,18 @@ public:
     void linkProgram(ProgramHandle program);
     void deleteProgram(ProgramHandle program);
 
+    /// Uniforms.
+    void setUniform(const String& uniform_name, int value);
+    void setUniform(const String& uniform_name, float value);
+    void setUniform(const String& uniform_name, const Vec2& value);
+    void setUniform(const String& uniform_name, const Vec3& value);
+    void setUniform(const String& uniform_name, const Vec4& value);
+    void setUniform(const String& uniform_name, const Mat3& value);
+    void setUniform(const String& uniform_name, const Mat4& value);
+
     // Create texture.
     TextureHandle createTexture2D();
-    void setTexture(TextureHandle handle, uint texture_unit);
+    void setTexture(TextureHandle handle, uint sampler_unit);
     void deleteTexture(TextureHandle handle);
 
     /// Clear.

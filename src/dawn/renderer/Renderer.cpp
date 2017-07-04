@@ -175,15 +175,43 @@ void Renderer::deleteProgram(ProgramHandle program) {
     submitPostFrameCommand(cmd::DeleteProgram{program});
 }
 
+void Renderer::setUniform(const String& uniform_name, int value) {
+    submit_->current_item.uniforms[uniform_name] = value;
+}
+
+void Renderer::setUniform(const String& uniform_name, float value) {
+    submit_->current_item.uniforms[uniform_name] = value;
+}
+
+void Renderer::setUniform(const String& uniform_name, const Vec2& value) {
+    submit_->current_item.uniforms[uniform_name] = value;
+}
+
+void Renderer::setUniform(const String& uniform_name, const Vec3& value) {
+    submit_->current_item.uniforms[uniform_name] = value;
+}
+
+void Renderer::setUniform(const String& uniform_name, const Vec4& value) {
+    submit_->current_item.uniforms[uniform_name] = value;
+}
+
+void Renderer::setUniform(const String& uniform_name, const Mat3& value) {
+    submit_->current_item.uniforms[uniform_name] = value;
+}
+
+void Renderer::setUniform(const String& uniform_name, const Mat4& value) {
+    submit_->current_item.uniforms[uniform_name] = value;
+}
+
 TextureHandle Renderer::createTexture2D() {
     auto handle = texture_handle_.next();
     submitPreFrameCommand(cmd::CreateTexture2D{handle});
     return handle;
 }
 
-void Renderer::setTexture(TextureHandle handle, uint texture_unit) {
+void Renderer::setTexture(TextureHandle handle, uint sampler_unit) {
     // TODO: check precondition: texture_unit < MAX_TEXTURE_UNITS
-    submit_->current_item.textures[texture_unit].handle = handle;
+    submit_->current_item.textures[sampler_unit].handle = handle;
 }
 
 void Renderer::deleteTexture(TextureHandle handle) {
