@@ -8,9 +8,12 @@
 #include "DawnEngine.h"
 
 // Required for getBasePath/getPrefPath.
-#if DW_PLATFORM == DW_MACOS
+#if DW_PLATFORM == DW_WIN32
+#elif DW_PLATFORM == DW_MACOS
 #include <CoreFoundation/CoreFoundation.h>
 #define MAX_PATH 256
+#elif DW_PLATFORM == DW_LINUX
+#include <unistd.h>
 #endif
 
 namespace dw {
@@ -202,6 +205,35 @@ void Engine::printSystemInfo() {
     // TODO: more system info
 }
 
+#if DW_PLATFORM == DW_LINUX
+static String readSymLink(const String& path) {
+    char* retval = nullptr;
+    size_t len = 64;
+    ssize_t rc;
+
+    while (true) {
+        if (retval) {
+            delete[] retval;
+        }
+        retval = new char[len + 1];
+        rc = readlink(path.c_str(), retval, len);
+        if (rc == -1) {
+            break; /* not a symlink, i/o error, etc. */
+        } else if (rc < len) {
+            retval[rc] = '\0'; /* readlink doesn't null-terminate. */
+            String result{retval};
+            delete[] retval;
+            return result; /* we're good to go. */
+        }
+
+        len *= 2; /* grow buffer, try again. */
+    }
+
+    delete[] retval;
+    return {};
+}
+#endif
+
 String Engine::getBasePath() const {
 #if DW_PLATFORM == DW_MACOS
     CFBundleRef main_bundle = CFBundleGetMainBundle();
@@ -217,8 +249,25 @@ String Engine::getBasePath() const {
     // For debugging, move from Resources folder to bin.
     str_path += "../../../";
     return str_path;
-#else
-    return "";
+#elif DW_PLATFORM == DW_LINUX
+    String executable_path;
+
+    // Is a Linux-style /proc filesystem available?
+    if (access("/proc", F_OK) != 0) {
+        // error.
+        return "";
+    }
+    executable_path = readSymLink("/proc/self/exe");
+    if (executable_path == "") {
+        // Older kernels don't have /proc/self, try PID version.
+        executable_path =
+            readSymLink(tinyformat::format("/proc/%llu/exe", (unsigned long long)getpid()));
+    }
+
+    // Chop off filename.
+    auto len = executable_path.find_last_of('/');
+    executable_path = executable_path.substr(0, len);
+    return executable_path;
 #endif
 }
 

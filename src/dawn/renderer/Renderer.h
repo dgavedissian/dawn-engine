@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include "core/Concurrency.h"
 #include "renderer/RenderTask.h"
 #include "renderer/VertexDecl.h"
 #include "renderer/Window.h"
@@ -55,7 +56,7 @@ public:
     uint size() const;
 
 private:
-    void* data_;
+    byte* data_;
     uint size_;
 };
 
@@ -271,8 +272,12 @@ private:
 
     // Shared.
     Atomic<bool> should_exit_;
-    Mutex submit_lock_;
-    Mutex render_lock_;
+
+    Barrier frame_barrier_;
+    Mutex swap_mutex_;
+    ConditionVariable swap_cv_;
+    bool swapped_frames_;
+
     Frame frames_[2];
     Frame* submit_;
     Frame* render_;

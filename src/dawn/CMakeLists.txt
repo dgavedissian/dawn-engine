@@ -3,6 +3,8 @@
 
 set(SOURCE_FILES
     core/Collections.h
+    core/Concurrency.cpp
+    core/Concurrency.h
     core/Context.cpp
     core/Context.h
     core/EventSystem.cpp

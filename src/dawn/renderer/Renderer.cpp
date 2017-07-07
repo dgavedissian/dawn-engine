@@ -52,7 +52,7 @@ void RenderItem::clear() {
 }
 
 Renderer::Renderer(Context* context, Window* window)
-    : Object{context}, window_{window->window_}, submit_{&frames_[0]}, render_{&frames_[1]} {
+    : Object{context}, window_{window->window_}, frame_barrier_{2}, submit_{&frames_[0]}, render_{&frames_[1]} {
     // Attach GL context to main thread.
     glfwMakeContextCurrent(window_);
 
@@ -67,17 +67,18 @@ Renderer::Renderer(Context* context, Window* window)
     // Spawn render thread.
     should_exit_.store(false);
     render_thread_ = Thread{[this]() {
-        render_lock_.lock();
         renderThread();
     }};
-
-    // Acquire submit lock.
-    submit_lock_.lock();
 }
 
 Renderer::~Renderer() {
+    // Flag to the render thread that it should exit.
     should_exit_.store(true);
-    submit_lock_.unlock();  // Allow the render thread to exit.
+
+    // Wait for the render thread to complete its last frame.
+    frame_barrier_.wait();
+
+    // Wait for the render thread to exit completely.
     render_thread_.join();
 }
 
@@ -111,11 +112,14 @@ void Renderer::frame() {
     bgfx::frame();
      */
 
-    // Synchronise with rendering thread.
-    submit_lock_.unlock();  // Signal to render thread that we are done with cmd buffer.
-    render_lock_.lock();    // Block until buffer swap is complete.
-    render_lock_.unlock();  // Allow render thread to continue once signalled that swap is done.
-    submit_lock_.lock();    // Reacquire lock to submit cmd buffer so render thread waits for us.
+    // Wait for render thread.
+    frame_barrier_.wait();
+
+    // Wait for frame swap, then reset swapped_frames_. This has no race here, because the render thread will not
+    // modify "swapped_frames_" again until after this thread hits the barrier again.
+    UniqueLock<Mutex> lock{swap_mutex_};
+    swap_cv_.wait(lock, [this] { return swapped_frames_; });
+    swapped_frames_ = false;
 }
 
 VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size,
@@ -257,15 +261,15 @@ void Renderer::renderThread() {
         glfwSwapBuffers(window_);
 
         // Wait for submit thread.
-        submit_lock_.lock();
+        frame_barrier_.wait();
 
-        // Swap command buffers.
-        std::swap(submit_, render_);
-
-        // Unblock submit thread.
-        submit_lock_.unlock();  // Allow submit thread to reacquire it's lock.
-        render_lock_.unlock();  // Unblock submit thread by signalling that swap is complete.
-        render_lock_.lock();    // Reacquire.
+        // Swap command buffers and unblock submit thread.
+        {
+            std::lock_guard<std::mutex> lock{swap_mutex_};
+            std::swap(submit_, render_);
+            swapped_frames_ = true;
+        }
+        swap_cv_.notify_all();
     }
 }
 

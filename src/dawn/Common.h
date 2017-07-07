@@ -49,12 +49,6 @@ template <class T1, class T2> inline SharedPtr<T1> dynamicPointerCast(const Shar
     return std::dynamic_pointer_cast<T1, T2>(other);
 }
 
-// Threads
-using Thread = std::thread;
-template <typename T> using Atomic = std::atomic<T>;
-using Mutex = std::mutex;
-using LockGuard = std::lock_guard<std::mutex>;
-
 // Stubs
 class Camera {};  // TODO(David) stub until ECS is integrated
 }  // namespace dw

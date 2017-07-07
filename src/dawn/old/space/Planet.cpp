@@ -490,9 +490,8 @@ void Planet::RingNode::cache() {
                 asteroid.node = nullptr;
                 Ogre::Entity* entity =
                     mParentRingSystem->mParent->mRenderSystem->getSceneMgr()->createEntity(
-                        "scene-asteroid" +
-                        std::to_string(
-                            asteroidTypeDistribution(mParentRingSystem->mRandomGenerator)) +
+                        "scene-asteroid" + std::to_string(asteroidTypeDistribution(
+                                               mParentRingSystem->mRandomGenerator)) +
                         ".mesh");
                 entity->setMaterialName("Scene/Rings/Asteroid");
                 asteroid.node =
