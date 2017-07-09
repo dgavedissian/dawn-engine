@@ -15,7 +15,7 @@ Shader::~Shader() {
 
 bool Shader::beginLoad(InputStream& src) {
     // TODO(David): Sanity checking here?
-    src_len_ = static_cast<u32>(src.getSize());
+    src_len_ = static_cast<u32>(src.size());
     assert(src_len_ != 0);
     src_data_ = new byte[src_len_];
     src.read(src_data_, src_len_);

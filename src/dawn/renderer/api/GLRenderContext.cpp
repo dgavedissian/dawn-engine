@@ -17,7 +17,82 @@
         }                                                         \
     }
 
+
 namespace dw {
+namespace {
+// GL TextureFormatInfo.
+struct TextureFormatInfo {
+    GLenum internal_format;
+    GLenum internal_format_srgb;
+    GLenum format;
+    GLenum type;
+    bool supported;
+};
+
+// clang-format off
+static TextureFormatInfo s_texture_format[] =
+    {
+        { GL_ALPHA,              GL_ZERO,         GL_ALPHA,            GL_UNSIGNED_BYTE,                false }, // A8
+        { GL_R8,                 GL_ZERO,         GL_RED,              GL_UNSIGNED_BYTE,                false }, // R8
+        { GL_R8I,                GL_ZERO,         GL_RED,              GL_BYTE,                         false }, // R8I
+        { GL_R8UI,               GL_ZERO,         GL_RED,              GL_UNSIGNED_BYTE,                false }, // R8U
+        { GL_R8_SNORM,           GL_ZERO,         GL_RED,              GL_BYTE,                         false }, // R8S
+        { GL_R16,                GL_ZERO,         GL_RED,              GL_UNSIGNED_SHORT,               false }, // R16
+        { GL_R16I,               GL_ZERO,         GL_RED,              GL_SHORT,                        false }, // R16I
+        { GL_R16UI,              GL_ZERO,         GL_RED,              GL_UNSIGNED_SHORT,               false }, // R16U
+        { GL_R16F,               GL_ZERO,         GL_RED,              GL_HALF_FLOAT,                   false }, // R16F
+        { GL_R16_SNORM,          GL_ZERO,         GL_RED,              GL_SHORT,                        false }, // R16S
+        { GL_R32I,               GL_ZERO,         GL_RED,              GL_INT,                          false }, // R32I
+        { GL_R32UI,              GL_ZERO,         GL_RED,              GL_UNSIGNED_INT,                 false }, // R32U
+        { GL_R32F,               GL_ZERO,         GL_RED,              GL_FLOAT,                        false }, // R32F
+        { GL_RG8,                GL_ZERO,         GL_RG,               GL_UNSIGNED_BYTE,                false }, // RG8
+        { GL_RG8I,               GL_ZERO,         GL_RG,               GL_BYTE,                         false }, // RG8I
+        { GL_RG8UI,              GL_ZERO,         GL_RG,               GL_UNSIGNED_BYTE,                false }, // RG8U
+        { GL_RG8_SNORM,          GL_ZERO,         GL_RG,               GL_BYTE,                         false }, // RG8S
+        { GL_RG16,               GL_ZERO,         GL_RG,               GL_UNSIGNED_SHORT,               false }, // RG16
+        { GL_RG16I,              GL_ZERO,         GL_RG,               GL_SHORT,                        false }, // RG16I
+        { GL_RG16UI,             GL_ZERO,         GL_RG,               GL_UNSIGNED_SHORT,               false }, // RG16U
+        { GL_RG16F,              GL_ZERO,         GL_RG,               GL_FLOAT,                        false }, // RG16F
+        { GL_RG16_SNORM,         GL_ZERO,         GL_RG,               GL_SHORT,                        false }, // RG16S
+        { GL_RG32I,              GL_ZERO,         GL_RG,               GL_INT,                          false }, // RG32I
+        { GL_RG32UI,             GL_ZERO,         GL_RG,               GL_UNSIGNED_INT,                 false }, // RG32U
+        { GL_RG32F,              GL_ZERO,         GL_RG,               GL_FLOAT,                        false }, // RG32F
+        { GL_RGB8,               GL_SRGB8,        GL_RGB,              GL_UNSIGNED_BYTE,                false }, // RGB8
+        { GL_RGB8I,              GL_ZERO,         GL_RGB,              GL_BYTE,                         false }, // RGB8I
+        { GL_RGB8UI,             GL_ZERO,         GL_RGB,              GL_UNSIGNED_BYTE,                false }, // RGB8U
+        { GL_RGB8_SNORM,         GL_ZERO,         GL_RGB,              GL_BYTE,                         false }, // RGB8S
+        { GL_RGBA8,              GL_SRGB8_ALPHA8, GL_BGRA,             GL_UNSIGNED_BYTE,                false }, // BGRA8
+        { GL_RGBA8,              GL_SRGB8_ALPHA8, GL_RGBA,             GL_UNSIGNED_BYTE,                false }, // RGBA8
+        { GL_RGBA8I,             GL_ZERO,         GL_RGBA,             GL_BYTE,                         false }, // RGBA8I
+        { GL_RGBA8UI,            GL_ZERO,         GL_RGBA,             GL_UNSIGNED_BYTE,                false }, // RGBA8U
+        { GL_RGBA8_SNORM,        GL_ZERO,         GL_RGBA,             GL_BYTE,                         false }, // RGBA8S
+        { GL_RGBA16,             GL_ZERO,         GL_RGBA,             GL_UNSIGNED_SHORT,               false }, // RGBA16
+        { GL_RGBA16I,            GL_ZERO,         GL_RGBA,             GL_SHORT,                        false }, // RGBA16I
+        { GL_RGBA16UI,           GL_ZERO,         GL_RGBA,             GL_UNSIGNED_SHORT,               false }, // RGBA16U
+        { GL_RGBA16F,            GL_ZERO,         GL_RGBA,             GL_HALF_FLOAT,                   false }, // RGBA16F
+        { GL_RGBA16_SNORM,       GL_ZERO,         GL_RGBA,             GL_SHORT,                        false }, // RGBA16S
+        { GL_RGBA32I,            GL_ZERO,         GL_RGBA,             GL_INT,                          false }, // RGBA32I
+        { GL_RGBA32UI,           GL_ZERO,         GL_RGBA,             GL_UNSIGNED_INT,                 false }, // RGBA32U
+        { GL_RGBA32F,            GL_ZERO,         GL_RGBA,             GL_FLOAT,                        false }, // RGBA32F
+        { GL_RGB565,             GL_ZERO,         GL_RGB,              GL_UNSIGNED_SHORT_5_6_5,         false }, // R5G6B5
+        { GL_RGBA4,              GL_ZERO,         GL_RGBA,             GL_UNSIGNED_SHORT_4_4_4_4_REV,   false }, // RGBA4
+        { GL_RGB5_A1,            GL_ZERO,         GL_RGBA,             GL_UNSIGNED_SHORT_1_5_5_5_REV,   false }, // RGB5A1
+        { GL_RGB10_A2,           GL_ZERO,         GL_RGBA,             GL_UNSIGNED_INT_2_10_10_10_REV,  false }, // RGB10A2
+        { GL_R11F_G11F_B10F,     GL_ZERO,         GL_RGB,              GL_UNSIGNED_INT_10F_11F_11F_REV, false }, // RG11B10F
+        { GL_DEPTH_COMPONENT16,  GL_ZERO,         GL_DEPTH_COMPONENT,  GL_UNSIGNED_SHORT,               false }, // D16
+        { GL_DEPTH_COMPONENT24,  GL_ZERO,         GL_DEPTH_COMPONENT,  GL_UNSIGNED_INT,                 false }, // D24
+        { GL_DEPTH24_STENCIL8,   GL_ZERO,         GL_DEPTH_STENCIL,    GL_UNSIGNED_INT_24_8,            false }, // D24S8
+        { GL_DEPTH_COMPONENT32,  GL_ZERO,         GL_DEPTH_COMPONENT,  GL_UNSIGNED_INT,                 false }, // D32
+        { GL_DEPTH_COMPONENT32F, GL_ZERO,         GL_DEPTH_COMPONENT,  GL_FLOAT,                        false }, // D16F
+        { GL_DEPTH_COMPONENT32F, GL_ZERO,         GL_DEPTH_COMPONENT,  GL_FLOAT,                        false }, // D24F
+        { GL_DEPTH_COMPONENT32F, GL_ZERO,         GL_DEPTH_COMPONENT,  GL_FLOAT,                        false }, // D32F
+        { GL_STENCIL_INDEX8,     GL_ZERO,         GL_STENCIL_INDEX,    GL_UNSIGNED_BYTE,                false }, // D0S8
+    };
+// clang-format on
+static_assert(static_cast<int>(TextureFormat::Count) ==
+              sizeof(s_texture_format) / sizeof(s_texture_format[0]), "Texture format mapping mismatch.");
+}  // namespace
+
 GLRenderContext::GLRenderContext(Context* context) : RenderContext{context} {
     log().info("[Renderer] OpenGL: %s - GLSL: %s", glGetString(GL_VERSION),
                glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -167,6 +242,26 @@ void GLRenderContext::operator()(const cmd::DeleteProgram& c) {
 }
 
 void GLRenderContext::operator()(const cmd::CreateTexture2D& c) {
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // Filtering.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Give image data to OpenGL.
+    TextureFormatInfo format = s_texture_format[static_cast<int>(c.format)];
+    log().debug(
+        "[renderer] [CreateTexture2D] format %s - internal fmt: 0x%.4X - internal fmt srgb: 0x%.4X "
+        "- fmt: 0x%.4X - type: 0x%.4X",
+        static_cast<u32>(c.format), format.internal_format, format.internal_format_srgb,
+        format.format, format.type);
+    glTexImage2D(GL_TEXTURE_2D, 0, format.internal_format, c.width, c.height, 0, format.format,
+                 format.type, c.data.data());
+
+    // Add texture.
+    r_texture_map_.emplace(c.handle, texture);
 }
 
 void GLRenderContext::operator()(const cmd::DeleteTexture& c) {
@@ -212,15 +307,15 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
                     }
 
                     void operator()(const int& value) {
-                        // TODO: implement.
+                        glUniform1i(uniform_location, value);
                     }
 
                     void operator()(const float& value) {
-                        // TODO: implement.
+                        glUniform1f(uniform_location, value);
                     }
 
                     void operator()(const Vec2& value) {
-                        // TODO: implement.
+                        glUniform2f(uniform_location, value.x, value.y);
                     }
 
                     void operator()(const Vec3& value) {
@@ -228,11 +323,11 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
                     }
 
                     void operator()(const Vec4& value) {
-                        // TODO: implement.
+                        glUniform4f(uniform_location, value.x, value.y, value.z, value.w);
                     }
 
                     void operator()(const Mat3& value) {
-                        // TODO: implement.
+                        glUniformMatrix3fv(uniform_location, 1, GL_TRUE, value.ptr());
                     }
 
                     void operator()(const Mat4& value) {
@@ -245,6 +340,14 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
                     continue;
                 }
                 mpark::visit(UniformBinder{uniform_location}, uniform_pair.second);
+            }
+
+            // Bind textures.
+            for (uint j = 0; j < MAX_TEXTURE_SAMPLERS; j++) {
+                if (!previous || previous->textures[j].handle != current->textures[j].handle) {
+                    glActiveTexture(GL_TEXTURE0 + j);
+                    glBindTexture(GL_TEXTURE_2D, current->textures[j].handle);
+                }
             }
         }
 

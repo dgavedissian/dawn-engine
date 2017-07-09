@@ -149,6 +149,9 @@ public:
     uint vertex_count_;
     ProgramHandle program_;
 
+    // Uses the higher level wrapper which provides loading from files.
+    UniquePtr<Texture> texture_resource_;
+
     Renderer* r;
 
     void init(int argc, char** argv) override {
@@ -167,6 +170,13 @@ public:
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
         r->linkProgram(program_);
+        r->setUniform("wall_texture", 0);
+
+        // Load texture.
+        File texture_file{context(), "test.jpg"};
+        texture_resource_ = makeUnique<Texture>(context());
+        texture_resource_->beginLoad(texture_file);
+        texture_resource_->endLoad();
 
         // Create box.
         vertex_count_ = createBox(10.0f, vb_);
@@ -197,11 +207,12 @@ public:
         static Mat4 projection = Mat4::OpenGLPerspProjRH(n, f, h, v);
         r->setUniform("model_matrix", model);
         r->setUniform("mvp_matrix", projection * view * model);
-        r->setUniform("lightDirection", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
+        r->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
         // Set vertex buffer and submit.
         r->setVertexBuffer(vb_);
-        r->submit(program_, 36);
+        r->setTexture(texture_resource_->internalHandle(), 0);
+        r->submit(program_, vertex_count_);
     }
 
     void update(float dt) override {

@@ -34,7 +34,7 @@ u32 File::read(void* dest, u32 size) {
         return 0;
     }
 
-    mPosition += size;
+    position_ += size;
 
     return size;
 }
@@ -46,12 +46,12 @@ void File::seek(u64 position) {
 
     // If writing, then sparse seeks are allowed (where the cursor can be positioned past the end of
     // the file)
-    if (!(mode_ & FileMode::Write) && position > mSize) {
-        position = mSize;
+    if (!(mode_ & FileMode::Write) && position > size_) {
+        position = size_;
     }
 
     fseek(handle_, static_cast<long>(position), SEEK_SET);
-    mPosition = position;
+    position_ = position;
 }
 
 u32 File::write(const void* src, u32 size) {
@@ -60,9 +60,10 @@ u32 File::write(const void* src, u32 size) {
     }
 
     fwrite(src, size, 1, handle_);
-    mPosition += size;
-    if (mPosition > mSize)
-        mSize = mPosition;
+    position_ += size;
+    if (position_ > size_) {
+        size_ = position_;
+    }
 
     return size;
 }
@@ -77,7 +78,7 @@ bool File::open(const Path& path, int mode) {
 
     // Determine file size
     fseek(handle_, 0, SEEK_END);
-    mSize = (u64)ftell(handle_);
+    size_ = (u64)ftell(handle_);
     fseek(handle_, 0, SEEK_SET);
 
     return true;

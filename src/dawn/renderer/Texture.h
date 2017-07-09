@@ -18,9 +18,9 @@ public:
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
 
-    //    bgfx::TextureHandle internalHandle() const;
+    TextureHandle internalHandle() const;
 
 private:
-    //    bgfx::TextureHandle handle_;
+    TextureHandle handle_;
 };
 }  // namespace dw

@@ -45,10 +45,9 @@ private:
     std::size_t count_;
 };
 
-
-template<class Rep, class Period>
-bool Semaphore::wait_for(const std::chrono::duration<Rep, Period> &d) {
-    UniqueLock <Mutex> lock{mutex_};
+template <class Rep, class Period>
+bool Semaphore::wait_for(const std::chrono::duration<Rep, Period>& d) {
+    UniqueLock<Mutex> lock{mutex_};
     auto finished = cv_.wait_for(lock, d, [&] { return count_ > 0; });
 
     if (finished)
@@ -57,9 +56,9 @@ bool Semaphore::wait_for(const std::chrono::duration<Rep, Period> &d) {
     return finished;
 }
 
-template<class Clock, class Duration>
-bool Semaphore::wait_until(const std::chrono::time_point<Clock, Duration> &t) {
-    UniqueLock <Mutex> lock{mutex_};
+template <class Clock, class Duration>
+bool Semaphore::wait_until(const std::chrono::time_point<Clock, Duration>& t) {
+    UniqueLock<Mutex> lock{mutex_};
     auto finished = cv_.wait_until(lock, t, [&] { return count_ > 0; });
 
     if (finished)
@@ -82,7 +81,8 @@ public:
             count_ = threshold_;
             cv_.notify_all();
         } else {
-            cv_.wait(lock, [this, current_generation] { return current_generation != generation_; });
+            cv_.wait(lock,
+                     [this, current_generation] { return current_generation != generation_; });
         }
     }
 

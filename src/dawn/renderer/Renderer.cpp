@@ -52,7 +52,11 @@ void RenderItem::clear() {
 }
 
 Renderer::Renderer(Context* context, Window* window)
-    : Object{context}, window_{window->window_}, frame_barrier_{2}, submit_{&frames_[0]}, render_{&frames_[1]} {
+    : Object{context},
+      window_{window->window_},
+      frame_barrier_{2},
+      submit_{&frames_[0]},
+      render_{&frames_[1]} {
     // Attach GL context to main thread.
     glfwMakeContextCurrent(window_);
 
@@ -66,9 +70,7 @@ Renderer::Renderer(Context* context, Window* window)
 
     // Spawn render thread.
     should_exit_.store(false);
-    render_thread_ = Thread{[this]() {
-        renderThread();
-    }};
+    render_thread_ = Thread{[this]() { renderThread(); }};
 }
 
 Renderer::~Renderer() {
@@ -115,8 +117,9 @@ void Renderer::frame() {
     // Wait for render thread.
     frame_barrier_.wait();
 
-    // Wait for frame swap, then reset swapped_frames_. This has no race here, because the render thread will not
-    // modify "swapped_frames_" again until after this thread hits the barrier again.
+    // Wait for frame swap, then reset swapped_frames_. This has no race here, because the render
+    // thread will not modify "swapped_frames_" again until after this thread hits the barrier
+    // again.
     UniqueLock<Mutex> lock{swap_mutex_};
     swap_cv_.wait(lock, [this] { return swapped_frames_; });
     swapped_frames_ = false;
@@ -124,6 +127,7 @@ void Renderer::frame() {
 
 VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size,
                                                 const VertexDecl& decl) {
+    // TODO: Validate data.
     auto handle = vertex_buffer_handle_.next();
     submitPreFrameCommand(cmd::CreateVertexBuffer{handle, Memory{data, size}, decl});
     return handle;
@@ -207,9 +211,10 @@ void Renderer::setUniform(const String& uniform_name, const Mat4& value) {
     submit_->current_item.uniforms[uniform_name] = value;
 }
 
-TextureHandle Renderer::createTexture2D() {
+TextureHandle Renderer::createTexture2D(u16 width, u16 height, TextureFormat format,
+                                        const void* data, u32 size) {
     auto handle = texture_handle_.next();
-    submitPreFrameCommand(cmd::CreateTexture2D{handle});
+    submitPreFrameCommand(cmd::CreateTexture2D{handle, width, height, format, Memory{data, size}});
     return handle;
 }
 

@@ -38,7 +38,7 @@ private:
 // Shader type.
 enum class ShaderType { Vertex, Geometry, Fragment };
 
-// Memory.
+// A blob of memory.
 class Memory {
 public:
     Memory(const void* data, uint size);
@@ -82,6 +82,79 @@ private:
 
 // Index buffer type.
 enum class IndexBufferType { U16, U32 };
+
+// Texture format.
+/*
+ * RGBA16S
+ * ^   ^ ^
+ * |   | +-- [ ]Unorm
+ * |   |     [F]loat
+ * |   |     [S]norm
+ * |   |     [I]nt
+ * |   |     [U]int
+ * |   +---- Number of bits per component
+ * +-------- Components
+ */
+enum class TextureFormat {
+    // Colour formats.
+    A8,
+    R8,
+    R8I,
+    R8U,
+    R8S,
+    R16,
+    R16I,
+    R16U,
+    R16F,
+    R16S,
+    R32I,
+    R32U,
+    R32F,
+    RG8,
+    RG8I,
+    RG8U,
+    RG8S,
+    RG16,
+    RG16I,
+    RG16U,
+    RG16F,
+    RG16S,
+    RG32I,
+    RG32U,
+    RG32F,
+    RGB8,
+    RGB8I,
+    RGB8U,
+    RGB8S,
+    BGRA8,
+    RGBA8,
+    RGBA8I,
+    RGBA8U,
+    RGBA8S,
+    RGBA16,
+    RGBA16I,
+    RGBA16U,
+    RGBA16F,
+    RGBA16S,
+    RGBA32I,
+    RGBA32U,
+    RGBA32F,
+    R5G6B5,
+    RGBA4,
+    RGB5A1,
+    RGB10A2,
+    RG11B10F,
+    // Depth formats.
+    D16,
+    D24,
+    D24S8,
+    D32,
+    D16F,
+    D24F,
+    D32F,
+    D0S8,
+    Count
+};
 
 // Render commands.
 namespace cmd {
@@ -134,6 +207,12 @@ struct DeleteProgram {
 
 struct CreateTexture2D {
     TextureHandle handle;
+    u16 width;
+    u16 height;
+    TextureFormat format;
+    // TODO: Support custom mips.
+    // TODO: Support different filtering.
+    Memory data;
 };
 
 struct DeleteTexture {
@@ -240,7 +319,8 @@ public:
     void setUniform(const String& uniform_name, const Mat4& value);
 
     // Create texture.
-    TextureHandle createTexture2D();
+    TextureHandle createTexture2D(u16 width, u16 height, TextureFormat format, const void* data,
+                                  u32 size);
     void setTexture(TextureHandle handle, uint sampler_unit);
     void deleteTexture(TextureHandle handle);
 

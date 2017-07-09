@@ -7,10 +7,10 @@
 
 namespace dw {
 
-InputStream::InputStream() : mPosition(0), mSize(0) {
+InputStream::InputStream() : position_(0), size_(0) {
 }
 
-InputStream::InputStream(u64 size) : mPosition(0), mSize(size) {
+InputStream::InputStream(u64 size) : position_(0), size_(size) {
 }
 
 InputStream::~InputStream() {
@@ -27,14 +27,14 @@ String InputStream::readLine(char delim) {
 }
 
 bool InputStream::eof() const {
-    return mPosition >= mSize;
+    return position_ >= size_;
 }
 
-u64 InputStream::getPosition() const {
-    return mPosition;
+u64 InputStream::position() const {
+    return position_;
 }
 
-u64 InputStream::getSize() const {
-    return mSize;
+u64 InputStream::size() const {
+    return size_;
 }
 }  // namespace dw

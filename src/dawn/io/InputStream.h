@@ -28,14 +28,14 @@ public:
     String readLine(char delim = '\n');
 
     /// Returns the current position in the input stream
-    u64 getPosition() const;
+    u64 position() const;
 
     /// Returns the size of the input stream
-    u64 getSize() const;
+    u64 size() const;
 
 protected:
-    u64 mPosition;
-    u64 mSize;
+    u64 position_;
+    u64 size_;
 };
 
 namespace stream {

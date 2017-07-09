@@ -20,6 +20,15 @@ protected:
     dw::Context* context_;
 };
 
+TEST_F(FileTest, ReadByte) {
+    dw::File file(context_, "testfiles/data", dw::FileMode::Read);
+    dw::u32 data;
+    dw::u32 bytes_read = file.read(&data, sizeof(dw::u32));
+    EXPECT_EQ(0x906f6f66, data);
+    EXPECT_EQ(4, bytes_read);
+    EXPECT_EQ(true, file.eof());
+}
+
 TEST_F(FileTest, ReadSingleLine) {
     dw::File file(context_, "testfiles/a.txt", dw::FileMode::Read);
     EXPECT_EQ("test", dw::stream::read<dw::String>(file));
