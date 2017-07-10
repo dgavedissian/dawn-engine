@@ -173,7 +173,7 @@ public:
         r->setUniform("wall_texture", 0);
 
         // Load texture.
-        File texture_file{context(), "test.jpg"};
+        File texture_file{context(), "wall.jpg"};
         texture_resource_ = makeUnique<Texture>(context());
         texture_resource_->beginLoad(texture_file);
         texture_resource_->endLoad();
@@ -194,8 +194,8 @@ public:
 
         // Calculate matrices.
         static float angle = 0.0f;
-        angle += M_PI * 0.5f * engine_->frameTime();  // 90 degrees per second.
-        Mat4 model = Mat4::Translate(Vec3{0.0f, 0.0f, -60.0f}).ToFloat4x4() * Mat4::RotateY(angle);
+        angle += M_PI / 3.0f * engine_->frameTime();  // 60 degrees per second.
+        Mat4 model = Mat4::Translate(Vec3{0.0f, 0.0f, -50.0f}).ToFloat4x4() * Mat4::RotateY(angle);
         static Mat4 view = Mat4::identity;
         float n = 0.1f;
         float f = 1000.0f;

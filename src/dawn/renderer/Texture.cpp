@@ -54,7 +54,7 @@ bool Texture::beginLoad(InputStream& src) {
                                           &height, &bpp, 4);
     handle_ = subsystem<Renderer>()->createTexture2D(static_cast<u16>(width),
                                                      static_cast<u16>(height), TextureFormat::RGBA8,
-                                                     data, static_cast<u16>(width * height * 4));
+                                                     data, static_cast<u32>(width * height * 4));
     stbi_image_free(data);
     return true;
 }
