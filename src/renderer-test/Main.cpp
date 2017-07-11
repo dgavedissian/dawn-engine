@@ -7,9 +7,9 @@
 
 using namespace dw;
 
-class SingleTriangleVertexBufferTest : public App {
+class BasicVertexBufferTest : public App {
 public:
-    DW_OBJECT(SingleTriangleVertexBufferTest);
+    DW_OBJECT(BasicVertexBufferTest);
 
     VertexBufferHandle vb_;
     ProgramHandle program_;

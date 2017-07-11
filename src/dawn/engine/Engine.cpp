@@ -9,6 +9,7 @@
 
 // Required for getBasePath/getPrefPath.
 #if DW_PLATFORM == DW_WIN32
+#include <Psapi.h>
 #elif DW_PLATFORM == DW_MACOS
 #include <CoreFoundation/CoreFoundation.h>
 #define MAX_PATH 256
@@ -19,14 +20,15 @@
 namespace dw {
 
 Engine::Engine(const String& game, const String& version)
-    : Object(nullptr),
-      initialised_(false),
-      running_(true),
-      save_config_on_exit_(true),
-      game_name_(game),
-      game_version_(version),
-      log_file_("engine.log"),
-      config_file_("engine.cfg") {
+    : Object{nullptr},
+      initialised_{false},
+      running_{true},
+      save_config_on_exit_{true},
+      game_name_{game},
+      game_version_{version},
+      frame_time_{0.0f},
+      log_file_{"engine.log"},
+      config_file_{"engine.cfg"} {
 }
 
 Engine::~Engine() {
@@ -235,12 +237,47 @@ static String readSymLink(const String& path) {
 #endif
 
 String Engine::getBasePath() const {
-#if DW_PLATFORM == DW_MACOS
+#if DW_PLATFORM == DW_WIN32
+    u32 buffer_length = 128;
+    char* path_array = NULL;
+    u32 length = 0;
+
+    // Get module filename.
+    while (true) {
+        path_array = new char[buffer_length];
+        if (!path_array) {
+            delete[] path_array;
+            // TODO: Out of memory
+            return "";
+        }
+
+        length = GetModuleFileNameEx(GetCurrentProcess(), NULL, path_array, buffer_length);
+        if (length != buffer_length) {
+            break;
+        }
+
+        // Buffer too small? Try again.
+        buffer_length *= 2;
+    }
+
+    // If we failed to locate the exe, bail.
+    if (length == 0) {
+        delete[] path_array;
+        // WIN_SetError("Couldn't locate our .exe");
+        return "";
+    }
+
+    // Trim off the filename.
+    String path{path_array};
+    auto last_backslash = path.find_last_of('\\');
+    assert(last_backslash != path.npos);
+    return path.substr(0, last_backslash + 1);
+#elif DW_PLATFORM == DW_MACOS
     CFBundleRef main_bundle = CFBundleGetMainBundle();
     CFURLRef resources_url = CFBundleCopyResourcesDirectoryURL(main_bundle);
     char path[MAX_PATH];
     if (!CFURLGetFileSystemRepresentation(resources_url, TRUE, (UInt8*)path, MAX_PATH)) {
-        // error
+        // TODO: error
     }
     CFRelease(resources_url);
     String str_path{path};
