@@ -46,6 +46,7 @@ void RenderItem::clear() {
     ib = 0;
     primitive_count = 0;
     program = 0;
+    uniforms.clear();
     for (auto& texture : textures) {
         texture.handle = 0;
     }
@@ -229,6 +230,12 @@ void Renderer::deleteTexture(TextureHandle handle) {
 
 void Renderer::clear(const Vec3& colour) {
     // addCommand(cmd::Clear{colour});
+}
+
+void Renderer::submit(ProgramHandle program) {
+    submit_->current_item.program = program;
+    submit_->render_items.emplace_back(submit_->current_item);
+    submit_->current_item.clear();
 }
 
 void Renderer::submit(ProgramHandle program, uint vertex_count) {

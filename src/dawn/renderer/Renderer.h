@@ -327,7 +327,11 @@ public:
     /// Clear.
     void clear(const Vec3& colour);
 
-    /// Draw. Based off: https://github.com/bkaradzic/bgfx/blob/master/src/bgfx.cpp#L854
+    /// Update uniform and draw state, but submit no geometry.
+    void submit(ProgramHandle program);
+
+    /// Update uniform and draw state, then draw. Based off:
+    /// https://github.com/bkaradzic/bgfx/blob/master/src/bgfx.cpp#L854
     void submit(ProgramHandle program, uint vertex_count);
 
     /// Push render task.

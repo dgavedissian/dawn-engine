@@ -17,7 +17,6 @@
         }                                                         \
     }
 
-
 namespace dw {
 namespace {
 // GL TextureFormatInfo.
@@ -90,7 +89,8 @@ static TextureFormatInfo s_texture_format[] =
     };
 // clang-format on
 static_assert(static_cast<int>(TextureFormat::Count) ==
-              sizeof(s_texture_format) / sizeof(s_texture_format[0]), "Texture format mapping mismatch.");
+                  sizeof(s_texture_format) / sizeof(s_texture_format[0]),
+              "Texture format mapping mismatch.");
 }  // namespace
 
 GLRenderContext::GLRenderContext(Context* context) : RenderContext{context} {
@@ -210,16 +210,17 @@ void GLRenderContext::operator()(const cmd::DeleteShader& c) {
 }
 
 void GLRenderContext::operator()(const cmd::CreateProgram& c) {
-    GLuint program = glCreateProgram();
-    r_program_map_.emplace(c.handle, program);
+    ProgramData program_data;
+    program_data.program = glCreateProgram();
+    r_program_map_.emplace(c.handle, program_data);
 }
 
 void GLRenderContext::operator()(const cmd::AttachShader& c) {
-    glAttachShader(r_program_map_[c.handle], r_shader_map_[c.shader_handle]);
+    glAttachShader(r_program_map_[c.handle].program, r_shader_map_[c.shader_handle]);
 }
 
 void GLRenderContext::operator()(const cmd::LinkProgram& c) {
-    GLuint program = r_program_map_[c.handle];
+    GLuint program = r_program_map_[c.handle].program;
     glLinkProgram(program);
 
     // Check the result of the link process.
@@ -237,7 +238,7 @@ void GLRenderContext::operator()(const cmd::LinkProgram& c) {
 
 void GLRenderContext::operator()(const cmd::DeleteProgram& c) {
     auto it = r_program_map_.find(c.handle);
-    glDeleteProgram(it->second);
+    glDeleteProgram(it->second.program);
     r_program_map_.erase(it);
 }
 
@@ -296,8 +297,8 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
         // Bind Program.
         if (!previous || previous->program != current->program) {
             assert(current->program != 0);
-            GLuint program = r_program_map_[current->program];
-            glUseProgram(program);
+            ProgramData& program_data = r_program_map_[current->program];
+            glUseProgram(program_data.program);
 
             // Bind Uniforms.
             for (auto& uniform_pair : current->uniforms) {
@@ -334,9 +335,19 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
                         glUniformMatrix4fv(uniform_location, 1, GL_TRUE, value.ptr());
                     }
                 };
-                GLint uniform_location = glGetUniformLocation(program, uniform_pair.first.c_str());
+                auto location = program_data.uniform_location_map.find(uniform_pair.first);
+                GLint uniform_location;
+                if (location != program_data.uniform_location_map.end()) {
+                    uniform_location = (*location).second;
+                } else {
+                    uniform_location =
+                        glGetUniformLocation(program_data.program, uniform_pair.first.c_str());
+                    program_data.uniform_location_map.emplace(uniform_pair.first, uniform_location);
+                    if (uniform_location == -1) {
+                        log().warn("Unknown uniform '%s', skipping.", uniform_pair.first);
+                    }
+                }
                 if (uniform_location == -1) {
-                    log().warn("Unknown uniform '%s', skipping.", uniform_pair.first);
                     continue;
                 }
                 mpark::visit(UniformBinder{uniform_location}, uniform_pair.second);
@@ -352,11 +363,13 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
         }
 
         // Submit.
-        if (current->ib != 0) {
-            glDrawElements(GL_TRIANGLES, current->primitive_count * 3,
-                           r_index_buffer_map_[current->ib].second, 0);
-        } else {
-            glDrawArrays(GL_TRIANGLES, 0, current->primitive_count * 3);
+        if (current->primitive_count > 0) {
+            if (current->ib != 0) {
+                glDrawElements(GL_TRIANGLES, current->primitive_count * 3,
+                               r_index_buffer_map_[current->ib].second, 0);
+            } else {
+                glDrawArrays(GL_TRIANGLES, 0, current->primitive_count * 3);
+            }
         }
     }
 }

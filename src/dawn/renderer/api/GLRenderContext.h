@@ -38,7 +38,13 @@ private:
     HashMap<VertexBufferHandle, GLuint> r_vertex_buffer_map_;
     HashMap<IndexBufferHandle, Pair<GLuint, GLenum>> r_index_buffer_map_;
     HashMap<ShaderHandle, GLuint> r_shader_map_;
-    HashMap<ProgramHandle, GLuint> r_program_map_;
+
+    struct ProgramData {
+        GLuint program;
+        HashMap<String, GLint> uniform_location_map;
+    };
+
+    HashMap<ProgramHandle, ProgramData> r_program_map_;
     HashMap<TextureHandle, GLuint> r_texture_map_;
 };
 }  // namespace dw
