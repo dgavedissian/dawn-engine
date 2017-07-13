@@ -377,4 +377,4 @@ TEST_CLASS(PostProcessing) {
     }
 };
 
-TEST_IMPLEMENT_MAIN(BasicVertexBuffer);
+TEST_IMPLEMENT_MAIN(PostProcessing);
