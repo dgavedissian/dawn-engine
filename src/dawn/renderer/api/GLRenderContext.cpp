@@ -5,15 +5,15 @@
 #include "Common.h"
 #include "renderer/api/GLRenderContext.h"
 
-#define CHECK(X) __CHECK(X, __FILE__, __LINE__)
+#define GL_CHECK(X) __CHECK(X, __FILE__, __LINE__)
 #define __CHECK(X, FILE, LINE)                                    \
     X;                                                            \
     {                                                             \
         GLuint err = glGetError();                                \
         if (err != 0) {                                           \
-            log().error("glGetError() returned %s", err);         \
+            log().error("glGetError() returned 0x%.4X", err);     \
             log().error("Function: %s in %s:%s", #X, FILE, LINE); \
-            exit(EXIT_FAILURE);                                   \
+            assert(false);                                        \
         }                                                         \
     }
 
@@ -29,7 +29,7 @@ struct TextureFormatInfo {
 };
 
 // clang-format off
-static TextureFormatInfo s_texture_format[] =
+TextureFormatInfo s_texture_format[] =
     {
         { GL_ALPHA,              GL_ZERO,         GL_ALPHA,            GL_UNSIGNED_BYTE,                false }, // A8
         { GL_R8,                 GL_ZERO,         GL_RED,              GL_UNSIGNED_BYTE,                false }, // R8
@@ -119,7 +119,7 @@ void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, c.data.size(), c.data.data(), GL_STATIC_DRAW);
-    CHECK();
+    GL_CHECK();
 
     // Set up vertex array attributes.
     static HashMap<VertexDecl::AttributeType, GLenum> attribute_type_map = {
@@ -164,7 +164,7 @@ void GLRenderContext::operator()(const cmd::CreateIndexBuffer& c) {
     glGenBuffers(1, &ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, c.data.size(), c.data.data(), GL_STATIC_DRAW);
-    CHECK();
+    GL_CHECK();
 
     r_index_buffer_map_.emplace(
         c.handle,
@@ -260,6 +260,7 @@ void GLRenderContext::operator()(const cmd::CreateTexture2D& c) {
         format.format, format.type);
     glTexImage2D(GL_TEXTURE_2D, 0, format.internal_format, c.width, c.height, 0, format.format,
                  format.type, c.data.data());
+    GL_CHECK();
 
     // Add texture.
     r_texture_map_.emplace(c.handle, texture);
@@ -283,14 +284,17 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
         if (!previous || previous->vb != current->vb) {
             assert(current->vb != 0);
             glBindVertexArray(r_vertex_buffer_map_[current->vb]);
+            GL_CHECK();
         }
 
         // Bind EBO.
         if (!previous || previous->ib != current->ib) {
             if (current->ib != 0) {
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_index_buffer_map_[current->ib].second);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_index_buffer_map_[current->ib].first);
+                GL_CHECK();
             } else {
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+                GL_CHECK();
             }
         }
 
@@ -299,6 +303,7 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
             assert(current->program != 0);
             ProgramData& program_data = r_program_map_[current->program];
             glUseProgram(program_data.program);
+            GL_CHECK();
 
             // Bind Uniforms.
             for (auto& uniform_pair : current->uniforms) {
@@ -342,6 +347,7 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
                 } else {
                     uniform_location =
                         glGetUniformLocation(program_data.program, uniform_pair.first.c_str());
+                    GL_CHECK();
                     program_data.uniform_location_map.emplace(uniform_pair.first, uniform_location);
                     if (uniform_location == -1) {
                         log().warn("Unknown uniform '%s', skipping.", uniform_pair.first);
@@ -351,13 +357,16 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
                     continue;
                 }
                 mpark::visit(UniformBinder{uniform_location}, uniform_pair.second);
+                GL_CHECK();
             }
 
             // Bind textures.
             for (uint j = 0; j < MAX_TEXTURE_SAMPLERS; j++) {
                 if (!previous || previous->textures[j].handle != current->textures[j].handle) {
                     glActiveTexture(GL_TEXTURE0 + j);
+                    GL_CHECK();
                     glBindTexture(GL_TEXTURE_2D, current->textures[j].handle);
+                    GL_CHECK();
                 }
             }
         }
@@ -367,8 +376,10 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
             if (current->ib != 0) {
                 glDrawElements(GL_TRIANGLES, current->primitive_count * 3,
                                r_index_buffer_map_[current->ib].second, 0);
+                GL_CHECK();
             } else {
                 glDrawArrays(GL_TRIANGLES, 0, current->primitive_count * 3);
+                GL_CHECK();
             }
         }
     }

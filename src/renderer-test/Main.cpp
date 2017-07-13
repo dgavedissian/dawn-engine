@@ -141,8 +141,8 @@ uint createFullscreenQuad(Renderer* r, VertexBufferHandle& vb) {
 }
 }  // namespace util
 
-TEST_CLASS(SingleTriangleVB) {
-    TEST_BODY(SingleTriangleVB);
+TEST_CLASS(BasicVertexBuffer) {
+    TEST_BODY(BasicVertexBuffer);
 
     VertexBufferHandle vb_;
     ProgramHandle program_;
@@ -377,4 +377,4 @@ TEST_CLASS(PostProcessing) {
     }
 };
 
-TEST_IMPLEMENT_MAIN(PostProcessing);
+TEST_IMPLEMENT_MAIN(BasicVertexBuffer);
