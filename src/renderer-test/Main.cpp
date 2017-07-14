@@ -53,6 +53,7 @@ private:
 #define TEST_CLASS_NAME(test_name) test_name##Test
 #define TEST_CLASS(test_name) class TEST_CLASS_NAME(test_name) : public Object
 #define TEST_BODY(test_name)                                                    \
+    \
 public:                                                                         \
     DW_OBJECT(TEST_CLASS_NAME(test_name));                                      \
     TEST_CLASS_NAME(test_name)                                                  \
@@ -315,6 +316,7 @@ TEST_CLASS(PostProcessing) {
 
     VertexBufferHandle fsq_vb_;
     ProgramHandle post_process_;
+    FrameBufferHandle fb_handle_;
 
     void start() {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
@@ -351,6 +353,9 @@ TEST_CLASS(PostProcessing) {
         r->linkProgram(post_process_);
         r->setUniform("in_sampler", 0);
         r->submit(post_process_);
+
+        // Set up frame buffer.
+        fb_handle_ = r->createFrameBuffer(1280.0f, 800.0f, TextureFormat::RGB8);
     }
 
     void render() {

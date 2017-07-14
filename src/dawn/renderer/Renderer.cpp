@@ -8,8 +8,10 @@
 
 namespace dw {
 Memory::Memory(const void* data, uint size) : data_{nullptr}, size_{size} {
-    data_ = new byte[size];
-    memcpy(data_, data, size);
+    if (data != nullptr) {
+        data_ = new byte[size];
+        memcpy(data_, data, size);
+    }
 }
 
 Memory::~Memory() {
@@ -226,6 +228,17 @@ void Renderer::setTexture(TextureHandle handle, uint sampler_unit) {
 
 void Renderer::deleteTexture(TextureHandle handle) {
     submitPostFrameCommand(cmd::DeleteTexture{handle});
+}
+
+FrameBufferHandle Renderer::createFrameBuffer(u16 width, u16 height, TextureFormat format) {
+    auto handle = frame_buffer_handle_.next();
+    submitPreFrameCommand(cmd::CreateFrameBuffer{
+        handle, width, height, {createTexture2D(width, height, format, nullptr, 0)}});
+    return handle;
+}
+
+void Renderer::deleteFrameBuffer(FrameBufferHandle handle) {
+    submitPostFrameCommand(cmd::DeleteFrameBuffer{handle});
 }
 
 void Renderer::clear(const Vec3& colour) {

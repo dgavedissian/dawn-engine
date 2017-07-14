@@ -5,16 +5,14 @@
 #include "Common.h"
 #include "renderer/api/GLRenderContext.h"
 
-#define GL_CHECK(X) __CHECK(X, __FILE__, __LINE__)
-#define __CHECK(X, FILE, LINE)                                    \
-    X;                                                            \
-    {                                                             \
-        GLuint err = glGetError();                                \
-        if (err != 0) {                                           \
-            log().error("glGetError() returned 0x%.4X", err);     \
-            log().error("Function: %s in %s:%s", #X, FILE, LINE); \
-            assert(false);                                        \
-        }                                                         \
+#define GL_CHECK() __CHECK(__FILE__, __LINE__)
+#define __CHECK(FILE, LINE)                                                        \
+    {                                                                              \
+        GLuint err = glGetError();                                                 \
+        if (err != 0) {                                                            \
+            log().error("glGetError() returned 0x%.4X at %s:%s", err, FILE, LINE); \
+            assert(false);                                                         \
+        }                                                                          \
     }
 
 namespace dw {
@@ -272,6 +270,46 @@ void GLRenderContext::operator()(const cmd::DeleteTexture& c) {
     r_texture_map_.erase(it);
 }
 
+void GLRenderContext::operator()(const cmd::CreateFrameBuffer& c) {
+    FrameBufferData fb_data;
+    fb_data.textures = c.textures;
+
+    glGenFramebuffers(1, &fb_data.frame_buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb_data.frame_buffer);
+
+    // Bind colour buffers.
+    Vector<GLenum> draw_buffers;
+    u8 attachment = 0;
+    for (auto texture : fb_data.textures) {
+        auto gl_texture = r_texture_map_.find(texture);
+        assert(gl_texture != r_texture_map_.end());
+        draw_buffers.emplace_back(GL_COLOR_ATTACHMENT0 + attachment++);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, draw_buffers.back(), GL_TEXTURE_2D,
+                               gl_texture->second, 0);
+    }
+    glDrawBuffers(draw_buffers.size(), draw_buffers.data());
+
+    // Create depth buffer.
+    glGenRenderbuffers(1, &fb_data.depth_render_buffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, fb_data.depth_render_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, c.width, c.height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+                              fb_data.depth_render_buffer);
+
+    // Check frame buffer status.
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        log().error("The framebuffer is not complete. Status: 0x%.4X", status);
+    }
+
+    // Unbind.
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void GLRenderContext::operator()(const cmd::DeleteFrameBuffer& c) {
+    // TODO: unimplemented.
+}
+
 void GLRenderContext::submit(const Vector<RenderItem>& items) {
     glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -282,7 +320,6 @@ void GLRenderContext::submit(const Vector<RenderItem>& items) {
 
         // Bind VAO.
         if (!previous || previous->vb != current->vb) {
-            assert(current->vb != 0);
             glBindVertexArray(r_vertex_buffer_map_[current->vb]);
             GL_CHECK();
         }

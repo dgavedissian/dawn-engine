@@ -19,6 +19,7 @@ using IndexBufferHandle = u16;
 using ShaderHandle = u16;
 using ProgramHandle = u16;
 using TextureHandle = u16;
+using FrameBufferHandle = u16;
 
 // Handle generator.
 template <typename Handle> class HandleGenerator {
@@ -218,6 +219,18 @@ struct CreateTexture2D {
 struct DeleteTexture {
     TextureHandle handle;
 };
+
+struct CreateFrameBuffer {
+    FrameBufferHandle handle;
+    u16 width;
+    u16 height;
+    // TODO: do we own textures or does the user own textures? add a flag?
+    Vector<TextureHandle> textures;
+};
+
+struct DeleteFrameBuffer {
+    FrameBufferHandle handle;
+};
 }  // namespace cmd
 
 // clang-format off
@@ -233,7 +246,9 @@ using RenderCommand =
             cmd::LinkProgram,
             cmd::DeleteProgram,
             cmd::CreateTexture2D,
-            cmd::DeleteTexture>;
+            cmd::DeleteTexture,
+            cmd::CreateFrameBuffer,
+            cmd::DeleteFrameBuffer>;
 // clang-format on
 
 // Current render state.
@@ -324,6 +339,10 @@ public:
     void setTexture(TextureHandle handle, uint sampler_unit);
     void deleteTexture(TextureHandle handle);
 
+    // Framebuffer.
+    FrameBufferHandle createFrameBuffer(u16 width, u16 height, TextureFormat format);
+    void deleteFrameBuffer(FrameBufferHandle handle);
+
     /// Clear.
     void clear(const Vec3& colour);
 
@@ -353,6 +372,7 @@ private:
     HandleGenerator<ShaderHandle> shader_handle_;
     HandleGenerator<ProgramHandle> program_handle_;
     HandleGenerator<TextureHandle> texture_handle_;
+    HandleGenerator<FrameBufferHandle> frame_buffer_handle_;
 
     // Shared.
     Atomic<bool> should_exit_;
