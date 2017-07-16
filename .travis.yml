@@ -33,11 +33,9 @@ matrix:
       apt:
         sources:
           - ubuntu-toolchain-r-test
-          - ppa:george-edison55/cmake-3.x
         packages:
           - gcc-5
           - g++-5
-          - cmake
           - xorg-dev
           - libgl1-mesa-dev
 
