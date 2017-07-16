@@ -97,4 +97,4 @@ void AsteroidBelt::preRender(Camera* camera) {
 void AsteroidBelt::setParent(SystemBody* parent) {
     mParent = parent;
 }
-}
+}  // namespace dw

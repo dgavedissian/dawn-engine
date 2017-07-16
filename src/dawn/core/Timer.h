@@ -4,11 +4,13 @@
  */
 #pragma once
 
+#include <chrono>
+
 namespace dw {
 namespace time {
 
 using _SystemClock = std::chrono::system_clock;
-using _SteadyClock = std::chrono::steady_clock;
+using _SteadyClock = std::chrono::high_resolution_clock;
 using TimePoint = _SteadyClock::time_point;
 using SystemTimePoint = _SystemClock::time_point;
 template <class T> using Duration = std::chrono::duration<double, T>;
@@ -40,5 +42,5 @@ DW_API SystemTimePoint now();
 
 // Format a timepoint as a string
 DW_API String format(SystemTimePoint time, const String& format);
-}
-}
+}  // namespace time
+}  // namespace dw

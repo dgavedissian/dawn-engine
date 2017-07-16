@@ -3,6 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #pragma once
+#include "math/Defs.h"
 
 namespace dw {
 
@@ -21,10 +22,10 @@ public:
     Vec3i& operator-=(const Vec3i& other);
     Vec3i& operator*=(int scalar);
     Vec3i& operator/=(int scalar);
-    const Vec3i operator-() const;
-    const Vec3i operator+(const Vec3i& other) const;
-    const Vec3i operator-(const Vec3i& other) const;
-    const Vec3i operator*(int scalar) const;
-    const Vec3i operator/(int scalar) const;
+    Vec3i operator-() const;
+    Vec3i operator+(const Vec3i& other) const;
+    Vec3i operator-(const Vec3i& other) const;
+    Vec3i operator*(int scalar) const;
+    Vec3i operator/(int scalar) const;
 };
-}
+}  // namespace dw

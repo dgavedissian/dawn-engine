@@ -45,4 +45,4 @@ private:
 
     String mOutput;
 };
-}
+}  // namespace dw

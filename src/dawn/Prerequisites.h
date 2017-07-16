@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "Platform.h"
+#include "platform/Defines.h"
 
 // Mark this header as a system header
 #if defined(DW_GCC) || defined(DW_CLANG)
@@ -20,56 +20,32 @@
 #include <cassert>
 #include <cstdint>
 #include <ctime>
+#include <climits>
 
 #include <exception>
 #include <string>
-#include <list>
-#include <map>
-#include <unordered_map>
-#include <vector>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <sstream>
-#include <tuple>
 #include <random>
 #include <memory>
 #include <functional>
-#include <thread>
 #include <limits>
 #include <typeinfo>
 #include <chrono>
-#include <mutex>
+#include <type_traits>
 
 //
 // External Libraries
 //
-
-// bgfx
-#include <bgfx/bgfx.h>
-
-// glfw
-#include <GLFW/glfw3.h>
-
-// Bullet
-#include <btBulletDynamicsCommon.h>
-
-// MathGeoLib
-#define MATH_ENABLE_STL_SUPPORT
-#define MATH_ENABLE_UNCOMMON_OPERATIONS
-#define MATH_BULLET_INTEROP
-#define LOGGING_SUPPORT_DISABLED
-#include <MathGeoLib.h>
-#ifdef LOG
-#undef LOG
-#endif
 
 //
 // Bundled Libraries
 //
 
 // imgui
-#include "imgui.h"
+//#include "imgui.h"
 
 // FastDelegate
 #include "FastDelegate.h"

@@ -44,4 +44,4 @@ void Track::seek(float location) {
 void Track::setVolume(float volume) {
     mTrack->setVolume(volume);
 }
-}
+}  // namespace dw

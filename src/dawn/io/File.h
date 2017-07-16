@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include "io/Path.h"
 #include "io/InputStream.h"
 #include "io/OutputStream.h"
 
@@ -26,6 +27,7 @@ public:
     DW_OBJECT(File);
 
     File(Context* context);
+
     File(Context* context, const Path& path, int mode = FileMode::Read);
     ~File() override;
 
@@ -38,9 +40,9 @@ public:
     void close();
 
 private:
-    FILE* mHandle;
-    int mMode;
+    FILE* handle_;
+    int mode_;
 
     String fileModeMapper(int mode);
 };
-}
+}  // namespace dw

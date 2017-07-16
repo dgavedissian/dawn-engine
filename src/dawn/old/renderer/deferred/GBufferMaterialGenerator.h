@@ -56,4 +56,4 @@ private:
     virtual Ogre::MaterialPtr GenerateTemplateMaterial(
         MaterialGenerator::Perm permutation) override;
 };
-}
+}  // namespace dw

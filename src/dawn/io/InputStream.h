@@ -9,7 +9,7 @@ namespace dw {
 class DW_API InputStream {
 public:
     InputStream();
-    InputStream(u64 size);
+    explicit InputStream(u64 size);
     virtual ~InputStream();
 
     /// Read an arbitrary amount of bytes from the stream.
@@ -21,21 +21,21 @@ public:
     virtual void seek(u64 position) = 0;
 
     /// Check if the end of the stream has been reached
-    bool eof();
+    bool eof() const;
 
     /// Reads a string up to a certain character
     /// @param delim Delimeter character
     String readLine(char delim = '\n');
 
     /// Returns the current position in the input stream
-    u64 getPosition() const;
+    u64 position() const;
 
     /// Returns the size of the input stream
-    u64 getSize() const;
+    u64 size() const;
 
 protected:
-    u64 mPosition;
-    u64 mSize;
+    u64 position_;
+    u64 size_;
 };
 
 namespace stream {
@@ -70,5 +70,5 @@ IMPL_READ(double)
 template <> inline String read<String>(InputStream& stream) {
     return stream.readLine('\0');
 }
-}
-}
+}  // namespace stream
+}  // namespace dw

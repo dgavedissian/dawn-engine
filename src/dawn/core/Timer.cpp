@@ -17,7 +17,8 @@ double elapsed(TimePoint then) {
 }
 
 double elapsed(TimePoint then, TimePoint now) {
-    return std::chrono::duration_cast<std::chrono::seconds>(now - then).count();
+    std::chrono::duration<double> duration = now - then;
+    return duration.count();
 }
 
 SystemTimePoint now() {
@@ -30,5 +31,5 @@ String format(SystemTimePoint time, const String& format) {
     out << std::put_time(std::gmtime(&tt), format.c_str());
     return out.str();
 }
-}
-}
+}  // namespace time
+}  // namespace dw

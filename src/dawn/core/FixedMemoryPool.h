@@ -5,7 +5,6 @@
 #pragma once
 
 namespace dw {
-
 class MemoryPool {
 public:
     MemoryPool() {
@@ -29,7 +28,7 @@ protected:
 
 template <class T> class FixedMemoryPool : public MemoryPool {
 public:
-    FixedMemoryPool(uint slots) {
+    explicit FixedMemoryPool(uint slots) {
         allocateBlock(slots);
     }
     virtual ~FixedMemoryPool() {
@@ -49,8 +48,9 @@ private:
 
     void allocateBlock(uint slots) {
         mBlock = reinterpret_cast<T*>(operator new(slots * sizeof(T)));
-        for (uint i = 0; i < slots; i++)
+        for (uint i = 0; i < slots; i++) {
             mFreeList.push_back(mBlock + i);
+        }
     }
 
     void freeBlock() {
@@ -61,4 +61,4 @@ private:
     T* mBlock;
     List<T*> mFreeList;
 };
-}
+}  // namespace dw

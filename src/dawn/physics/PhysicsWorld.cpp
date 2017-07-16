@@ -9,18 +9,18 @@
 namespace dw {
 
 PhysicsWorld::PhysicsWorld(Context* context) : Object(context) {
-    getLog().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
+    log().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
 
-    mBroadphase.reset(new btDbvtBroadphase());
-    mCollisionConfig.reset(new btDefaultCollisionConfiguration());
-    mDispatcher.reset(new btCollisionDispatcher(mCollisionConfig.get()));
-    mSolver.reset(new btSequentialImpulseConstraintSolver);
-    mWorld.reset(new btDiscreteDynamicsWorld(mDispatcher.get(), mBroadphase.get(), mSolver.get(),
-                                             mCollisionConfig.get()));
+    broadphase_.reset(new btDbvtBroadphase());
+    collision_config_.reset(new btDefaultCollisionConfiguration());
+    dispatcher_.reset(new btCollisionDispatcher(collision_config_.get()));
+    solver_.reset(new btSequentialImpulseConstraintSolver);
+    world_.reset(new btDiscreteDynamicsWorld(dispatcher_.get(), broadphase_.get(), solver_.get(),
+                                             collision_config_.get()));
 
     // Set the properties of the world
-    mWorld->setGravity(btVector3(0.0f, 0.0f, 0.0f));
-    mWorld->setInternalTickCallback(bulletTickCallback);
+    world_->setGravity(btVector3(0.0f, 0.0f, 0.0f));
+    world_->setInternalTickCallback(bulletTickCallback);
 
     // Register event delegates
     ADD_LISTENER(PhysicsWorld, EvtData_KeyDown);
@@ -29,49 +29,51 @@ PhysicsWorld::PhysicsWorld(Context* context) : Object(context) {
 PhysicsWorld::~PhysicsWorld() {
     REMOVE_LISTENER(PhysicsWorld, EvtData_KeyDown);
 
-    getLog().info("Bullet cleaned up");
+    log().info("Bullet cleaned up");
 }
 
-void PhysicsWorld::update(float dt, Camera* camera) {
+void PhysicsWorld::update(float dt, Camera*) {
     // Call PreSimulationStep on each rigid body
-    // for (auto body : mRigidBodyList)
+    // for (auto body : rigid_body_list_)
     //   static_cast<RigidEntity*>(body->getUserPointer())->PreSimulationStep(camera);
 
     // Step the simulation
-    mWorld->stepSimulation(dt, 0);
+    world_->stepSimulation(dt, 0);
     // mDebugDrawer->step();
 }
 
 void PhysicsWorld::handleEvent(EventDataPtr eventData) {
     if (eventIs<EvtData_KeyDown>(eventData)) {
         auto castedEventData = castEvent<EvtData_KeyDown>(eventData);
-        if (castedEventData->key == Key::F2)
-            ;  // mDebugDrawer->setDebugMode(!mDebugDrawer->getDebugMode());
+        if (castedEventData->key == Key::F2) {
+            // mDebugDrawer->setDebugMode(!mDebugDrawer->getDebugMode());
+        }
     }
 }
 
 bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera* camera,
                             PhysicsRaycastResult& result) {
     // Make sure this is done in camera-space
-    btVector3 startCS = start.toCameraSpace(camera);
-    btVector3 endCS = end.toCameraSpace(camera);
+    btVector3 start_cs = start.toCameraSpace(camera);
+    btVector3 end_cs = end.toCameraSpace(camera);
 
     // Ensure that the direction can be normalised
-    btVector3 delta = endCS - startCS;
+    btVector3 delta = end_cs - start_cs;
     if (!delta.fuzzyZero()) {
-        btCollisionWorld::ClosestRayResultCallback raycast(startCS, endCS);
-        mWorld->rayTest(startCS, endCS, raycast);
+        btCollisionWorld::ClosestRayResultCallback raycast(start_cs, end_cs);
+        world_->rayTest(start_cs, end_cs, raycast);
 
         // Fill the result structure
         result.position = Position::fromCameraSpace(camera, raycast.m_hitPointWorld);
         result.normal = raycast.m_hitNormalWorld;
         result.hit = raycast.hasHit();
 
-        if (raycast.m_collisionObject)
+        if (raycast.m_collisionObject) {
             result.body = static_cast<RigidEntity*>(
                 btRigidBody::upcast(raycast.m_collisionObject)->getUserPointer());
-        else
+        } else {
             result.body = nullptr;
+        }
     } else {
         result.position = Vec3::zero;
         result.normal = Vec3::zero;
@@ -83,6 +85,6 @@ bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera* 
     return result.hit;
 }
 
-void PhysicsWorld::bulletTickCallback(btDynamicsWorld* world, btScalar timestep) {
+void PhysicsWorld::bulletTickCallback(btDynamicsWorld* /*world*/, btScalar /*timestep*/) {
 }
-}
+}  // namespace dw

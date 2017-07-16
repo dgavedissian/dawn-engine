@@ -1,39 +1,34 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #include "Common.h"
 #include "engine/App.h"
 #include "core/Timer.h"
 #include "DawnEngine.h"
 
+// Required for getBasePath/getPrefPath.
+#if DW_PLATFORM == DW_WIN32
+#include <Psapi.h>
+#elif DW_PLATFORM == DW_MACOS
+#include <CoreFoundation/CoreFoundation.h>
+#define MAX_PATH 256
+#elif DW_PLATFORM == DW_LINUX
+#include <unistd.h>
+#endif
+
 namespace dw {
 
 Engine::Engine(const String& game, const String& version)
-    : Object(nullptr),
-      mInitialised(false),
-      mRunning(true),
-      mSaveConfigOnExit(true),
-      mGameName(game),
-      mGameVersion(version),
-      mLogFile("engine.log"),
-      mConfigFile("engine.cfg") {
-    // TODO(David): Implement base path (where resources are located) and pref path (where to save
-    // settings)
-    String basePath = "";
-    String prefPath = "";
-
-    // Create context
-    mContext = new Context(basePath, prefPath);
-
-    // Initialise logging
-    mContext->addSubsystem(new Logger(mContext));
-    // TODO(david): Add a file logger to prefPath + mLogFile
-    getLog().info("Starting %s %s", mGameName, mGameVersion);
-#ifdef DW_DEBUG
-    getLog().warn("NOTE: This is a debug build!");
-#endif
-    printSystemInfo();
+    : Object{nullptr},
+      initialised_{false},
+      running_{true},
+      save_config_on_exit_{true},
+      game_name_{game},
+      game_version_{version},
+      frame_time_{0.0f},
+      log_file_{"engine.log"},
+      config_file_{"engine.cfg"} {
 }
 
 Engine::~Engine() {
@@ -41,48 +36,76 @@ Engine::~Engine() {
 }
 
 void Engine::setup() {
-    assert(!mInitialised);
+    assert(!initialised_);
+
+    // Create context.
+    context_ = new Context(getBasePath(), "");
+
+    // Initialise file system.
+    context_->addSubsystem<FileSystem>();
+
+    // Initialise logging.
+    context_->addSubsystem<Logger>();
+// TODO(david): Add a file logger to prefPath + log_file_
+#ifdef DW_DEBUG
+    log().warn("NOTE: This is a debug build!");
+#endif
+
+    // Update working directory.
+    context_->subsystem<FileSystem>()->setWorkingDir(context_->basePath());
+
+    // Print info.
+    log().info("Initialising engine");
+    printSystemInfo();
+
+    // Build window title.
+    String window_title(game_name_);
+    window_title += " ";
+    window_title += game_version_;
+#ifdef DW_DEBUG
+    window_title += " (debug)";
+#endif
+
+    // Create the window.
+    window_ = makeUnique<Window>(context_, 1280, 800, window_title);
 
     // Low-level subsystems
-    mContext->addSubsystem(new EventSystem(mContext));
-    mContext->addSubsystem(new FileSystem(mContext));
+    context_->addSubsystem<EventSystem>();
 
     // Load configuration
-    if (mContext->getSubsystem<FileSystem>()->fileExists(mConfigFile)) {
-        getLog().info("Loading configuration from %s", mConfigFile);
-        mContext->loadConfig(mConfigFile);
+    if (context_->subsystem<FileSystem>()->fileExists(config_file_)) {
+        log().info("Loading configuration from %s", config_file_);
+        context_->loadConfig(config_file_);
     } else {
-        getLog().info("Configuration does not exist, creating %s", mConfigFile);
+        log().info("Configuration does not exist, creating %s", config_file_);
     }
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
-    mContext->addSubsystem(new LuaState(mContext));
+    context_->addSubsystem<LuaState>();
     // TODO(David): bind engine services to lua?
 
-    // Build window title
-    String gameTitle(mGameName);
-    gameTitle += " ";
-    gameTitle += mGameVersion;
-#ifdef DW_DEBUG
-    gameTitle += " (debug)";
-#endif
-
-    // Create the engine systems
-    mContext->addSubsystem(new Input(mContext));
-    mContext->addSubsystem(new Renderer(mContext));
+    // Create the engine subsystems.
+    context_->addSubsystem<Input>();
+    context_->addSubsystem<Renderer>(window_.get());
     // mUI = new UI(mRenderer, mInput, mLuaState);
     // mAudio = new Audio;
     // mPhysicsWorld = new PhysicsWorld(mRenderer);
     // mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->getSceneMgr());
     // mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
-    mContext->addSubsystem(new StateManager(mContext));
+    context_->addSubsystem<StateManager>();
+    context_->addSubsystem<ResourceCache>();
+
+    // Set up the ECS architecture.
+    auto& em = *context_->addSubsystem<EntityManager>();
+    auto& sm = *context_->addSubsystem<SystemManager>();
+    sm.addSystem<EntityRenderer>();
 
     // Set input viewport size
     /*
-    getSubsystem<Input>()->setViewportSize(getSubsystem<Renderer>()->getViewportSize());
+    subsystem<Input>()->setViewportSize(subsystem<Renderer>()->getViewportSize());
 
     // Enumerate available video modes
-    Vector<SDL_DisplayMode> displayModes = getSubsystem<Renderer>()->getDeviceDisplayModes();
+    Vector<SDL_DisplayMode> displayModes = subsystem<Renderer>()->getDeviceDisplayModes();
     LOG << "Available video modes:";
     for (auto i = displayModes.begin(); i != displayModes.end(); i++) {
         LOG << "\t" << (*i).w << "x" << (*i).h << "@" << (*i).refresh_rate << "Hz"
@@ -94,85 +117,214 @@ void Engine::setup() {
      */
 
     // Display startup info
-    getLog().info("Current Working Directory: %s", getSubsystem<FileSystem>()->getWorkingDir());
+    log().info("Current Working Directory: %s", subsystem<FileSystem>()->getWorkingDir());
 
     // The engine is now initialised
-    mInitialised = true;
+    initialised_ = true;
+    log().info("Engine initialised. Starting %s %s", game_name_, game_version_);
 
     // Register event delegate
     ADD_LISTENER(Engine, EvtData_Exit);
 }
 
 void Engine::shutdown() {
-    if (!mInitialised)
+    if (!initialised_) {
         return;
+    }
 
-    // Save config
-    if (mSaveConfigOnExit)
-        mContext->saveConfig(mConfigFile);
+    // Save config.
+    if (save_config_on_exit_) {
+        context_->saveConfig(config_file_);
+    }
 
-    // Remove subsystems
-    mContext->removeSubsystem<StateManager>();
-    mContext->clearSubsystems();
+    // Remove subsystems.
+    context_->removeSubsystem<StateManager>();
+    context_->clearSubsystems();
 
-    // The engine is no longer initialised
-    mInitialised = false;
+    // Destroy window.
+    window_.reset();
+
+    // The engine is no longer initialised.
+    initialised_ = false;
 }
 
-void Engine::run(EngineTickCallback tickFunc) {
+void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_callback) {
     // TODO(David) stub
-    Camera* mMainCamera = nullptr;
+    Camera* main_camera = nullptr;
 
-    // Start the main loop
+    // Start the main loop.
     const float dt = 1.0f / 60.0f;
-    time::TimePoint previousTime = time::beginTiming();
+    time::TimePoint previous_time = time::beginTiming();
     double accumulator = 0.0;
-    while (mRunning) {
+    while (running_) {
         // mUI->beginFrame();
 
-        // Update game logic
+        // Message pump.
+        window_->pollEvents();
+        if (window_->shouldClose()) {
+            running_ = false;
+        }
+
+        // Update game logic.
         while (accumulator >= dt) {
             update(dt);
-            tickFunc(dt);
+            tick_callback(dt);
             accumulator -= dt;
         }
 
-        // Render a frame
-        preRender(mMainCamera);
-        mContext->getSubsystem<Renderer>()->frame();
+        // Render a frame.
+        preRender(main_camera);
+        render_callback();
+        context_->subsystem<SystemManager>()->getSystem<EntityRenderer>()->dispatchRenderTasks();
+        context_->subsystem<Renderer>()->frame();
 
-        // Calculate frameTime
-        time::TimePoint currentTime = time::beginTiming();
-        accumulator += time::elapsed(previousTime, currentTime);
-        previousTime = currentTime;
+        // Calculate frameTime.
+        time::TimePoint current_time = time::beginTiming();
+        frame_time_ = time::elapsed(previous_time, current_time);
+        accumulator += frame_time_;
+        previous_time = current_time;
     }
 
-    // Ensure that all states have been exited so no crashes occur later
-    mContext->getSubsystem<StateManager>()->clear();
+    // Ensure that all states have been exited so no crashes occur later.
+    context_->subsystem<StateManager>()->clear();
+}
+
+double Engine::frameTime() const {
+    return frame_time_;
 }
 
 void Engine::printSystemInfo() {
-    /*
-    LOG << "\tPlatform: " << SDL_GetPlatform();
-    LOG << "\tBase Path: " << mBasePath;
-    LOG << "\tPreferences Path: " << mPrefPath;
+#if DW_PLATFORM == DW_WIN32
+    String platform = "Windows";
+#elif DW_PLATFORM == DW_MACOS
+    String platform = "macOS";
+#elif DW_PLATFORM == DW_LINUX
+    String platform = "Linux";
+#endif
+    log().info("Platform: %s", platform);
+    log().info("Base Path: %s", context()->basePath());
+    log().info("Pref Path: %s", context()->prefPath());
     // TODO: more system info
-     */
+}
+
+#if DW_PLATFORM == DW_LINUX
+static String readSymLink(const String& path) {
+    char* retval = nullptr;
+    size_t len = 64;
+    ssize_t rc;
+
+    while (true) {
+        if (retval) {
+            delete[] retval;
+        }
+        retval = new char[len + 1];
+        rc = readlink(path.c_str(), retval, len);
+        if (rc == -1) {
+            break; /* not a symlink, i/o error, etc. */
+        } else if (rc < len) {
+            retval[rc] = '\0'; /* readlink doesn't null-terminate. */
+            String result{retval};
+            delete[] retval;
+            return result; /* we're good to go. */
+        }
+
+        len *= 2; /* grow buffer, try again. */
+    }
+
+    delete[] retval;
+    return {};
+}
+#endif
+
+String Engine::getBasePath() const {
+#if DW_PLATFORM == DW_WIN32
+    u32 buffer_length = 128;
+    char* path_array = NULL;
+    u32 length = 0;
+
+    // Get module filename.
+    while (true) {
+        path_array = new char[buffer_length];
+        if (!path_array) {
+            delete[] path_array;
+            // TODO: Out of memory
+            return "";
+        }
+
+        length = GetModuleFileNameEx(GetCurrentProcess(), NULL, path_array, buffer_length);
+        if (length != buffer_length) {
+            break;
+        }
+
+        // Buffer too small? Try again.
+        buffer_length *= 2;
+    }
+
+    // If we failed to locate the exe, bail.
+    if (length == 0) {
+        delete[] path_array;
+        // WIN_SetError("Couldn't locate our .exe");
+        return "";
+    }
+
+    // Trim off the filename.
+    String path{path_array};
+    auto last_backslash = path.find_last_of('\\');
+    assert(last_backslash != path.npos);
+    return path.substr(0, last_backslash + 1);
+#elif DW_PLATFORM == DW_MACOS
+    CFBundleRef main_bundle = CFBundleGetMainBundle();
+    CFURLRef resources_url = CFBundleCopyResourcesDirectoryURL(main_bundle);
+    char path[MAX_PATH];
+    if (!CFURLGetFileSystemRepresentation(resources_url, TRUE, (UInt8*)path, MAX_PATH)) {
+        // TODO: error
+    }
+    CFRelease(resources_url);
+    String str_path{path};
+    str_path += "/";
+
+    // For debugging, move from Resources folder to bin.
+    str_path += "../../../";
+    return str_path;
+#elif DW_PLATFORM == DW_LINUX
+    String executable_path;
+
+    // Is a Linux-style /proc filesystem available?
+    if (access("/proc", F_OK) != 0) {
+        // error.
+        return "";
+    }
+    executable_path = readSymLink("/proc/self/exe");
+    if (executable_path == "") {
+        // Older kernels don't have /proc/self, try PID version.
+        executable_path =
+            readSymLink(tinyformat::format("/proc/%llu/exe", (unsigned long long)getpid()));
+    }
+
+    // Chop off filename.
+    auto len = executable_path.find_last_of('/');
+    executable_path = executable_path.substr(0, len);
+    return executable_path;
+#endif
 }
 
 void Engine::update(float dt) {
-    mContext->getSubsystem<EventSystem>()->update(0.02f);
-    mContext->getSubsystem<StateManager>()->update(dt);
-    mContext->getSubsystem<SceneManager>()->update(dt);
+    // log().debug("Frame Time: %f", dt);
+
+    context_->subsystem<EventSystem>()->update(0.02f);
+    context_->subsystem<StateManager>()->update(dt);
+    context_->subsystem<SceneManager>()->update(dt);
+
+    context_->subsystem<SystemManager>()->update();
 }
 
 void Engine::preRender(Camera* camera) {
-    mContext->getSubsystem<SceneManager>()->preRender(camera);
-    mContext->getSubsystem<StateManager>()->preRender();
+    context_->subsystem<SceneManager>()->preRender(camera);
+    context_->subsystem<StateManager>()->preRender();
 }
 
 void Engine::handleEvent(EventDataPtr eventData) {
     assert(eventIs<EvtData_Exit>(eventData));
-    mRunning = false;
+    running_ = false;
 }
-}
+}  // namespace dw

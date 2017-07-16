@@ -51,4 +51,4 @@ protected:
     bool mFogEnabled;
     bool mDebug;
 };
-}
+}  // namespace dw

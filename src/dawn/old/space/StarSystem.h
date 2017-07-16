@@ -82,4 +82,4 @@ private:
     Ogre::SceneNode* mNebulaSceneNode;
     Ogre::Entity* mNebula;
 };
-}
+}  // namespace dw

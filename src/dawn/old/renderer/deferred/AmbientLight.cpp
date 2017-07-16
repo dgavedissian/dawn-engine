@@ -70,4 +70,4 @@ void AmbientLight::updateFromCamera(Ogre::Camera* camera) {
             params->setNamedConstant("farCorner", farCorner);
     }
 }
-}
+}  // namespace dw

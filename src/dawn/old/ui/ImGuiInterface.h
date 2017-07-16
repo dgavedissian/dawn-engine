@@ -51,4 +51,4 @@ private:
     // Callback used by ImGui
     static void renderDrawListsCallback(ImDrawData* drawData);
 };
-}
+}  // namespace dw

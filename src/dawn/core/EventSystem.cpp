@@ -43,22 +43,21 @@ bool EventSystem::removeListener(const EventListenerDelegate& eventDelegate,
     if (mProcessingEvents) {
         mRemovedEventListeners[type].push_back(eventDelegate);
         return true;
-    } else {
-        bool success = false;
-        auto findIt = mEventListeners.find(type);
-        if (findIt != mEventListeners.end()) {
-            auto& Listeners = findIt->second;
-            for (auto it = Listeners.begin(); it != Listeners.end(); ++it) {
-                if (eventDelegate == (*it)) {
-                    Listeners.erase(it);
-                    success = true;
-                    break;
-                }
+    }
+    bool success = false;
+    auto findIt = mEventListeners.find(type);
+    if (findIt != mEventListeners.end()) {
+        auto& Listeners = findIt->second;
+        for (auto it = Listeners.begin(); it != Listeners.end(); ++it) {
+            if (eventDelegate == (*it)) {
+                Listeners.erase(it);
+                success = true;
+                break;
             }
         }
-
-        return success;
     }
+
+    return success;
 }
 
 void EventSystem::removeAllListeners(const EventListenerDelegate& eventDelegate) {
@@ -96,9 +95,8 @@ bool EventSystem::queueEvent(const EventDataPtr& eventData) {
     if (findIt != mEventListeners.end()) {
         mQueues[mActiveQueue].push_back(eventData);
         return true;
-    } else {
-        return false;
     }
+    return false;
 }
 
 bool EventSystem::abortEvent(const EventType& type, bool allOfType /*= false*/) {
@@ -123,8 +121,9 @@ bool EventSystem::abortEvent(const EventType& type, bool allOfType /*= false*/) 
                 eventQueue.erase(currentIt);
                 success = true;
 
-                if (!allOfType)
+                if (!allOfType) {
                     break;
+                }
             }
         }
     }
@@ -191,4 +190,4 @@ bool EventSystem::update(double maxDuration) {
 
     return queueFlushed;
 }
-}
+}  // namespace dw

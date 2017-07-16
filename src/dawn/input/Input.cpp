@@ -46,4 +46,4 @@ Vec2 Input::getMousePositionRel() const {
 Vec3i Input::getMouseMove() const {
     return Vec3i();
 }
-}
+}  // namespace dw

@@ -92,4 +92,4 @@ private:
 private:
     void setupKeymap();
 };
-}
+}  // namespace dw

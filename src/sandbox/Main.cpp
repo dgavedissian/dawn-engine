@@ -3,19 +3,69 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
+#include "ecs/EntityManager.h"
+#include "ecs/SystemManager.h"
 #include "io/File.h"
+#include "renderer/MeshBuilder.h"
+#include "renderer/Program.h"
+#include "resource/ResourceCache.h"
+#include "scene/Node.h"
+#include "scene/Parent.h"
+#include "scene/Transform.h"
 
-class Sandbox : public dw::App {
+using namespace dw;
+
+/*
+struct PositionData : public Component {
+    PositionData(float x, float y, float z) : x{x}, y{y}, z{z} {
+    }
+    float x;
+    float y;
+    float z;
+};
+
+class Test : public System {
+public:
+    Test(Context* context) : System{context} {
+        supportsComponents<PositionData>();
+    }
+    void processEntity(Entity& e) override {
+        auto pos = *e.component<PositionData>();
+        pos.x = 3;
+        pos.y = 5;
+        pos.z += 1;
+    }
+};
+ */
+
+class Sandbox : public App {
 public:
     DW_OBJECT(Sandbox);
 
-    void init(int argc, char** argv) override {
-        getSubsystem<dw::FileSystem>()->setWorkingDir("media");
+    UniquePtr<Node> node;
 
-        dw::File file(mContext, "sandbox/test.txt", dw::FileMode::Read);
-        getLog().info("File contents: %s", dw::stream::read<dw::u8>(file));
+    void init(int argc, char** argv) override {
+        auto rc = subsystem<ResourceCache>();
+        assert(rc);
+        rc->addResourcePath("media/base");
+        rc->addResourcePath("media/sandbox");
 
         // Create a node.
+        node = makeUnique<Node>(context());
+        SharedPtr<Program> material =
+            makeShared<Program>(context(), rc->get<Shader>("shaders/bin/sphere.vs"),
+                                rc->get<Shader>("shaders/bin/sphere.fs"));
+        node->setRenderable(
+            MeshBuilder(context()).withNormals(false).withTexcoords(false).createSphere(10.0f));
+        node->renderable()->setMaterial(material);
+
+        auto sm = subsystem<SystemManager>();
+        auto em = subsystem<EntityManager>();
+        // sm->addSystem<Test>();
+        // em->createEntity().addComponent<PositionData>(0.0f, 0.0f, 0.0f).addComponent<Parent>(1);
+        em->createEntity()
+            .addComponent<RenderableComponent>(node->renderable())
+            .addComponent<Transform>(Position(), Quat::identity);
     }
 
     void update(float dt) override {
@@ -24,11 +74,11 @@ public:
     void shutdown() override {
     }
 
-    dw::String getGameName() override {
-        return "Sandbox";
+    String gameName() override {
+        return "RendererTest";
     }
 
-    dw::String getGameVersion() override {
+    String gameVersion() override {
         return "1.0.0";
     }
 };

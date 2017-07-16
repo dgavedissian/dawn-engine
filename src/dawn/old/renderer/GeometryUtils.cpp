@@ -225,4 +225,4 @@ void createQuad(Ogre::VertexData* vertexData) {
 
     vbuf->writeData(0, sizeof(data), data, true);
 }
-}
+}  // namespace dw

@@ -1,11 +1,12 @@
 /*
-* Dawn Engine
-* Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
-*/
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #pragma once
 
+#include "renderer/Renderer.h"
+
 namespace dw {
-namespace renderer {
 class DW_API VertexBuffer : public Object {
 public:
     DW_OBJECT(VertexBuffer);
@@ -13,10 +14,9 @@ public:
     VertexBuffer(Context* context);
     ~VertexBuffer();
 
-    bgfx::VertexBufferHandle getInternalHandle();
+    VertexBufferHandle internalHandle() const;
 
 private:
-    bgfx::VertexBufferHandle mHandle;
+    VertexBufferHandle handle_;
 };
-}
-}
+}  // namespace dw

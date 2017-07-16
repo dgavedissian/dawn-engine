@@ -23,4 +23,4 @@ Rect& Rect::merge(const Rect& other) {
     end.y = math::Max(end.y, other.end.y);
     return *this;
 }
-}
+}  // namespace dw

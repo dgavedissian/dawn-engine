@@ -3,6 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #pragma once
+#include "math/Defs.h"
 
 namespace dw {
 
@@ -13,7 +14,7 @@ class Camera;
 class DW_API Position {
 public:
     Position();
-    Position(double _x, double _y, double _z);
+    Position(double x, double y, double z);
     Position(const Vec3& vector);
     Position(const Position& other);
 
@@ -37,13 +38,13 @@ public:
     Position& operator-=(const Vec3& other);
     Position& operator*=(float scalar);
     Position& operator/=(float scalar);
-    const Position operator-() const;
-    const Position operator+(const Position& other) const;
-    const Position operator+(const Vec3& other) const;
-    const Position operator-(const Position& other) const;
-    const Position operator-(const Vec3& other) const;
-    const Position operator*(float scalar) const;
-    const Position operator/(float scalar) const;
+    Position operator-() const;
+    Position operator+(const Position& other) const;
+    Position operator+(const Vec3& other) const;
+    Position operator-(const Position& other) const;
+    Position operator-(const Vec3& other) const;
+    Position operator*(float scalar) const;
+    Position operator/(float scalar) const;
 
     // Components
     double x;
@@ -71,17 +72,18 @@ inline Position estimateHit(const Position& position, float speed, const Positio
     float c = toTarget.Dot(toTarget);
 
     float p = -b / (2.0f * a);
-    float q = math::Sqrt((b * b) - 4.0f * a * c) / (2.0f * a);
+    float q = math::Sqrt(b * b - 4.0f * a * c) / (2.0f * a);
     float t1 = p - q;
     float t2 = p + q;
     float t;
 
-    if (t1 > t2 && t2 > 0)
+    if (t1 > t2 && t2 > 0) {
         t = t2;
-    else
+    } else {
         t = t1;
+    }
 
     // Now we have the time before impact - calculate the position at the time
     return targetPosition + targetVelocity * t;
 }
-}
+}  // namespace dw

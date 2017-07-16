@@ -7,37 +7,17 @@
 
 namespace dw {
 
-Material::Material(Context* context, SharedPtr<ShaderProgram> vs, SharedPtr<ShaderProgram> fs)
-    : Resource(context), mVertexShader(vs), mFragmentShader(fs) {
-    mHandle = bgfx::createProgram(vs->getHandle(), fs->getHandle());
+Material::Material(Context* context, SharedPtr<Program> program)
+    : Object{context}, program_{program} {
+    //    handle_ = bgfx::createProgram(vs->internalHandle(), fs->internalHandle());
+
     // TODO(David): error checking
 }
 
 Material::~Material() {
-    bgfx::destroyProgram(mHandle);
 }
 
-bool Material::beginLoad(InputStream& src) {
-    getLog().error("Material loading unimplemented");
-    return false;
+void Material::setTextureUnit(SharedPtr<Texture> texture, uint unit) {
+    program_->setTextureUnit(texture, unit);
 }
-
-void Material::endLoad() {
-}
-
-Option<bgfx::UniformHandle> Material::getUniformHandle(const String& name,
-                                                       bgfx::UniformType::Enum type, int count) {
-    auto it = mUniformHandleTable.find(name);
-    if (it != mUniformHandleTable.end()) {
-        if (type == (*it).second.second) {
-            return (*it).second.first;
-        } else {
-            getLog().error("Unable to set uniform '%s', mismatched type %s != %s", name, type,
-                           (*it).second.second);
-            return Option<bgfx::UniformHandle>();
-        }
-    } else {
-        return Option<bgfx::UniformHandle>();
-    }
-}
-}
+}  // namespace dw

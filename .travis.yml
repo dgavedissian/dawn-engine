@@ -5,7 +5,7 @@
 # C++ project
 language: cpp
 dist: trusty
-sudo: required
+sudo: false
 
 ################################
 # build matrix
@@ -33,11 +33,9 @@ matrix:
       apt:
         sources:
           - ubuntu-toolchain-r-test
-          - ppa:george-edison55/cmake-3.x
         packages:
           - gcc-5
           - g++-5
-          - cmake
           - xorg-dev
           - libgl1-mesa-dev
 
@@ -48,7 +46,11 @@ matrix:
     compiler: clang
     addons:
       apt:
+        sources:
+          - ubuntu-toolchain-r-test
         packages:
+          - gcc-5
+          - g++-5
           - xorg-dev
           - libgl1-mesa-dev
 

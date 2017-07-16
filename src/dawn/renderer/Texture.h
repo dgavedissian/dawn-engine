@@ -5,6 +5,7 @@
 #pragma once
 
 #include "resource/Resource.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
 class DW_API Texture : public Resource {
@@ -17,9 +18,9 @@ public:
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
 
-    DEPRECATED bgfx::TextureHandle getTextureHandle() const;
+    TextureHandle internalHandle() const;
 
 private:
-    bgfx::TextureHandle mTextureHandle;
+    TextureHandle handle_;
 };
-}
+}  // namespace dw

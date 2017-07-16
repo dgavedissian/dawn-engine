@@ -150,4 +150,4 @@ void Star::preRender(Camera* camera) {
     // Update satellites
     SystemBody::preRender(camera);
 }
-}
+}  // namespace dw

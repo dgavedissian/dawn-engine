@@ -303,4 +303,4 @@ Vec2 SpriteManager::toScreenCoord(const Vec2& pos) {
     float vpHalfHeight = vpHeight * 0.5f;
     return Vec2(pos.x / vpHalfWidth - 1.0f, 1.0f - pos.y / vpHalfHeight);
 }
-}
+}  // namespace dw

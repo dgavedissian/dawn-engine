@@ -13,7 +13,7 @@ Vec2i::Vec2i() : x(0), y(0) {
 Vec2i::Vec2i(int _x, int _y) : x(_x), y(_y) {
 }
 
-Vec2i::Vec2i(const Vec2& v) : x((int)v.x), y((int)v.y) {
+Vec2i::Vec2i(const Vec2& v) : x(static_cast<int>(v.x)), y(static_cast<int>(v.y)) {
 }
 
 Vec2i& Vec2i::operator=(const Vec2i& other) {
@@ -46,23 +46,23 @@ Vec2i& Vec2i::operator/=(int scalar) {
     return *this;
 }
 
-const Vec2i Vec2i::operator-() const {
+Vec2i Vec2i::operator-() const {
     return Vec2i(-x, -y);
 }
 
-const Vec2i Vec2i::operator+(const Vec2i& other) const {
+Vec2i Vec2i::operator+(const Vec2i& other) const {
     return Vec2i(x + other.x, y + other.y);
 }
 
-const Vec2i Vec2i::operator-(const Vec2i& other) const {
+Vec2i Vec2i::operator-(const Vec2i& other) const {
     return Vec2i(x - other.x, y - other.y);
 }
 
-const Vec2i Vec2i::operator*(int scalar) const {
+Vec2i Vec2i::operator*(int scalar) const {
     return Vec2i(x * scalar, y * scalar);
 }
 
-const Vec2i Vec2i::operator/(int scalar) const {
+Vec2i Vec2i::operator/(int scalar) const {
     return Vec2i(x / scalar, y / scalar);
 }
-}
+}  // namespace dw

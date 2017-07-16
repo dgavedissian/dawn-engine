@@ -22,11 +22,11 @@ void ResourceCache::addResourcePath(const Path& path) {
 SharedPtr<File> ResourceCache::getFile(const Path& filename) {
     for (const Path& resPath : mResourcePaths) {
         Path fullPath = resPath + "/" + filename;
-        if (getSubsystem<FileSystem>()->fileExists(fullPath)) {
-            return makeShared<File>(getContext(), fullPath, FileMode::Read);
+        if (subsystem<FileSystem>()->fileExists(fullPath)) {
+            return makeShared<File>(context(), fullPath, FileMode::Read);
         }
     }
 
     return SharedPtr<File>();
 }
-}
+}  // namespace dw

@@ -5,5 +5,5 @@ else
     CLANG_FORMAT=clang-format
 fi
 
-find src/dawn src/sandbox -name "*.h" -exec $CLANG_FORMAT -i {} \;
-find src/dawn src/sandbox -name "*.cpp" -exec $CLANG_FORMAT -i {} \;
+find src/dawn src/sandbox src/renderer-test -name "*.h" -exec $CLANG_FORMAT -i {} \;
+find src/dawn src/sandbox src/renderer-test -name "*.cpp" -exec $CLANG_FORMAT -i {} \;

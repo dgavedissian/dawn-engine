@@ -80,4 +80,4 @@ private:
     uint mSpriteCount;
     Map<String, Vector<SpriteChunk>> mChunks;
 };
-}
+}  // namespace dw

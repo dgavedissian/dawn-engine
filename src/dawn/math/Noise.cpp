@@ -3,7 +3,9 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
+
 #include "math/Noise.h"
+#include "math/MathGeoLib.h"
 
 #define B SAMPLE_SIZE
 #define BM (SAMPLE_SIZE - 1)
@@ -286,4 +288,4 @@ void PerlinNoise::normalise3(float v[3]) {
     v[1] = v[1] * s;
     v[2] = v[2] * s;
 }
-}
+}  // namespace dw

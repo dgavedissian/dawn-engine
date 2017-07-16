@@ -3,32 +3,33 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 
+/*
 // Required by DW_* macros
-#include "Platform.h"
+#include "platform/Defines.h"
 
 #if DW_PLATFORM == DW_WIN32
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include "platform/Windows.h"
+#endif
+*/
+#include "Common.h"
+#include "core/Log.h"
+#if DW_PLATFORM == DW_WIN32
+#include "platform/Windows.h"
 #endif
 
-#include "Common.h"
-#include "core/StringUtils.h"
-
 namespace dw {
-
 class PlatformLogMessageHandler : public LogMessageHandler {
 public:
     void onMessage(LogLevel level, const String& message) override {
         switch (level) {
             case LogLevel::Debug:
             case LogLevel::Info:
-                std::cout << message;
+                std::cout << message << std::endl;
                 break;
 
             case LogLevel::Warning:
             case LogLevel::Error:
-                std::cerr << message;
+                std::cerr << message << std::endl;
                 break;
         }
 
@@ -45,11 +46,11 @@ Logger::Logger(Context* context) : Object{context} {
 }
 
 void Logger::addLogMessageHandler(UniquePtr<LogMessageHandler>&& handler) {
-    _handlers.emplace_back(std::move(handler));
+    handlers_.emplace_back(std::move(handler));
 }
 
 void Logger::dispatchLogMessage(LogLevel level, const String& message) {
-    for (auto& handler : _handlers) {
+    for (auto& handler : handlers_) {
         handler->onMessage(level, message);
     }
 }
@@ -63,13 +64,13 @@ Log::Log(Context* context, const String& filename)
       info(this, LOG_INFO),
       warning(this, LOG_WARN),
       error(this, LOG_ERROR),
-      mLogFile(filename) {
-    mLogFile << "Dawn Engine " << DW_VERSION_STR << std::endl;
-    mLogFile << "-------------------------------------" << std::endl;
+      log_file_(filename) {
+    log_file_ << "Dawn Engine " << DW_VERSION_STR << std::endl;
+    log_file_ << "-------------------------------------" << std::endl;
 }
 
 Log::~Log() {
-    mLogFile.close();
+    log_file_.close();
 }
 
 void Log::write(const String& message, LogLevel level) {
@@ -113,10 +114,10 @@ void Log::write(const String& message, LogLevel level) {
         }
 
         // Output to file
-        mLogFile << line << std::endl;
+        log_file_ << line << std::endl;
 
         // Be sure that the log file is up to date in case of a crash
-        mLogFile.flush();
+        log_file_.flush();
 
         // Output to Listeners
         for (auto i = mListeners.begin(); i != mListeners.end(); ++i)
@@ -143,4 +144,4 @@ const Vector<String>& Log::getBuffer() const {
     return mLogBuffer;
 }
  */
-}
+}  // namespace dw

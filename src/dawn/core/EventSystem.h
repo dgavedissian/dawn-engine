@@ -4,17 +4,15 @@
  */
 #pragma once
 
-#include "core/Singleton.h"
-
 // Macros to make adding/removing event Listeners more sane
-#define ADD_LISTENER(LISTENER, EVENT)                                                             \
-    dw::EventSystem::inst().addListener(fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), \
-                                        EVENT::eventType);
-#define REMOVE_LISTENER(LISTENER, EVENT)    \
-    dw::EventSystem::inst().removeListener( \
+#define ADD_LISTENER(LISTENER, EVENT)                \
+    context_->subsystem<EventSystem>()->addListener( \
         fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), EVENT::eventType);
-#define REMOVE_ALL_LISTENERS(LISTENER)          \
-    dw::EventSystem::inst().removeAllListeners( \
+#define REMOVE_LISTENER(LISTENER, EVENT)                \
+    context_->subsystem<EventSystem>()->removeListener( \
+        fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), EVENT::eventType);
+#define REMOVE_ALL_LISTENERS(LISTENER)                      \
+    context().subsystem<EventSystem>()->removeAllListeners( \
         fastdelegate::MakeDelegate(this, &LISTENER::handleEvent))
 
 namespace dw {
@@ -28,7 +26,7 @@ public:
     virtual ~EventData() {
     }
     virtual const EventType& getType() const = 0;
-    virtual const String getName() const = 0;
+    virtual String getName() const = 0;
 };
 
 typedef SharedPtr<EventData> EventDataPtr;
@@ -36,6 +34,8 @@ typedef fastdelegate::FastDelegate1<SharedPtr<EventData>> EventListenerDelegate;
 
 // Event listener interface
 class DW_API EventListener {
+public:
+    virtual ~EventListener() = default;
     virtual void handleEvent(EventDataPtr eventData) = 0;
 };
 
@@ -49,7 +49,7 @@ template <class T> SharedPtr<T> castEvent(const EventDataPtr eventData) {
     return staticPointerCast<T>(eventData);
 }
 
-class DW_API EventSystem : public Singleton<EventSystem>, public Object {
+class DW_API EventSystem : public Object {
 public:
     DW_OBJECT(EventSystem);
 
@@ -114,10 +114,12 @@ public:
 
     EvtData_Exit() {
     }
-    virtual const EventType& getType() const override {
+
+    const EventType& getType() const override {
         return eventType;
     }
-    virtual const String getName() const override {
+
+    String getName() const override {
         return "EvtData_ExitEvent";
     }
 };
@@ -128,10 +130,12 @@ public:
 
     EvtData_SendMessage(const String& s, const String& m) : sender(s), message(m) {
     }
-    virtual const EventType& getType() const override {
+
+    const EventType& getType() const override {
         return eventType;
     }
-    virtual const String getName() const override {
+
+    String getName() const override {
         return "EvtData_SendMessage";
     }
 
@@ -145,14 +149,16 @@ public:
 
     EvtData_Message(const String& s, const String& m) : sender(s), message(m) {
     }
-    virtual const EventType& getType() const override {
+
+    const EventType& getType() const override {
         return eventType;
     }
-    virtual const String getName() const override {
+
+    String getName() const override {
         return "EvtData_Message";
     }
 
     String sender;
     String message;
 };
-}
+}  // namespace dw

@@ -32,4 +32,4 @@ public:
 private:
     irrklang::ISound* mTrack;
 };
-}
+}  // namespace dw

@@ -9,8 +9,9 @@
 #undef M_PI
 #endif
 
-namespace dw {
+#include "math/MathGeoLib.h"
 
+namespace dw {
 static const float M_PI = 3.14159265358979323846264338327950288f;
 static const float M_HALF_PI = M_PI * 0.5f;
 static const float M_EPSILON = std::numeric_limits<float>::epsilon();
@@ -21,21 +22,17 @@ static const float M_DEGTORAD = M_PI / 180.0f;
 static const float M_DEGTORAD_OVER_2 = M_PI / 360.0f;
 static const float M_RADTODEG = 1.0f / M_DEGTORAD;
 
-// Vectors
+// Vectors.
 using Vec2 = math::float2;
 using Vec3 = math::float3;
 using Vec4 = math::float4;
 
-// Matrices
-using Mat22 = math::float2x2;
-using Mat23 = math::float2x3;
-using Mat24 = math::float2x3;
-using Mat33 = math::float3x3;
-using Mat34 = math::float3x4;
-using Mat44 = math::float4x4;
-using Mat2 = Mat22;
-using Mat3 = Mat33;
-using Mat4 = Mat44;
+// Matrices, stored in row-major format (mat[r][c]).
+using Mat3x3 = math::float3x3;
+using Mat3x4 = math::float3x4;
+using Mat4x4 = math::float4x4;
+using Mat3 = Mat3x3;
+using Mat4 = Mat4x4;
 
 // Quaternion
 using Quat = math::Quat;
@@ -48,13 +45,13 @@ using Plane = math::Plane;
 /// Fast inverse square root. Originally from Quake III.
 inline float fastSqrt(float value) {
     float half = 0.5f * value;
-    int i = *(int*)&value;
+    int i = *reinterpret_cast<int*>(&value);
 
     // Initial guess y0
     i = 0x5f3759df - (i >> 1);
 
     // Perform a single newton iteration
-    value = *(float*)&i;
+    value = *reinterpret_cast<float*>(&i);
     value = value * (1.5f - half * value * value);
     return value;
 }
@@ -129,27 +126,25 @@ inline float mod(float x, float y) {
         return x;
 
     float m = x - y * floor(x / y);
-    if (y > 0)  // modulo range: [0..y)
-    {
-        if (m >= y)  // mod(-1e-16, 360.0): m = 360.0
+    if (y > 0) {       // modulo range: [0..y)
+        if (m >= y) {  // mod(-1e-16, 360.0): m = 360.0
             return 0;
-
-        if (m < 0) {
-            if (floatEq(y + m, y))
-                return 0;
-            else
-                return y + m;  // mod(106.81415022205296, _TWO_PI ): m = -1.421e-14
         }
-    } else  // modulo range: (y..0]
-    {
-        if (m <= y)  // mod(1e-16, -360.0): m = -360.0
-            return 0;
-
-        if (m > 0) {
-            if (floatEq(y + m, y))
+        if (m < 0) {
+            if (floatEq(y + m, y)) {
                 return 0;
-            else
-                return y + m;  // mod(-106.81415022205296, -_TWO_PI): m = 1.421e-14
+            }
+            return y + m;  // mod(106.81415022205296, _TWO_PI ): m = -1.421e-14
+        }
+    } else {           // modulo range: (y..0]
+        if (m <= y) {  // mod(1e-16, -360.0): m = -360.0
+            return 0;
+        }
+        if (m > 0) {
+            if (floatEq(y + m, y)) {
+                return 0;
+            }
+            return y + m;  // mod(-106.81415022205296, -_TWO_PI): m = 1.421e-14
         }
     }
 
@@ -160,28 +155,32 @@ inline float mod(float x, float y) {
 
 /// Clamp an integer to a range.
 inline int clamp(int value, int min, int max) {
-    if (value < min)
+    if (value < min) {
         return min;
-    else if (value > max)
+    }
+    if (value > max) {
         return max;
-    else
-        return value;
+    }
+    return value;
 }
 
 /// Check whether an unsigned integer is a power of two.
 inline bool isPow2(unsigned value) {
-    if (!value)
+    if (!value) {
         return true;
-    while (!(value & 1))
+    }
+    while (!(value & 1)) {
         value >>= 1;
+    }
     return value == 1;
 }
 
 /// Round up to next power of two.
 inline unsigned nextPow2(unsigned value) {
     unsigned ret = 1;
-    while (ret < value && ret < 0x80000000)
+    while (ret < value && ret < 0x80000000) {
         ret <<= 1;
+    }
     return ret;
 }
 
@@ -189,8 +188,9 @@ inline unsigned nextPow2(unsigned value) {
 inline unsigned countSet(unsigned value) {
     // Brian Kernighan's method
     unsigned count = 0;
-    for (count = 0; value; count++)
+    for (count = 0; value; count++) {
         value &= value - 1;
+    }
     return count;
 }
 
@@ -209,16 +209,18 @@ template <class T> T wrap(const T& value, const T& min, const T& max) {
 /// Takes one step from a value to a target with a given step. If the distance is less then the
 /// step value, then it just returns the target value.
 template <class T> T step(const T& value, const T& step, const T& target) {
-    if (target > value)
+    if (target > value) {
         return min(target, value + step);
-    if (target < value)
+    }
+    if (target < value) {
         return max(target, value - step);
+    }
     return value;
 }
 
 /// Units
 
-enum DistUnits { UNIT_M, UNIT_KM, UNIT_MI, UNIT_AU, UNIT_LY, UNIT_PC };
+enum DistUnits { UNIT_M, UNIT_KM, UNIT_AU, UNIT_LY, UNIT_PC };
 
 enum MassUnits {
     UNIT_G,
@@ -236,69 +238,32 @@ enum TimeUnits {
 };
 
 template <class T> T convUnit(T input, DistUnits outUnit, DistUnits inUnit = UNIT_M) {
-    // Unit to value lookup function
-    auto lookup = [](DistUnits unit) -> T {
-        switch (unit) {
-            case UNIT_M:
-                return (T)1.0;
-
-            case UNIT_KM:
-                return (T)1e3;  // 1 km = 10^3 m
-
-            case UNIT_MI:
-                return (T)1609.344;  // 1 mile = 1609.344 m
-
-            case UNIT_AU:
-                return (T)149597870700.0;  // 1 astronomical unit = 1.5x10^11 m
-
-            case UNIT_LY:
-                return (T)9.46073047e15;  // 1 light-year = 9.46x10^15 m
-
-            case UNIT_PC:
-                return (T)3.08567758e16;  // 1 parsec = 3.057x10^16 m
-
-            default:
-                assert(false);
-                return (T)0.0;
-        }
+    static auto lookup = HashMap<DistUnits, T>{
+        {UNIT_M, 1},
+        {UNIT_KM, 1000},            // 1 km = 10^3 m
+        {UNIT_AU, 149597870700.0},  // 1 astronomical unit = 1.5x10^11 m
+        {UNIT_LY, 9.46073047e15},   // 1 light-year = 9.46x10^15 m
+        {UNIT_PC, 3.08567758e16}    // 1 parsec = 3.057x10^16 m
     };
 
-    // Special cases: light-years to parsecs; parsecs to light-years.
+    // Special cases: light-years to parsecs; parsecs to light-years (to prevent huge errors in fp
+    // calculations).
     if (inUnit == UNIT_LY && outUnit == UNIT_PC) {
-        return input * (T)0.306594845;  // 1 parsec = 0.307 light-years
+        return input * static_cast<T>(0.306594845);  // 1 parsec = 0.307 light-years
     }
-
     if (inUnit == UNIT_PC && outUnit == UNIT_LY) {
-        return input * (T)3.26163344332;  // 3.26 light years = 1 parsec
+        return input * static_cast<T>(3.26163344332);  // 3.26 light years = 1 parsec
     }
-
-    // Lookup the units and convert
-    return (input / lookup(inUnit)) * lookup(outUnit);
+    return (input / lookup[inUnit]) * lookup[outUnit];
 }
 
 template <class T> T convUnit(T input, MassUnits outUnit, MassUnits inUnit = UNIT_KG) {
-    // Unit to value lookup function
-    auto lookup = [](MassUnits unit) -> T {
-        switch (unit) {
-            case UNIT_G:
-                return (T)0.001;  // 1 g = 0.001 kg
-
-            case UNIT_KG:
-                return (T)1.0;
-
-            case UNIT_T:
-                return (T)1000.0;  // 1 tonne = 1000 kg
-
-            case UNIT_SM:
-                return (T)1.9891e30;  // 1 solar mass = 1.99x10^30 kg
-
-            default:
-                assert(false);
-                return (T)0.0;
-        }
+    static auto lookup = HashMap<MassUnits, T>{
+        {UNIT_G, 0.001},  // 1 g = 10^-3 kg
+        {UNIT_KG, 1},
+        {UNIT_T, 1000},       // 1 tonne = 10^3 kg
+        {UNIT_SM, 1.9891e30}  // 1 solar-mass = 1.9891x10^30 kg
     };
-
-    // Lookup the units and convert
-    return (input / lookup(inUnit)) * lookup(outUnit);
+    return (input / lookup[inUnit]) * lookup[outUnit];
 }
-}
+}  // namespace dw

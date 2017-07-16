@@ -14,4 +14,4 @@ public:
     Barycentre(Renderer* rs);
     virtual ~Barycentre();
 };
-}
+}  // namespace dw

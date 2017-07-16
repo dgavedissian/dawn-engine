@@ -5,7 +5,6 @@
 #pragma once
 
 namespace dw {
-
 class DW_API StringHash {
 public:
     using HashType = u32;
@@ -31,11 +30,11 @@ public:
     static const StringHash ZERO;
 
 private:
-    HashType mValue;
+    HashType value_;
 };
-}
+}  // namespace dw
 
-// Specialisation of std::hash used for HashMap<K, V>
+// Specialisation of std::hash used for HashMap<K, V>.
 namespace std {
 template <> struct hash<dw::StringHash> {
     typedef dw::StringHash argument_type;
@@ -44,4 +43,4 @@ template <> struct hash<dw::StringHash> {
         return s.value();
     }
 };
-}
+}  // namespace std

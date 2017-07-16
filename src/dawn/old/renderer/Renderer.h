@@ -200,4 +200,4 @@ private:
     void rayToTriangleCheck(Ogre::Vector3& corner1, Ogre::Vector3& corner2, Ogre::Vector3& corner3,
                             float& closestDistance, Ogre::Vector3& position, Ogre::Vector3& normal);
 };
-}
+}  // namespace dw

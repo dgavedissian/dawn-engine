@@ -63,4 +63,4 @@ protected:
     // Material permutation
     Ogre::uint32 mPermutation;
 };
-}
+}  // namespace dw

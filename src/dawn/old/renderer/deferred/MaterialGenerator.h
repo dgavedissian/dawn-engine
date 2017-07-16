@@ -54,4 +54,4 @@ protected:
     ProgramMap mVsMap, mFsMap;
     MaterialMap mTemplateMatMap, mMaterials;
 };
-}
+}  // namespace dw

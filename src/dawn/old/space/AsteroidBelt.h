@@ -38,4 +38,4 @@ private:
 
     SystemBody* mParent;
 };
-}
+}  // namespace dw

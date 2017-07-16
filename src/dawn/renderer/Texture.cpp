@@ -21,19 +21,23 @@ namespace dw {
 namespace {
 int imageCallbackRead(void* user, char* data, int size) {
     InputStream& stream = *reinterpret_cast<InputStream*>(user);
-    return static_cast<int>(stream.read(data, size));
+    // If we want to read past the end of the buffer, clamp the size to prevent an error occurring.
+    if ((stream.position() + size) > stream.size()) {
+        size = static_cast<int>(stream.size() - stream.position());
+    }
+    return static_cast<int>(stream.read(data, static_cast<u32>(size)));
 }
 
 void imageCallbackSkip(void* user, int n) {
     InputStream& stream = *reinterpret_cast<InputStream*>(user);
-    stream.seek(stream.getPosition() + n);
+    stream.seek(stream.position() + n);
 }
 
 int imageCallbackEof(void* user) {
     InputStream& stream = *reinterpret_cast<InputStream*>(user);
     return stream.eof() ? 1 : 0;
 }
-}
+}  // namespace
 
 Texture::Texture(Context* context) : Resource(context) {
 }
@@ -48,9 +52,9 @@ bool Texture::beginLoad(InputStream& src) {
     int width, height, bpp;
     byte* data = stbi_load_from_callbacks(&callbacks, reinterpret_cast<void*>(&src), &width,
                                           &height, &bpp, 4);
-    mTextureHandle = bgfx::createTexture2D(
-        static_cast<uint16_t>(width), static_cast<uint16_t>(height), 1, bgfx::TextureFormat::RGBA8,
-        0, bgfx::copy(data, width * height * bpp));
+    handle_ = subsystem<Renderer>()->createTexture2D(static_cast<u16>(width),
+                                                     static_cast<u16>(height), TextureFormat::RGBA8,
+                                                     data, static_cast<u32>(width * height * 4));
     stbi_image_free(data);
     return true;
 }
@@ -58,7 +62,7 @@ bool Texture::beginLoad(InputStream& src) {
 void Texture::endLoad() {
 }
 
-bgfx::TextureHandle Texture::getTextureHandle() const {
-    return mTextureHandle;
+TextureHandle Texture::internalHandle() const {
+    return handle_;
 }
-}
+}  // namespace dw

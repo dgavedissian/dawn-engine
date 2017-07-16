@@ -13,11 +13,11 @@ Mesh::Mesh(Context* context) : Resource(context) {
 Mesh::~Mesh() {
 }
 
-bool Mesh::beginLoad(InputStream& src) {
-    getLog().error("Mesh loading unimplemented");
+bool Mesh::beginLoad(InputStream&) {
+    log().error("Mesh loading unimplemented");
     return false;
 }
 
 void Mesh::endLoad() {
 }
-}
+}  // namespace dw

@@ -27,4 +27,4 @@ LuaState::LuaState(Context* context) : Object(context) {
 
 LuaState::~LuaState() {
 }
-}
+}  // namespace dw

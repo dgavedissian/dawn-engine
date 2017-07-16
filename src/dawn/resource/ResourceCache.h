@@ -4,10 +4,10 @@
  */
 #pragma once
 
+#include "io/File.h"
 #include "resource/Resource.h"
 
 namespace dw {
-
 class DW_API ResourceCache : public Object {
 public:
     DW_OBJECT(ResourceCache);
@@ -20,16 +20,19 @@ public:
     template <typename T> SharedPtr<T> get(const Path& filename) {
         String name(String(filename.c_str()));
 
-        // If the resource already exists, cache hit
+        // If the resource already exists, return it.
         auto it = mResourceCache.find(name);
         if (it != mResourceCache.end()) {
             return staticPointerCast<T>((*it).second);
         }
 
-        // Get the file which contains this resource data
+        // Load the file which contains this resource data.
         SharedPtr<File> file = getFile(filename);
-        SharedPtr<T> resource = makeShared<T>(getContext());
-        mResourceCache.insert(makePair(name, resource));
+        if (!file) {
+            return nullptr;
+        }
+        SharedPtr<T> resource = makeShared<T>(context());
+        mResourceCache.emplace(name, resource);
         resource->load(*file.get());
         return resource;
     }
@@ -40,4 +43,4 @@ private:
     Vector<Path> mResourcePaths;
     HashMap<String, SharedPtr<Resource>> mResourceCache;
 };
-}
+}  // namespace dw
