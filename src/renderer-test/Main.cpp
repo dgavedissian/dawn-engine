@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
-#include <core/Timer.h>
+#include "core/Timer.h"
 
 using namespace dw;
 
@@ -53,7 +53,7 @@ private:
 #define TEST_CLASS_NAME(test_name) test_name##Test
 #define TEST_CLASS(test_name) class TEST_CLASS_NAME(test_name) : public Object
 #define TEST_BODY(test_name)                                                    \
-    \
+                                                                                \
 public:                                                                         \
     DW_OBJECT(TEST_CLASS_NAME(test_name));                                      \
     TEST_CLASS_NAME(test_name)                                                  \

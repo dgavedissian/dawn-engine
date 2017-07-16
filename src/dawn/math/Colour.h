@@ -22,4 +22,4 @@ public:
 private:
     Vec4 components_;
 };
-}
+}  // namespace dw

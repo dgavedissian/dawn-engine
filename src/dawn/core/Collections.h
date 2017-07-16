@@ -21,15 +21,14 @@
 
 namespace dw {
 
-// If using GCC, create a hash wrapper to work around std::hash<T> not working for enum
+// If using GCC or Clang, create a hash wrapper to work around std::hash<T> not working for enum
 // classes.
-#if defined(DW_GCC)
+#if (defined(DW_LIBSTDCPP) && (DW_LIBSTDCPP < 6100)) || (defined(DW_LIBCPP) && (DW_LIBCPP < 3400))
 template <typename T, typename Enable = void> struct HashFunction {
     typedef typename std::hash<T>::argument_type argument_type;
     typedef typename std::hash<T>::result_type result_type;
     inline result_type operator()(argument_type const& s) const {
-        std::hash<T> standard_hash;
-        return standard_hash(s);
+        return std::hash<T>()(s);
     }
 };
 template <typename E> struct HashFunction<E, std::enable_if_t<std::is_enum<E>::value>> {
@@ -52,11 +51,15 @@ template <typename T1, typename T2> using Pair = std::pair<T1, T2>;
 template <typename... T> using Tuple = std::tuple<T...>;
 template <typename... T> using Variant = mapbox::util::variant<T...>;
 
-template <typename F, typename V> void VariantApplyVisitor(F&& f, V const& v) {
+template <typename F, typename V>
+auto VariantApplyVisitor(F&& f, V const& v)
+    -> decltype(mapbox::util::apply_visitor(std::forward<F>(f), v)) {
     return mapbox::util::apply_visitor(std::forward<F>(f), v);
 }
 
-template <typename F, typename V> void VariantApplyVisitor(F&& f, V& v) {
+template <typename F, typename V>
+auto VariantApplyVisitor(F&& f, V& v)
+    -> decltype(mapbox::util::apply_visitor(std::forward<F>(f), v)) {
     return mapbox::util::apply_visitor(std::forward<F>(f), v);
 }
 

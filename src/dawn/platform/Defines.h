@@ -29,12 +29,19 @@
 #endif
 
 // Determine compiler.
+#define __VERSION(major, minor, patch) (major * 1000 + minor * 100 + patch * 10)
 #if defined(_MSC_VER)
 #define DW_MSVC
 #elif defined(__clang__)
-#define DW_CLANG
+#define DW_CLANG __VERSION(__clang_major__, __clang_minor__, __clang_patchlevel__)
+#if __has_include(<__config>)
+#define DW_LIBCPP _LIBCPP_VERSION
+#elif __has_include(<bits/c++config.h>)
+#define DW_LIBSTDCPP __VERSION(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
+#endif
 #elif defined(__GNUC__)
-#define DW_GCC
+#define DW_GCC __VERSION(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
+#define DW_LIBSTDCPP DW_GCC
 #else
 #error This compiler is not recognised!
 #endif
