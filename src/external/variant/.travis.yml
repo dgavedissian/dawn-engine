@@ -1,650 +1,170 @@
-language: cpp
+language: generic
 
-git:
-  depth: 1
+sudo: false
 
 matrix:
   include:
-    # ubuntu 14.04, gcc-4.9, c++11, debug, exceptions
-    - env: VER=4.9 STD=11 BUILD=Debug EX=ON TEST="mpark"
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: &gcc49
+    # clang++ 3.9 via mason with -flto and -fsanitize=cfi
+    - os: linux
+      compiler: "clang++-39-mason"
+      env: CXX=clang++-3.9 CXXFLAGS="-flto -fsanitize=cfi -fvisibility=hidden" LDFLAGS="-flto -fsanitize=cfi -fvisibility=hidden"
+      addons:
         apt:
-          packages:
-            - g++-4.9
-          sources:
-            - ubuntu-toolchain-r-test
-    # ubuntu 14.04, gcc-4.9, c++11, debug, no exceptions
-    - env: VER=4.9 STD=11 BUILD=Debug EX=OFF TEST="mpark"
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc49
-    # ubuntu 14.04, gcc-4.9, c++11, release, exceptions
-    - env: VER=4.9 STD=11 BUILD=Release EX=ON TEST="mpark"
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc49
-    # ubuntu 14.04, gcc-4.9, c++11, release, no-exceptions
-    - env: VER=4.9 STD=11 BUILD=Release EX=OFF TEST="mpark"
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc49
-    # ubuntu 14.04, gcc-4.9, c++14, debug, exceptions
-    - env: VER=4.9 STD=14 BUILD=Debug EX=ON TEST="mpark"
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc49
-    # ubuntu 14.04, gcc-4.9, c++14, debug, no-exceptions
-    - env: VER=4.9 STD=14 BUILD=Debug EX=OFF TEST="mpark"
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc49
-    # ubuntu 14.04, gcc-4.9, c++14, release, exceptions
-    - env: VER=4.9 STD=14 BUILD=Release EX=ON TEST="mpark"
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc49
-    # ubuntu 14.04, gcc-4.9, c++14, release, no-exceptions
-    - env: VER=4.9 STD=14 BUILD=Release EX=OFF TEST="mpark"
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc49
-
-    # ubuntu 14.04, gcc-5, c++11, debug, exceptions
-    - env: VER=5 STD=11 BUILD=Debug EX=ON
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: &gcc5
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'libstdc++-4.9-dev' ]
+      before_install:
+        - git submodule update --init
+        - ./.mason/mason install clang++ 3.9.1
+        - export PATH=$(./.mason/mason prefix clang++ 3.9.1)/bin:${PATH}
+        - ./.mason/mason install binutils 2.27
+        - export PATH=$(./.mason/mason prefix binutils 2.27)/bin:${PATH}
+    # clang++ 3.9 via mason with -fsanitize=address
+    - os: linux
+      compiler: "clang++-39-mason"
+      env: CXX=clang++-3.9 CXXFLAGS="-fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fno-common" LDFLAGS="-fsanitize=address" ASAN_OPTIONS=check_initialization_order=1:detect_stack_use_after_return=1
+      addons:
         apt:
-          packages:
-            - g++-5
-          sources:
-            - ubuntu-toolchain-r-test
-    # ubuntu 14.04, gcc-5, c++11, debug, no exceptions
-    - env: VER=5 STD=11 BUILD=Debug EX=OFF
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc5
-    # ubuntu 14.04, gcc-5, c++11, release, exceptions
-    - env: VER=5 STD=11 BUILD=Release EX=ON
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc5
-    # ubuntu 14.04, gcc-5, c++11, release, no-exceptions
-    - env: VER=5 STD=11 BUILD=Release EX=OFF
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc5
-    # ubuntu 14.04, gcc-5, c++14, debug, exceptions
-    - env: VER=5 STD=14 BUILD=Debug EX=ON
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc5
-    # ubuntu 14.04, gcc-5, c++14, debug, no-exceptions
-    - env: VER=5 STD=14 BUILD=Debug EX=OFF
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc5
-    # ubuntu 14.04, gcc-5, c++14, release, exceptions
-    - env: VER=5 STD=14 BUILD=Release EX=ON
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc5
-    # ubuntu 14.04, gcc-5, c++14, release, no-exceptions
-    - env: VER=5 STD=14 BUILD=Release EX=OFF
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc5
-
-    # ubuntu 14.04, gcc-6, c++11, debug, exceptions
-    - env: VER=6 STD=11 BUILD=Debug EX=ON
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: &gcc6
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'libstdc++-4.9-dev' ]
+      before_install:
+        - git submodule update --init
+        - ./.mason/mason install clang++ 3.9.1
+        - export PATH=$(./.mason/mason prefix clang++ 3.9.1)/bin:${PATH}
+    # clang++ 3.9 via mason with -fsanitize=undefined
+    - os: linux
+      compiler: "clang++-39-mason"
+      env: CXX=clang++-3.9 CXXFLAGS="-fsanitize=undefined" LDFLAGS="-fsanitize=undefined"
+      addons:
         apt:
-          packages:
-            - g++-6
-          sources:
-            - ubuntu-toolchain-r-test
-    # ubuntu 14.04, gcc-6, c++11 debug, no-exceptions
-    - env: VER=6 STD=11 BUILD=Debug EX=OFF
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc6
-    # ubuntu 14.04, gcc-6, c++11, release, exceptions
-    - env: VER=6 STD=11 BUILD=Release EX=ON
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc6
-    # ubuntu 14.04, gcc-6, c++11, release, no-exceptions
-    - env: VER=6 STD=11 BUILD=Release EX=OFF
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc6
-    # ubuntu 14.04, gcc-6, c++14, debug, exceptions
-    - env: VER=6 STD=14 BUILD=Debug EX=ON
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc6
-    # ubuntu 14.04, gcc-6, c++14, debug, no-exceptions
-    - env: VER=6 STD=14 BUILD=Debug EX=OFF
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc6
-    # ubuntu 14.04, gcc-6, c++14, release, exceptions
-    - env: VER=6 STD=14 BUILD=Release EX=ON
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc6
-    # ubuntu 14.04, gcc-6, c++14, release, no-exceptions
-    - env: VER=6 STD=14 BUILD=Release EX=OFF
-      compiler: gcc
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *gcc6
-
-    # ubuntu 14.04, clang-3.5, c++11, debug, exceptions
-    - env: VER=3.5 STD=11 BUILD=Debug EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: &libcxx
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'libstdc++-4.9-dev' ]
+      before_install:
+        - git submodule update --init
+        - ./.mason/mason install clang++ 3.9.1
+        - export PATH=$(./.mason/mason prefix clang++ 3.9.1)/bin:${PATH}
+    # clang++ 3.9 via mason with -fsanitize=integer
+    - os: linux
+      compiler: "clang++-39-mason"
+      env: CXX=clang++-3.9 CXXFLAGS="-fsanitize=integer" LDFLAGS="-fsanitize=integer"
+      addons:
         apt:
-          packages:
-            - libc++-dev
-    # ubuntu 14.04, clang-3.5, c++11, debug, no-exceptions
-    - env: VER=3.5 STD=11 BUILD=Debug EX=OFF
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'libstdc++-4.9-dev' ]
+      before_install:
+        - git submodule update --init
+        - ./.mason/mason install clang++ 3.9.1
+        - export PATH=$(./.mason/mason prefix clang++ 3.9.1)/bin:${PATH}
+    # clang++ 3.9 via mason with -fsanitize=safe-stack
+    - os: linux
+      compiler: "clang++-39-mason"
+      env: CXX=clang++-3.9 CXXFLAGS="-fsanitize=safe-stack" LDFLAGS="-fsanitize=safe-stack"
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'libstdc++-4.9-dev' ]
+      before_install:
+        - git submodule update --init
+        - ./.mason/mason install clang++ 3.9.1
+        - export PATH=$(./.mason/mason prefix clang++ 3.9.1)/bin:${PATH}
+    - os: osx
+      osx_image: xcode8
+      env: OSX_OLDEST_SUPPORTED=10.7 TEST_GYP_BUILD=True
       compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.5, c++11, release, exceptions
-    - env: VER=3.5 STD=11 BUILD=Release EX=ON
+    - os: osx
+      osx_image: xcode8
+      env: OSX_OLDEST_SUPPORTED=10.12
       compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.5, c++11, release, no-exceptions
-    - env: VER=3.5 STD=11 BUILD=Release EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.5, c++14, debug, exceptions
-    - env: VER=3.5 STD=14 BUILD=Debug EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.5, c++14, debug, no-exceptions
-    - env: VER=3.5 STD=14 BUILD=Debug EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.5, c++14, release, exceptions
-    - env: VER=3.5 STD=14 BUILD=Release EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.5, c++14, release, no-exceptions
-    - env: VER=3.5 STD=14 BUILD=Release EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-
-    # ubuntu 14.04, clang-3.6, c++11, debug, exceptions
-    - env: VER=3.6 STD=11 BUILD=Debug EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.6, c++11, debug, no-exceptions
-    - env: VER=3.6 STD=11 BUILD=Debug EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.6, c++11, release, exceptions
-    - env: VER=3.6 STD=11 BUILD=Release EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.6, c++11, release, no-exceptions
-    - env: VER=3.6 STD=11 BUILD=Release EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.6, c++14, debug, exceptions
-    - env: VER=3.6 STD=14 BUILD=Debug EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.6, c++14, debug, no-exceptions
-    - env: VER=3.6 STD=14 BUILD=Debug EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.6, c++14, release, exceptions
-    - env: VER=3.6 STD=14 BUILD=Release EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.6, c++14, release, no-exceptions
-    - env: VER=3.6 STD=14 BUILD=Release EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-
-    # ubuntu 14.04, clang-3.7, c++11, debug, exceptions
-    - env: VER=3.7 STD=11 BUILD=Debug EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.7, c++11, debug, no-exceptions
-    - env: VER=3.7 STD=11 BUILD=Debug EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.7, c++11, release, exceptions
-    - env: VER=3.7 STD=11 BUILD=Release EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.7, c++11, release, no-exceptions
-    - env: VER=3.7 STD=11 BUILD=Release EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.7, c++14, debug, exceptions
-    - env: VER=3.7 STD=14 BUILD=Debug EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.7, c++14, debug, no-exceptions
-    - env: VER=3.7 STD=14 BUILD=Debug EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.7, c++14, release, exceptions
-    - env: VER=3.7 STD=14 BUILD=Release EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.7, c++14, release, no-exceptions
-    - env: VER=3.7 STD=14 BUILD=Release EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-
-    # ubuntu 14.04, clang-3.8, c++11, debug, exceptions
-    - env: VER=3.8 STD=11 BUILD=Debug EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.8, c++11, debug, no-exceptions
-    - env: VER=3.8 STD=11 BUILD=Debug EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.8, c++11, release, exceptions
-    - env: VER=3.8 STD=11 BUILD=Release EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.8, c++11, release, no-exceptions
-    - env: VER=3.8 STD=11 BUILD=Release EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.8, c++14, debug, exceptions
-    - env: VER=3.8 STD=14 BUILD=Debug EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.8, c++14, debug, no-exceptions
-    - env: VER=3.8 STD=14 BUILD=Debug EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.8, c++14, release, exceptions
-    - env: VER=3.8 STD=14 BUILD=Release EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.8, c++14, release, no-exceptions
-    - env: VER=3.8 STD=14 BUILD=Release EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-
-    # ubuntu 14.04, clang-3.9, c++11, debug, exceptions
-    - env: VER=3.9 STD=11 BUILD=Debug EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.9, c++11, debug, no-exceptions
-    - env: VER=3.9 STD=11 BUILD=Debug EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.9, c++11, release, exceptions
-    - env: VER=3.9 STD=11 BUILD=Release EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.9, c++11, release, no-exceptions
-    - env: VER=3.9 STD=11 BUILD=Release EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.9, c++14, debug, exceptions
-    - env: VER=3.9 STD=14 BUILD=Debug EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.9, c++14, debug, no-exceptions
-    - env: VER=3.9 STD=14 BUILD=Debug EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.9, c++14, release, exceptions
-    - env: VER=3.9 STD=14 BUILD=Release EX=ON
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-    # ubuntu 14.04, clang-3.9, c++14, release, no-exceptions
-    - env: VER=3.9 STD=14 BUILD=Release EX=OFF
-      compiler: clang
-      os: linux
-      dist: trusty
-      sudo: required
-      addons: *libcxx
-
-    # OS X Yosemite 10.10, Apple Clang, c++11, debug, exceptions
-    - env: STD=11 BUILD=Debug EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode6.4
-    # OS X Yosemite 10.10, Apple Clang, c++11, debug, no-exceptions
-    - env: STD=11 BUILD=Debug EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode6.4
-    # OS X Yosemite 10.10, Apple Clang, c++11, release, exceptions
-    - env: STD=11 BUILD=Release EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode6.4
-    # OS X Yosemite 10.10, Apple Clang, c++11, release, no-exceptions
-    - env: STD=11 BUILD=Release EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode6.4
-    # OS X Yosemite 10.10, Apple Clang, c++14, debug, exceptions
-    - env: STD=14 BUILD=Debug EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode6.4
-    # OS X Yosemite 10.10, Apple Clang, c++14, debug, no-exceptions
-    - env: STD=14 BUILD=Debug EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode6.4
-    # OS X Yosemite 10.10, Apple Clang, c++14, release, exceptions
-    - env: STD=14 BUILD=Release EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode6.4
-    # OS X Yosemite 10.10, Apple Clang, c++14, release, no-exceptions
-    - env: STD=14 BUILD=Release EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode6.4
-
-    # OS X El Capitan 10.11, apple-clang-8, c++11, debug, exceptions
-    - env: STD=11 BUILD=Debug EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode7.3
-    # OS X El Capitan 10.11, apple-clang-8, c++11, debug, no-exceptions
-    - env: STD=11 BUILD=Debug EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode7.3
-    # OS X El Capitan 10.11, apple-clang-8, c++11, release, exceptions
-    - env: STD=11 BUILD=Release EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode7.3
-    # OS X El Capitan 10.11, apple-clang-8, c++11, release, no-exceptions
-    - env: STD=11 BUILD=Release EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode7.3
-    # OS X El Capitan 10.11, apple-clang-8, c++14, debug, exceptions
-    - env: STD=14 BUILD=Debug EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode7.3
-    # OS X El Capitan 10.11, apple-clang-8, c++14, debug, no-exceptions
-    - env: STD=14 BUILD=Debug EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode7.3
-    # OS X El Capitan 10.11, apple-clang-8, c++14, release, exceptions
-    - env: STD=14 BUILD=Release EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode7.3
-    # OS X El Capitan 10.11, apple-clang-8, c++14, release, no-exceptions
-    - env: STD=14 BUILD=Release EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode7.3
-
-    # OS X Sierra 10.12, apple-clang-8, c++11, debug, exceptions
-    - env: STD=11 BUILD=Debug EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode8.2
-    # OS X Sierra 10.12, apple-clang-8, c++11, debug, no-exceptions
-    - env: STD=11 BUILD=Debug EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode8.2
-    # OS X Sierra 10.12, apple-clang-8, c++11, release, exceptions
-    - env: STD=11 BUILD=Release EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode8.2
-    # OS X Sierra 10.12, apple-clang-8, c++11, release, no-exceptions
-    - env: STD=11 BUILD=Release EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode8.2
-    # OS X Sierra 10.12, apple-clang-8, c++14, debug, exceptions
-    - env: STD=14 BUILD=Debug EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode8.2
-    # OS X Sierra 10.12, apple-clang-8, c++14, debug, no-exceptions
-    - env: STD=14 BUILD=Debug EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode8.2
-    # OS X Sierra 10.12, apple-clang-8, c++14, release, exceptions
-    - env: STD=14 BUILD=Release EX=ON
-      compiler: clang
-      os: osx
-      osx_image: xcode8.2
-    # OS X Sierra 10.12, apple-clang-8, c++14, release, no-exceptions
-    - env: STD=14 BUILD=Release EX=OFF
-      compiler: clang
-      os: osx
-      osx_image: xcode8.2
-
-before_install:
-  # Install the newest `cmake`.
-  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
-      brew update;
-      brew uninstall cmake;
-      brew install cmake;
-    elif [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-      wget https://cmake.org/files/v3.7/cmake-3.7.1-Linux-x86_64.sh;
-      chmod u+x cmake-3.7.1-Linux-x86_64.sh;
-      sudo ./cmake-3.7.1-Linux-x86_64.sh --skip-license --prefix=/usr/local;
-    fi
-  # Install a specific clang version.
-  - if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${CC}" = "clang" ] && [ -n "${VER}" ]; then
-      wget -nv -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -;
-      sudo apt-add-repository -y "deb http://llvm.org/apt/trusty llvm-toolchain-trusty-${VER} main";
-      sudo apt-get update -qq;
-      sudo apt-get install -qq -y "clang-${VER}";
-    fi
-  # Set the correct `CXXFLAGS` environment variable.
-  - if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${CC}" = "clang" ]; then
-      export CXXFLAGS="${CXXFLAGS} -stdlib=libc++";
-    fi
-  # Set the correct `CC` and `CXX` environment variables.
-  - if [ -n "${VER}" ]; then
-      export CC="${CC}-${VER}";
-      export CXX="${CXX}-${VER}";
-    fi
-  - if [ -z "${TEST}" ]; then
-      export TEST="mpark;libc++";
-    fi
-  - ${CXX} --version
+    - os: linux
+      compiler: "clang35"
+      env: CXX=clang++-3.5 COVERAGE=True
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5' ]
+          packages: [ 'clang-3.5', 'libstdc++-4.9-dev' ]
+    - os: linux
+      compiler: "clang36"
+      env: CXX=clang++-3.6
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6' ]
+          packages: [ 'clang-3.6' ]
+    - os: linux
+      compiler: "clang37"
+      env: CXX=clang++-3.7
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7' ]
+          packages: [ 'clang-3.7' ]
+    - os: linux
+      compiler: "gcc47"
+      env: CXX=g++-4.7 CXXFLAGS="-Wno-parentheses"
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'g++-4.7' ]
+    - os: linux
+      compiler: "gcc48"
+      env: CXX=g++-4.8
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'g++-4.8' ]
+    - os: linux
+      compiler: "gcc49"
+      env: CXX=g++-4.9
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'g++-4.9' ]
+    - os: linux
+      compiler: "gcc5"
+      env: CXX=g++-5
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'g++-5' ]
+    - os: linux
+      compiler: "gcc6"
+      env: CXX=g++-6 CXX_STD=c++14
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'g++-6' ]
 
 install:
-  - mkdir build
-  - cd build
-  - cmake -DCMAKE_BUILD_TYPE=${BUILD}
-          -DMPARK_VARIANT_CXX_STANDARD=${STD}
-          -DMPARK_VARIANT_EXCEPTIONS=${EX}
-          -DMPARK_VARIANT_INCLUDE_TESTS=${TEST} ..
-  - cmake --build .
+ - echo ${CXX}
+ - if [[ $(uname -s) == 'Linux' ]]; then
+     export PYTHONPATH=$(pwd)/.local/lib/python2.7/site-packages;
+   else
+     export PYTHONPATH=$(pwd)/.local/lib/python/site-packages;
+   fi
+ - if [[ ${COVERAGE:-0} == 'True' ]]; then
+     PYTHONUSERBASE=$(pwd)/.local pip install --user cpp-coveralls;
+   fi
 
 script:
-  - ctest -V
+ # Build in Release
+ - make test
+ - make bench
+ - make sizes
+ - scripts/run_compilation_failure_tests.sh
+ - make clean;
+ # Build in Debug
+ - export BUILDTYPE=Debug
+ - make test
+ - make bench
+ - make sizes
+ - scripts/run_compilation_failure_tests.sh
+ - if [[ ${TEST_GYP_BUILD:-0} == 'True' ]]; then
+     make clean;
+     make gyp;
+   fi
 
-notifications:
-  email: false
+after_script:
+ - if [[ ${COVERAGE:-0} == 'True' ]]; then
+    make clean;
+    make coverage;
+    ./out/cov-test;
+    cp unit*gc* test/;
+    ./.local/bin/cpp-coveralls --gcov /usr/bin/llvm-cov-3.5 --gcov-options '\-lp' -i optional.hpp -i recursive_wrapper.hpp -i variant.hpp -i variant_io.hpp variant_cast.hpp;
+   fi

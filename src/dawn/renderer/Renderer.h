@@ -5,11 +5,13 @@
 #pragma once
 
 #include "core/Concurrency.h"
+#include "math/Colour.h"
 #include "renderer/RenderTask.h"
 #include "renderer/VertexDecl.h"
 #include "renderer/Window.h"
 
 #define MAX_TEXTURE_SAMPLERS 8
+#define MAX_VIEWS 8
 
 namespace dw {
 
@@ -42,12 +44,13 @@ enum class ShaderType { Vertex, Geometry, Fragment };
 // A blob of memory.
 class Memory {
 public:
+    Memory();
     Memory(const void* data, uint size);
     ~Memory();
 
-    // Non-copyable.
-    Memory(const Memory&) = delete;
-    Memory& operator=(const Memory&) = delete;
+    // Copyable.
+    Memory(const Memory&) noexcept;
+    Memory& operator=(const Memory&) noexcept;
 
     // Movable.
     Memory(Memory&&) noexcept;
@@ -269,7 +272,14 @@ struct RenderItem {
     // Shader program and parameters.
     ProgramHandle program;
     HashMap<String, UniformData> uniforms;
-    TextureBinding textures[MAX_TEXTURE_SAMPLERS];
+    Array<TextureBinding, MAX_TEXTURE_SAMPLERS> textures;
+};
+
+// View.
+struct View {
+    Colour clear_colour;
+    FrameBufferHandle frame_buffer;
+    Vector<RenderItem> render_items;
 };
 
 // Frame.
@@ -278,8 +288,15 @@ struct Frame {
         current_item.clear();
     }
 
+    View& view(uint view_index) {
+        if (views.size() <= view_index) {
+            views.resize(view_index + 1);
+        }
+        return views[view_index];
+    }
+
     RenderItem current_item;
-    Vector<RenderItem> render_items;
+    Vector<View> views;
     Vector<RenderCommand> commands_pre;
     Vector<RenderCommand> commands_post;
 };
@@ -292,7 +309,7 @@ public:
     RenderContext(Context* context);
     virtual ~RenderContext() = default;
     virtual void processCommandList(Vector<RenderCommand>& command_list) = 0;
-    virtual void submit(const Vector<RenderItem>& items) = 0;
+    virtual void submit(const Vector<View>& views) = 0;
 };
 
 // Low level renderer.
@@ -341,17 +358,19 @@ public:
 
     // Framebuffer.
     FrameBufferHandle createFrameBuffer(u16 width, u16 height, TextureFormat format);
+    TextureHandle getFrameBufferTexture(FrameBufferHandle handle, uint index);
     void deleteFrameBuffer(FrameBufferHandle handle);
 
-    /// Clear.
-    void clear(const Vec3& colour);
+    /// View.
+    void setViewClear(uint view, const Colour& colour);
+    void setViewFrameBuffer(uint view, FrameBufferHandle handle);
 
     /// Update uniform and draw state, but submit no geometry.
-    void submit(ProgramHandle program);
+    void submit(uint view, ProgramHandle program);
 
     /// Update uniform and draw state, then draw. Based off:
     /// https://github.com/bkaradzic/bgfx/blob/master/src/bgfx.cpp#L854
-    void submit(ProgramHandle program, uint vertex_count);
+    void submit(uint view, ProgramHandle program, uint vertex_count);
 
     /// Push render task.
     void pushRenderTask(RenderTask&& task);
@@ -374,6 +393,9 @@ private:
     HandleGenerator<TextureHandle> texture_handle_;
     HandleGenerator<FrameBufferHandle> frame_buffer_handle_;
 
+    // Framebuffers.
+    HashMap<FrameBufferHandle, Vector<TextureHandle>> frame_buffer_textures_;
+
     // Shared.
     Atomic<bool> should_exit_;
 
@@ -387,8 +409,8 @@ private:
     Frame* render_;
 
     // Add a command to the submit thread.
-    void submitPreFrameCommand(RenderCommand command);
-    void submitPostFrameCommand(RenderCommand command);
+    void submitPreFrameCommand(RenderCommand&& command);
+    void submitPostFrameCommand(RenderCommand&& command);
 
     // Renderer.
     UniquePtr<RenderContext> r_render_context_;

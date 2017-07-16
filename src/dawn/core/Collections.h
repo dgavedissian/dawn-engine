@@ -10,7 +10,14 @@
 #include <map>
 #include <unordered_map>
 
-#include <mpark/variant.hpp>
+#if DW_PLATFORM == DW_WIN32
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
+#include <mapbox/variant.hpp>
+#if DW_PLATFORM == DW_WIN32
+#pragma warning(pop)
+#endif
 
 namespace dw {
 
@@ -43,13 +50,21 @@ template <typename K, typename T> using Map = std::map<K, T>;
 template <typename K, typename T> using HashMap = std::unordered_map<K, T, HashFunction<K>>;
 template <typename T1, typename T2> using Pair = std::pair<T1, T2>;
 template <typename... T> using Tuple = std::tuple<T...>;
-template <typename... T> using Variant = mpark::variant<T...>;
+template <typename... T> using Variant = mapbox::util::variant<T...>;
 
-template <typename T1, typename T2> inline Pair<T1, T2> makePair(T1&& a, T2&& b) {
+template <typename F, typename V> void VariantApplyVisitor(F&& f, V const& v) {
+    return mapbox::util::apply_visitor(std::forward<F>(f), v);
+}
+
+template <typename F, typename V> void VariantApplyVisitor(F&& f, V& v) {
+    return mapbox::util::apply_visitor(std::forward<F>(f), v);
+}
+
+template <typename T1, typename T2> Pair<T1, T2> makePair(T1&& a, T2&& b) {
     return std::pair<T1, T2>(std::forward<T1>(a), std::forward<T2>(b));
 }
 
-template <typename... T> inline Tuple<T...> makeTuple(T&&... args) {
+template <typename... T> Tuple<T...> makeTuple(T&&... args) {
     return std::tuple<T...>(std::forward<T>(args)...);
 }
 }  // namespace dw

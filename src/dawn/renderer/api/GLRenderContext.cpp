@@ -102,7 +102,7 @@ GLRenderContext::~GLRenderContext() {
 
 void GLRenderContext::processCommandList(Vector<RenderCommand>& command_list) {
     for (auto& command : command_list) {
-        mpark::visit(*this, command);
+        VariantApplyVisitor(*this, command);
     }
 }
 
@@ -140,8 +140,8 @@ void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
         }
 
         log().info("[renderer] Attrib %s: Count='%s' Type='%s' Stride='%s' Offset='%s'",
-                   attrib_counter, count, (int)gl_type->first, c.decl.stride_,
-                   (intptr_t)attrib.second);
+                   attrib_counter, count, static_cast<int>(gl_type->first), c.decl.stride_,
+                   reinterpret_cast<intptr_t>(attrib.second));
 
         // Set attribute.
         glEnableVertexAttribArray(attrib_counter);
@@ -149,7 +149,7 @@ void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
                               normalised ? GL_TRUE : GL_FALSE, c.decl.stride_, attrib.second);
         attrib_counter++;
     }
-    r_vertex_buffer_map_.emplace(c.handle, vao);
+    vertex_buffer_map_.emplace(c.handle, vao);
 }
 
 void GLRenderContext::operator()(const cmd::DeleteVertexBuffer& c) {
@@ -164,9 +164,10 @@ void GLRenderContext::operator()(const cmd::CreateIndexBuffer& c) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, c.data.size(), c.data.data(), GL_STATIC_DRAW);
     GL_CHECK();
 
-    r_index_buffer_map_.emplace(
-        c.handle,
-        makePair(ebo, c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT));
+    index_buffer_map_.emplace(
+        c.handle, IndexBufferData{
+                      ebo, static_cast<GLenum>(c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT
+                                                                              : GL_UNSIGNED_INT)});
 }
 
 void GLRenderContext::operator()(const cmd::DeleteIndexBuffer& c) {
@@ -198,27 +199,27 @@ void GLRenderContext::operator()(const cmd::CreateShader& c) {
         // TODO: Error
     }
 
-    r_shader_map_.emplace(c.handle, shader);
+    shader_map_.emplace(c.handle, shader);
 }
 
 void GLRenderContext::operator()(const cmd::DeleteShader& c) {
-    auto it = r_shader_map_.find(c.handle);
+    auto it = shader_map_.find(c.handle);
     glDeleteShader(it->second);
-    r_shader_map_.erase(it);
+    shader_map_.erase(it);
 }
 
 void GLRenderContext::operator()(const cmd::CreateProgram& c) {
     ProgramData program_data;
     program_data.program = glCreateProgram();
-    r_program_map_.emplace(c.handle, program_data);
+    program_map_.emplace(c.handle, program_data);
 }
 
 void GLRenderContext::operator()(const cmd::AttachShader& c) {
-    glAttachShader(r_program_map_[c.handle].program, r_shader_map_[c.shader_handle]);
+    glAttachShader(program_map_[c.handle].program, shader_map_[c.shader_handle]);
 }
 
 void GLRenderContext::operator()(const cmd::LinkProgram& c) {
-    GLuint program = r_program_map_[c.handle].program;
+    GLuint program = program_map_[c.handle].program;
     glLinkProgram(program);
 
     // Check the result of the link process.
@@ -235,9 +236,9 @@ void GLRenderContext::operator()(const cmd::LinkProgram& c) {
 }
 
 void GLRenderContext::operator()(const cmd::DeleteProgram& c) {
-    auto it = r_program_map_.find(c.handle);
+    auto it = program_map_.find(c.handle);
     glDeleteProgram(it->second.program);
-    r_program_map_.erase(it);
+    program_map_.erase(it);
 }
 
 void GLRenderContext::operator()(const cmd::CreateTexture2D& c) {
@@ -261,13 +262,13 @@ void GLRenderContext::operator()(const cmd::CreateTexture2D& c) {
     GL_CHECK();
 
     // Add texture.
-    r_texture_map_.emplace(c.handle, texture);
+    texture_map_.emplace(c.handle, texture);
 }
 
 void GLRenderContext::operator()(const cmd::DeleteTexture& c) {
-    auto it = r_texture_map_.find(c.handle);
+    auto it = texture_map_.find(c.handle);
     glDeleteTextures(1, &it->second);
-    r_texture_map_.erase(it);
+    texture_map_.erase(it);
 }
 
 void GLRenderContext::operator()(const cmd::CreateFrameBuffer& c) {
@@ -281,13 +282,13 @@ void GLRenderContext::operator()(const cmd::CreateFrameBuffer& c) {
     Vector<GLenum> draw_buffers;
     u8 attachment = 0;
     for (auto texture : fb_data.textures) {
-        auto gl_texture = r_texture_map_.find(texture);
-        assert(gl_texture != r_texture_map_.end());
+        auto gl_texture = texture_map_.find(texture);
+        assert(gl_texture != texture_map_.end());
         draw_buffers.emplace_back(GL_COLOR_ATTACHMENT0 + attachment++);
         glFramebufferTexture2D(GL_FRAMEBUFFER, draw_buffers.back(), GL_TEXTURE_2D,
                                gl_texture->second, 0);
     }
-    glDrawBuffers(draw_buffers.size(), draw_buffers.data());
+    glDrawBuffers(static_cast<GLsizei>(draw_buffers.size()), draw_buffers.data());
 
     // Create depth buffer.
     glGenRenderbuffers(1, &fb_data.depth_render_buffer);
@@ -304,119 +305,147 @@ void GLRenderContext::operator()(const cmd::CreateFrameBuffer& c) {
 
     // Unbind.
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Add to map.
+    frame_buffer_map_.emplace(c.handle, fb_data);
 }
 
 void GLRenderContext::operator()(const cmd::DeleteFrameBuffer& c) {
     // TODO: unimplemented.
 }
 
-void GLRenderContext::submit(const Vector<RenderItem>& items) {
-    glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (uint i = 0; i < items.size(); ++i) {
-        auto* previous = i > 0 ? &items[i - 1] : nullptr;
-        auto* current = &items[i];
-
-        // Bind VAO.
-        if (!previous || previous->vb != current->vb) {
-            glBindVertexArray(r_vertex_buffer_map_[current->vb]);
-            GL_CHECK();
+void GLRenderContext::submit(const Vector<View>& views) {
+    for (auto& v : views) {
+        if (v.render_items.empty()) {
+            continue;
         }
 
-        // Bind EBO.
-        if (!previous || previous->ib != current->ib) {
-            if (current->ib != 0) {
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_index_buffer_map_[current->ib].first);
-                GL_CHECK();
-            } else {
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-                GL_CHECK();
-            }
+        // Set up framebuffer.
+        if (v.frame_buffer > 0) {
+            FrameBufferData& fb_data = frame_buffer_map_.at(v.frame_buffer);
+            glBindFramebuffer(GL_FRAMEBUFFER, fb_data.frame_buffer);
+            GL_CHECK();
+        } else {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
-        // Bind Program.
-        if (!previous || previous->program != current->program) {
-            assert(current->program != 0);
-            ProgramData& program_data = r_program_map_[current->program];
-            glUseProgram(program_data.program);
-            GL_CHECK();
+        // Set up view.
+        glClearColor(v.clear_colour.r(), v.clear_colour.g(), v.clear_colour.b(),
+                     v.clear_colour.a());
+        glEnable(GL_DEPTH_TEST);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // Bind Uniforms.
-            for (auto& uniform_pair : current->uniforms) {
-                struct UniformBinder {
-                    GLint uniform_location;
-                    UniformBinder(GLint location) : uniform_location{location} {
-                    }
+        // Render items.
+        for (uint i = 0; i < v.render_items.size(); ++i) {
+            auto* previous = i > 0 ? &v.render_items[i - 1] : nullptr;
+            auto* current = &v.render_items[i];
 
-                    void operator()(const int& value) {
-                        glUniform1i(uniform_location, value);
-                    }
-
-                    void operator()(const float& value) {
-                        glUniform1f(uniform_location, value);
-                    }
-
-                    void operator()(const Vec2& value) {
-                        glUniform2f(uniform_location, value.x, value.y);
-                    }
-
-                    void operator()(const Vec3& value) {
-                        glUniform3f(uniform_location, value.x, value.y, value.z);
-                    }
-
-                    void operator()(const Vec4& value) {
-                        glUniform4f(uniform_location, value.x, value.y, value.z, value.w);
-                    }
-
-                    void operator()(const Mat3& value) {
-                        glUniformMatrix3fv(uniform_location, 1, GL_TRUE, value.ptr());
-                    }
-
-                    void operator()(const Mat4& value) {
-                        glUniformMatrix4fv(uniform_location, 1, GL_TRUE, value.ptr());
-                    }
-                };
-                auto location = program_data.uniform_location_map.find(uniform_pair.first);
-                GLint uniform_location;
-                if (location != program_data.uniform_location_map.end()) {
-                    uniform_location = (*location).second;
+            // Bind VAO.
+            if (!previous || previous->vb != current->vb) {
+                if (current->vb != 0) {
+                    glBindVertexArray(vertex_buffer_map_.at(current->vb));
                 } else {
-                    uniform_location =
-                        glGetUniformLocation(program_data.program, uniform_pair.first.c_str());
+                    glBindVertexArray(0);
+                }
+                GL_CHECK();
+            }
+
+            // Bind EBO.
+            if (!previous || previous->ib != current->ib) {
+                if (current->ib != 0) {
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                                 index_buffer_map_.at(current->ib).element_buffer);
                     GL_CHECK();
-                    program_data.uniform_location_map.emplace(uniform_pair.first, uniform_location);
+                } else {
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+                    GL_CHECK();
+                }
+            }
+
+            // Bind Program.
+            if (!previous || previous->program != current->program) {
+                assert(current->program != 0);
+                ProgramData& program_data = program_map_.at(current->program);
+                glUseProgram(program_data.program);
+                GL_CHECK();
+
+                // Bind Uniforms.
+                for (auto& uniform_pair : current->uniforms) {
+                    struct UniformBinder {
+                        GLint uniform_location;
+                        UniformBinder(GLint location) : uniform_location{location} {
+                        }
+
+                        void operator()(const int& value) {
+                            glUniform1i(uniform_location, value);
+                        }
+
+                        void operator()(const float& value) {
+                            glUniform1f(uniform_location, value);
+                        }
+
+                        void operator()(const Vec2& value) {
+                            glUniform2f(uniform_location, value.x, value.y);
+                        }
+
+                        void operator()(const Vec3& value) {
+                            glUniform3f(uniform_location, value.x, value.y, value.z);
+                        }
+
+                        void operator()(const Vec4& value) {
+                            glUniform4f(uniform_location, value.x, value.y, value.z, value.w);
+                        }
+
+                        void operator()(const Mat3& value) {
+                            glUniformMatrix3fv(uniform_location, 1, GL_TRUE, value.ptr());
+                        }
+
+                        void operator()(const Mat4& value) {
+                            glUniformMatrix4fv(uniform_location, 1, GL_TRUE, value.ptr());
+                        }
+                    };
+                    auto location = program_data.uniform_location_map.find(uniform_pair.first);
+                    GLint uniform_location;
+                    if (location != program_data.uniform_location_map.end()) {
+                        uniform_location = (*location).second;
+                    } else {
+                        uniform_location =
+                            glGetUniformLocation(program_data.program, uniform_pair.first.c_str());
+                        GL_CHECK();
+                        program_data.uniform_location_map.emplace(uniform_pair.first,
+                                                                  uniform_location);
+                        if (uniform_location == -1) {
+                            log().warn("Unknown uniform '%s', skipping.", uniform_pair.first);
+                        }
+                    }
                     if (uniform_location == -1) {
-                        log().warn("Unknown uniform '%s', skipping.", uniform_pair.first);
+                        continue;
+                    }
+                    VariantApplyVisitor(UniformBinder{uniform_location}, uniform_pair.second);
+                    GL_CHECK();
+                }
+
+                // Bind textures.
+                for (uint j = 0; j < MAX_TEXTURE_SAMPLERS; j++) {
+                    if (!previous || previous->textures[j].handle != current->textures[j].handle) {
+                        glActiveTexture(GL_TEXTURE0 + j);
+                        GL_CHECK();
+                        glBindTexture(GL_TEXTURE_2D, current->textures[j].handle);
+                        GL_CHECK();
                     }
                 }
-                if (uniform_location == -1) {
-                    continue;
-                }
-                mpark::visit(UniformBinder{uniform_location}, uniform_pair.second);
-                GL_CHECK();
             }
 
-            // Bind textures.
-            for (uint j = 0; j < MAX_TEXTURE_SAMPLERS; j++) {
-                if (!previous || previous->textures[j].handle != current->textures[j].handle) {
-                    glActiveTexture(GL_TEXTURE0 + j);
+            // Submit.
+            if (current->primitive_count > 0) {
+                if (current->ib != 0) {
+                    glDrawElements(GL_TRIANGLES, current->primitive_count * 3,
+                                   index_buffer_map_[current->ib].type, 0);
                     GL_CHECK();
-                    glBindTexture(GL_TEXTURE_2D, current->textures[j].handle);
+                } else {
+                    glDrawArrays(GL_TRIANGLES, 0, current->primitive_count * 3);
                     GL_CHECK();
                 }
-            }
-        }
-
-        // Submit.
-        if (current->primitive_count > 0) {
-            if (current->ib != 0) {
-                glDrawElements(GL_TRIANGLES, current->primitive_count * 3,
-                               r_index_buffer_map_[current->ib].second, 0);
-                GL_CHECK();
-            } else {
-                glDrawArrays(GL_TRIANGLES, 0, current->primitive_count * 3);
-                GL_CHECK();
             }
         }
     }

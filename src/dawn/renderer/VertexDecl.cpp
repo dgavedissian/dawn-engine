@@ -17,7 +17,7 @@ VertexDecl& VertexDecl::add(VertexDecl::Attribute attribute, uint count,
                             VertexDecl::AttributeType type, bool normalised) {
     attributes_.emplace_back(makePair(encodeAttributes(attribute, count, type, normalised),
                                       reinterpret_cast<void*>(static_cast<uintptr_t>(stride_))));
-    stride_ += count * getAttributeTypeSize(type);
+    stride_ += count * attributeTypeSize(type);
     return *this;
 }
 
@@ -48,7 +48,7 @@ void VertexDecl::decodeAttributes(u16 encoded_attribute, Attribute& attribute, u
     normalised = (encoded_attribute & 0x1) == 1;
 }
 
-uint VertexDecl::getAttributeTypeSize(AttributeType type) {
+uint VertexDecl::attributeTypeSize(AttributeType type) {
     switch (type) {
         case AttributeType::Uint8:
             return 1;

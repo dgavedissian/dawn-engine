@@ -11,7 +11,7 @@ template <typename T> class Example : public App {
 public:
     DW_OBJECT(Example<T>);
 
-    void init(int argc, char** argv) override {
+    void init(int, char**) override {
         example_ = makeUnique<T>(context_, engine_);
         example_->start();
     }
@@ -30,7 +30,7 @@ public:
         example_->render();
     }
 
-    void update(float dt) override {
+    void update(float) override {
     }
 
     void shutdown() override {
@@ -67,13 +67,14 @@ public:                                                                         
 // Utils
 namespace util {
 Mat4 createProjMatrix(float n, float f, float fov_y, float aspect) {
-    float tangent = (float)tan(fov_y * dw::M_DEGTORAD_OVER_2);  // tangent of half fovY
-    float v = n * tangent * 2;                                  // half height of near plane
-    float h = v * aspect;                                       // half width of near plane
+    float tangent = static_cast<float>(tan(fov_y * dw::M_DEGTORAD_OVER_2));  // tangent of half fovY
+    float v = n * tangent * 2;  // half height of near plane
+    float h = v * aspect;       // half width of near plane
     return Mat4::OpenGLPerspProjRH(n, f, h, v);
 }
 
 uint createBox(Renderer* r, float halfSize, VertexBufferHandle& vb) {
+    // clang-format off
     float vertices[] = {
         // Position						| UVs		  | Normals
         -halfSize, -halfSize, -halfSize, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
@@ -117,6 +118,7 @@ uint createBox(Renderer* r, float halfSize, VertexBufferHandle& vb) {
         halfSize,  halfSize,  halfSize,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
         -halfSize, halfSize,  halfSize,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
         -halfSize, halfSize,  -halfSize, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f};
+    // clang-format on
 
     VertexDecl decl;
     decl.begin()
@@ -130,8 +132,13 @@ uint createBox(Renderer* r, float halfSize, VertexBufferHandle& vb) {
 }
 
 uint createFullscreenQuad(Renderer* r, VertexBufferHandle& vb) {
-    float vertices[] = {// Position   | UV
-                        -1.0f, -1.0f, 0.0f, 0.0f, 3.0f, -1.0f, 2.0f, 0.0f, -1.0f, 3.0f, 0.0f, 2.0f};
+    // clang-format off
+    float vertices[] = {
+    	// Position   | UV
+        -1.0f, -1.0f, 0.0f, 0.0f,
+    	3.0f,  -1.0f, 2.0f, 0.0f,
+    	-1.0f,  3.0f, 0.0f, 2.0f};
+    // clang-format on
     VertexDecl decl;
     decl.begin()
         .add(VertexDecl::Attribute::Position, 2, VertexDecl::AttributeType::Float)
@@ -184,8 +191,9 @@ TEST_CLASS(BasicVertexBuffer) {
     }
 
     void render() {
+        r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
         r->setVertexBuffer(vb_);
-        r->submit(program_, 3);
+        r->submit(0, program_, 3);
     }
 
     void stop() {
@@ -237,7 +245,7 @@ TEST_CLASS(BasicIndexBuffer) {
     void render() {
         r->setVertexBuffer(vb_);
         r->setIndexBuffer(ib_);
-        r->submit(program_, 6);
+        r->submit(0, program_, 6);
     }
 
     void stop() {
@@ -272,7 +280,7 @@ TEST_CLASS(Textured3DCube) {
         r->attachShader(program_, fs);
         r->linkProgram(program_);
         r->setUniform("wall_sampler", 0);
-        r->submit(program_);
+        r->submit(0, program_);
 
         // Load texture.
         File texture_file{context(), "wall.jpg"};
@@ -296,9 +304,10 @@ TEST_CLASS(Textured3DCube) {
         r->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
         // Set vertex buffer and submit.
+        r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
         r->setVertexBuffer(vb_);
         r->setTexture(texture_resource_->internalHandle(), 0);
-        r->submit(program_, vertex_count_);
+        r->submit(0, program_, vertex_count_);
     }
 
     void stop() {
@@ -340,6 +349,9 @@ TEST_CLASS(PostProcessing) {
         // Create full screen quad.
         util::createFullscreenQuad(r, fsq_vb_);
 
+        // Set up frame buffer.
+        fb_handle_ = r->createFrameBuffer(1280.0f, 800.0f, TextureFormat::RGB8);
+
         // Load post process shader.
         File pp_vs_file{context(), "shaders/post_process.vs"};
         String pp_vs_source = dw::stream::read<String>(pp_vs_file);
@@ -352,10 +364,7 @@ TEST_CLASS(PostProcessing) {
         r->attachShader(post_process_, pp_fs);
         r->linkProgram(post_process_);
         r->setUniform("in_sampler", 0);
-        r->submit(post_process_);
-
-        // Set up frame buffer.
-        fb_handle_ = r->createFrameBuffer(1280.0f, 800.0f, TextureFormat::RGB8);
+        r->submit(0, post_process_);
     }
 
     void render() {
@@ -369,9 +378,20 @@ TEST_CLASS(PostProcessing) {
         r->setUniform("mvp_matrix", proj * view * model);
         r->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
+        // Set up views.
+        r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+        r->setViewFrameBuffer(0, fb_handle_);
+        r->setViewClear(1, {0.0f, 0.2f, 0.0f, 1.0f});
+        r->setViewFrameBuffer(1, 0);
+
         // Set vertex buffer and submit.
         r->setVertexBuffer(cube_vb_);
-        r->submit(cube_program_, cube_vertex_count_);
+        r->submit(0, cube_program_, cube_vertex_count_);
+
+        // Draw fb.
+        r->setTexture(r->getFrameBufferTexture(fb_handle_, 0), 0);
+        r->setVertexBuffer(fsq_vb_);
+        r->submit(1, post_process_, 3);
     }
 
     void stop() {

@@ -25,7 +25,7 @@ private:
                                 bool normalised);
     static void decodeAttributes(u16 encoded_attribute, Attribute& attribute, uint& count,
                                  AttributeType& type, bool& normalised);
-    static uint getAttributeTypeSize(AttributeType type);
+    static uint attributeTypeSize(AttributeType type);
 
     // Attribute: 7
     // Count: 3

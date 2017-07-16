@@ -15,7 +15,7 @@ public:
     virtual ~GLRenderContext();
 
     void processCommandList(Vector<RenderCommand>& command_list) override;
-    void submit(const Vector<RenderItem>& items) override;
+    void submit(const Vector<View>& views) override;
 
     void operator()(const cmd::CreateVertexBuffer& c);
     void operator()(const cmd::DeleteVertexBuffer& c);
@@ -38,19 +38,23 @@ public:
 
 private:
     // Vertex and index buffers.
-    HashMap<VertexBufferHandle, GLuint> r_vertex_buffer_map_;
-    HashMap<IndexBufferHandle, Pair<GLuint, GLenum>> r_index_buffer_map_;
+    struct IndexBufferData {
+        GLuint element_buffer;
+        GLenum type;
+    };
+    HashMap<VertexBufferHandle, GLuint> vertex_buffer_map_;
+    HashMap<IndexBufferHandle, IndexBufferData> index_buffer_map_;
 
     // Shaders programs.
     struct ProgramData {
         GLuint program;
         HashMap<String, GLint> uniform_location_map;
     };
-    HashMap<ShaderHandle, GLuint> r_shader_map_;
-    HashMap<ProgramHandle, ProgramData> r_program_map_;
+    HashMap<ShaderHandle, GLuint> shader_map_;
+    HashMap<ProgramHandle, ProgramData> program_map_;
 
     // Textures.
-    HashMap<TextureHandle, GLuint> r_texture_map_;
+    HashMap<TextureHandle, GLuint> texture_map_;
 
     // Frame buffers.
     struct FrameBufferData {
@@ -58,6 +62,6 @@ private:
         GLuint depth_render_buffer;
         Vector<TextureHandle> textures;
     };
-    HashMap<FrameBufferHandle, FrameBufferData> r_frame_buffer_map_;
+    HashMap<FrameBufferHandle, FrameBufferData> frame_buffer_map_;
 };
 }  // namespace dw

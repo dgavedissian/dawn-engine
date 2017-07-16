@@ -46,6 +46,7 @@ set(SOURCE_FILES
     io/Path.cpp
     io/Path.h
     math/Colour.h
+    math/Colour.cpp
     math/Defs.h
 	math/MathGeoLib.h
     math/Noise.cpp

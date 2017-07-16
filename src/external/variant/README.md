@@ -1,81 +1,258 @@
-# MPark.Variant
+# Mapbox Variant
 
-> __C++17__ `std::variant` for __C++11__/__14__/__17__
+An header-only alternative to `boost::variant` for C++11 and C++14
 
-[![stability][badge.stability]][stability]
-[![travis][badge.travis]][travis]
-[![appveyor][badge.appveyor]][appveyor]
-[![license][badge.license]][license]
-[![gitter][badge.gitter]][gitter]
-[![godbolt][badge.godbolt]][godbolt]
-[![wandbox][badge.wandbox]][wandbox]
-
-[badge.stability]: https://img.shields.io/badge/stability-stable-brightgreen.svg
-[badge.travis]: https://travis-ci.org/mpark/variant.svg?branch=master
-[badge.appveyor]: https://ci.appveyor.com/api/projects/status/github/mpark/variant?branch=master&svg=true
-[badge.license]: http://img.shields.io/badge/license-boost-blue.svg
-[badge.gitter]: https://badges.gitter.im/mpark/variant.svg
-[badge.godbolt]: https://img.shields.io/badge/try%20it-on%20godbolt-222266.svg
-[badge.wandbox]: https://img.shields.io/badge/try%20it-on%20wandbox-5cb85c.svg
-
-[stability]: http://github.com/badges/stability-badges
-[travis]: https://travis-ci.org/mpark/variant
-[appveyor]: https://ci.appveyor.com/project/mpark/variant
-[license]: https://github.com/mpark/variant/blob/master/LICENSE.md
-[gitter]: https://gitter.im/mpark/variant
-[godbolt]: https://godbolt.org/g/I5WXWL
-[wandbox]: https://wandbox.org/permlink/QuDs9wncQPljHkp2
+[![Build Status](https://secure.travis-ci.org/mapbox/variant.svg)](https://travis-ci.org/mapbox/variant)
+[![Build status](https://ci.appveyor.com/api/projects/status/v9tatx21j1k0fcgy)](https://ci.appveyor.com/project/Mapbox/variant)
+[![Coverage Status](https://coveralls.io/repos/mapbox/variant/badge.svg?branch=master&service=github)](https://coveralls.io/r/mapbox/variant?branch=master)
 
 ## Introduction
 
-__MPark.Variant__ provides an implementation of __C++17__ `std::variant` for __C++11__/__14__/__17__.
+Variant's basic building blocks are:
+- `variant<Ts...>` - a type-safe representation for sum-types / discriminated unions
+- `recursive_wrapper<T>` - a helper type to represent recursive "tree-like" variants
+- `apply_visitor(visitor, myVariant)` - to invoke a custom visitor on the variant's underlying type
+- `get<T>()` - a function to directly unwrap a variant's underlying type
+- `.match([](Type){})` - a variant convenience member function taking an arbitrary number of lambdas creating a visitor behind the scenes and applying it to the variant
 
-The implementation is based on [my implementation of `std::variant` for __libc++__][libcxx-impl] and is continuously tested against __libc++__'s `std::variant` test suite.
 
-## Documentation
+### Basic Usage - HTTP API Example
 
-Refer to [`std::variant` - cppreference.com][cppreference] for the `std::variant`
-components of __MPark.Variant__.
+Suppose you want to represent a HTTP API response which is either a JSON result or an error:
 
-[cppreference]: http://en.cppreference.com/w/cpp/utility/variant
+```c++
+struct Result {
+  Json object;
+};
 
-## CMake Variables
+struct Error {
+  int32_t code;
+  string message;
+};
+```
 
-  -  __`MPARK_VARIANT_INCLUDE_TESTS`__:`STRING` (__default__: `""`)
+You can represent this at type level using a variant which is either an `Error` or a `Result`:
 
-     Semicolon-separated list of tests to build.
-     Possible values are `mpark`, and `libc++`.
+```c++
+using Response = variant<Error, Result>;
 
-     __NOTE__: The __libc++__ `std::variant` tests are built with `-std=c++1z`.
+Response makeRequest() {
+  return Error{501, "Not Implemented"};
+}
 
-## Requirements
+Response ret = makeRequest();
+```
 
-This library requires a standard conformant __C++11__ compiler.
-The following compilers are continously tested:
+To see which type the `Response` holds you pattern match on the variant unwrapping the underlying value:
 
-| Compiler                               | Operating System                            | Version String                                                                          |
-|----------------------------------------|---------------------------------------------|-----------------------------------------------------------------------------------------|
-| GCC 4.9.4                              | Ubuntu 14.04.5 LTS                          | g++-4.9 (Ubuntu 4.9.4-2ubuntu1~14.04.1) 4.9.4                                           |
-| GCC 5.4.1                              | Ubuntu 14.04.5 LTS                          | g++-5 (Ubuntu 5.4.1-2ubuntu1~14.04) 5.4.1 20160904                                      |
-| GCC 6.2.0                              | Ubuntu 14.04.5 LTS                          | g++-6 (Ubuntu 6.2.0-3ubuntu11~14.04) 6.2.0 20160901                                     |
-| Clang 3.5.2                            | Ubuntu 14.04.5 LTS                          | Ubuntu clang version 3.5.2-svn232544-1~exp1 (branches/release_35) (based on LLVM 3.5.2) |
-| Clang 3.6.2                            | Ubuntu 14.04.5 LTS                          | Ubuntu clang version 3.6.2-svn240577-1~exp1 (branches/release_36) (based on LLVM 3.6.2) |
-| Clang 3.7.1                            | Ubuntu 14.04.5 LTS                          | Ubuntu clang version 3.7.1-svn253742-1~exp1 (branches/release_37) (based on LLVM 3.7.1) |
-| Clang 3.8.0                            | Ubuntu 14.04.5 LTS                          | clang version 3.8.0-2ubuntu3~trusty4 (tags/RELEASE_380/final)                           |
-| Clang 3.9.1                            | Ubuntu 14.04.5 LTS                          | clang version 3.9.1-svn288847-1~exp1 (branches/release_39)                              |
-| Clang Xcode 6.4                        | Darwin Kernel Version 14.5.0 (OS X 10.10.3) | Apple LLVM version 6.1.0 (clang-602.0.53) (based on LLVM 3.6.0svn)                      |
-| Clang Xcode 7.3                        | Darwin Kernel Version 15.6.0 (OS X 10.10.5) | Apple LLVM version 7.3.0 (clang-703.0.31)                                               |
-| Clang Xcode 8.2                        | Darwin Kernel Version 16.1.0 (OS X 10.12.1) | Apple LLVM version 8.0.0 (clang-800.0.42.1)                                             |
-| Visual Studio 14 2015                  | Visual Studio 2015 with Update 3            | MSVC 19.00.24215.1 | Microsoft (R) Build Engine version 14.0.25420.1                    |
-| Visual Studio 14 2017                  | Visual Studio 2017                          | MSVC 19.10.25019.0 | Microsoft (R) Build Engine version 15.1.1012.6693                  |
-| Visual Studio 14 2015 (__Clang/LLVM__) | Visual Studio 2015 with Update 3            | Clang 4.0.0        | Microsoft (R) Build Engine version 14.0.25420.1                    |
+```c++
+ret.match([] (Result r) { print(r.object); },
+          [] (Error e)  { print(e.message); });
+```
 
-#### NOTES
-  - __GCC 4.9__: `constexpr` support is not available for `visit` and relational operators.
-  - Enabling __libc++__ `std::variant` tests require `-std=c++1z` support.
+Instead of using the variant's convenience `.match` pattern matching function you can create a type visitor functor and use `apply_visitor` manually:
+
+```c++
+struct ResponseVisitor {
+  void operator()(Result r) const {
+    print(r.object);
+  }
+
+  void operator()(Error e) const {
+    print(e.message);
+  }
+};
+
+ResponseVisitor visitor;
+apply_visitor(visitor, ret);
+```
+
+In both cases the compiler makes sure you handle all types the variant can represent at compile.
+
+
+### Recursive Variants - JSON Example
+
+[JSON](http://www.json.org/) consists of types `String`, `Number`, `True`, `False`, `Null`, `Array` and `Object`.
+
+
+```c++
+struct String { string value; };
+struct Number { double value; };
+struct True   { };
+struct False  { };
+struct Null   { };
+struct Array  { vector<?> values; };
+struct Object { unordered_map<string, ?> values; };
+```
+
+This works for primitive types but how do we represent recursive types such as `Array` which can hold multiple elements and `Array` itself, too?
+
+For these use cases Variant provides a `recursive_wrapper` helper type which lets you express recursive Variants.
+
+```c++
+struct String { string value; };
+struct Number { double value; };
+struct True   { };
+struct False  { };
+struct Null   { };
+
+// Forward declarations only
+struct Array;
+struct Object;
+
+using Value = variant<String, Number, True, False, Null, recursive_wrapper<Array>, recursive_wrapper<Object>>;
+
+struct Array {
+  vector<Value> values;
+};
+
+struct Object {
+  unordered_map<string, Value> values;
+};
+```
+
+For walkig the JSON representation you can again either create a `JSONVisitor`:
+
+```c++
+struct JSONVisitor {
+
+  void operator()(Null) const {
+    print("null");
+  }
+
+  // same for all other JSON types
+};
+
+JSONVisitor visitor;
+apply_visitor(visitor, json);
+```
+
+Or use the convenience `.match` pattern matching function:
+
+```c++
+json.match([] (Null) { print("null"); },
+           ...);
+```
+
+To summarize: use `recursive_wrapper` to represent recursive "tree-like" representations:
+
+```c++
+struct Empty { };
+struct Node;
+
+using Tree = variant<Empty, recursive_wrapper<Node>>;
+
+struct Node {
+  uint64_t value;
+}
+```
+### Advanced Usage Tips
+
+Creating type aliases for variants is a great way to reduce repetition.
+Keep in mind those type aliases are not checked at type level, though.
+We recommend creating a new type for all but basic variant usage:
+
+```c++
+// the compiler can't tell the following two apart
+using APIResult = variant<Error, Result>;
+using FilesystemResult = variant<Error, Result>;
+
+// new type
+struct APIResult : variant<Error, Result> {
+  using Base = variant<Error, Result>;
+  using Base::Base;
+}
+```
+
+
+## Why use Mapbox Variant?
+
+Mapbox variant has the same speedy performance of `boost::variant` but is
+faster to compile, results in smaller binaries, and has no dependencies.
+
+For example on OS X 10.9 with clang++ and libc++:
+
+Test | Mapbox Variant | Boost Variant
+---- | -------------- | -------------
+Size of pre-compiled header (release / debug) | 2.8/2.8 MB         | 12/15 MB
+Size of simple program linking variant (release / debug)     | 8/24 K             | 12/40 K
+Time to compile header     | 185 ms             |  675 ms
+
+(Numbers from an older version of Mapbox variant.)
+
+
+## Goals
+
+Mapbox `variant` has been a very valuable, lightweight alternative for apps
+that can use c++11 or c++14 but that do not want a boost dependency.
+Mapbox `variant` has also been useful in apps that do depend on boost, like
+mapnik, to help (slightly) with compile times and to majorly lessen dependence
+on boost in core headers. The original goal and near term goal is to maintain
+external API compatibility with `boost::variant` such that Mapbox `variant`
+can be a "drop in". At the same time the goal is to stay minimal: Only
+implement the features that are actually needed in existing software. So being
+an "incomplete" implementation is just fine.
+
+Currently Mapbox variant doesn't try to be API compatible with the upcoming
+variant standard, because the standard is not finished and it would be too much
+work. But we'll revisit this decision in the future if needed.
+
+If Mapbox variant is not for you, have a look at [these other
+implementations](doc/other_implementations.md).
+
+Want to know more about the upcoming standard? Have a look at our
+[overview](doc/standards_effort.md).
+
+Most modern high-level languages provide ways to express sum types directly.
+If you're curious have a look at Haskell's pattern matching or Rust's and Swift's enums.
+
+
+## Depends
+
+ - Compiler supporting `-std=c++11` or `-std=c++14`
+
+Tested with:
+
+ - g++-4.7
+ - g++-4.8
+ - g++-4.9
+ - g++-5.2
+ - clang++-3.5
+ - clang++-3.6
+ - clang++-3.7
+ - clang++-3.8
+ - clang++-3.9
+ - Visual Studio 2015
+
 
 ## Unit Tests
 
-Refer to [test/README.md](test/README.md).
+On Unix systems compile and run the unit tests with `make test`.
 
-[libcxx-impl]: https://reviews.llvm.org/rL288547
+On Windows run `scripts/build-local.bat`.
+
+
+## Limitations
+
+* The `variant` can not hold references (something like `variant<int&>` is
+  not possible). You might want to try `std::reference_wrapper` instead.
+
+
+## Deprecations
+
+* The included implementation of `optional` is deprecated and will be removed
+  in a future version. See https://github.com/mapbox/variant/issues/64.
+* Old versions of the code needed visitors to derive from `static_visitor`.
+  This is not needed any more and marked as deprecated. The `static_visitor`
+  class will be removed in future versions.
+
+
+## Benchmarks
+
+    make bench
+
+
+## Check object sizes
+
+    make sizes /path/to/boost/variant.hpp
+

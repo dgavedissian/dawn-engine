@@ -7,6 +7,9 @@
 #include "renderer/api/GLRenderContext.h"
 
 namespace dw {
+Memory::Memory() : Memory{nullptr, 0} {
+}
+
 Memory::Memory(const void* data, uint size) : data_{nullptr}, size_{size} {
     if (data != nullptr) {
         data_ = new byte[size];
@@ -18,6 +21,22 @@ Memory::~Memory() {
     if (data_) {
         delete[] data_;
     }
+}
+
+Memory::Memory(const Memory& other) noexcept {
+    *this = other;
+}
+
+Memory& Memory::operator=(const Memory& other) noexcept {
+    if (other.data_ != nullptr) {
+        data_ = new byte[other.size_];
+        size_ = other.size_;
+        memcpy(data_, other.data_, other.size_);
+    } else {
+        data_ = nullptr;
+        size_ = 0;
+    }
+    return *this;
 }
 
 Memory::Memory(Memory&& other) noexcept {
@@ -232,37 +251,48 @@ void Renderer::deleteTexture(TextureHandle handle) {
 
 FrameBufferHandle Renderer::createFrameBuffer(u16 width, u16 height, TextureFormat format) {
     auto handle = frame_buffer_handle_.next();
-    submitPreFrameCommand(cmd::CreateFrameBuffer{
-        handle, width, height, {createTexture2D(width, height, format, nullptr, 0)}});
+    auto texture_handle = createTexture2D(width, height, format, nullptr, 0);
+    frame_buffer_textures_[handle] = {texture_handle};
+    submitPreFrameCommand(cmd::CreateFrameBuffer{handle, width, height, {texture_handle}});
     return handle;
 }
 
+TextureHandle Renderer::getFrameBufferTexture(FrameBufferHandle handle, uint index) {
+    auto& textures = frame_buffer_textures_.at(handle);
+    return textures[index];
+}
+
 void Renderer::deleteFrameBuffer(FrameBufferHandle handle) {
+    frame_buffer_textures_.erase(handle);
     submitPostFrameCommand(cmd::DeleteFrameBuffer{handle});
 }
 
-void Renderer::clear(const Vec3& colour) {
-    // addCommand(cmd::Clear{colour});
+void Renderer::setViewClear(uint view, const Colour& colour) {
+    submit_->view(view).clear_colour = colour;
 }
 
-void Renderer::submit(ProgramHandle program) {
+void Renderer::setViewFrameBuffer(uint view, FrameBufferHandle handle) {
+    submit_->view(view).frame_buffer = handle;
+}
+
+void Renderer::submit(uint view, ProgramHandle program) {
     submit_->current_item.program = program;
-    submit_->render_items.emplace_back(submit_->current_item);
+    submit_->view(view).render_items.emplace_back(submit_->current_item);
     submit_->current_item.clear();
 }
 
-void Renderer::submit(ProgramHandle program, uint vertex_count) {
+void Renderer::submit(uint view, ProgramHandle program, uint vertex_count) {
     submit_->current_item.program = program;
     submit_->current_item.primitive_count = vertex_count / 3;
-    submit_->render_items.emplace_back(submit_->current_item);
+    submit_->view(view).render_items.emplace_back(submit_->current_item);
     submit_->current_item.clear();
 }
 
-void Renderer::submitPreFrameCommand(RenderCommand command) {
+void Renderer::submitPreFrameCommand(RenderCommand&& command) {
     submit_->commands_pre.emplace_back(std::move(command));
 }
 
-void Renderer::submitPostFrameCommand(RenderCommand command) {
+void Renderer::submitPostFrameCommand(RenderCommand&& command) {
     submit_->commands_post.emplace_back(std::move(command));
 }
 
@@ -273,12 +303,16 @@ void Renderer::renderThread() {
 
     // Enter render loop.
     while (!should_exit_.load()) {
-        // Drain command buffers.
+        // Hand off commands to the render context.
         r_render_context_->processCommandList(render_->commands_pre);
-        r_render_context_->submit(render_->render_items);
+        r_render_context_->submit(render_->views);
         r_render_context_->processCommandList(render_->commands_post);
+
+        // Clear the frame state.
         render_->current_item.clear();
-        render_->render_items.clear();
+        for (auto& view : render_->views) {
+            view.render_items.clear();
+        }
         render_->commands_pre.clear();
         render_->commands_post.clear();
 

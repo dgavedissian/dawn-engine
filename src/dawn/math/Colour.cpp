@@ -6,7 +6,33 @@
 #include "math/Colour.h"
 
 namespace dw {
+Colour::Colour() : components_{0.0f, 0.0f, 0.0f, 1.0f} {
+}
 
-Colour::Colour(float r, float g, float b, float a) : mComponents(r, g, b, a) {
+Colour::Colour(float r, float g, float b, float a) : components_{r, g, b, a} {
+}
+
+float Colour::r() const {
+    return components_.x;
+}
+
+float Colour::g() const {
+    return components_.y;
+}
+
+float Colour::b() const {
+    return components_.z;
+}
+
+float Colour::a() const {
+    return components_.w;
+}
+
+Vec3 Colour::rgb() const {
+    return components_.xyz();
+}
+
+Vec4 Colour::rgba() const {
+    return components_;
 }
 }  // namespace dw
