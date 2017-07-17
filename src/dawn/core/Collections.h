@@ -23,7 +23,7 @@ namespace dw {
 
 // If using GCC or Clang, create a hash wrapper to work around std::hash<T> not working for enum
 // classes.
-#if (defined(DW_LIBSTDCPP) && (DW_LIBSTDCPP < 6100)) || (defined(DW_LIBCPP) && (DW_LIBCPP < 3400))
+#if (defined(DW_LIBSTDCPP) && (DW_LIBSTDCPP < 6100)) || (defined(DW_LIBCPP) && (DW_LIBCPP < 3500))
 template <typename T, typename Enable = void> struct HashFunction {
     typedef typename std::hash<T>::argument_type argument_type;
     typedef typename std::hash<T>::result_type result_type;

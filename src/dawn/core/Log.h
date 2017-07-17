@@ -38,7 +38,7 @@ public:
 
     Logger& operator=(const Logger& other) = delete;
 
-    void addLogMessageHandler(UniquePtr<LogMessageHandler>&& handler);
+    void addLogMessageHandler(UniquePtr<LogMessageHandler> handler);
 
     template <typename... Args> String formatMessage(const String& format, const Args&... args);
     template <typename... Args> void log(LogLevel level, const String& format, const Args&... args);
@@ -47,9 +47,12 @@ public:
     template <typename... Args> void warn(const String& format, const Args&... args);
     template <typename... Args> void error(const String& format, const Args&... args);
 
+    Logger& withObjectName(const String& name);
+
 private:
     void dispatchLogMessage(LogLevel level, const String& message);
     Vector<UniquePtr<LogMessageHandler>> handlers_;
+    String object_name_;
 };
 
 template <typename... Args>

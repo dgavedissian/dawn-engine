@@ -54,10 +54,6 @@ uint32_t StringHash::value() const {
     return value_;
 }
 
-String StringHash::toString() const {
-    return std::to_string(value_);
-}
-
 uint32_t StringHash::calculate(const char* str) {
     uint32_t hash = 0;
 

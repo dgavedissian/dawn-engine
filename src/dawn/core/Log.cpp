@@ -41,18 +41,23 @@ public:
     }
 };
 
-Logger::Logger(Context* context) : Object{context} {
+Logger::Logger(Context* context) : Object{context}, object_name_{"UNKNOWN"} {
     addLogMessageHandler(makeUnique<PlatformLogMessageHandler>());
 }
 
-void Logger::addLogMessageHandler(UniquePtr<LogMessageHandler>&& handler) {
+void Logger::addLogMessageHandler(UniquePtr<LogMessageHandler> handler) {
     handlers_.emplace_back(std::move(handler));
 }
 
 void Logger::dispatchLogMessage(LogLevel level, const String& message) {
     for (auto& handler : handlers_) {
-        handler->onMessage(level, message);
+        handler->onMessage(level, formatMessage("[%s] %s", object_name_, message));
     }
+}
+
+Logger& Logger::withObjectName(const String& name) {
+    object_name_ = name;
+    return *this;
 }
 
 /*

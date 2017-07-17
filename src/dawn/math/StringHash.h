@@ -23,7 +23,6 @@ public:
     operator bool() const;
 
     HashType value() const;
-    String toString() const;
 
     static HashType calculate(const char* str);
 

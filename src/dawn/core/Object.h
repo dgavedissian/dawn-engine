@@ -53,7 +53,7 @@ public:
     /// Returns the context that this object is associated with.
     Context* context() const;
 
-    /// A convenient wrapper for context().subsystem<Logger>().
+    /// A convenient wrapper for context().subsystem<Logger>().withSection(typeName())
     Logger& log() const;
 
     /// A convenient wrapper for context().subsystem<T>().

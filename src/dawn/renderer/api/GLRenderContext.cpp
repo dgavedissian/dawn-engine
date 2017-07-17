@@ -92,18 +92,12 @@ static_assert(static_cast<int>(TextureFormat::Count) ==
 }  // namespace
 
 GLRenderContext::GLRenderContext(Context* context) : RenderContext{context} {
-    log().info("[Renderer] OpenGL: %s - GLSL: %s", glGetString(GL_VERSION),
+    log().info("OpenGL: %s - GLSL: %s", glGetString(GL_VERSION),
                glGetString(GL_SHADING_LANGUAGE_VERSION));
-    log().info("[Renderer] OpenGL Renderer: %s", glGetString(GL_RENDERER));
+    log().info("OpenGL Renderer: %s", glGetString(GL_RENDERER));
 }
 
 GLRenderContext::~GLRenderContext() {
-}
-
-void GLRenderContext::processCommandList(Vector<RenderCommand>& command_list) {
-    for (auto& command : command_list) {
-        VariantApplyVisitor(*this, command);
-    }
 }
 
 void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
@@ -135,18 +129,19 @@ void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
         // Convert type.
         auto gl_type = attribute_type_map.find(type);
         if (gl_type == attribute_type_map.end()) {
-            log().warn("[renderer] Unknown attribute type: %i", (uint)type);
+            log().warn("[CreateVertexBuffer] Unknown attribute type: %i", (uint)type);
             continue;
         }
 
-        log().info("[renderer] Attrib %s: Count='%s' Type='%s' Stride='%s' Offset='%s'",
-                   attrib_counter, count, static_cast<int>(gl_type->first), c.decl.stride_,
-                   reinterpret_cast<intptr_t>(attrib.second));
+        log().debug("[CreateVertexBuffer] Attrib %s: Count='%s' Type='%s' Stride='%s' Offset='%s'",
+                    attrib_counter, count, static_cast<int>(gl_type->first), c.decl.stride_,
+                    reinterpret_cast<intptr_t>(attrib.second));
 
         // Set attribute.
         glEnableVertexAttribArray(attrib_counter);
         glVertexAttribPointer(attrib_counter, count, gl_type->second,
-                              normalised ? GL_TRUE : GL_FALSE, c.decl.stride_, attrib.second);
+                              static_cast<GLboolean>(normalised ? GL_TRUE : GL_FALSE),
+                              c.decl.stride_, attrib.second);
         attrib_counter++;
     }
     vertex_buffer_map_.emplace(c.handle, vao);
@@ -193,7 +188,7 @@ void GLRenderContext::operator()(const cmd::CreateShader& c) {
 
         char* errorMessage = new char[infoLogLength];
         glGetShaderInfoLog(shader, infoLogLength, NULL, errorMessage);
-        log().error("Shader Compile Error: %s", errorMessage);
+        log().error("[CreateShader] Shader Compile Error: %s", errorMessage);
         delete[] errorMessage;
 
         // TODO: Error
@@ -230,7 +225,7 @@ void GLRenderContext::operator()(const cmd::LinkProgram& c) {
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
         char* errorMessage = new char[infoLogLength];
         glGetProgramInfoLog(program, infoLogLength, NULL, errorMessage);
-        log().error("Shader Link Error: %s", errorMessage);
+        log().error("[LinkProgram] Shader Link Error: %s", errorMessage);
         delete[] errorMessage;
     }
 }
@@ -253,7 +248,7 @@ void GLRenderContext::operator()(const cmd::CreateTexture2D& c) {
     // Give image data to OpenGL.
     TextureFormatInfo format = s_texture_format[static_cast<int>(c.format)];
     log().debug(
-        "[renderer] [CreateTexture2D] format %s - internal fmt: 0x%.4X - internal fmt srgb: 0x%.4X "
+        "[CreateTexture2D] format %s - internal fmt: 0x%.4X - internal fmt srgb: 0x%.4X "
         "- fmt: 0x%.4X - type: 0x%.4X",
         static_cast<u32>(c.format), format.internal_format, format.internal_format_srgb,
         format.format, format.type);
@@ -300,7 +295,7 @@ void GLRenderContext::operator()(const cmd::CreateFrameBuffer& c) {
     // Check frame buffer status.
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        log().error("The framebuffer is not complete. Status: 0x%.4X", status);
+        log().error("[CreateFrameBuffer] The framebuffer is not complete. Status: 0x%.4X", status);
     }
 
     // Unbind.
@@ -314,14 +309,20 @@ void GLRenderContext::operator()(const cmd::DeleteFrameBuffer& c) {
     // TODO: unimplemented.
 }
 
-void GLRenderContext::submit(const Vector<View>& views) {
+void GLRenderContext::processCommandList(Vector<RenderCommand>& command_list) {
+    for (auto& command : command_list) {
+        VariantApplyVisitor(*this, command);
+    }
+}
+
+void GLRenderContext::frame(const Vector<View>& views) {
     for (auto& v : views) {
         if (v.render_items.empty()) {
             continue;
         }
 
         // Set up framebuffer.
-        if (v.frame_buffer > 0) {
+        if (v.frame_buffer.internal() > 0) {
             FrameBufferData& fb_data = frame_buffer_map_.at(v.frame_buffer);
             glBindFramebuffer(GL_FRAMEBUFFER, fb_data.frame_buffer);
             GL_CHECK();
@@ -415,7 +416,8 @@ void GLRenderContext::submit(const Vector<View>& views) {
                         program_data.uniform_location_map.emplace(uniform_pair.first,
                                                                   uniform_location);
                         if (uniform_location == -1) {
-                            log().warn("Unknown uniform '%s', skipping.", uniform_pair.first);
+                            log().warn("[Frame] Unknown uniform '%s', skipping.",
+                                       uniform_pair.first);
                         }
                     }
                     if (uniform_location == -1) {
@@ -430,7 +432,7 @@ void GLRenderContext::submit(const Vector<View>& views) {
                     if (!previous || previous->textures[j].handle != current->textures[j].handle) {
                         glActiveTexture(GL_TEXTURE0 + j);
                         GL_CHECK();
-                        glBindTexture(GL_TEXTURE_2D, current->textures[j].handle);
+                        glBindTexture(GL_TEXTURE_2D, texture_map_.at(current->textures[j].handle));
                         GL_CHECK();
                     }
                 }

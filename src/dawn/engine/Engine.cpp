@@ -59,7 +59,7 @@ void Engine::setup() {
     printSystemInfo();
 
     // Build window title.
-    String window_title(game_name_);
+    String window_title{game_name_};
     window_title += " ";
     window_title += game_version_;
 #ifdef DW_DEBUG

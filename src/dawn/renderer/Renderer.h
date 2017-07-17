@@ -11,17 +11,78 @@
 #include "renderer/Window.h"
 
 #define MAX_TEXTURE_SAMPLERS 8
-#define MAX_VIEWS 8
 
 namespace dw {
+// Type safe handles.
+template <typename Tag> class Handle {
+public:
+    using base_type = u16;
+
+    Handle() : internal_handle_{0} {
+    }
+
+    explicit Handle(base_type internal_handle) : internal_handle_{internal_handle} {
+    }
+
+    explicit operator base_type() const {
+        return internal();
+    }
+
+    Handle<Tag>& operator=(base_type other) {
+        internal_handle_ = other;
+        return *this;
+    }
+
+    bool operator==(const Handle<Tag>& other) const {
+        return internal_handle_ == other.internal_handle_;
+    }
+
+    bool operator==(base_type other) const {
+        return internal_handle_ == other;
+    }
+
+    bool operator!=(const Handle<Tag>& other) const {
+        return internal_handle_ != other.internal_handle_;
+    }
+
+    bool operator!=(base_type other) const {
+        return internal_handle_ != other;
+    }
+
+    Handle<Tag>& operator++() {
+        ++internal_handle_;
+        return *this;
+    }
+
+    Handle<Tag> operator++(int) {
+        Handle<Tag> tmp{*this};
+        ++internal_handle_;
+        return tmp;
+    }
+
+    base_type internal() const {
+        return internal_handle_;
+    }
+
+private:
+    base_type internal_handle_;
+};
 
 // Handles.
-using VertexBufferHandle = u16;
-using IndexBufferHandle = u16;
-using ShaderHandle = u16;
-using ProgramHandle = u16;
-using TextureHandle = u16;
-using FrameBufferHandle = u16;
+namespace detail {
+struct VertexBufferTag {};
+struct IndexBufferTag {};
+struct ShaderTag {};
+struct ProgramTag {};
+struct TextureTag {};
+struct FrameBufferTag {};
+}  // namespace detail
+using VertexBufferHandle = Handle<detail::VertexBufferTag>;
+using IndexBufferHandle = Handle<detail::IndexBufferTag>;
+using ShaderHandle = Handle<detail::ShaderTag>;
+using ProgramHandle = Handle<detail::ProgramTag>;
+using TextureHandle = Handle<detail::TextureTag>;
+using FrameBufferHandle = Handle<detail::FrameBufferTag>;
 
 // Handle generator.
 template <typename Handle> class HandleGenerator {
@@ -37,7 +98,17 @@ public:
 private:
     Handle next_;
 };
+}  // namespace dw
 
+namespace std {
+template <typename Tag> struct hash<dw::Handle<Tag>> {
+    std::size_t operator()(const dw::Handle<Tag>& k) const {
+        return std::hash<typename dw::Handle<Tag>::base_type>()(k);
+    }
+};
+}  // namespace std
+
+namespace dw {
 // Shader type.
 enum class ShaderType { Vertex, Geometry, Fragment };
 
@@ -63,26 +134,6 @@ private:
     byte* data_;
     uint size_;
 };
-
-/*
--        CreateVertexBuffer,
--        SetVertexBuffer,
--        DeleteVertexBuffer,
--        CreateIndexBuffer,
--        SetIndexBuffer,
--        DeleteIndexBuffer,
--        CreateShader,
--        DeleteShader,
--        CreateProgram,
--        AttachShader,
--        LinkProgram,
--        DeleteProgram,
--        CreateTexture2D,
--        SetTexture,
--        DeleteTexture,
--        Clear,
--        Submit
- */
 
 // Index buffer type.
 enum class IndexBufferType { U16, U32 };
@@ -309,7 +360,7 @@ public:
     RenderContext(Context* context);
     virtual ~RenderContext() = default;
     virtual void processCommandList(Vector<RenderCommand>& command_list) = 0;
-    virtual void submit(const Vector<View>& views) = 0;
+    virtual void frame(const Vector<View>& views) = 0;
 };
 
 // Low level renderer.

@@ -305,7 +305,7 @@ void Renderer::renderThread() {
     while (!should_exit_.load()) {
         // Hand off commands to the render context.
         r_render_context_->processCommandList(render_->commands_pre);
-        r_render_context_->submit(render_->views);
+        r_render_context_->frame(render_->views);
         r_render_context_->processCommandList(render_->commands_post);
 
         // Clear the frame state.
