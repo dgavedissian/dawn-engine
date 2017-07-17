@@ -11,6 +11,7 @@ set(SOURCE_FILES
     core/EventSystem.h
     core/Exception.h
     core/FixedMemoryPool.h
+	core/Handle.h
     core/Log.cpp
     core/Log.h
     core/Object.cpp

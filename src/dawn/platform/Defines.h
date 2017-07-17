@@ -36,7 +36,7 @@
 #define DW_CLANG __VERSION(__clang_major__, __clang_minor__, __clang_patchlevel__)
 #if __has_include(<__config>)
 #define DW_LIBCPP _LIBCPP_VERSION
-#elif __has_include(<bits/c++config.h>)
+#elif __has_include(<bits / c++ config.h>)
 #define DW_LIBSTDCPP __VERSION(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 #endif
 #elif defined(__GNUC__)

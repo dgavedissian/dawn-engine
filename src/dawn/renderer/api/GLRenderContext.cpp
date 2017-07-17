@@ -89,6 +89,58 @@ TextureFormatInfo s_texture_format[] =
 static_assert(static_cast<int>(TextureFormat::Count) ==
                   sizeof(s_texture_format) / sizeof(s_texture_format[0]),
               "Texture format mapping mismatch.");
+
+// Uniform binder.
+class UniformBinder : public Object {
+public:
+    DW_OBJECT(UniformBinder);
+
+    UniformBinder(Context* context) : Object{context}, uniform_location_{0} {
+    }
+
+    void operator()(const int& value) {
+        glUniform1i(uniform_location_, value);
+        GL_CHECK();
+    }
+
+    void operator()(const float& value) {
+        glUniform1f(uniform_location_, value);
+        GL_CHECK();
+    }
+
+    void operator()(const Vec2& value) {
+        glUniform2f(uniform_location_, value.x, value.y);
+        GL_CHECK();
+    }
+
+    void operator()(const Vec3& value) {
+        glUniform3f(uniform_location_, value.x, value.y, value.z);
+        GL_CHECK();
+    }
+
+    void operator()(const Vec4& value) {
+        glUniform4f(uniform_location_, value.x, value.y, value.z, value.w);
+        GL_CHECK();
+    }
+
+    void operator()(const Mat3& value) {
+        glUniformMatrix3fv(uniform_location_, 1, GL_TRUE, value.ptr());
+        GL_CHECK();
+    }
+
+    void operator()(const Mat4& value) {
+        glUniformMatrix4fv(uniform_location_, 1, GL_TRUE, value.ptr());
+        GL_CHECK();
+    }
+
+    void updateUniform(GLint location, const RenderItem::UniformData& data) {
+        uniform_location_ = location;
+        VariantApplyVisitor(*this, data);
+    }
+
+private:
+    GLint uniform_location_;
+};
 }  // namespace
 
 GLRenderContext::GLRenderContext(Context* context) : RenderContext{context} {
@@ -322,6 +374,7 @@ void GLRenderContext::frame(const Vector<View>& views) {
         }
 
         // Set up framebuffer.
+        assert(v.frame_buffer != FrameBufferHandle::invalid);
         if (v.frame_buffer.internal() > 0) {
             FrameBufferData& fb_data = frame_buffer_map_.at(v.frame_buffer);
             glBindFramebuffer(GL_FRAMEBUFFER, fb_data.frame_buffer);
@@ -343,7 +396,7 @@ void GLRenderContext::frame(const Vector<View>& views) {
 
             // Bind VAO.
             if (!previous || previous->vb != current->vb) {
-                if (current->vb != 0) {
+                if (current->vb != VertexBufferHandle::invalid) {
                     glBindVertexArray(vertex_buffer_map_.at(current->vb));
                 } else {
                     glBindVertexArray(0);
@@ -353,7 +406,7 @@ void GLRenderContext::frame(const Vector<View>& views) {
 
             // Bind EBO.
             if (!previous || previous->ib != current->ib) {
-                if (current->ib != 0) {
+                if (current->ib != IndexBufferHandle::invalid) {
                     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                                  index_buffer_map_.at(current->ib).element_buffer);
                     GL_CHECK();
@@ -365,46 +418,14 @@ void GLRenderContext::frame(const Vector<View>& views) {
 
             // Bind Program.
             if (!previous || previous->program != current->program) {
-                assert(current->program != 0);
+                assert(current->program != ProgramHandle::invalid);
                 ProgramData& program_data = program_map_.at(current->program);
                 glUseProgram(program_data.program);
                 GL_CHECK();
 
-                // Bind Uniforms.
+                // Bind uniforms.
+                UniformBinder binder{context_};
                 for (auto& uniform_pair : current->uniforms) {
-                    struct UniformBinder {
-                        GLint uniform_location;
-                        UniformBinder(GLint location) : uniform_location{location} {
-                        }
-
-                        void operator()(const int& value) {
-                            glUniform1i(uniform_location, value);
-                        }
-
-                        void operator()(const float& value) {
-                            glUniform1f(uniform_location, value);
-                        }
-
-                        void operator()(const Vec2& value) {
-                            glUniform2f(uniform_location, value.x, value.y);
-                        }
-
-                        void operator()(const Vec3& value) {
-                            glUniform3f(uniform_location, value.x, value.y, value.z);
-                        }
-
-                        void operator()(const Vec4& value) {
-                            glUniform4f(uniform_location, value.x, value.y, value.z, value.w);
-                        }
-
-                        void operator()(const Mat3& value) {
-                            glUniformMatrix3fv(uniform_location, 1, GL_TRUE, value.ptr());
-                        }
-
-                        void operator()(const Mat4& value) {
-                            glUniformMatrix4fv(uniform_location, 1, GL_TRUE, value.ptr());
-                        }
-                    };
                     auto location = program_data.uniform_location_map.find(uniform_pair.first);
                     GLint uniform_location;
                     if (location != program_data.uniform_location_map.end()) {
@@ -423,24 +444,23 @@ void GLRenderContext::frame(const Vector<View>& views) {
                     if (uniform_location == -1) {
                         continue;
                     }
-                    VariantApplyVisitor(UniformBinder{uniform_location}, uniform_pair.second);
-                    GL_CHECK();
+                    binder.updateUniform(uniform_location, uniform_pair.second);
                 }
 
                 // Bind textures.
-                for (uint j = 0; j < MAX_TEXTURE_SAMPLERS; j++) {
-                    if (!previous || previous->textures[j].handle != current->textures[j].handle) {
-                        glActiveTexture(GL_TEXTURE0 + j);
-                        GL_CHECK();
-                        glBindTexture(GL_TEXTURE_2D, texture_map_.at(current->textures[j].handle));
-                        GL_CHECK();
+                for (uint j = 0; j < current->textures.size(); ++j) {
+                    if (current->textures[j].handle == TextureHandle::invalid) {
+                        break;
                     }
+                    glActiveTexture(GL_TEXTURE0 + j);
+                    glBindTexture(GL_TEXTURE_2D, texture_map_.at(current->textures[j].handle));
+                    GL_CHECK();
                 }
             }
 
             // Submit.
             if (current->primitive_count > 0) {
-                if (current->ib != 0) {
+                if (current->ib != IndexBufferHandle::invalid) {
                     glDrawElements(GL_TRIANGLES, current->primitive_count * 3,
                                    index_buffer_map_[current->ib].type, 0);
                     GL_CHECK();

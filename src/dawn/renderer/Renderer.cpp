@@ -63,13 +63,13 @@ RenderContext::RenderContext(Context* context) : Object{context} {
 }
 
 void RenderItem::clear() {
-    vb = 0;
-    ib = 0;
+    vb = VertexBufferHandle::invalid;
+    ib = IndexBufferHandle::invalid;
     primitive_count = 0;
-    program = 0;
+    program = ProgramHandle::invalid;
     uniforms.clear();
     for (auto& texture : textures) {
-        texture.handle = 0;
+        texture.handle = TextureHandle::invalid;
     }
 }
 
