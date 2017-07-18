@@ -53,7 +53,7 @@ private:
 #define TEST_CLASS_NAME(test_name) test_name##Test
 #define TEST_CLASS(test_name) class TEST_CLASS_NAME(test_name) : public Object
 #define TEST_BODY(test_name)                                                    \
-                                                                                \
+    \
 public:                                                                         \
     DW_OBJECT(TEST_CLASS_NAME(test_name));                                      \
     TEST_CLASS_NAME(test_name)                                                  \
@@ -382,7 +382,7 @@ TEST_CLASS(PostProcessing) {
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
         r->setViewFrameBuffer(0, fb_handle_);
         r->setViewClear(1, {0.0f, 0.2f, 0.0f, 1.0f});
-        r->setViewFrameBuffer(1, 0);
+        r->setViewFrameBuffer(1, FrameBufferHandle{0});
 
         // Set vertex buffer and submit.
         r->setVertexBuffer(cube_vb_);
@@ -402,4 +402,4 @@ TEST_CLASS(PostProcessing) {
     }
 };
 
-TEST_IMPLEMENT_MAIN(PostProcessing);
+TEST_IMPLEMENT_MAIN(Textured3DCube);

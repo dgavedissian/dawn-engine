@@ -89,21 +89,67 @@ TextureFormatInfo s_texture_format[] =
 static_assert(static_cast<int>(TextureFormat::Count) ==
                   sizeof(s_texture_format) / sizeof(s_texture_format[0]),
               "Texture format mapping mismatch.");
+
+// Uniform binder.
+class UniformBinder : public Object {
+public:
+    DW_OBJECT(UniformBinder);
+
+    UniformBinder(Context* context) : Object{context}, uniform_location_{0} {
+    }
+
+    void operator()(const int& value) {
+        glUniform1i(uniform_location_, value);
+        GL_CHECK();
+    }
+
+    void operator()(const float& value) {
+        glUniform1f(uniform_location_, value);
+        GL_CHECK();
+    }
+
+    void operator()(const Vec2& value) {
+        glUniform2f(uniform_location_, value.x, value.y);
+        GL_CHECK();
+    }
+
+    void operator()(const Vec3& value) {
+        glUniform3f(uniform_location_, value.x, value.y, value.z);
+        GL_CHECK();
+    }
+
+    void operator()(const Vec4& value) {
+        glUniform4f(uniform_location_, value.x, value.y, value.z, value.w);
+        GL_CHECK();
+    }
+
+    void operator()(const Mat3& value) {
+        glUniformMatrix3fv(uniform_location_, 1, GL_TRUE, value.ptr());
+        GL_CHECK();
+    }
+
+    void operator()(const Mat4& value) {
+        glUniformMatrix4fv(uniform_location_, 1, GL_TRUE, value.ptr());
+        GL_CHECK();
+    }
+
+    void updateUniform(GLint location, const RenderItem::UniformData& data) {
+        uniform_location_ = location;
+        VariantApplyVisitor(*this, data);
+    }
+
+private:
+    GLint uniform_location_;
+};
 }  // namespace
 
 GLRenderContext::GLRenderContext(Context* context) : RenderContext{context} {
-    log().info("[Renderer] OpenGL: %s - GLSL: %s", glGetString(GL_VERSION),
+    log().info("OpenGL: %s - GLSL: %s", glGetString(GL_VERSION),
                glGetString(GL_SHADING_LANGUAGE_VERSION));
-    log().info("[Renderer] OpenGL Renderer: %s", glGetString(GL_RENDERER));
+    log().info("OpenGL Renderer: %s", glGetString(GL_RENDERER));
 }
 
 GLRenderContext::~GLRenderContext() {
-}
-
-void GLRenderContext::processCommandList(Vector<RenderCommand>& command_list) {
-    for (auto& command : command_list) {
-        VariantApplyVisitor(*this, command);
-    }
 }
 
 void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
@@ -135,18 +181,19 @@ void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
         // Convert type.
         auto gl_type = attribute_type_map.find(type);
         if (gl_type == attribute_type_map.end()) {
-            log().warn("[renderer] Unknown attribute type: %i", (uint)type);
+            log().warn("[CreateVertexBuffer] Unknown attribute type: %i", (uint)type);
             continue;
         }
 
-        log().info("[renderer] Attrib %s: Count='%s' Type='%s' Stride='%s' Offset='%s'",
-                   attrib_counter, count, static_cast<int>(gl_type->first), c.decl.stride_,
-                   reinterpret_cast<intptr_t>(attrib.second));
+        log().debug("[CreateVertexBuffer] Attrib %s: Count='%s' Type='%s' Stride='%s' Offset='%s'",
+                    attrib_counter, count, static_cast<int>(gl_type->first), c.decl.stride_,
+                    reinterpret_cast<intptr_t>(attrib.second));
 
         // Set attribute.
         glEnableVertexAttribArray(attrib_counter);
         glVertexAttribPointer(attrib_counter, count, gl_type->second,
-                              normalised ? GL_TRUE : GL_FALSE, c.decl.stride_, attrib.second);
+                              static_cast<GLboolean>(normalised ? GL_TRUE : GL_FALSE),
+                              c.decl.stride_, attrib.second);
         attrib_counter++;
     }
     vertex_buffer_map_.emplace(c.handle, vao);
@@ -193,7 +240,7 @@ void GLRenderContext::operator()(const cmd::CreateShader& c) {
 
         char* errorMessage = new char[infoLogLength];
         glGetShaderInfoLog(shader, infoLogLength, NULL, errorMessage);
-        log().error("Shader Compile Error: %s", errorMessage);
+        log().error("[CreateShader] Shader Compile Error: %s", errorMessage);
         delete[] errorMessage;
 
         // TODO: Error
@@ -230,7 +277,7 @@ void GLRenderContext::operator()(const cmd::LinkProgram& c) {
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
         char* errorMessage = new char[infoLogLength];
         glGetProgramInfoLog(program, infoLogLength, NULL, errorMessage);
-        log().error("Shader Link Error: %s", errorMessage);
+        log().error("[LinkProgram] Shader Link Error: %s", errorMessage);
         delete[] errorMessage;
     }
 }
@@ -253,7 +300,7 @@ void GLRenderContext::operator()(const cmd::CreateTexture2D& c) {
     // Give image data to OpenGL.
     TextureFormatInfo format = s_texture_format[static_cast<int>(c.format)];
     log().debug(
-        "[renderer] [CreateTexture2D] format %s - internal fmt: 0x%.4X - internal fmt srgb: 0x%.4X "
+        "[CreateTexture2D] format %s - internal fmt: 0x%.4X - internal fmt srgb: 0x%.4X "
         "- fmt: 0x%.4X - type: 0x%.4X",
         static_cast<u32>(c.format), format.internal_format, format.internal_format_srgb,
         format.format, format.type);
@@ -300,7 +347,7 @@ void GLRenderContext::operator()(const cmd::CreateFrameBuffer& c) {
     // Check frame buffer status.
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        log().error("The framebuffer is not complete. Status: 0x%.4X", status);
+        log().error("[CreateFrameBuffer] The framebuffer is not complete. Status: 0x%.4X", status);
     }
 
     // Unbind.
@@ -314,14 +361,21 @@ void GLRenderContext::operator()(const cmd::DeleteFrameBuffer& c) {
     // TODO: unimplemented.
 }
 
-void GLRenderContext::submit(const Vector<View>& views) {
+void GLRenderContext::processCommandList(Vector<RenderCommand>& command_list) {
+    for (auto& command : command_list) {
+        VariantApplyVisitor(*this, command);
+    }
+}
+
+void GLRenderContext::frame(const Vector<View>& views) {
     for (auto& v : views) {
         if (v.render_items.empty()) {
             continue;
         }
 
         // Set up framebuffer.
-        if (v.frame_buffer > 0) {
+        assert(v.frame_buffer != FrameBufferHandle::invalid);
+        if (v.frame_buffer.internal() > 0) {
             FrameBufferData& fb_data = frame_buffer_map_.at(v.frame_buffer);
             glBindFramebuffer(GL_FRAMEBUFFER, fb_data.frame_buffer);
             GL_CHECK();
@@ -342,7 +396,7 @@ void GLRenderContext::submit(const Vector<View>& views) {
 
             // Bind VAO.
             if (!previous || previous->vb != current->vb) {
-                if (current->vb != 0) {
+                if (current->vb != VertexBufferHandle::invalid) {
                     glBindVertexArray(vertex_buffer_map_.at(current->vb));
                 } else {
                     glBindVertexArray(0);
@@ -352,7 +406,7 @@ void GLRenderContext::submit(const Vector<View>& views) {
 
             // Bind EBO.
             if (!previous || previous->ib != current->ib) {
-                if (current->ib != 0) {
+                if (current->ib != IndexBufferHandle::invalid) {
                     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                                  index_buffer_map_.at(current->ib).element_buffer);
                     GL_CHECK();
@@ -364,46 +418,14 @@ void GLRenderContext::submit(const Vector<View>& views) {
 
             // Bind Program.
             if (!previous || previous->program != current->program) {
-                assert(current->program != 0);
+                assert(current->program != ProgramHandle::invalid);
                 ProgramData& program_data = program_map_.at(current->program);
                 glUseProgram(program_data.program);
                 GL_CHECK();
 
-                // Bind Uniforms.
+                // Bind uniforms.
+                UniformBinder binder{context_};
                 for (auto& uniform_pair : current->uniforms) {
-                    struct UniformBinder {
-                        GLint uniform_location;
-                        UniformBinder(GLint location) : uniform_location{location} {
-                        }
-
-                        void operator()(const int& value) {
-                            glUniform1i(uniform_location, value);
-                        }
-
-                        void operator()(const float& value) {
-                            glUniform1f(uniform_location, value);
-                        }
-
-                        void operator()(const Vec2& value) {
-                            glUniform2f(uniform_location, value.x, value.y);
-                        }
-
-                        void operator()(const Vec3& value) {
-                            glUniform3f(uniform_location, value.x, value.y, value.z);
-                        }
-
-                        void operator()(const Vec4& value) {
-                            glUniform4f(uniform_location, value.x, value.y, value.z, value.w);
-                        }
-
-                        void operator()(const Mat3& value) {
-                            glUniformMatrix3fv(uniform_location, 1, GL_TRUE, value.ptr());
-                        }
-
-                        void operator()(const Mat4& value) {
-                            glUniformMatrix4fv(uniform_location, 1, GL_TRUE, value.ptr());
-                        }
-                    };
                     auto location = program_data.uniform_location_map.find(uniform_pair.first);
                     GLint uniform_location;
                     if (location != program_data.uniform_location_map.end()) {
@@ -415,30 +437,30 @@ void GLRenderContext::submit(const Vector<View>& views) {
                         program_data.uniform_location_map.emplace(uniform_pair.first,
                                                                   uniform_location);
                         if (uniform_location == -1) {
-                            log().warn("Unknown uniform '%s', skipping.", uniform_pair.first);
+                            log().warn("[Frame] Unknown uniform '%s', skipping.",
+                                       uniform_pair.first);
                         }
                     }
                     if (uniform_location == -1) {
                         continue;
                     }
-                    VariantApplyVisitor(UniformBinder{uniform_location}, uniform_pair.second);
-                    GL_CHECK();
+                    binder.updateUniform(uniform_location, uniform_pair.second);
                 }
 
                 // Bind textures.
-                for (uint j = 0; j < MAX_TEXTURE_SAMPLERS; j++) {
-                    if (!previous || previous->textures[j].handle != current->textures[j].handle) {
-                        glActiveTexture(GL_TEXTURE0 + j);
-                        GL_CHECK();
-                        glBindTexture(GL_TEXTURE_2D, current->textures[j].handle);
-                        GL_CHECK();
+                for (uint j = 0; j < current->textures.size(); ++j) {
+                    if (current->textures[j].handle == TextureHandle::invalid) {
+                        break;
                     }
+                    glActiveTexture(GL_TEXTURE0 + j);
+                    glBindTexture(GL_TEXTURE_2D, texture_map_.at(current->textures[j].handle));
+                    GL_CHECK();
                 }
             }
 
             // Submit.
             if (current->primitive_count > 0) {
-                if (current->ib != 0) {
+                if (current->ib != IndexBufferHandle::invalid) {
                     glDrawElements(GL_TRIANGLES, current->primitive_count * 3,
                                    index_buffer_map_[current->ib].type, 0);
                     GL_CHECK();

@@ -14,9 +14,6 @@ public:
     GLRenderContext(Context* context);
     virtual ~GLRenderContext();
 
-    void processCommandList(Vector<RenderCommand>& command_list) override;
-    void submit(const Vector<View>& views) override;
-
     void operator()(const cmd::CreateVertexBuffer& c);
     void operator()(const cmd::DeleteVertexBuffer& c);
     void operator()(const cmd::CreateIndexBuffer& c);
@@ -31,6 +28,9 @@ public:
     void operator()(const cmd::DeleteTexture& c);
     void operator()(const cmd::CreateFrameBuffer& c);
     void operator()(const cmd::DeleteFrameBuffer& c);
+
+    void processCommandList(Vector<RenderCommand>& command_list) override;
+    void frame(const Vector<View>& views) override;
 
     template <typename T> void operator()(const T& c) {
         static_assert(!std::is_same<T, T>::value, "Unimplemented RenderCommand");

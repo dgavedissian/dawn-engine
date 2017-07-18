@@ -29,6 +29,8 @@
 #endif
 
 // Determine compiler.
+// Note that clang-format breaks the libstdc++ detection when using clang.
+// clang-format off
 #define __VERSION(major, minor, patch) (major * 1000 + minor * 100 + patch * 10)
 #if defined(_MSC_VER)
 #define DW_MSVC
@@ -38,13 +40,16 @@
 #define DW_LIBCPP _LIBCPP_VERSION
 #elif __has_include(<bits/c++config.h>)
 #define DW_LIBSTDCPP __VERSION(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
+#else
+#error This standard library is not recognised. Clang is only supported with libc++ or libstdc++.
 #endif
 #elif defined(__GNUC__)
 #define DW_GCC __VERSION(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 #define DW_LIBSTDCPP DW_GCC
 #else
-#error This compiler is not recognised!
+#error This compiler is not recognised. Aborting.
 #endif
+// clang-format on
 
 // Define platform/build dependent visibility macro helpers.
 #if defined(DW_DLL)

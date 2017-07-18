@@ -87,42 +87,4 @@ String replace(String subject, const String& search, const String& replace) {
     return subject;
 }
 }  // namespace str
-
-std::default_random_engine engine;
-
-int randomInt(int min /*= 0*/, int max /*= INT_MAX*/) {
-    return std::uniform_int_distribution<int>(min, max)(engine);
-}
-
-uint randomUnsigned(uint min /*= 0*/, uint max /*= UINT_MAX*/) {
-    return std::uniform_int_distribution<uint>(min, max)(engine);
-}
-
-float randomFloat(float min /*= 0.0f*/, float max /*= 1.0f*/) {
-    return std::uniform_real_distribution<float>(min, max)(engine);
-}
-
-double randomDouble(double min /*= 0.0f*/, double max /*= 1.0f*/) {
-    return std::uniform_real_distribution<double>(min, max)(engine);
-}
-
-Vec2 randomVec2(const Vec2& min /*= Vec2(-1.0f)*/, const Vec2& max /*= Vec2(1.0f)*/) {
-    return Vec2(std::uniform_real_distribution<float>(min.x, max.x)(engine),
-                std::uniform_real_distribution<float>(min.y, max.y)(engine));
-}
-
-Vec3 randomVec3(const Vec3& min /*= Vec3(-1.0f)*/, const Vec3& max /*= Vec3(1.0f)*/) {
-    return Vec3(std::uniform_real_distribution<float>(min.x, max.x)(engine),
-                std::uniform_real_distribution<float>(min.y, max.y)(engine),
-                std::uniform_real_distribution<float>(min.z, max.z)(engine));
-}
-
-Vec4 randomVec4(const Vec4& min /*= Vec4(-1.0f)*/, const Vec4& max /*= Vec4(1.0f)*/) {
-    return Vec4(std::uniform_real_distribution<float>(min.x, max.x)(engine),
-                std::uniform_real_distribution<float>(min.y, max.y)(engine),
-                std::uniform_real_distribution<float>(min.z, max.z)(engine),
-                std::uniform_real_distribution<float>(min.w, max.w)(engine));
-}
-
-namespace time {}
 }  // namespace dw

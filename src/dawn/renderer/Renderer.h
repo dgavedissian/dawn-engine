@@ -5,38 +5,30 @@
 #pragma once
 
 #include "core/Concurrency.h"
+#include "core/Handle.h"
 #include "math/Colour.h"
 #include "renderer/RenderTask.h"
 #include "renderer/VertexDecl.h"
 #include "renderer/Window.h"
 
 #define MAX_TEXTURE_SAMPLERS 8
-#define MAX_VIEWS 8
 
 namespace dw {
-
 // Handles.
-using VertexBufferHandle = u16;
-using IndexBufferHandle = u16;
-using ShaderHandle = u16;
-using ProgramHandle = u16;
-using TextureHandle = u16;
-using FrameBufferHandle = u16;
-
-// Handle generator.
-template <typename Handle> class HandleGenerator {
-public:
-    HandleGenerator() : next_{1} {
-    }
-    ~HandleGenerator() = default;
-
-    Handle next() {
-        return next_++;
-    }
-
-private:
-    Handle next_;
-};
+namespace detail {
+struct VertexBufferTag {};
+struct IndexBufferTag {};
+struct ShaderTag {};
+struct ProgramTag {};
+struct TextureTag {};
+struct FrameBufferTag {};
+}  // namespace detail
+using VertexBufferHandle = Handle<detail::VertexBufferTag, -1>;
+using IndexBufferHandle = Handle<detail::IndexBufferTag, -1>;
+using ShaderHandle = Handle<detail::ShaderTag, -1>;
+using ProgramHandle = Handle<detail::ProgramTag, -1>;
+using TextureHandle = Handle<detail::TextureTag, -1>;
+using FrameBufferHandle = Handle<detail::FrameBufferTag, -1>;
 
 // Shader type.
 enum class ShaderType { Vertex, Geometry, Fragment };
@@ -63,26 +55,6 @@ private:
     byte* data_;
     uint size_;
 };
-
-/*
--        CreateVertexBuffer,
--        SetVertexBuffer,
--        DeleteVertexBuffer,
--        CreateIndexBuffer,
--        SetIndexBuffer,
--        DeleteIndexBuffer,
--        CreateShader,
--        DeleteShader,
--        CreateProgram,
--        AttachShader,
--        LinkProgram,
--        DeleteProgram,
--        CreateTexture2D,
--        SetTexture,
--        DeleteTexture,
--        Clear,
--        Submit
- */
 
 // Index buffer type.
 enum class IndexBufferType { U16, U32 };
@@ -277,6 +249,8 @@ struct RenderItem {
 
 // View.
 struct View {
+    View() : clear_colour{0.0f, 0.0f, 0.0f, 1.0f}, frame_buffer{0} {
+    }
     Colour clear_colour;
     FrameBufferHandle frame_buffer;
     Vector<RenderItem> render_items;
@@ -309,7 +283,7 @@ public:
     RenderContext(Context* context);
     virtual ~RenderContext() = default;
     virtual void processCommandList(Vector<RenderCommand>& command_list) = 0;
-    virtual void submit(const Vector<View>& views) = 0;
+    virtual void frame(const Vector<View>& views) = 0;
 };
 
 // Low level renderer.

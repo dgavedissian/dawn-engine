@@ -63,13 +63,13 @@ RenderContext::RenderContext(Context* context) : Object{context} {
 }
 
 void RenderItem::clear() {
-    vb = 0;
-    ib = 0;
+    vb = VertexBufferHandle::invalid;
+    ib = IndexBufferHandle::invalid;
     primitive_count = 0;
-    program = 0;
+    program = ProgramHandle::invalid;
     uniforms.clear();
     for (auto& texture : textures) {
-        texture.handle = 0;
+        texture.handle = TextureHandle::invalid;
     }
 }
 
@@ -305,7 +305,7 @@ void Renderer::renderThread() {
     while (!should_exit_.load()) {
         // Hand off commands to the render context.
         r_render_context_->processCommandList(render_->commands_pre);
-        r_render_context_->submit(render_->views);
+        r_render_context_->frame(render_->views);
         r_render_context_->processCommandList(render_->commands_post);
 
         // Clear the frame state.
