@@ -350,7 +350,7 @@ TEST_CLASS(PostProcessing) {
         util::createFullscreenQuad(r, fsq_vb_);
 
         // Set up frame buffer.
-        fb_handle_ = r->createFrameBuffer(1280.0f, 800.0f, TextureFormat::RGB8);
+        fb_handle_ = r->createFrameBuffer(1280, 800, TextureFormat::RGB8);
 
         // Load post process shader.
         File pp_vs_file{context(), "shaders/post_process.vs"};
@@ -409,9 +409,10 @@ TEST_CLASS(DeferredShading) {
     uint cube_vertex_count_;
     ProgramHandle cube_program_;
 
-    VertexBufferHandle fsq_vb_;
     ProgramHandle post_process_;
-    FrameBufferHandle fb_handle_;
+
+    VertexBufferHandle fsq_vb_;
+    FrameBufferHandle gbuffer_;
 
     void start() {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
@@ -436,7 +437,7 @@ TEST_CLASS(DeferredShading) {
         util::createFullscreenQuad(r, fsq_vb_);
 
         // Set up frame buffer.
-        fb_handle_ = r->createFrameBuffer(1280.0f, 800.0f, TextureFormat::RGB8);
+        gbuffer_ = r->createFrameBuffer(1280, 800, TextureFormat::RGB8);
 
         // Load post process shader.
         File pp_vs_file{context(), "shaders/post_process.vs"};
@@ -466,7 +467,7 @@ TEST_CLASS(DeferredShading) {
 
         // Set up views.
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
-        r->setViewFrameBuffer(0, fb_handle_);
+        r->setViewFrameBuffer(0, gbuffer_);
         r->setViewClear(1, {0.0f, 0.2f, 0.0f, 1.0f});
         r->setViewFrameBuffer(1, FrameBufferHandle{0});
 
@@ -475,7 +476,7 @@ TEST_CLASS(DeferredShading) {
         r->submit(0, cube_program_, cube_vertex_count_);
 
         // Draw fb.
-        r->setTexture(r->getFrameBufferTexture(fb_handle_, 0), 0);
+        r->setTexture(r->getFrameBufferTexture(gbuffer_, 0), 0);
         r->setVertexBuffer(fsq_vb_);
         r->submit(1, post_process_, 3);
     }
