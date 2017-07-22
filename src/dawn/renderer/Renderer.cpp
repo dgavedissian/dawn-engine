@@ -236,6 +236,7 @@ void Renderer::setUniform(const String& uniform_name, const Mat4& value) {
 TextureHandle Renderer::createTexture2D(u16 width, u16 height, TextureFormat format,
                                         const void* data, u32 size) {
     auto handle = texture_handle_.next();
+    texture_data_[handle] = {width, height, format};
     submitPreFrameCommand(cmd::CreateTexture2D{handle, width, height, format, Memory{data, size}});
     return handle;
 }
@@ -246,6 +247,7 @@ void Renderer::setTexture(TextureHandle handle, uint sampler_unit) {
 }
 
 void Renderer::deleteTexture(TextureHandle handle) {
+    texture_data_.erase(handle);
     submitPostFrameCommand(cmd::DeleteTexture{handle});
 }
 
@@ -254,6 +256,22 @@ FrameBufferHandle Renderer::createFrameBuffer(u16 width, u16 height, TextureForm
     auto texture_handle = createTexture2D(width, height, format, nullptr, 0);
     frame_buffer_textures_[handle] = {texture_handle};
     submitPreFrameCommand(cmd::CreateFrameBuffer{handle, width, height, {texture_handle}});
+    return handle;
+}
+
+FrameBufferHandle Renderer::createFrameBuffer(Vector<TextureHandle> textures) {
+    auto handle = frame_buffer_handle_.next();
+    u16 width = texture_data_.at(textures[0]).width, height = texture_data_.at(textures[0]).width;
+    for (int i = 1; i < textures.size(); ++i) {
+        auto& data = texture_data_.at(textures[i]);
+        if (data.width != width || data.height != height) {
+            // TODO: error.
+            log().error("Frame buffer mismatch at index %d: Expected: %d x %d, Actual: %d x %d", i,
+                        width, height, data.width, data.height);
+        }
+    }
+    frame_buffer_textures_[handle] = textures;
+    submitPreFrameCommand(cmd::CreateFrameBuffer{handle, width, height, textures});
     return handle;
 }
 

@@ -328,10 +328,12 @@ public:
     TextureHandle createTexture2D(u16 width, u16 height, TextureFormat format, const void* data,
                                   u32 size);
     void setTexture(TextureHandle handle, uint sampler_unit);
+    // get texture information.
     void deleteTexture(TextureHandle handle);
 
     // Framebuffer.
     FrameBufferHandle createFrameBuffer(u16 width, u16 height, TextureFormat format);
+    FrameBufferHandle createFrameBuffer(Vector<TextureHandle> textures);
     TextureHandle getFrameBufferTexture(FrameBufferHandle handle, uint index);
     void deleteFrameBuffer(FrameBufferHandle handle);
 
@@ -366,6 +368,14 @@ private:
     HandleGenerator<ProgramHandle> program_handle_;
     HandleGenerator<TextureHandle> texture_handle_;
     HandleGenerator<FrameBufferHandle> frame_buffer_handle_;
+
+    // Textures.
+    struct TextureData {
+        u16 width;
+        u16 height;
+        TextureFormat format;
+    };
+    HashMap<TextureHandle, TextureData> texture_data_;
 
     // Framebuffers.
     HashMap<FrameBufferHandle, Vector<TextureHandle>> frame_buffer_textures_;

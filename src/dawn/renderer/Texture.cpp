@@ -21,7 +21,8 @@ namespace dw {
 namespace {
 int imageCallbackRead(void* user, char* data, int size) {
     InputStream& stream = *reinterpret_cast<InputStream*>(user);
-    // If we want to read past the end of the buffer, clamp the size to prevent an error occurring.
+    // If we want to read past the end of the buffer, clamp the size to prevent an error occurring,
+    // as the stream API will read either the entire block or nothing at all.
     if ((stream.position() + size) > stream.size()) {
         size = static_cast<int>(stream.size() - stream.position());
     }
