@@ -9,9 +9,10 @@
 namespace dw {
 
 Audio::Audio() : mSoundEngine(nullptr), mCurrentTrack(nullptr), mLastCameraPosition() {
-    mSoundEngine = irrklang::createIrrKlangDevice(
-        irrklang::ESOD_AUTO_DETECT, irrklang::ESEO_MULTI_THREADED | irrklang::ESEO_LOAD_PLUGINS |
-                                        irrklang::ESEO_USE_3D_BUFFERS);
+    mSoundEngine =
+        irrklang::createIrrKlangDevice(irrklang::ESOD_AUTO_DETECT,
+                                       irrklang::ESEO_MULTI_THREADED | irrklang::ESEO_LOAD_PLUGINS |
+                                           irrklang::ESEO_USE_3D_BUFFERS);
 }
 
 Audio::~Audio() {

@@ -12,6 +12,7 @@
 #endif
 
 #include <GL/gl3w.h>
+#include <GLFW/glfw3.h>
 
 // Re-enable warnings
 #if defined(DW_MSVC)

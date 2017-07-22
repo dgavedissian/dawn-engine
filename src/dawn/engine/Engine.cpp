@@ -66,9 +66,6 @@ void Engine::setup() {
     window_title += " (debug)";
 #endif
 
-    // Create the window.
-    window_ = makeUnique<Window>(context_, 1280, 800, window_title);
-
     // Low-level subsystems
     context_->addSubsystem<EventSystem>();
 
@@ -86,7 +83,8 @@ void Engine::setup() {
 
     // Create the engine subsystems.
     context_->addSubsystem<Input>();
-    context_->addSubsystem<Renderer>(window_.get());
+    auto* renderer = context_->addSubsystem<Renderer>();
+    renderer->init(1280, 800, window_title);
     // mUI = new UI(mRenderer, mInput, mLuaState);
     // mAudio = new Audio;
     // mPhysicsWorld = new PhysicsWorld(mRenderer);
@@ -141,9 +139,6 @@ void Engine::shutdown() {
     context_->removeSubsystem<StateManager>();
     context_->clearSubsystems();
 
-    // Destroy window.
-    window_.reset();
-
     // The engine is no longer initialised.
     initialised_ = false;
 }
@@ -157,14 +152,6 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
     time::TimePoint previous_time = time::beginTiming();
     double accumulator = 0.0;
     while (running_) {
-        // mUI->beginFrame();
-
-        // Message pump.
-        window_->pollEvents();
-        if (window_->shouldClose()) {
-            running_ = false;
-        }
-
         // Update game logic.
         while (accumulator >= dt) {
             update(dt);

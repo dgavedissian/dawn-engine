@@ -73,78 +73,33 @@ void RenderItem::clear() {
     }
 }
 
-Renderer::Renderer(Context* context, Window* window)
+Renderer::Renderer(Context* context)
     : Object{context},
-      window_{window->window_},
-      frame_barrier_{2},
+      shared_rt_should_exit_{false},
+      shared_rt_finished_{false},
+      shared_frame_barrier_{2},
       submit_{&frames_[0]},
       render_{&frames_[1]} {
-    // Attach GL context to main thread.
-    glfwMakeContextCurrent(window_);
-
-    // Initialise GL extensions.
-    if (gl3wInit() != 0) {
-        throw Exception{"gl3wInit failed."};
-    }
-
-    // Detach GL context from main thread.
-    glfwMakeContextCurrent(nullptr);
-
-    // Spawn render thread.
-    should_exit_.store(false);
     render_thread_ = Thread{[this]() { renderThread(); }};
 }
 
 Renderer::~Renderer() {
-    // Flag to the render thread that it should exit.
-    should_exit_.store(true);
+    if (!shared_rt_finished_) {
+        // Flag to the render thread that it should exit.
+        shared_rt_should_exit_ = true;
 
-    // Wait for the render thread to complete its last frame.
-    frame_barrier_.wait();
+        // Wait for the render thread to complete its last frame.
+        shared_frame_barrier_.wait();
 
-    // Wait for the render thread to exit completely.
-    render_thread_.join();
-}
-
-void Renderer::pushRenderTask(RenderTask&& task) {
-    // render_tasks_.emplace_back(task);
-}
-
-void Renderer::frame() {
-    /*
-    bgfx::setViewRect(0, 0, 0, width_, height_);
-    for (auto task : render_tasks_) {
-        // Set camera state.
-        if (task.type == RenderTaskType::SetCameraMatrices) {
-            auto& task_data = task.camera;
-            task_data.view_matrix.Transpose();
-            task_data.proj_matrix.Transpose();
-            bgfx::setViewTransform(0, &task_data.view_matrix.v[0][0],
-                                   &task_data.proj_matrix.v[0][0]);
-        }
-        // Render.
-        if (task.type == RenderTaskType::Primitive) {
-            auto& task_data = task.primitive;
-            task_data.model_matrix.Transpose();
-            bgfx::setTransform(&task_data.model_matrix.v[0][0]);
-            bgfx::setVertexBuffer(task_data.vb);
-            bgfx::setIndexBuffer(task_data.ib);
-            bgfx::submit(0, task_data.shader);
-        }
+        // Wait for the render thread to exit completely.
+        render_thread_.join();
     }
-    render_tasks_.clear();
-    bgfx::frame();
-     */
+}
 
-    // Wait for render thread.
-    frame_barrier_.wait();
-
-    // Wait for frame swap, then reset swapped_frames_. This has no race here, because the render
-    // thread will not modify "swapped_frames_" again until after this thread hits the barrier
-    // again.
-    UniqueLock<Mutex> lock{swap_mutex_};
-    swap_cv_.wait(lock, [this] { return swapped_frames_; });
-    swapped_frames_ = false;
+void Renderer::init(u16 width, u16 height, const String& title) {
+    width_ = width;
+    height_ = height;
+    window_title_ = title;
 }
 
 VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size,
@@ -306,6 +261,54 @@ void Renderer::submit(uint view, ProgramHandle program, uint vertex_count) {
     submit_->current_item.clear();
 }
 
+void Renderer::pushRenderTask(RenderTask&& task) {
+    // render_tasks_.emplace_back(task);
+}
+
+void Renderer::frame() {
+    /*
+    bgfx::setViewRect(0, 0, 0, width_, height_);
+    for (auto task : render_tasks_) {
+        // Set camera state.
+        if (task.type == RenderTaskType::SetCameraMatrices) {
+            auto& task_data = task.camera;
+            task_data.view_matrix.Transpose();
+            task_data.proj_matrix.Transpose();
+            bgfx::setViewTransform(0, &task_data.view_matrix.v[0][0],
+                                   &task_data.proj_matrix.v[0][0]);
+        }
+        // Render.
+        if (task.type == RenderTaskType::Primitive) {
+            auto& task_data = task.primitive;
+            task_data.model_matrix.Transpose();
+            bgfx::setTransform(&task_data.model_matrix.v[0][0]);
+            bgfx::setVertexBuffer(task_data.vb);
+            bgfx::setIndexBuffer(task_data.ib);
+            bgfx::submit(0, task_data.shader);
+        }
+    }
+    render_tasks_.clear();
+    bgfx::frame();
+     */
+
+    // If the rendering thread is doing nothing, print a warning and give up.
+    if (shared_rt_finished_) {
+        log().warn("Rendering thread has finished running. Sending shutdown signal.");
+        subsystem<EventSystem>()->triggerEvent(makeShared<EvtData_Exit>());
+        return;
+    }
+
+    // Wait for render thread.
+    shared_frame_barrier_.wait();
+
+    // Wait for frame swap, then reset swapped_frames_. This has no race here, because the render
+    // thread will not modify "swapped_frames_" again until after this thread hits the barrier
+    // again.
+    UniqueLock<Mutex> lock{swap_mutex_};
+    swap_cv_.wait(lock, [this] { return swapped_frames_; });
+    swapped_frames_ = false;
+}
+
 void Renderer::submitPreFrameCommand(RenderCommand&& command) {
     submit_->commands_pre.emplace_back(std::move(command));
 }
@@ -315,15 +318,15 @@ void Renderer::submitPostFrameCommand(RenderCommand&& command) {
 }
 
 void Renderer::renderThread() {
-    glfwMakeContextCurrent(window_);
-
-    r_render_context_ = makeUnique<GLRenderContext>(context());
+    r_render_context_ = makeUnique<GLRenderContext>(context(), width_, height_, window_title_);
 
     // Enter render loop.
-    while (!should_exit_.load()) {
+    while (!shared_rt_should_exit_) {
         // Hand off commands to the render context.
         r_render_context_->processCommandList(render_->commands_pre);
-        r_render_context_->frame(render_->views);
+        if (!r_render_context_->frame(render_->views)) {
+            shared_rt_should_exit_ = true;
+        }
         r_render_context_->processCommandList(render_->commands_post);
 
         // Clear the frame state.
@@ -334,17 +337,19 @@ void Renderer::renderThread() {
         render_->commands_pre.clear();
         render_->commands_post.clear();
 
-        // Swap buffers.
-        glfwSwapBuffers(window_);
-
         // Wait for submit thread.
-        frame_barrier_.wait();
+        shared_frame_barrier_.wait();
 
         // Swap command buffers and unblock submit thread.
         {
             std::lock_guard<std::mutex> lock{swap_mutex_};
             std::swap(submit_, render_);
             swapped_frames_ = true;
+
+            // If the render loop has been marked for termination, update the "RT finished" marker.
+            if (shared_rt_should_exit_) {
+                shared_rt_finished_ = true;
+            }
         }
         swap_cv_.notify_all();
     }

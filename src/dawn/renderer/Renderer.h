@@ -9,7 +9,6 @@
 #include "math/Colour.h"
 #include "renderer/RenderTask.h"
 #include "renderer/VertexDecl.h"
-#include "renderer/Window.h"
 
 #define MAX_TEXTURE_SAMPLERS 8
 
@@ -283,7 +282,7 @@ public:
     RenderContext(Context* context);
     virtual ~RenderContext() = default;
     virtual void processCommandList(Vector<RenderCommand>& command_list) = 0;
-    virtual void frame(const Vector<View>& views) = 0;
+    virtual bool frame(const Vector<View>& views) = 0;
 };
 
 // Low level renderer.
@@ -292,8 +291,11 @@ class DW_API Renderer : public Object {
 public:
     DW_OBJECT(Renderer)
 
-    Renderer(Context* context, Window* window);
+    Renderer(Context* context);
     ~Renderer();
+
+    /// Initialise.
+    void init(u16 width, u16 height, const String& title);
 
     /// Create vertex buffer.
     VertexBufferHandle createVertexBuffer(const void* data, uint size, const VertexDecl& decl);
@@ -356,9 +358,9 @@ public:
 
 private:
     u16 width_, height_;
-    Vector<RenderTask> render_tasks_;  // deprecated.
+    String window_title_;
+    DEPRECATED Vector<RenderTask> render_tasks_;
 
-    GLFWwindow* window_;
     Thread render_thread_;
 
     // Main thread.
@@ -381,9 +383,9 @@ private:
     HashMap<FrameBufferHandle, Vector<TextureHandle>> frame_buffer_textures_;
 
     // Shared.
-    Atomic<bool> should_exit_;
-
-    Barrier frame_barrier_;
+    Atomic<bool> shared_rt_should_exit_;
+    bool shared_rt_finished_;
+    Barrier shared_frame_barrier_;
     Mutex swap_mutex_;
     ConditionVariable swap_cv_;
     bool swapped_frames_;

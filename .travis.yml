@@ -90,6 +90,8 @@ matrix:
           - ubuntu-toolchain-r-test
           - llvm-toolchain-trusty-4.0
         packages:
+          - gcc-5
+          - g++-5
           - clang-4.0
           - xorg-dev
           - libgl1-mesa-dev

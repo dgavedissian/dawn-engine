@@ -143,13 +143,43 @@ private:
 };
 }  // namespace
 
-GLRenderContext::GLRenderContext(Context* context) : RenderContext{context} {
+GLRenderContext::GLRenderContext(Context* context, u16 width, u16 height, const String& title)
+    : RenderContext{context} {
+    log().info("Starting OpenGL rendering context.");
+
+    // Initialise GLFW.
+    if (!glfwInit()) {
+        // TODO: report error correctly.
+        throw Exception{"Failed to initialise GLFW."};
+    }
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
+    // Create the window.
+    window_ = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+    glfwMakeContextCurrent(window_);
+
+    // Initialise GL extensions.
+    if (gl3wInit() != 0) {
+        throw Exception{"gl3wInit failed."};
+    }
+
+    // Print GL information.
     log().info("OpenGL: %s - GLSL: %s", glGetString(GL_VERSION),
                glGetString(GL_SHADING_LANGUAGE_VERSION));
     log().info("OpenGL Renderer: %s", glGetString(GL_RENDERER));
 }
 
 GLRenderContext::~GLRenderContext() {
+    // TODO: detect resource leaks.
+    if (window_) {
+        glfwDestroyWindow(window_);
+        window_ = nullptr;
+        glfwTerminate();
+    }
 }
 
 void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
@@ -367,7 +397,14 @@ void GLRenderContext::processCommandList(Vector<RenderCommand>& command_list) {
     }
 }
 
-void GLRenderContext::frame(const Vector<View>& views) {
+bool GLRenderContext::frame(const Vector<View>& views) {
+    // Pump window messages.
+    glfwPollEvents();
+    if (glfwWindowShouldClose(window_) != 0) {
+        return false;
+    }
+
+    // Process views.
     for (auto& v : views) {
         if (v.render_items.empty()) {
             continue;
@@ -471,6 +508,12 @@ void GLRenderContext::frame(const Vector<View>& views) {
             }
         }
     }
+
+    // Swap buffers.
+    glfwSwapBuffers(window_);
+
+    // Continue rendering.
+    return true;
 }
 
 }  // namespace dw

@@ -5,13 +5,14 @@
 #pragma once
 
 #include "renderer/Renderer.h"
+#include "renderer/api/GL.h"
 
 namespace dw {
 class DW_API GLRenderContext : public RenderContext {
 public:
     DW_OBJECT(GLRenderContext);
 
-    GLRenderContext(Context* context);
+    GLRenderContext(Context* context, u16 width, u16 height, const String& title);
     virtual ~GLRenderContext();
 
     void operator()(const cmd::CreateVertexBuffer& c);
@@ -30,13 +31,15 @@ public:
     void operator()(const cmd::DeleteFrameBuffer& c);
 
     void processCommandList(Vector<RenderCommand>& command_list) override;
-    void frame(const Vector<View>& views) override;
+    bool frame(const Vector<View>& views) override;
 
     template <typename T> void operator()(const T& c) {
         static_assert(!std::is_same<T, T>::value, "Unimplemented RenderCommand");
     }
 
 private:
+    GLFWwindow* window_;
+
     // Vertex and index buffers.
     struct IndexBufferData {
         GLuint element_buffer;

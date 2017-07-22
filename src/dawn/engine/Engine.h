@@ -4,8 +4,6 @@
  */
 #pragma once
 
-#include "renderer/Window.h"
-
 namespace dw {
 
 class App;
@@ -43,9 +41,6 @@ private:
     String game_version_;
 
     double frame_time_;
-
-    // Window.
-    UniquePtr<Window> window_;
 
     // Configuration.
     String log_file_;
