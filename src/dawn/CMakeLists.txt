@@ -92,6 +92,7 @@ set(SOURCE_FILES
     renderer/RenderTask.h
     renderer/Shader.cpp
     renderer/Shader.h
+	renderer/StbImage.h
     renderer/Texture.cpp
     renderer/Texture.h
     renderer/TriangleBuffer.cpp

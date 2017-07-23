@@ -5,6 +5,7 @@
 #pragma once
 
 #include "renderer/Renderer.h"
+#include "renderer/RenderTask.h"
 #include "ecs/System.h"
 
 namespace dw {

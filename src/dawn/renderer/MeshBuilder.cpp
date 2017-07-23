@@ -6,7 +6,6 @@
 #include "renderer/CustomMesh.h"
 #include "renderer/TriangleBuffer.h"
 #include "renderer/MeshBuilder.h"
-#include <Math/MathConstants.h>
 
 namespace dw {
 MeshBuilder::MeshBuilder(Context* context)
@@ -35,7 +34,7 @@ SharedPtr<CustomMesh> MeshBuilder::createSphere(float radius, uint num_rings, ui
 
     float delta_ring_angle = (math::pi / num_rings);
     float delta_seg_angle = (math::pi * 2.0f / num_segments);
-    int offset = 0;
+    uint offset = 0;
 
     // Generate the group of rings for the sphere.
     for (uint ring = 0; ring <= num_rings; ring++) {
@@ -48,13 +47,13 @@ SharedPtr<CustomMesh> MeshBuilder::createSphere(float radius, uint num_rings, ui
             float z0 = r0 * cosf(seg * delta_seg_angle);
 
             // Add one vertex to the strip which makes up the sphere.
-            buffer.position(Vec3(x0, y0, z0));
+            buffer.position({x0, y0, z0});
             if (with_normals_) {
-                buffer.normal(Vec3(x0, y0, z0));
+                buffer.normal({x0, y0, z0});
             }
             if (with_texcoords_) {
-                buffer.texcoord(Vec2(static_cast<float>(seg) / static_cast<float>(num_segments),
-                                     static_cast<float>(ring) / static_cast<float>(num_rings)));
+                buffer.texcoord({static_cast<float>(seg) / static_cast<float>(num_segments),
+                                 static_cast<float>(ring) / static_cast<float>(num_rings)});
             }
 
             if (ring != num_rings) {
@@ -74,7 +73,6 @@ SharedPtr<CustomMesh> MeshBuilder::createSphere(float radius, uint num_rings, ui
     }
 
     // Generate the mesh.
-    auto builtMesh = buffer.end();
-    return makeShared<CustomMesh>(context_, builtMesh.first, builtMesh.second);
+    return buffer.end();
 }
 }  // namespace dw

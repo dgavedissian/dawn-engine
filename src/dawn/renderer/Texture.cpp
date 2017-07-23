@@ -3,17 +3,8 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
+#include "renderer/StbImage.h"
 #include "renderer/Texture.h"
-
-#if defined(DW_MSVC)
-#pragma warning(push)
-#pragma warning(disable : 4100 4244)
-#endif
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#if defined(DW_MSVC)
-#pragma warning(pop)
-#endif
 
 namespace dw {
 

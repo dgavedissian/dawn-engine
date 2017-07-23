@@ -424,6 +424,7 @@ bool GLRenderContext::frame(const Vector<View>& views) {
         glClearColor(v.clear_colour.r(), v.clear_colour.g(), v.clear_colour.b(),
                      v.clear_colour.a());
         glEnable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Render items.

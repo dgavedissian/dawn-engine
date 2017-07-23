@@ -11,12 +11,15 @@ class DW_API VertexBuffer : public Object {
 public:
     DW_OBJECT(VertexBuffer);
 
-    VertexBuffer(Context* context);
+    VertexBuffer(Context* context, const void* data, uint size, uint vertex_count,
+                 const VertexDecl& decl);
     ~VertexBuffer();
 
     VertexBufferHandle internalHandle() const;
+    u32 vertexCount() const;
 
 private:
     VertexBufferHandle handle_;
+    u32 vertex_count_;
 };
 }  // namespace dw

@@ -261,10 +261,6 @@ void Renderer::submit(uint view, ProgramHandle program, uint vertex_count) {
     submit_->current_item.clear();
 }
 
-void Renderer::pushRenderTask(RenderTask&& task) {
-    // render_tasks_.emplace_back(task);
-}
-
 void Renderer::frame() {
     /*
     bgfx::setViewRect(0, 0, 0, width_, height_);

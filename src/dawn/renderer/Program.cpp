@@ -32,10 +32,10 @@ void Program::endLoad() {
 void Program::setTextureUnit(SharedPtr<Texture> /*texture*/, uint /*unit*/) {
 }
 
-// bgfx::ProgramHandle GLProgram::internalHandle() const {
-//    return handle_;
-//}
-//
+ProgramHandle Program::internalHandle() const {
+    return handle_;
+}
+
 // Option<bgfx::UniformHandle> GLProgram::uniformHandle(const String& name,
 //                                                    bgfx::UniformType::Enum type, int count) {
 //    auto it = uniform_handle_table_.find(name);

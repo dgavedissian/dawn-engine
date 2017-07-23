@@ -7,7 +7,6 @@
 #include "core/Concurrency.h"
 #include "core/Handle.h"
 #include "math/Colour.h"
-#include "renderer/RenderTask.h"
 #include "renderer/VertexDecl.h"
 
 #define MAX_TEXTURE_SAMPLERS 8
@@ -350,16 +349,12 @@ public:
     /// https://github.com/bkaradzic/bgfx/blob/master/src/bgfx.cpp#L854
     void submit(uint view, ProgramHandle program, uint vertex_count);
 
-    /// Push render task.
-    void pushRenderTask(RenderTask&& task);
-
     /// Render a single frame.
     void frame();
 
 private:
     u16 width_, height_;
     String window_title_;
-    DEPRECATED Vector<RenderTask> render_tasks_;
 
     Thread render_thread_;
 

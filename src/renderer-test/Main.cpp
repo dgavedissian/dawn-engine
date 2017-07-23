@@ -3,6 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
+#include "renderer/MeshBuilder.h"
 #include "core/Timer.h"
 
 using namespace dw;
@@ -405,8 +406,7 @@ TEST_CLASS(PostProcessing) {
 TEST_CLASS(DeferredShading) {
     TEST_BODY(DeferredShading);
 
-    VertexBufferHandle cube_vb_;
-    uint cube_vertex_count_;
+    SharedPtr<CustomMesh> sphere_;
     ProgramHandle cube_program_;
 
     ProgramHandle post_process_;
@@ -418,9 +418,9 @@ TEST_CLASS(DeferredShading) {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        File vs_file{context(), "shaders/cube_solid.vs"};
+        File vs_file{context(), "shaders/cube_textured.vs"};
         String vs_source = dw::stream::read<String>(vs_file);
-        File fs_file{context(), "shaders/cube_solid.fs"};
+        File fs_file{context(), "shaders/cube_textured.fs"};
         String fs_source = dw::stream::read<String>(fs_file);
 
         auto vs = r->createShader(ShaderType::Vertex, vs_source);
@@ -431,7 +431,7 @@ TEST_CLASS(DeferredShading) {
         r->linkProgram(cube_program_);
 
         // Create box.
-        cube_vertex_count_ = util::createBox(r, 10.0f, cube_vb_);
+        sphere_ = MeshBuilder{context_}.withNormals(true).withTexcoords(true).createSphere(10.0f);
 
         // Create full screen quad.
         util::createFullscreenQuad(r, fsq_vb_);
@@ -466,14 +466,16 @@ TEST_CLASS(DeferredShading) {
         r->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
         // Set up views.
-        r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+        r->setViewClear(0, {0.0f, 0.0f, 1.0f, 1.0f});
         r->setViewFrameBuffer(0, gbuffer_);
         r->setViewClear(1, {0.0f, 0.2f, 0.0f, 1.0f});
         r->setViewFrameBuffer(1, FrameBufferHandle{0});
 
         // Set vertex buffer and submit.
-        r->setVertexBuffer(cube_vb_);
-        r->submit(0, cube_program_, cube_vertex_count_);
+        auto task = sphere_->draw(Mat4::identity);
+        r->setVertexBuffer(task.primitive.vb);
+        r->setIndexBuffer(task.primitive.ib);
+        r->submit(0, cube_program_, task.primitive.count);
 
         // Draw fb.
         r->setTexture(r->getFrameBufferTexture(gbuffer_, 0), 0);
@@ -485,7 +487,6 @@ TEST_CLASS(DeferredShading) {
         r->deleteProgram(post_process_);
         r->deleteVertexBuffer(fsq_vb_);
         r->deleteProgram(cube_program_);
-        r->deleteVertexBuffer(cube_vb_);
     }
 };
 
