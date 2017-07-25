@@ -9,7 +9,9 @@
 
 namespace dw {
 TriangleBuffer::TriangleBuffer(Context* context)
-    : Object{context}, contains_normals_{false}, contains_texcoords_{false} {
+    : Object{context},
+      contains_normals_{false},
+      contains_texcoords_{false} {
 }
 
 TriangleBuffer::~TriangleBuffer() {
@@ -33,19 +35,39 @@ void TriangleBuffer::begin() {
 SharedPtr<CustomMesh> TriangleBuffer::end() {
     // Set up vertex data.
     const void* data;
-    uint size = static_cast<uint>(vertices_.size()) * sizeof(float);
+    uint size;
     VertexDecl decl;
     if (contains_normals_ && contains_texcoords_) {
         data = vertices_.data();
+        for (int i = 0; i < 36; i++) {
+            float* _data = (float*)data + i * 8;
+            log().debug(">>>> %s %s %s %s %s %s %s %s", _data[0], _data[1], _data[2], _data[3],
+                        _data[4], _data[5], _data[6], _data[7]);
+        }
+        size = static_cast<uint>(vertices_.size()) * sizeof(Vertex);
+        log().debug(">>>> %s %s", vertices_.size(), sizeof(Vertex));
         decl.begin()
             .add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float)
             .add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float)
             .add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float)
             .end();
     } else {
+        // Build VertexDecl.
+        decl.begin();
+        decl.add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float);
+        if (contains_normals_) {
+            decl.add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float);
+        }
+        if (contains_texcoords_) {
+            decl.add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float);
+        }
+        decl.end();
+
         // Build packed buffer based on parameters.
-        uint stride = 3 + (contains_normals_ ? 3 : 0) + (contains_texcoords_ ? 2 : 0);
-        float* packed_data = new float[vertices_.size() * stride];
+        size = vertices_.size() * decl.stride();
+        uint stride =
+            decl.stride() / sizeof(float);  // convert stride in bytes to stride in floats.
+        float* packed_data = new float[vertices_.size() * decl.stride()];
         for (int i = 0; i < vertices_.size(); i++) {
             uint offset = 0;
             Vertex& source_vertex = vertices_[i];
@@ -65,17 +87,6 @@ SharedPtr<CustomMesh> TriangleBuffer::end() {
             }
             assert(offset == stride);
         }
-
-        // Build VertexDecl.
-        decl.begin();
-        decl.add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float);
-        if (contains_normals_) {
-            decl.add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float);
-        }
-        if (contains_texcoords_) {
-            decl.add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float);
-        }
-        decl.end();
     }
 
     // Create custom mesh.
@@ -86,18 +97,17 @@ SharedPtr<CustomMesh> TriangleBuffer::end() {
 }
 
 void TriangleBuffer::position(const Vec3& p) {
-    vertices_.emplace_back(current_vertex_);
-    current_vertex_ = Vertex{};
-    current_vertex_.position = p;
+    vertices_.emplace_back();
+    vertices_.back().position = p;
 }
 
 void TriangleBuffer::normal(const Vec3& n) {
-    current_vertex_.normal = n;
+    vertices_.back().normal = n;
     contains_normals_ = true;
 }
 
 void TriangleBuffer::texcoord(const Vec2& tc) {
-    current_vertex_.tex_coord = tc;
+    vertices_.back().tex_coord = tc;
     contains_texcoords_ = true;
 }
 

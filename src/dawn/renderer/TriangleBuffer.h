@@ -35,14 +35,15 @@ public:
 
 private:
     struct Vertex {
+        Vertex() : position{0.0f, 0.0f, 0.0f}, normal{0.0f, 0.0f, 0.0f}, tex_coord{0.0f, 0.0f} {
+        }
         Vec3 position;
         Vec3 normal;
         Vec2 tex_coord;
     };
-    Vertex current_vertex_;
-    Vector<Vertex> vertices_;
     bool contains_normals_;
     bool contains_texcoords_;
+    Vector<Vertex> vertices_;
     Vector<u32> indices_;
 };
 }  // namespace dw

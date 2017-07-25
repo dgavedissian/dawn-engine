@@ -17,6 +17,7 @@ public:
     MeshBuilder& withNormals(bool normals);
     MeshBuilder& withTexcoords(bool texcoords);
 
+    SharedPtr<CustomMesh> createBox(float halfSize);
     SharedPtr<CustomMesh> createSphere(float radius, uint rings = 25, uint segments = 25);
 
 private:

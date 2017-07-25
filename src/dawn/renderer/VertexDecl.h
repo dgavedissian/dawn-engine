@@ -20,6 +20,8 @@ public:
     VertexDecl& add(Attribute attribute, uint count, AttributeType type, bool normalised = false);
     VertexDecl& end();
 
+    u16 stride() const;
+
 private:
     static u16 encodeAttributes(Attribute attribute, uint count, AttributeType type,
                                 bool normalised);

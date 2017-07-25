@@ -74,64 +74,6 @@ Mat4 createProjMatrix(float n, float f, float fov_y, float aspect) {
     return Mat4::OpenGLPerspProjRH(n, f, h, v);
 }
 
-uint createBox(Renderer* r, float halfSize, VertexBufferHandle& vb) {
-    // clang-format off
-    float vertices[] = {
-        // Position						| UVs		  | Normals
-        -halfSize, -halfSize, -halfSize, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
-        halfSize,  -halfSize, -halfSize, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f,
-        halfSize,  halfSize,  -halfSize, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
-        halfSize,  halfSize,  -halfSize, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
-        -halfSize, halfSize,  -halfSize, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f,
-        -halfSize, -halfSize, -halfSize, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
-
-        -halfSize, -halfSize, halfSize,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-        halfSize,  -halfSize, halfSize,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
-        halfSize,  halfSize,  halfSize,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-        halfSize,  halfSize,  halfSize,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-        -halfSize, halfSize,  halfSize,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
-        -halfSize, -halfSize, halfSize,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-
-        -halfSize, halfSize,  halfSize,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,
-        -halfSize, halfSize,  -halfSize, -1.0f, 0.0f,  0.0f,  1.0f, 0.0f,
-        -halfSize, -halfSize, -halfSize, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
-        -halfSize, -halfSize, -halfSize, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
-        -halfSize, -halfSize, halfSize,  -1.0f, 0.0f,  0.0f,  0.0f, 1.0f,
-        -halfSize, halfSize,  halfSize,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,
-
-        halfSize,  halfSize,  halfSize,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-        halfSize,  halfSize,  -halfSize, 1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-        halfSize,  -halfSize, -halfSize, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-        halfSize,  -halfSize, -halfSize, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-        halfSize,  -halfSize, halfSize,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        halfSize,  halfSize,  halfSize,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-
-        -halfSize, -halfSize, -halfSize, 0.0f,  -1.0f, 0.0f,  0.0f, 0.0f,
-        halfSize,  -halfSize, -halfSize, 0.0f,  -1.0f, 0.0f,  1.0f, 0.0f,
-        halfSize,  -halfSize, halfSize,  0.0f,  -1.0f, 0.0f,  1.0f, 1.0f,
-        halfSize,  -halfSize, halfSize,  0.0f,  -1.0f, 0.0f,  1.0f, 1.0f,
-        -halfSize, -halfSize, halfSize,  0.0f,  -1.0f, 0.0f,  0.0f, 1.0f,
-        -halfSize, -halfSize, -halfSize, 0.0f,  -1.0f, 0.0f,  0.0f, 0.0f,
-
-        -halfSize, halfSize,  -halfSize, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-        halfSize,  halfSize,  -halfSize, 0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-        halfSize,  halfSize,  halfSize,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-        halfSize,  halfSize,  halfSize,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-        -halfSize, halfSize,  halfSize,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-        -halfSize, halfSize,  -halfSize, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f};
-    // clang-format on
-
-    VertexDecl decl;
-    decl.begin()
-        .add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float)
-        .add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float)
-        .add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float)
-        .end();
-
-    vb = r->createVertexBuffer(vertices, sizeof(vertices), decl);
-    return 36;
-}
-
 uint createFullscreenQuad(Renderer* r, VertexBufferHandle& vb) {
     // clang-format off
     float vertices[] = {
@@ -258,8 +200,7 @@ TEST_CLASS(BasicIndexBuffer) {
 TEST_CLASS(Textured3DCube) {
     TEST_BODY(Textured3DCube);
 
-    VertexBufferHandle vb_;
-    uint vertex_count_;
+    SharedPtr<CustomMesh> box_;
     ProgramHandle program_;
 
     // Uses the higher level wrapper which provides loading from files.
@@ -290,7 +231,7 @@ TEST_CLASS(Textured3DCube) {
         texture_resource_->endLoad();
 
         // Create box.
-        vertex_count_ = util::createBox(r, 10.0f, vb_);
+        box_ = MeshBuilder{context()}.withNormals(true).withTexcoords(true).createBox(10.0f);
     }
 
     void render() {
@@ -306,23 +247,23 @@ TEST_CLASS(Textured3DCube) {
 
         // Set vertex buffer and submit.
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
-        r->setVertexBuffer(vb_);
         r->setTexture(texture_resource_->internalHandle(), 0);
-        r->submit(0, program_, vertex_count_);
+        auto task = box_->draw(model);
+        r->setVertexBuffer(task.primitive.vb);
+        r->setIndexBuffer(task.primitive.ib);
+        r->submit(0, program_, task.primitive.count);
     }
 
     void stop() {
         r->deleteProgram(program_);
-        r->deleteVertexBuffer(vb_);
     }
 };
 
 TEST_CLASS(PostProcessing) {
     TEST_BODY(PostProcessing);
 
-    VertexBufferHandle cube_vb_;
-    uint cube_vertex_count_;
-    ProgramHandle cube_program_;
+    SharedPtr<CustomMesh> box_;
+    ProgramHandle box_program_;
 
     VertexBufferHandle fsq_vb_;
     ProgramHandle post_process_;
@@ -339,13 +280,13 @@ TEST_CLASS(PostProcessing) {
 
         auto vs = r->createShader(ShaderType::Vertex, vs_source);
         auto fs = r->createShader(ShaderType::Fragment, fs_source);
-        cube_program_ = r->createProgram();
-        r->attachShader(cube_program_, vs);
-        r->attachShader(cube_program_, fs);
-        r->linkProgram(cube_program_);
+        box_program_ = r->createProgram();
+        r->attachShader(box_program_, vs);
+        r->attachShader(box_program_, fs);
+        r->linkProgram(box_program_);
 
         // Create box.
-        cube_vertex_count_ = util::createBox(r, 10.0f, cube_vb_);
+        box_ = MeshBuilder{context()}.withNormals(true).withTexcoords(true).createBox(10.0f);
 
         // Create full screen quad.
         util::createFullscreenQuad(r, fsq_vb_);
@@ -386,8 +327,10 @@ TEST_CLASS(PostProcessing) {
         r->setViewFrameBuffer(1, FrameBufferHandle{0});
 
         // Set vertex buffer and submit.
-        r->setVertexBuffer(cube_vb_);
-        r->submit(0, cube_program_, cube_vertex_count_);
+        auto task = box_->draw(model);
+        r->setVertexBuffer(task.primitive.vb);
+        r->setIndexBuffer(task.primitive.ib);
+        r->submit(0, box_program_, task.primitive.count);
 
         // Draw fb.
         r->setTexture(r->getFrameBufferTexture(fb_handle_, 0), 0);
@@ -398,8 +341,7 @@ TEST_CLASS(PostProcessing) {
     void stop() {
         r->deleteProgram(post_process_);
         r->deleteVertexBuffer(fsq_vb_);
-        r->deleteProgram(cube_program_);
-        r->deleteVertexBuffer(cube_vb_);
+        r->deleteProgram(box_program_);
     }
 };
 
@@ -510,4 +452,4 @@ TEST_CLASS(DeferredShading) {
     }
 };
 
-TEST_IMPLEMENT_MAIN(DeferredShading);
+TEST_IMPLEMENT_MAIN(Textured3DCube);
