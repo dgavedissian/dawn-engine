@@ -80,7 +80,6 @@ Renderer::Renderer(Context* context)
       shared_frame_barrier_{2},
       submit_{&frames_[0]},
       render_{&frames_[1]} {
-    render_thread_ = Thread{[this]() { renderThread(); }};
 }
 
 Renderer::~Renderer() {
@@ -100,6 +99,9 @@ void Renderer::init(u16 width, u16 height, const String& title) {
     width_ = width;
     height_ = height;
     window_title_ = title;
+
+    // Kick off rendering thread.
+    render_thread_ = Thread{[this]() { renderThread(); }};
 }
 
 VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size,
