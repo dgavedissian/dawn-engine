@@ -130,6 +130,27 @@ enum class TextureFormat {
     Count
 };
 
+// Render states.
+enum class BlendFunc {
+    Zero,
+    One,
+    SrcColor,
+    OneMinusSrcColor,
+    DstColor,
+    OneMinusDstColor,
+    SrcAlpha,
+    OneMinusSrcAlpha,
+    DstAlpha,
+    OneMinusDstAlpha,
+    ConstantColor,
+    OneMinusConstantColor,
+    ConstantAlpha,
+    OneMinusConstantAlpha,
+    SrcAlphaSaturate
+};
+enum class BlendEquation { Add, Subtract, ReverseSubtract, Min, Max };
+enum class RenderState { Blending };
+
 // Render commands.
 namespace cmd {
 struct CreateVertexBuffer {
@@ -226,6 +247,7 @@ using RenderCommand =
 
 // Current render state.
 struct RenderItem {
+    RenderItem();
     void clear();
 
     using UniformData = Variant<int, float, Vec2, Vec3, Vec4, Mat3, Mat4>;
@@ -243,6 +265,15 @@ struct RenderItem {
     ProgramHandle program;
     HashMap<String, UniformData> uniforms;
     Array<TextureBinding, MAX_TEXTURE_SAMPLERS> textures;
+
+    // Render state.
+    bool enabled_blending_;
+    BlendEquation blend_equation_rgb_;
+    BlendFunc blend_src_rgb_;
+    BlendFunc blend_dest_rgb_;
+    BlendEquation blend_equation_a_;
+    BlendFunc blend_src_a_;
+    BlendFunc blend_dest_a_;
 };
 
 // View.
@@ -341,6 +372,12 @@ public:
     /// View.
     void setViewClear(uint view, const Colour& colour);
     void setViewFrameBuffer(uint view, FrameBufferHandle handle);
+
+    /// Update state.
+    void setStateEnable(RenderState state);
+    void setStateBlendEquation(BlendEquation equation, BlendFunc src, BlendFunc dest);
+    void setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_rgb, BlendFunc dest_rgb,
+                               BlendEquation equation_a, BlendFunc src_a, BlendFunc dest_a);
 
     /// Update uniform and draw state, but submit no geometry.
     void submit(uint view, ProgramHandle program);

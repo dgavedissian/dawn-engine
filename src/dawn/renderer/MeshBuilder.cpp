@@ -28,7 +28,7 @@ MeshBuilder& MeshBuilder::withTexcoords(bool texcoords) {
 SharedPtr<CustomMesh> MeshBuilder::createBox(float halfSize) {
     // clang-format off
     float vertices[] = {
-        // Position						| UVs		  | Normals
+        // Position						| Normals		      | UVs
         -halfSize, -halfSize, -halfSize, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
         halfSize,  -halfSize, -halfSize, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f,
         halfSize,  halfSize,  -halfSize, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
@@ -79,13 +79,13 @@ SharedPtr<CustomMesh> MeshBuilder::createBox(float halfSize) {
     buffer.estimateIndexCount(36);
     for (int tri = 0; tri < 12; ++tri) {
         for (int v = 0; v < 3; ++v) {
-            float* data = &vertices[(tri * 3 + v) * 7];
+            float* data = &vertices[(tri * 3 + v) * 8];
             buffer.position({data[0], data[1], data[2]});
-            if (with_texcoords_) {
-                buffer.texcoord({data[3], data[4]});
-            }
             if (with_normals_) {
-                buffer.normal({data[5], data[6], data[7]});
+                buffer.normal({data[3], data[4], data[5]});
+            }
+            if (with_texcoords_) {
+                buffer.texcoord({data[6], data[7]});
             }
         }
         buffer.triangle(tri * 3, tri * 3 + 1, tri * 3 + 2);

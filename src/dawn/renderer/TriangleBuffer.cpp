@@ -9,9 +9,7 @@
 
 namespace dw {
 TriangleBuffer::TriangleBuffer(Context* context)
-    : Object{context},
-      contains_normals_{false},
-      contains_texcoords_{false} {
+    : Object{context}, contains_normals_{false}, contains_texcoords_{false} {
 }
 
 TriangleBuffer::~TriangleBuffer() {

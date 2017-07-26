@@ -62,6 +62,10 @@ uint Memory::size() const {
 RenderContext::RenderContext(Context* context) : Object{context} {
 }
 
+RenderItem::RenderItem() {
+    clear();
+}
+
 void RenderItem::clear() {
     vb = VertexBufferHandle::invalid;
     ib = IndexBufferHandle::invalid;
@@ -71,6 +75,12 @@ void RenderItem::clear() {
     for (auto& texture : textures) {
         texture.handle = TextureHandle::invalid;
     }
+
+    // Render state.
+    enabled_blending_ = false;
+    blend_equation_rgb_ = blend_equation_a_ = BlendEquation::Add;
+    blend_src_rgb_ = blend_src_a_ = BlendFunc::One;
+    blend_dest_rgb_ = blend_dest_a_ = BlendFunc::Zero;
 }
 
 Renderer::Renderer(Context* context)
@@ -250,6 +260,29 @@ void Renderer::setViewFrameBuffer(uint view, FrameBufferHandle handle) {
     submit_->view(view).frame_buffer = handle;
 }
 
+void Renderer::setStateEnable(RenderState state) {
+    switch (state) {
+        case RenderState::Blending:
+            submit_->current_item.enabled_blending_ = true;
+            break;
+    }
+}
+
+void Renderer::setStateBlendEquation(BlendEquation equation, BlendFunc src, BlendFunc dest) {
+    setStateBlendEquation(equation, src, dest, equation, src, dest);
+}
+
+void Renderer::setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_rgb,
+                                     BlendFunc dest_rgb, BlendEquation equation_a, BlendFunc src_a,
+                                     BlendFunc dest_a) {
+    submit_->current_item.blend_equation_rgb_ = equation_rgb;
+    submit_->current_item.blend_src_rgb_ = src_rgb;
+    submit_->current_item.blend_dest_rgb_ = dest_rgb;
+    submit_->current_item.blend_equation_a_ = equation_a;
+    submit_->current_item.blend_src_a_ = src_a;
+    submit_->current_item.blend_dest_a_ = dest_a;
+}
+
 void Renderer::submit(uint view, ProgramHandle program) {
     submit_->current_item.program = program;
     submit_->view(view).render_items.emplace_back(submit_->current_item);
@@ -352,5 +385,4 @@ void Renderer::renderThread() {
         swap_cv_.notify_all();
     }
 }
-
 }  // namespace dw

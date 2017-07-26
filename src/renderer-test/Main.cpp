@@ -8,6 +8,9 @@
 
 using namespace dw;
 
+#define WIDTH 1280
+#define HEIGHT 800
+
 template <typename T> class Example : public App {
 public:
     DW_OBJECT(Example<T>);
@@ -240,7 +243,8 @@ TEST_CLASS(Textured3DCube) {
         angle += M_PI / 3.0f * engine_->frameTime();  // 60 degrees per second.
         Mat4 model = Mat4::Translate(Vec3{0.0f, 0.0f, -50.0f}).ToFloat4x4() * Mat4::RotateY(angle);
         static Mat4 view = Mat4::identity;
-        static Mat4 proj = util::createProjMatrix(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+        static Mat4 proj =
+            util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(WIDTH) / HEIGHT);
         r->setUniform("model_matrix", model);
         r->setUniform("mvp_matrix", proj * view * model);
         r->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
@@ -315,7 +319,8 @@ TEST_CLASS(PostProcessing) {
         angle += M_PI / 3.0f * engine_->frameTime();  // 60 degrees per second.
         Mat4 model = Mat4::Translate(Vec3{0.0f, 0.0f, -50.0f}).ToFloat4x4() * Mat4::RotateY(angle);
         static Mat4 view = Mat4::identity;
-        static Mat4 proj = util::createProjMatrix(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+        static Mat4 proj =
+            util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(WIDTH) / HEIGHT);
         r->setUniform("model_matrix", model);
         r->setUniform("mvp_matrix", proj * view * model);
         r->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
@@ -348,7 +353,7 @@ TEST_CLASS(PostProcessing) {
 TEST_CLASS(DeferredShading) {
     TEST_BODY(DeferredShading);
 
-    SharedPtr<CustomMesh> sphere_;
+    SharedPtr<CustomMesh> cube_;
     ProgramHandle cube_program_;
 
     // Uses the higher level wrapper which provides loading from files.
@@ -358,6 +363,88 @@ TEST_CLASS(DeferredShading) {
 
     VertexBufferHandle fsq_vb_;
     FrameBufferHandle gbuffer_;
+
+    class PointLight : public Object {
+        DW_OBJECT(PointLight);
+
+    public:
+        PointLight(Context* ctx, float a0, float a1, float a2)
+            : Object{ctx}, atten0_{a0}, atten1_{a1}, atten2_{a2} {
+            auto* r = subsystem<Renderer>();
+
+            // Load shaders.
+            File vs_file{context(), "shaders/light_pass.vs"};
+            String vs_source = dw::stream::read<String>(vs_file);
+            File fs_file{context(), "shaders/point_light_pass.fs"};
+            String fs_source = dw::stream::read<String>(fs_file);
+            auto vs = r->createShader(ShaderType::Vertex, vs_source);
+            auto fs = r->createShader(ShaderType::Fragment, fs_source);
+            program_ = r->createProgram();
+            r->attachShader(program_, vs);
+            r->attachShader(program_, fs);
+            r->linkProgram(program_);
+            r->setUniform("screen_size", {WIDTH, HEIGHT});
+            r->setUniform("gb0", 0);
+            r->setUniform("gb1", 1);
+            r->setUniform("gb2", 2);
+            r->setUniform("constant", a0);
+            r->setUniform("linear", a1);
+            r->setUniform("exponent", a2);
+            r->submit(0, program_);
+
+            // Calculate range
+            // Solve 'a2 * d^2 + a1 * d + a0 = 256' for d
+            // 256 is the number of distinct light levels in an 8 bit component (2^8)
+            float range;
+            if (a2 == 0.0f) {
+                if (a1 == 0.0f) {
+                    // For constant attenuation point lights, set the range to infinity
+                    range = 100000000000000000.0f;
+                } else {
+                    range = (256.0f - a0) / a1;
+                }
+            } else {
+                range = (-a1 + sqrtf(a1 * a1 - 4.0f * a2 * (a0 - 256.0f))) / (2.0f * a2);
+            }
+
+            sphere_ = MeshBuilder{context_}.withNormals(true).withTexcoords(true).createSphere(
+                range, 8, 8);
+        }
+
+        ~PointLight() {
+            subsystem<Renderer>()->deleteProgram(program_);
+        }
+
+        void setPosition(const Vec3& position) {
+            position_ = position;
+            model_ = Mat4::Translate(position);
+        }
+
+        void draw(const Mat4& view, const Mat4& proj) {
+            Mat4 wvp = proj * view * model_;
+            auto* r = subsystem<Renderer>();
+
+            auto task = sphere_->draw(Mat4::identity);
+            r->setVertexBuffer(task.primitive.vb);
+            r->setIndexBuffer(task.primitive.ib);
+            r->setUniform("mvp_matrix", wvp);
+            r->setUniform("light_position", position_);
+            r->submit(0, program_, task.primitive.count);
+        }
+
+    private:
+        SharedPtr<CustomMesh> sphere_;
+        ProgramHandle program_;
+
+        float atten0_;
+        float atten1_;
+        float atten2_;
+
+        Vec3 position_;
+        Mat4 model_;
+    };
+
+    Vector<PointLight> point_lights;
 
     void start() {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
@@ -378,7 +465,7 @@ TEST_CLASS(DeferredShading) {
         r->submit(0, cube_program_);
 
         // Create box.
-        sphere_ = MeshBuilder{context_}.withNormals(true).withTexcoords(true).createSphere(10.0f);
+        cube_ = MeshBuilder{context_}.withNormals(true).withTexcoords(true).createBox(10.0f);
 
         // Load texture.
         File texture_file{context(), "wall.jpg"};
@@ -411,6 +498,19 @@ TEST_CLASS(DeferredShading) {
         r->setUniform("gb1_sampler", 1);
         r->setUniform("gb2_sampler", 2);
         r->submit(0, post_process_);
+
+        // Lights.
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    if (!(x == y == z)) {
+                        continue;
+                    }
+                    point_lights.emplace_back(PointLight{context(), 0.75f, 0.0f, 1.0f});
+                    point_lights.back().setPosition(Vec3(x, y, z) * 0.6f);
+                }
+            }
+        }
     }
 
     void render() {
@@ -425,12 +525,13 @@ TEST_CLASS(DeferredShading) {
         angle += M_PI / 3.0f * engine_->frameTime();  // 60 degrees per second.
         Mat4 model = Mat4::Translate(Vec3{0.0f, 0.0f, -50.0f}).ToFloat4x4() * Mat4::RotateY(angle);
         static Mat4 view = Mat4::identity;
-        static Mat4 proj = util::createProjMatrix(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+        static Mat4 proj =
+            util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(WIDTH) / HEIGHT);
         r->setUniform("model_matrix", model);
         r->setUniform("mvp_matrix", proj * view * model);
 
         // Set vertex buffer and submit.
-        auto task = sphere_->draw(Mat4::identity);
+        auto task = cube_->draw(Mat4::identity);
         r->setVertexBuffer(task.primitive.vb);
         r->setIndexBuffer(task.primitive.ib);
         r->setTexture(texture_resource_->internalHandle(), 0);
@@ -443,6 +544,16 @@ TEST_CLASS(DeferredShading) {
         r->setVertexBuffer(fsq_vb_);
         r->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
         r->submit(1, post_process_, 3);
+
+        // Draw point lights
+        for (auto i = point_lights.begin(); i != point_lights.end(); ++i) {
+            r->setStateEnable(RenderState::Blending);
+            r->setStateBlendEquation(BlendEquation::Add, BlendFunc::One, BlendFunc::One);
+            r->setTexture(r->getFrameBufferTexture(gbuffer_, 0), 0);
+            r->setTexture(r->getFrameBufferTexture(gbuffer_, 1), 1);
+            r->setTexture(r->getFrameBufferTexture(gbuffer_, 2), 2);
+            (*i).draw(view, proj);
+        }
     }
 
     void stop() {
@@ -452,4 +563,4 @@ TEST_CLASS(DeferredShading) {
     }
 };
 
-TEST_IMPLEMENT_MAIN(Textured3DCube);
+TEST_IMPLEMENT_MAIN(DeferredShading);
