@@ -37,13 +37,7 @@ SharedPtr<CustomMesh> TriangleBuffer::end() {
     VertexDecl decl;
     if (contains_normals_ && contains_texcoords_) {
         data = vertices_.data();
-        for (int i = 0; i < 36; i++) {
-            float* _data = (float*)data + i * 8;
-            log().debug(">>>> %s %s %s %s %s %s %s %s", _data[0], _data[1], _data[2], _data[3],
-                        _data[4], _data[5], _data[6], _data[7]);
-        }
         size = static_cast<uint>(vertices_.size()) * sizeof(Vertex);
-        log().debug(">>>> %s %s", vertices_.size(), sizeof(Vertex));
         decl.begin()
             .add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float)
             .add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float)
@@ -85,13 +79,21 @@ SharedPtr<CustomMesh> TriangleBuffer::end() {
             }
             assert(offset == stride);
         }
+        data = packed_data;
     }
 
     // Create custom mesh.
-    return makeShared<CustomMesh>(
+    auto custom_mesh = makeShared<CustomMesh>(
         context_, makeShared<VertexBuffer>(context_, data, size, vertices_.size(), decl),
         makeShared<IndexBuffer>(context_, indices_.data(), indices_.size() * sizeof(u32),
                                 IndexBufferType::U32));
+
+    // Delete packed buffer.
+    if (!contains_normals_ || !contains_texcoords_) {
+        delete[]((const float*)data);
+    }
+
+    return custom_mesh;
 }
 
 void TriangleBuffer::position(const Vec3& p) {

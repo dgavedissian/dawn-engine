@@ -15,61 +15,104 @@ MeshBuilder::MeshBuilder(Context* context)
 MeshBuilder::~MeshBuilder() {
 }
 
-MeshBuilder& MeshBuilder::withNormals(bool normals) {
+MeshBuilder& MeshBuilder::normals(bool normals) {
     with_normals_ = normals;
     return *this;
 }
 
-MeshBuilder& MeshBuilder::withTexcoords(bool texcoords) {
+MeshBuilder& MeshBuilder::texcoords(bool texcoords) {
     with_texcoords_ = texcoords;
     return *this;
 }
 
-SharedPtr<CustomMesh> MeshBuilder::createBox(float halfSize) {
+SharedPtr<CustomMesh> MeshBuilder::createPlane(float width, float height) {
+    TriangleBuffer buffer{context_};
+    buffer.begin();
+    buffer.estimateVertexCount(4);
+    buffer.estimateIndexCount(6);
+    // Top-left.
+    buffer.position({-width * 0.5f, height * 0.5f, 0.0f});
+    if (with_normals_) {
+        buffer.normal({0.0f, 0.0f, 1.0f});
+    }
+    if (with_texcoords_) {
+        buffer.texcoord({0.0f, 0.0f});
+    }
+    // Top-right.
+    buffer.position({width * 0.5f, height * 0.5f, 0.0f});
+    if (with_normals_) {
+        buffer.normal({0.0f, 0.0f, 1.0f});
+    }
+    if (with_texcoords_) {
+        buffer.texcoord({1.0f, 0.0f});
+    }
+    // Bottom-left.
+    buffer.position({-width * 0.5f, -height * 0.5f, 0.0f});
+    if (with_normals_) {
+        buffer.normal({0.0f, 0.0f, 1.0f});
+    }
+    if (with_texcoords_) {
+        buffer.texcoord({0.0f, 1.0f});
+    }
+    // Bottom-right.
+    buffer.position({width * 0.5f, -height * 0.5f, 0.0f});
+    if (with_normals_) {
+        buffer.normal({0.0f, 0.0f, 1.0f});
+    }
+    if (with_texcoords_) {
+        buffer.texcoord({1.0f, 1.0f});
+    }
+    // Triangles.
+    buffer.triangle(0, 2, 1);
+    buffer.triangle(1, 2, 3);
+    return buffer.end();
+}
+
+SharedPtr<CustomMesh> MeshBuilder::createBox(float half_size) {
     // clang-format off
     float vertices[] = {
         // Position						| Normals		      | UVs
-        -halfSize, -halfSize, -halfSize, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
-        halfSize,  -halfSize, -halfSize, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f,
-        halfSize,  halfSize,  -halfSize, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
-        halfSize,  halfSize,  -halfSize, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
-        -halfSize, halfSize,  -halfSize, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f,
-        -halfSize, -halfSize, -halfSize, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
+        -half_size, -half_size, -half_size, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
+        half_size,  -half_size, -half_size, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f,
+        half_size,  half_size,  -half_size, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
+        half_size,  half_size,  -half_size, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
+        -half_size, half_size,  -half_size, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f,
+        -half_size, -half_size, -half_size, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
 
-        -halfSize, -halfSize, halfSize,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-        halfSize,  -halfSize, halfSize,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
-        halfSize,  halfSize,  halfSize,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-        halfSize,  halfSize,  halfSize,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
-        -halfSize, halfSize,  halfSize,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
-        -halfSize, -halfSize, halfSize,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
+        -half_size, -half_size, half_size,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
+        half_size,  -half_size, half_size,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
+        half_size,  half_size,  half_size,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
+        half_size,  half_size,  half_size,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
+        -half_size, half_size,  half_size,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
+        -half_size, -half_size, half_size,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
 
-        -halfSize, halfSize,  halfSize,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,
-        -halfSize, halfSize,  -halfSize, -1.0f, 0.0f,  0.0f,  1.0f, 0.0f,
-        -halfSize, -halfSize, -halfSize, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
-        -halfSize, -halfSize, -halfSize, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
-        -halfSize, -halfSize, halfSize,  -1.0f, 0.0f,  0.0f,  0.0f, 1.0f,
-        -halfSize, halfSize,  halfSize,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,
+        -half_size, half_size,  half_size,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,
+        -half_size, half_size,  -half_size, -1.0f, 0.0f,  0.0f,  1.0f, 0.0f,
+        -half_size, -half_size, -half_size, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
+        -half_size, -half_size, -half_size, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
+        -half_size, -half_size, half_size,  -1.0f, 0.0f,  0.0f,  0.0f, 1.0f,
+        -half_size, half_size,  half_size,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,
 
-        halfSize,  halfSize,  halfSize,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-        halfSize,  halfSize,  -halfSize, 1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-        halfSize,  -halfSize, -halfSize, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-        halfSize,  -halfSize, -halfSize, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-        halfSize,  -halfSize, halfSize,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        halfSize,  halfSize,  halfSize,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        half_size,  half_size,  half_size,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        half_size,  half_size,  -half_size, 1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        half_size,  -half_size, -half_size, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        half_size,  -half_size, -half_size, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        half_size,  -half_size, half_size,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        half_size,  half_size,  half_size,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
 
-        -halfSize, -halfSize, -halfSize, 0.0f,  -1.0f, 0.0f,  0.0f, 0.0f,
-        halfSize,  -halfSize, -halfSize, 0.0f,  -1.0f, 0.0f,  1.0f, 0.0f,
-        halfSize,  -halfSize, halfSize,  0.0f,  -1.0f, 0.0f,  1.0f, 1.0f,
-        halfSize,  -halfSize, halfSize,  0.0f,  -1.0f, 0.0f,  1.0f, 1.0f,
-        -halfSize, -halfSize, halfSize,  0.0f,  -1.0f, 0.0f,  0.0f, 1.0f,
-        -halfSize, -halfSize, -halfSize, 0.0f,  -1.0f, 0.0f,  0.0f, 0.0f,
+        -half_size, -half_size, -half_size, 0.0f,  -1.0f, 0.0f,  0.0f, 0.0f,
+        half_size,  -half_size, -half_size, 0.0f,  -1.0f, 0.0f,  1.0f, 0.0f,
+        half_size,  -half_size, half_size,  0.0f,  -1.0f, 0.0f,  1.0f, 1.0f,
+        half_size,  -half_size, half_size,  0.0f,  -1.0f, 0.0f,  1.0f, 1.0f,
+        -half_size, -half_size, half_size,  0.0f,  -1.0f, 0.0f,  0.0f, 1.0f,
+        -half_size, -half_size, -half_size, 0.0f,  -1.0f, 0.0f,  0.0f, 0.0f,
 
-        -halfSize, halfSize,  -halfSize, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-        halfSize,  halfSize,  -halfSize, 0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-        halfSize,  halfSize,  halfSize,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-        halfSize,  halfSize,  halfSize,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-        -halfSize, halfSize,  halfSize,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-        -halfSize, halfSize,  -halfSize, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f };
+        -half_size, half_size,  -half_size, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+        half_size,  half_size,  -half_size, 0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+        half_size,  half_size,  half_size,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+        half_size,  half_size,  half_size,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+        -half_size, half_size,  half_size,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+        -half_size, half_size,  -half_size, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f };
     // clang-format on
 
     // Build mesh.
@@ -77,8 +120,8 @@ SharedPtr<CustomMesh> MeshBuilder::createBox(float halfSize) {
     buffer.begin();
     buffer.estimateVertexCount(36);
     buffer.estimateIndexCount(36);
-    for (int tri = 0; tri < 12; ++tri) {
-        for (int v = 0; v < 3; ++v) {
+    for (uint tri = 0; tri < 12; ++tri) {
+        for (uint v = 0; v < 3; ++v) {
             float* data = &vertices[(tri * 3 + v) * 8];
             buffer.position({data[0], data[1], data[2]});
             if (with_normals_) {

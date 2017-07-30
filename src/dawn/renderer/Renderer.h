@@ -131,6 +131,8 @@ enum class TextureFormat {
 };
 
 // Render states.
+enum class RenderState { CullFace, Depth, Blending };
+enum class CullFrontFace { CCW, CW };
 enum class BlendFunc {
     Zero,
     One,
@@ -149,7 +151,6 @@ enum class BlendFunc {
     SrcAlphaSaturate
 };
 enum class BlendEquation { Add, Subtract, ReverseSubtract, Min, Max };
-enum class RenderState { Blending };
 
 // Render commands.
 namespace cmd {
@@ -267,13 +268,16 @@ struct RenderItem {
     Array<TextureBinding, MAX_TEXTURE_SAMPLERS> textures;
 
     // Render state.
-    bool enabled_blending_;
-    BlendEquation blend_equation_rgb_;
-    BlendFunc blend_src_rgb_;
-    BlendFunc blend_dest_rgb_;
-    BlendEquation blend_equation_a_;
-    BlendFunc blend_src_a_;
-    BlendFunc blend_dest_a_;
+    bool depth_enabled;
+    bool cull_face_enabled;
+    CullFrontFace cull_front_face;
+    bool blend_enabled;
+    BlendEquation blend_equation_rgb;
+    BlendFunc blend_src_rgb;
+    BlendFunc blend_dest_rgb;
+    BlendEquation blend_equation_a;
+    BlendFunc blend_src_a;
+    BlendFunc blend_dest_a;
 };
 
 // View.
@@ -311,6 +315,15 @@ public:
 
     RenderContext(Context* context);
     virtual ~RenderContext() = default;
+
+    // Window management. Executed on the main thread.
+    virtual void createWindow(u16 width, u16 height, const String& title) = 0;
+    virtual void destroyWindow() = 0;
+    virtual void processEvents() = 0;
+    virtual bool isWindowClosed() const = 0;
+
+    // Command buffer processing. Executed on the render thread.
+    virtual void startRendering() = 0;
     virtual void processCommandList(Vector<RenderCommand>& command_list) = 0;
     virtual bool frame(const Vector<View>& views) = 0;
 };
@@ -375,6 +388,8 @@ public:
 
     /// Update state.
     void setStateEnable(RenderState state);
+    void setStateDisable(RenderState state);
+    void setStateCullFrontFace(CullFrontFace front_face);
     void setStateBlendEquation(BlendEquation equation, BlendFunc src, BlendFunc dest);
     void setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_rgb, BlendFunc dest_rgb,
                                BlendEquation equation_a, BlendFunc src_a, BlendFunc dest_a);
@@ -431,7 +446,7 @@ private:
     void submitPostFrameCommand(RenderCommand&& command);
 
     // Renderer.
-    UniquePtr<RenderContext> r_render_context_;
+    UniquePtr<RenderContext> shared_render_context_;
 
     // Render thread proc.
     void renderThread();

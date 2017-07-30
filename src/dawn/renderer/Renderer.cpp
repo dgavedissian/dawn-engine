@@ -76,11 +76,14 @@ void RenderItem::clear() {
         texture.handle = TextureHandle::invalid;
     }
 
-    // Render state.
-    enabled_blending_ = false;
-    blend_equation_rgb_ = blend_equation_a_ = BlendEquation::Add;
-    blend_src_rgb_ = blend_src_a_ = BlendFunc::One;
-    blend_dest_rgb_ = blend_dest_a_ = BlendFunc::Zero;
+    // Default render state.
+    cull_face_enabled = true;
+    cull_front_face = CullFrontFace::CCW;
+    depth_enabled = true;
+    blend_enabled = false;
+    blend_equation_rgb = blend_equation_a = BlendEquation::Add;
+    blend_src_rgb = blend_src_a = BlendFunc::One;
+    blend_dest_rgb = blend_dest_a = BlendFunc::Zero;
 }
 
 Renderer::Renderer(Context* context)
@@ -111,6 +114,8 @@ void Renderer::init(u16 width, u16 height, const String& title) {
     window_title_ = title;
 
     // Kick off rendering thread.
+    shared_render_context_ = makeUnique<GLRenderContext>(context());
+    shared_render_context_->createWindow(width_, height_, window_title_);
     render_thread_ = Thread{[this]() { renderThread(); }};
 }
 
@@ -228,7 +233,7 @@ FrameBufferHandle Renderer::createFrameBuffer(u16 width, u16 height, TextureForm
 
 FrameBufferHandle Renderer::createFrameBuffer(Vector<TextureHandle> textures) {
     auto handle = frame_buffer_handle_.next();
-    u16 width = texture_data_.at(textures[0]).width, height = texture_data_.at(textures[0]).width;
+    u16 width = texture_data_.at(textures[0]).width, height = texture_data_.at(textures[0]).height;
     for (int i = 1; i < textures.size(); ++i) {
         auto& data = texture_data_.at(textures[i]);
         if (data.width != width || data.height != height) {
@@ -262,10 +267,34 @@ void Renderer::setViewFrameBuffer(uint view, FrameBufferHandle handle) {
 
 void Renderer::setStateEnable(RenderState state) {
     switch (state) {
+        case RenderState::CullFace:
+            submit_->current_item.cull_face_enabled = true;
+            break;
+        case RenderState::Depth:
+            submit_->current_item.depth_enabled = true;
+            break;
         case RenderState::Blending:
-            submit_->current_item.enabled_blending_ = true;
+            submit_->current_item.blend_enabled = true;
             break;
     }
+}
+
+void Renderer::setStateDisable(RenderState state) {
+    switch (state) {
+        case RenderState::CullFace:
+            submit_->current_item.cull_face_enabled = false;
+            break;
+        case RenderState::Depth:
+            submit_->current_item.depth_enabled = false;
+            break;
+        case RenderState::Blending:
+            submit_->current_item.blend_enabled = false;
+            break;
+    }
+}
+
+void Renderer::setStateCullFrontFace(CullFrontFace front_face) {
+    submit_->current_item.cull_front_face = front_face;
 }
 
 void Renderer::setStateBlendEquation(BlendEquation equation, BlendFunc src, BlendFunc dest) {
@@ -275,12 +304,12 @@ void Renderer::setStateBlendEquation(BlendEquation equation, BlendFunc src, Blen
 void Renderer::setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_rgb,
                                      BlendFunc dest_rgb, BlendEquation equation_a, BlendFunc src_a,
                                      BlendFunc dest_a) {
-    submit_->current_item.blend_equation_rgb_ = equation_rgb;
-    submit_->current_item.blend_src_rgb_ = src_rgb;
-    submit_->current_item.blend_dest_rgb_ = dest_rgb;
-    submit_->current_item.blend_equation_a_ = equation_a;
-    submit_->current_item.blend_src_a_ = src_a;
-    submit_->current_item.blend_dest_a_ = dest_a;
+    submit_->current_item.blend_equation_rgb = equation_rgb;
+    submit_->current_item.blend_src_rgb = src_rgb;
+    submit_->current_item.blend_dest_rgb = dest_rgb;
+    submit_->current_item.blend_equation_a = equation_a;
+    submit_->current_item.blend_src_a = src_a;
+    submit_->current_item.blend_dest_a = dest_a;
 }
 
 void Renderer::submit(uint view, ProgramHandle program) {
@@ -338,6 +367,13 @@ void Renderer::frame() {
     UniqueLock<Mutex> lock{swap_mutex_};
     swap_cv_.wait(lock, [this] { return swapped_frames_; });
     swapped_frames_ = false;
+
+    // Update window events.
+    shared_render_context_->processEvents();
+    if (shared_render_context_->isWindowClosed()) {
+        log().info("Window closed. Sending shutdown signal.");
+        subsystem<EventSystem>()->triggerEvent(makeShared<EvtData_Exit>());
+    }
 }
 
 void Renderer::submitPreFrameCommand(RenderCommand&& command) {
@@ -349,16 +385,17 @@ void Renderer::submitPostFrameCommand(RenderCommand&& command) {
 }
 
 void Renderer::renderThread() {
-    r_render_context_ = makeUnique<GLRenderContext>(context(), width_, height_, window_title_);
+    // Start rendering.
+    shared_render_context_->startRendering();
 
-    // Enter render loop.
+    // Start render loop.
     while (!shared_rt_should_exit_) {
         // Hand off commands to the render context.
-        r_render_context_->processCommandList(render_->commands_pre);
-        if (!r_render_context_->frame(render_->views)) {
+        shared_render_context_->processCommandList(render_->commands_pre);
+        if (!shared_render_context_->frame(render_->views)) {
             shared_rt_should_exit_ = true;
         }
-        r_render_context_->processCommandList(render_->commands_post);
+        shared_render_context_->processCommandList(render_->commands_post);
 
         // Clear the frame state.
         render_->current_item.clear();

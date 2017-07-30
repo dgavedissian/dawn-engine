@@ -14,10 +14,11 @@ public:
     MeshBuilder(Context* context);
     ~MeshBuilder();
 
-    MeshBuilder& withNormals(bool normals);
-    MeshBuilder& withTexcoords(bool texcoords);
+    MeshBuilder& normals(bool normals);
+    MeshBuilder& texcoords(bool texcoords);
 
-    SharedPtr<CustomMesh> createBox(float halfSize);
+    SharedPtr<CustomMesh> createPlane(float width, float height);
+    SharedPtr<CustomMesh> createBox(float half_size);
     SharedPtr<CustomMesh> createSphere(float radius, uint rings = 25, uint segments = 25);
 
 private:

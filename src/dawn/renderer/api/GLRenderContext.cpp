@@ -143,11 +143,18 @@ private:
 };
 }  // namespace
 
-GLRenderContext::GLRenderContext(Context* context, u16 width, u16 height, const String& title)
-    : RenderContext{context} {
-    log().info("Starting OpenGL rendering context.");
+GLRenderContext::GLRenderContext(Context* context) : RenderContext{context} {
+}
+
+GLRenderContext::~GLRenderContext() {
+    // TODO: detect resource leaks.
+}
+
+void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
+    log().info("Creating window.");
 
     // Initialise GLFW.
+    log().info("GLFW Version: %s", glfwGetVersionString());
     if (!glfwInit()) {
         // TODO: report error correctly.
         throw Exception{"Failed to initialise GLFW."};
@@ -173,8 +180,7 @@ GLRenderContext::GLRenderContext(Context* context, u16 width, u16 height, const 
     log().info("OpenGL Renderer: %s", glGetString(GL_RENDERER));
 }
 
-GLRenderContext::~GLRenderContext() {
-    // TODO: detect resource leaks.
+void GLRenderContext::destroyWindow() {
     if (window_) {
         glfwDestroyWindow(window_);
         window_ = nullptr;
@@ -182,227 +188,27 @@ GLRenderContext::~GLRenderContext() {
     }
 }
 
-void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
-    // Create vertex array object.
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // Create vertex buffer object.
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, c.data.size(), c.data.data(), GL_STATIC_DRAW);
-    GL_CHECK();
-
-    // Set up vertex array attributes.
-    static HashMap<VertexDecl::AttributeType, GLenum> attribute_type_map = {
-        {VertexDecl::AttributeType::Float, GL_FLOAT},
-        {VertexDecl::AttributeType::Uint8, GL_UNSIGNED_BYTE}};
-    u16 attrib_counter = 0;
-    for (auto& attrib : c.decl.attributes_) {
-        // Decode attribute.
-        VertexDecl::Attribute attribute;
-        uint count;
-        VertexDecl::AttributeType type;
-        bool normalised;
-        VertexDecl::decodeAttributes(attrib.first, attribute, count, type, normalised);
-
-        // Convert type.
-        auto gl_type = attribute_type_map.find(type);
-        if (gl_type == attribute_type_map.end()) {
-            log().warn("[CreateVertexBuffer] Unknown attribute type: %i", (uint)type);
-            continue;
-        }
-
-        log().debug("[CreateVertexBuffer] Attrib %s: Count='%s' Type='%s' Stride='%s' Offset='%s'",
-                    attrib_counter, count, static_cast<int>(gl_type->first), c.decl.stride_,
-                    reinterpret_cast<intptr_t>(attrib.second));
-
-        // Set attribute.
-        glEnableVertexAttribArray(attrib_counter);
-        glVertexAttribPointer(attrib_counter, count, gl_type->second,
-                              static_cast<GLboolean>(normalised ? GL_TRUE : GL_FALSE),
-                              c.decl.stride_, attrib.second);
-        attrib_counter++;
-    }
-    vertex_buffer_map_.emplace(c.handle, vao);
+void GLRenderContext::processEvents() {
+    glfwPollEvents();
 }
 
-void GLRenderContext::operator()(const cmd::DeleteVertexBuffer& c) {
-    // TODO: implement.
+bool GLRenderContext::isWindowClosed() const {
+    return glfwWindowShouldClose(window_) != 0;
 }
 
-void GLRenderContext::operator()(const cmd::CreateIndexBuffer& c) {
-    // Create element buffer object.
-    GLuint ebo;
-    glGenBuffers(1, &ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, c.data.size(), c.data.data(), GL_STATIC_DRAW);
-    GL_CHECK();
-
-    index_buffer_map_.emplace(
-        c.handle, IndexBufferData{
-                      ebo, static_cast<GLenum>(c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT
-                                                                              : GL_UNSIGNED_INT)});
-}
-
-void GLRenderContext::operator()(const cmd::DeleteIndexBuffer& c) {
-    // TODO: implement.
-}
-
-void GLRenderContext::operator()(const cmd::CreateShader& c) {
-    static HashMap<ShaderType, GLenum> shader_type_map = {
-        {ShaderType::Vertex, GL_VERTEX_SHADER},
-        {ShaderType::Geometry, GL_GEOMETRY_SHADER},
-        {ShaderType::Fragment, GL_FRAGMENT_SHADER}};
-    GLuint shader = glCreateShader(shader_type_map[c.type]);
-    const char* source[] = {c.source.c_str()};
-    glShaderSource(shader, 1, source, nullptr);
-    glCompileShader(shader);
-
-    // Check compilation result.
-    GLint result;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE) {
-        int infoLogLength;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
-
-        char* errorMessage = new char[infoLogLength];
-        glGetShaderInfoLog(shader, infoLogLength, NULL, errorMessage);
-        log().error("[CreateShader] Shader Compile Error: %s", errorMessage);
-        delete[] errorMessage;
-
-        // TODO: Error
-    }
-
-    shader_map_.emplace(c.handle, shader);
-}
-
-void GLRenderContext::operator()(const cmd::DeleteShader& c) {
-    auto it = shader_map_.find(c.handle);
-    glDeleteShader(it->second);
-    shader_map_.erase(it);
-}
-
-void GLRenderContext::operator()(const cmd::CreateProgram& c) {
-    ProgramData program_data;
-    program_data.program = glCreateProgram();
-    program_map_.emplace(c.handle, program_data);
-}
-
-void GLRenderContext::operator()(const cmd::AttachShader& c) {
-    glAttachShader(program_map_[c.handle].program, shader_map_[c.shader_handle]);
-}
-
-void GLRenderContext::operator()(const cmd::LinkProgram& c) {
-    GLuint program = program_map_[c.handle].program;
-    glLinkProgram(program);
-
-    // Check the result of the link process.
-    GLint result = GL_FALSE;
-    glGetProgramiv(program, GL_LINK_STATUS, &result);
-    if (result == GL_FALSE) {
-        int infoLogLength;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
-        char* errorMessage = new char[infoLogLength];
-        glGetProgramInfoLog(program, infoLogLength, NULL, errorMessage);
-        log().error("[LinkProgram] Shader Link Error: %s", errorMessage);
-        delete[] errorMessage;
-    }
-}
-
-void GLRenderContext::operator()(const cmd::DeleteProgram& c) {
-    auto it = program_map_.find(c.handle);
-    glDeleteProgram(it->second.program);
-    program_map_.erase(it);
-}
-
-void GLRenderContext::operator()(const cmd::CreateTexture2D& c) {
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    // Filtering.
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // Give image data to OpenGL.
-    TextureFormatInfo format = s_texture_format[static_cast<int>(c.format)];
-    log().debug(
-        "[CreateTexture2D] format %s - internal fmt: 0x%.4X - internal fmt srgb: 0x%.4X "
-        "- fmt: 0x%.4X - type: 0x%.4X",
-        static_cast<u32>(c.format), format.internal_format, format.internal_format_srgb,
-        format.format, format.type);
-    glTexImage2D(GL_TEXTURE_2D, 0, format.internal_format, c.width, c.height, 0, format.format,
-                 format.type, c.data.data());
-    GL_CHECK();
-
-    // Add texture.
-    texture_map_.emplace(c.handle, texture);
-}
-
-void GLRenderContext::operator()(const cmd::DeleteTexture& c) {
-    auto it = texture_map_.find(c.handle);
-    glDeleteTextures(1, &it->second);
-    texture_map_.erase(it);
-}
-
-void GLRenderContext::operator()(const cmd::CreateFrameBuffer& c) {
-    FrameBufferData fb_data;
-    fb_data.textures = c.textures;
-
-    glGenFramebuffers(1, &fb_data.frame_buffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, fb_data.frame_buffer);
-
-    // Bind colour buffers.
-    Vector<GLenum> draw_buffers;
-    u8 attachment = 0;
-    for (auto texture : fb_data.textures) {
-        auto gl_texture = texture_map_.find(texture);
-        assert(gl_texture != texture_map_.end());
-        draw_buffers.emplace_back(GL_COLOR_ATTACHMENT0 + attachment++);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, draw_buffers.back(), GL_TEXTURE_2D,
-                               gl_texture->second, 0);
-    }
-    glDrawBuffers(static_cast<GLsizei>(draw_buffers.size()), draw_buffers.data());
-
-    // Create depth buffer.
-    glGenRenderbuffers(1, &fb_data.depth_render_buffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, fb_data.depth_render_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, c.width, c.height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
-                              fb_data.depth_render_buffer);
-
-    // Check frame buffer status.
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        log().error("[CreateFrameBuffer] The framebuffer is not complete. Status: 0x%.4X", status);
-    }
-
-    // Unbind.
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // Add to map.
-    frame_buffer_map_.emplace(c.handle, fb_data);
-}
-
-void GLRenderContext::operator()(const cmd::DeleteFrameBuffer& c) {
-    // TODO: unimplemented.
+void GLRenderContext::startRendering() {
+    glfwMakeContextCurrent(window_);
 }
 
 void GLRenderContext::processCommandList(Vector<RenderCommand>& command_list) {
+    assert(window_);
     for (auto& command : command_list) {
         VariantApplyVisitor(*this, command);
     }
 }
 
 bool GLRenderContext::frame(const Vector<View>& views) {
-    // Pump window messages.
-    glfwPollEvents();
-    if (glfwWindowShouldClose(window_) != 0) {
-        return false;
-    }
+    assert(window_);
 
     // Process views.
     for (auto& v : views) {
@@ -423,14 +229,76 @@ bool GLRenderContext::frame(const Vector<View>& views) {
         // Set up view.
         glClearColor(v.clear_colour.r(), v.clear_colour.g(), v.clear_colour.b(),
                      v.clear_colour.a());
-        glEnable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Render items.
         for (uint i = 0; i < v.render_items.size(); ++i) {
             auto* previous = i > 0 ? &v.render_items[i - 1] : nullptr;
             auto* current = &v.render_items[i];
+
+            // Update render state.
+            static HashMap<BlendEquation, GLenum> blend_equation_map = {
+                {BlendEquation::Add, GL_FUNC_ADD},
+                {BlendEquation::Subtract, GL_FUNC_SUBTRACT},
+                {BlendEquation ::ReverseSubtract, GL_FUNC_REVERSE_SUBTRACT},
+                {BlendEquation::Min, GL_MIN},
+                {BlendEquation::Max, GL_MAX}};
+            static HashMap<BlendFunc, GLenum> blend_func_map = {
+                {BlendFunc::Zero, GL_ZERO},
+                {BlendFunc::One, GL_ONE},
+                {BlendFunc::SrcColor, GL_SRC_COLOR},
+                {BlendFunc::OneMinusSrcColor, GL_ONE_MINUS_SRC_COLOR},
+                {BlendFunc::DstColor, GL_DST_COLOR},
+                {BlendFunc::OneMinusDstColor, GL_ONE_MINUS_DST_COLOR},
+                {BlendFunc::SrcAlpha, GL_SRC_ALPHA},
+                {BlendFunc::OneMinusSrcAlpha, GL_ONE_MINUS_SRC_ALPHA},
+                {BlendFunc::DstAlpha, GL_DST_ALPHA},
+                {BlendFunc::OneMinusDstAlpha, GL_ONE_MINUS_DST_ALPHA},
+                {BlendFunc::ConstantColor, GL_CONSTANT_COLOR},
+                {BlendFunc::OneMinusConstantColor, GL_ONE_MINUS_CONSTANT_COLOR},
+                {BlendFunc::ConstantAlpha, GL_CONSTANT_ALPHA},
+                {BlendFunc::OneMinusConstantAlpha, GL_ONE_MINUS_CONSTANT_ALPHA},
+                {BlendFunc::SrcAlphaSaturate, GL_SRC_ALPHA_SATURATE},
+            };
+            if (!previous || previous->cull_face_enabled != current->cull_face_enabled) {
+                if (current->cull_face_enabled) {
+                    glEnable(GL_CULL_FACE);
+                } else {
+                    glDisable(GL_CULL_FACE);
+                }
+            }
+            if (!previous || previous->cull_front_face != current->cull_front_face) {
+                glFrontFace(current->cull_front_face == CullFrontFace::CCW ? GL_CCW : GL_CW);
+            }
+            if (!previous || previous->depth_enabled != current->depth_enabled) {
+                if (current->depth_enabled) {
+                    glEnable(GL_DEPTH_TEST);
+                } else {
+                    glDisable(GL_DEPTH_TEST);
+                }
+            }
+            if (!previous || previous->blend_enabled != current->blend_enabled) {
+                if (current->blend_enabled) {
+                    glEnable(GL_BLEND);
+                } else {
+                    glDisable(GL_BLEND);
+                }
+            }
+            if (!previous || previous->blend_equation_rgb != current->blend_equation_rgb ||
+                previous->blend_equation_a != current->blend_equation_a) {
+                glBlendEquationSeparate(blend_equation_map.at(current->blend_equation_rgb),
+                                        blend_equation_map.at(current->blend_equation_a));
+            }
+            if (!previous || previous->blend_src_rgb != current->blend_src_rgb ||
+                previous->blend_src_a != current->blend_src_a ||
+                previous->blend_dest_rgb != current->blend_dest_rgb ||
+                previous->blend_dest_a != current->blend_dest_a) {
+                glBlendFuncSeparate(blend_func_map.at(current->blend_src_rgb),
+                                    blend_func_map.at(current->blend_dest_rgb),
+                                    blend_func_map.at(current->blend_src_a),
+                                    blend_func_map.at(current->blend_dest_a));
+            }
 
             // Bind VAO.
             if (!previous || previous->vb != current->vb) {
@@ -515,6 +383,219 @@ bool GLRenderContext::frame(const Vector<View>& views) {
 
     // Continue rendering.
     return true;
+}
+
+void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
+    // Create vertex array object.
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // Create vertex buffer object.
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, c.data.size(), c.data.data(), GL_STATIC_DRAW);
+    GL_CHECK();
+
+    // Set up vertex array attributes.
+    static HashMap<VertexDecl::AttributeType, GLenum> attribute_type_map = {
+        {VertexDecl::AttributeType::Float, GL_FLOAT},
+        {VertexDecl::AttributeType::Uint8, GL_UNSIGNED_BYTE}};
+    u16 attrib_counter = 0;
+    for (auto& attrib : c.decl.attributes_) {
+        // Decode attribute.
+        VertexDecl::Attribute attribute;
+        uint count;
+        VertexDecl::AttributeType type;
+        bool normalised;
+        VertexDecl::decodeAttributes(attrib.first, attribute, count, type, normalised);
+
+        // Convert type.
+        auto gl_type = attribute_type_map.find(type);
+        if (gl_type == attribute_type_map.end()) {
+            log().warn("[CreateVertexBuffer] Unknown attribute type: %i", (uint)type);
+            continue;
+        }
+
+        log().debug("[CreateVertexBuffer] Attrib %s: Count='%s' Type='%s' Stride='%s' Offset='%s'",
+                    attrib_counter, count, static_cast<int>(gl_type->first), c.decl.stride_,
+                    reinterpret_cast<intptr_t>(attrib.second));
+
+        // Set attribute.
+        glEnableVertexAttribArray(attrib_counter);
+        glVertexAttribPointer(attrib_counter, count, gl_type->second,
+                              static_cast<GLboolean>(normalised ? GL_TRUE : GL_FALSE),
+                              c.decl.stride_, attrib.second);
+        attrib_counter++;
+    }
+    vertex_buffer_map_.emplace(c.handle, vao);
+}
+
+void GLRenderContext::operator()(const cmd::DeleteVertexBuffer& c) {
+    // TODO: implement.
+}
+
+void GLRenderContext::operator()(const cmd::CreateIndexBuffer& c) {
+    // Create element buffer object.
+    GLuint ebo;
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, c.data.size(), c.data.data(), GL_STATIC_DRAW);
+    GL_CHECK();
+
+    index_buffer_map_.emplace(
+        c.handle, IndexBufferData{
+                      ebo, static_cast<GLenum>(c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT
+                                                                              : GL_UNSIGNED_INT)});
+}
+
+void GLRenderContext::operator()(const cmd::DeleteIndexBuffer& c) {
+    // TODO: implement.
+}
+
+void GLRenderContext::operator()(const cmd::CreateShader& c) {
+    static HashMap<ShaderType, GLenum> shader_type_map = {
+        {ShaderType::Vertex, GL_VERTEX_SHADER},
+        {ShaderType::Geometry, GL_GEOMETRY_SHADER},
+        {ShaderType::Fragment, GL_FRAGMENT_SHADER}};
+    GLuint shader = glCreateShader(shader_type_map.at(c.type));
+    const char* source[] = {c.source.c_str()};
+    glShaderSource(shader, 1, source, nullptr);
+    glCompileShader(shader);
+
+    // Check compilation result.
+    GLint result;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
+    if (result == GL_FALSE) {
+        int infoLogLength;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+        char* errorMessage = new char[infoLogLength];
+        glGetShaderInfoLog(shader, infoLogLength, NULL, errorMessage);
+        log().error("[CreateShader] Shader Compile Error: %s", errorMessage);
+        delete[] errorMessage;
+
+        // TODO: Error
+    }
+
+    shader_map_.emplace(c.handle, shader);
+}
+
+void GLRenderContext::operator()(const cmd::DeleteShader& c) {
+    auto it = shader_map_.find(c.handle);
+    glDeleteShader(it->second);
+    shader_map_.erase(it);
+}
+
+void GLRenderContext::operator()(const cmd::CreateProgram& c) {
+    ProgramData program_data;
+    program_data.program = glCreateProgram();
+    program_map_.emplace(c.handle, program_data);
+}
+
+void GLRenderContext::operator()(const cmd::AttachShader& c) {
+    glAttachShader(program_map_[c.handle].program, shader_map_[c.shader_handle]);
+}
+
+void GLRenderContext::operator()(const cmd::LinkProgram& c) {
+    GLuint program = program_map_[c.handle].program;
+    glLinkProgram(program);
+
+    // Check the result of the link process.
+    GLint result = GL_FALSE;
+    glGetProgramiv(program, GL_LINK_STATUS, &result);
+    if (result == GL_FALSE) {
+        int infoLogLength;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
+        char* errorMessage = new char[infoLogLength];
+        glGetProgramInfoLog(program, infoLogLength, NULL, errorMessage);
+        log().error("[LinkProgram] Shader Link Error: %s", errorMessage);
+        delete[] errorMessage;
+    }
+}
+
+void GLRenderContext::operator()(const cmd::DeleteProgram& c) {
+    auto it = program_map_.find(c.handle);
+    if (it != program_map_.end()) {
+        glDeleteProgram(it->second.program);
+        program_map_.erase(it);
+    } else {
+        log().error("[DeleteProgram] Unable to find program with handle %s", c.handle.internal());
+    }
+}
+
+void GLRenderContext::operator()(const cmd::CreateTexture2D& c) {
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // Filtering.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Give image data to OpenGL.
+    TextureFormatInfo format = s_texture_format[static_cast<int>(c.format)];
+    log().debug(
+        "[CreateTexture2D] format %s - internal fmt: 0x%.4X - internal fmt srgb: 0x%.4X "
+        "- fmt: 0x%.4X - type: 0x%.4X",
+        static_cast<u32>(c.format), format.internal_format, format.internal_format_srgb,
+        format.format, format.type);
+    glTexImage2D(GL_TEXTURE_2D, 0, format.internal_format, c.width, c.height, 0, format.format,
+                 format.type, c.data.data());
+    GL_CHECK();
+
+    // Add texture.
+    texture_map_.emplace(c.handle, texture);
+}
+
+void GLRenderContext::operator()(const cmd::DeleteTexture& c) {
+    auto it = texture_map_.find(c.handle);
+    glDeleteTextures(1, &it->second);
+    texture_map_.erase(it);
+}
+
+void GLRenderContext::operator()(const cmd::CreateFrameBuffer& c) {
+    FrameBufferData fb_data;
+    fb_data.textures = c.textures;
+
+    glGenFramebuffers(1, &fb_data.frame_buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb_data.frame_buffer);
+
+    // Bind colour buffers.
+    Vector<GLenum> draw_buffers;
+    u8 attachment = 0;
+    for (auto texture : fb_data.textures) {
+        auto gl_texture = texture_map_.find(texture);
+        assert(gl_texture != texture_map_.end());
+        draw_buffers.emplace_back(GL_COLOR_ATTACHMENT0 + attachment++);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, draw_buffers.back(), GL_TEXTURE_2D,
+                               gl_texture->second, 0);
+    }
+    glDrawBuffers(static_cast<GLsizei>(draw_buffers.size()), draw_buffers.data());
+
+    // Create depth buffer.
+    glGenRenderbuffers(1, &fb_data.depth_render_buffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, fb_data.depth_render_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, c.width, c.height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+                              fb_data.depth_render_buffer);
+
+    // Check frame buffer status.
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        log().error("[CreateFrameBuffer] The framebuffer is not complete. Status: 0x%.4X", status);
+    }
+
+    // Unbind.
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Add to map.
+    frame_buffer_map_.emplace(c.handle, fb_data);
+}
+
+void GLRenderContext::operator()(const cmd::DeleteFrameBuffer& c) {
+    // TODO: unimplemented.
 }
 
 }  // namespace dw

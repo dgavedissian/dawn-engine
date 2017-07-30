@@ -1,4 +1,4 @@
-#version 330
+#version 330 core
 
 in vec3 WorldPosition;
 in vec2 TexCoord;
@@ -16,12 +16,13 @@ layout(location = 1) out vec4 gb1;
 layout(location = 2) out vec4 gb2;
 
 uniform vec3 light_direction;
+uniform vec2 texcoord_scale;
 
 uniform sampler2D wall_sampler;
 
 void main()
 {
-    vec4 diffuse = texture(wall_sampler, TexCoord);
+    vec4 diffuse = texture(wall_sampler, TexCoord * texcoord_scale);
     gb0.rgb = diffuse.rgb;
     gb1.rgb = WorldPosition;
     gb2.rgb = normalize(Normal);

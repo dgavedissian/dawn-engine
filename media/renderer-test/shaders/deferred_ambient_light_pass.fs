@@ -14,7 +14,7 @@ uniform sampler2D gb0_sampler;
 uniform sampler2D gb1_sampler;
 uniform sampler2D gb2_sampler;
 
-uniform vec3 light_direction;
+uniform vec3 ambient_light;
 
 void main()
 {
@@ -28,5 +28,9 @@ void main()
     vec3 normal = gb2.xyz;
 
     // Render directional light.
-    outColor = vec4(clamp(dot(normal, light_direction), 0.0, 1.0) * diffuse, 1.0);
+    if (diffuse.rgb == vec3(0.0, 0.0, 0.0)) {
+        outColor = vec4(diffuse, 1.0);
+    } else {
+        outColor = vec4(diffuse * ambient_light, 1.0);
+    }
 }

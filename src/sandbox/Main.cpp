@@ -56,7 +56,7 @@ public:
             makeShared<Program>(context(), rc->get<Shader>("shaders/bin/sphere.vs"),
                                 rc->get<Shader>("shaders/bin/sphere.fs"));
         node->setRenderable(
-            MeshBuilder(context()).withNormals(false).withTexcoords(false).createSphere(10.0f));
+            MeshBuilder(context()).normals(false).normals(false).createSphere(10.0f));
         node->renderable()->setMaterial(material);
 
         auto sm = subsystem<SystemManager>();
