@@ -57,7 +57,7 @@ private:
 #define TEST_CLASS_NAME(test_name) test_name##Test
 #define TEST_CLASS(test_name) class TEST_CLASS_NAME(test_name) : public Object
 #define TEST_BODY(test_name)                                                    \
-                                                                                \
+    \
 public:                                                                         \
     DW_OBJECT(TEST_CLASS_NAME(test_name));                                      \
     TEST_CLASS_NAME(test_name)                                                  \
@@ -368,8 +368,7 @@ TEST_CLASS(DeferredShading) {
     public:
         DW_OBJECT(PointLight);
 
-        PointLight(Context* ctx, float radius)
-            : Object{ctx}, light_sphere_radius_{radius * 4} {
+        PointLight(Context* ctx, float radius) : Object{ctx}, light_sphere_radius_{radius * 4} {
             auto* r = subsystem<Renderer>();
 
             // Load shaders.
@@ -390,7 +389,7 @@ TEST_CLASS(DeferredShading) {
             r->setUniform("radius", radius);
             r->submit(0, program_);
             sphere_ = MeshBuilder{context_}.normals(false).texcoords(false).createSphere(
-                    light_sphere_radius_, 8, 8);
+                light_sphere_radius_, 8, 8);
         }
 
         ~PointLight() {
@@ -509,7 +508,8 @@ TEST_CLASS(DeferredShading) {
         r->setViewFrameBuffer(1, FrameBufferHandle{0});
 
         // Calculate matrices.
-        Mat4 model = Mat4::Translate(Vec3{0.0f, -10.0f, 0.0f}).ToFloat4x4() * Mat4::RotateX(math::pi * -0.5f);
+        Mat4 model = Mat4::Translate(Vec3{0.0f, -10.0f, 0.0f}).ToFloat4x4() *
+                     Mat4::RotateX(math::pi * -0.5f);
         static Mat4 view = Mat4::Translate(Vec3{0.0f, 0.0f, 50.0f}).ToFloat4x4().Inverted();
         static Mat4 proj =
             util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(WIDTH) / HEIGHT);
@@ -536,7 +536,8 @@ TEST_CLASS(DeferredShading) {
         int light_counter = 0;
         for (int x = -3; x <= 3; x++) {
             for (int z = -3; z <= 3; z++) {
-                point_lights[light_counter]->setPosition(Vec3(x * 20.0f + sin(angle) * 10.0f, -8.0f, z * 20.0f - 30.0f + cos(angle) * 10.0f));
+                point_lights[light_counter]->setPosition(Vec3(
+                    x * 20.0f + sin(angle) * 10.0f, -8.0f, z * 20.0f - 30.0f + cos(angle) * 10.0f));
                 r->setTexture(r->getFrameBufferTexture(gbuffer_, 0), 0);
                 r->setTexture(r->getFrameBufferTexture(gbuffer_, 1), 1);
                 r->setTexture(r->getFrameBufferTexture(gbuffer_, 2), 2);

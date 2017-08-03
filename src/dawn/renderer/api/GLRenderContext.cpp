@@ -178,6 +178,9 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
     log().info("OpenGL: %s - GLSL: %s", glGetString(GL_VERSION),
                glGetString(GL_SHADING_LANGUAGE_VERSION));
     log().info("OpenGL Renderer: %s", glGetString(GL_RENDERER));
+
+    // Hand off context to render thread.
+    glfwMakeContextCurrent(nullptr);
 }
 
 void GLRenderContext::destroyWindow() {
@@ -241,7 +244,7 @@ bool GLRenderContext::frame(const Vector<View>& views) {
             static HashMap<BlendEquation, GLenum> blend_equation_map = {
                 {BlendEquation::Add, GL_FUNC_ADD},
                 {BlendEquation::Subtract, GL_FUNC_SUBTRACT},
-                {BlendEquation ::ReverseSubtract, GL_FUNC_REVERSE_SUBTRACT},
+                {BlendEquation::ReverseSubtract, GL_FUNC_REVERSE_SUBTRACT},
                 {BlendEquation::Min, GL_MIN},
                 {BlendEquation::Max, GL_MAX}};
             static HashMap<BlendFunc, GLenum> blend_func_map = {
@@ -460,6 +463,10 @@ void GLRenderContext::operator()(const cmd::CreateShader& c) {
         {ShaderType::Geometry, GL_GEOMETRY_SHADER},
         {ShaderType::Fragment, GL_FRAGMENT_SHADER}};
     GLuint shader = glCreateShader(shader_type_map.at(c.type));
+    if (shader == 0) {
+        GL_CHECK();
+        // TODO: an error occurred.
+    }
     const char* source[] = {c.source.c_str()};
     glShaderSource(shader, 1, source, nullptr);
     glCompileShader(shader);
@@ -468,13 +475,13 @@ void GLRenderContext::operator()(const cmd::CreateShader& c) {
     GLint result;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
     if (result == GL_FALSE) {
-        int infoLogLength;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
+        int info_log_length;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &info_log_length);
 
-        char* errorMessage = new char[infoLogLength];
-        glGetShaderInfoLog(shader, infoLogLength, NULL, errorMessage);
-        log().error("[CreateShader] Shader Compile Error: %s", errorMessage);
-        delete[] errorMessage;
+        char* error_message = new char[info_log_length];
+        glGetShaderInfoLog(shader, info_log_length, NULL, error_message);
+        log().error("[CreateShader] Shader Compile Error: %s", error_message);
+        delete[] error_message;
 
         // TODO: Error
     }
@@ -495,23 +502,23 @@ void GLRenderContext::operator()(const cmd::CreateProgram& c) {
 }
 
 void GLRenderContext::operator()(const cmd::AttachShader& c) {
-    glAttachShader(program_map_[c.handle].program, shader_map_[c.shader_handle]);
+    glAttachShader(program_map_.at(c.handle).program, shader_map_.at(c.shader_handle));
 }
 
 void GLRenderContext::operator()(const cmd::LinkProgram& c) {
-    GLuint program = program_map_[c.handle].program;
+    GLuint program = program_map_.at(c.handle).program;
     glLinkProgram(program);
 
     // Check the result of the link process.
     GLint result = GL_FALSE;
     glGetProgramiv(program, GL_LINK_STATUS, &result);
     if (result == GL_FALSE) {
-        int infoLogLength;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
-        char* errorMessage = new char[infoLogLength];
-        glGetProgramInfoLog(program, infoLogLength, NULL, errorMessage);
-        log().error("[LinkProgram] Shader Link Error: %s", errorMessage);
-        delete[] errorMessage;
+        int info_log_length;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &info_log_length);
+        char* error_message = new char[info_log_length];
+        glGetProgramInfoLog(program, info_log_length, NULL, error_message);
+        log().error("[LinkProgram] Shader Link Error: %s", error_message);
+        delete[] error_message;
     }
 }
 
