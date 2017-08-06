@@ -75,6 +75,9 @@ public:
     /// Save the configuration.
     void saveConfig(const String& configFile);
 
+    /// Set the default configuration.
+    void setDefaultConfig();
+
     /// Get the base path of the application.
     const String& basePath() const;
 

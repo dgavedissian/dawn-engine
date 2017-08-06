@@ -11,8 +11,6 @@ namespace dw {
 int runApp(UniquePtr<App> app, int argc, char** argv) {
     // TODO(David) Load config.
 
-    int returnCode = EXIT_SUCCESS;
-
     dw::Engine engine{app->gameName(), app->gameVersion()};
     engine.setup();
 
@@ -26,6 +24,6 @@ int runApp(UniquePtr<App> app, int argc, char** argv) {
 
     engine.shutdown();
 
-    return returnCode;
+    return EXIT_SUCCESS;
 }
 }  // namespace dw

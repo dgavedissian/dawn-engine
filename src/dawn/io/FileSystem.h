@@ -15,7 +15,7 @@ public:
     ~FileSystem();
 
     bool setWorkingDir(const Path& path) const;
-    Path getWorkingDir() const;
+    Path workingDir() const;
     Path tempDir() const;
 
     bool fileExists(const Path& path) const;

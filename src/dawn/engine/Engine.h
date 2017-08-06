@@ -47,7 +47,7 @@ private:
     String config_file_;
 
     void printSystemInfo();
-    String getBasePath() const;
+    String basePath() const;
     void update(float dt);
     void preRender(Camera* camera);
     void handleEvent(EventDataPtr eventData);

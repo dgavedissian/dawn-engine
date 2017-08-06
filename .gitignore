@@ -17,3 +17,6 @@ cmake-build-debug
 # OS junk files
 [Tt]humbs.db
 *.DS_Store
+
+# clang-format temp files - currently an upstream bug
+*.TMP

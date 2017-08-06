@@ -52,6 +52,11 @@ void Context::saveConfig(const String& configFile) {
     stream::write(outFile, config_.dump(4));
 }
 
+void Context::setDefaultConfig() {
+    config_["window_width"] = 1280;
+    config_["window_height"] = 800;
+}
+
 const String& Context::basePath() const {
     return base_path_;
 }

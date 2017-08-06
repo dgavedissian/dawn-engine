@@ -8,9 +8,6 @@
 
 using namespace dw;
 
-#define WIDTH 1280
-#define HEIGHT 800
-
 template <typename T> class Example : public App {
 public:
     DW_OBJECT(Example<T>);
@@ -64,6 +61,12 @@ public:                                                                         
     (Context * context, const Engine* engine)                                   \
         : Object{context}, r{context->subsystem<Renderer>()}, engine_{engine} { \
     }                                                                           \
+    u16 width() const {                                                         \
+        return context()->config().at("window_width").get<u16>();               \
+    }                                                                           \
+    u16 height() const {                                                        \
+        return context()->config().at("window_height").get<u16>();              \
+    }                                                                           \
     Renderer* r;                                                                \
     const Engine* engine_
 #define TEST_IMPLEMENT_MAIN(test_name) DW_IMPLEMENT_MAIN(Example<TEST_CLASS_NAME(test_name)>)
@@ -93,6 +96,12 @@ uint createFullscreenQuad(Renderer* r, VertexBufferHandle& vb) {
     vb = r->createVertexBuffer(vertices, sizeof(vertices), decl);
     return 3;
 }
+
+ShaderHandle loadShader(Context* ctx, ShaderType type, const String& source_file) {
+    File file{ctx, source_file};
+    String source = dw::stream::read<String>(file);
+    return ctx->subsystem<Renderer>()->createShader(type, source);
+}
 }  // namespace util
 
 TEST_CLASS(BasicVertexBuffer) {
@@ -105,13 +114,8 @@ TEST_CLASS(BasicVertexBuffer) {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        File vs_file{context(), "shaders/test.vs"};
-        String vs_source = dw::stream::read<String>(vs_file);
-        File fs_file{context(), "shaders/test.fs"};
-        String fs_source = dw::stream::read<String>(fs_file);
-
-        auto vs = r->createShader(ShaderType::Vertex, vs_source);
-        auto fs = r->createShader(ShaderType::Fragment, fs_source);
+        auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/test.vs");
+        auto fs = util::loadShader(context(), ShaderType::Fragment, "shaders/test.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -159,13 +163,8 @@ TEST_CLASS(BasicIndexBuffer) {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        File vs_file{context(), "shaders/test.vs"};
-        String vs_source = dw::stream::read<String>(vs_file);
-        File fs_file{context(), "shaders/test.fs"};
-        String fs_source = dw::stream::read<String>(fs_file);
-
-        auto vs = r->createShader(ShaderType::Vertex, vs_source);
-        auto fs = r->createShader(ShaderType::Fragment, fs_source);
+        auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/test.vs");
+        auto fs = util::loadShader(context(), ShaderType::Fragment, "shaders/test.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -213,13 +212,8 @@ TEST_CLASS(Textured3DCube) {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        File vs_file{context(), "shaders/cube_textured.vs"};
-        String vs_source = dw::stream::read<String>(vs_file);
-        File fs_file{context(), "shaders/cube_textured.fs"};
-        String fs_source = dw::stream::read<String>(fs_file);
-
-        auto vs = r->createShader(ShaderType::Vertex, vs_source);
-        auto fs = r->createShader(ShaderType::Fragment, fs_source);
+        auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/cube_textured.vs");
+        auto fs = util::loadShader(context(), ShaderType::Fragment, "shaders/cube_textured.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -244,7 +238,7 @@ TEST_CLASS(Textured3DCube) {
         Mat4 model = Mat4::Translate(Vec3{0.0f, 0.0f, -50.0f}).ToFloat4x4() * Mat4::RotateY(angle);
         static Mat4 view = Mat4::identity;
         static Mat4 proj =
-            util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(WIDTH) / HEIGHT);
+            util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(width()) / height());
         r->setUniform("model_matrix", model);
         r->setUniform("mvp_matrix", proj * view * model);
         r->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
@@ -277,13 +271,8 @@ TEST_CLASS(PostProcessing) {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        File vs_file{context(), "shaders/cube_solid.vs"};
-        String vs_source = dw::stream::read<String>(vs_file);
-        File fs_file{context(), "shaders/cube_solid.fs"};
-        String fs_source = dw::stream::read<String>(fs_file);
-
-        auto vs = r->createShader(ShaderType::Vertex, vs_source);
-        auto fs = r->createShader(ShaderType::Fragment, fs_source);
+        auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/cube_solid.vs");
+        auto fs = util::loadShader(context(), ShaderType::Fragment, "shaders/cube_solid.fs");
         box_program_ = r->createProgram();
         r->attachShader(box_program_, vs);
         r->attachShader(box_program_, fs);
@@ -299,12 +288,8 @@ TEST_CLASS(PostProcessing) {
         fb_handle_ = r->createFrameBuffer(1280, 800, TextureFormat::RGB8);
 
         // Load post process shader.
-        File pp_vs_file{context(), "shaders/post_process.vs"};
-        String pp_vs_source = dw::stream::read<String>(pp_vs_file);
-        File pp_fs_file{context(), "shaders/post_process.fs"};
-        String pp_fs_source = dw::stream::read<String>(pp_fs_file);
-        auto pp_vs = r->createShader(ShaderType::Vertex, pp_vs_source);
-        auto pp_fs = r->createShader(ShaderType::Fragment, pp_fs_source);
+        auto pp_vs = util::loadShader(context(), ShaderType::Vertex, "shaders/post_process.vs");
+        auto pp_fs = util::loadShader(context(), ShaderType::Fragment, "shaders/post_process.fs");
         post_process_ = r->createProgram();
         r->attachShader(post_process_, pp_vs);
         r->attachShader(post_process_, pp_fs);
@@ -320,7 +305,7 @@ TEST_CLASS(PostProcessing) {
         Mat4 model = Mat4::Translate(Vec3{0.0f, 0.0f, -50.0f}).ToFloat4x4() * Mat4::RotateY(angle);
         static Mat4 view = Mat4::identity;
         static Mat4 proj =
-            util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(WIDTH) / HEIGHT);
+            util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(width()) / height());
         r->setUniform("model_matrix", model);
         r->setUniform("mvp_matrix", proj * view * model);
         r->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
@@ -368,21 +353,17 @@ TEST_CLASS(DeferredShading) {
     public:
         DW_OBJECT(PointLight);
 
-        PointLight(Context* ctx, float radius) : Object{ctx}, light_sphere_radius_{radius * 4} {
-            auto* r = subsystem<Renderer>();
-
+        PointLight(Context* ctx, float radius, const Vec2& screen_size)
+            : Object{ctx}, light_sphere_radius_{radius * 4}, r{subsystem<Renderer>()} {
             // Load shaders.
-            File vs_file{context(), "shaders/light_pass.vs"};
-            String vs_source = dw::stream::read<String>(vs_file);
-            File fs_file{context(), "shaders/point_light_pass.fs"};
-            String fs_source = dw::stream::read<String>(fs_file);
-            auto vs = r->createShader(ShaderType::Vertex, vs_source);
-            auto fs = r->createShader(ShaderType::Fragment, fs_source);
+            auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/light_pass.vs");
+            auto fs =
+                util::loadShader(context(), ShaderType::Fragment, "shaders/point_light_pass.fs");
             program_ = r->createProgram();
             r->attachShader(program_, vs);
             r->attachShader(program_, fs);
             r->linkProgram(program_);
-            r->setUniform("screen_size", {WIDTH, HEIGHT});
+            r->setUniform("screen_size", screen_size);
             r->setUniform("gb0", 0);
             r->setUniform("gb1", 1);
             r->setUniform("gb2", 2);
@@ -403,7 +384,6 @@ TEST_CLASS(DeferredShading) {
 
         void draw(uint view, const Mat4& view_matrix, const Mat4& proj_matrix) {
             Mat4 mvp = proj_matrix * view_matrix * model_;
-            auto* r = subsystem<Renderer>();
 
             // Invert culling when inside the light sphere.
             Vec3 view_space_position = (view_matrix * Vec4(position_, 1.0f)).xyz();
@@ -425,6 +405,7 @@ TEST_CLASS(DeferredShading) {
         }
 
     private:
+        Renderer* r;
         SharedPtr<CustomMesh> sphere_;
         ProgramHandle program_;
 
@@ -440,13 +421,8 @@ TEST_CLASS(DeferredShading) {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        File vs_file{context(), "shaders/object_gbuffer.vs"};
-        String vs_source = dw::stream::read<String>(vs_file);
-        File fs_file{context(), "shaders/object_gbuffer.fs"};
-        String fs_source = dw::stream::read<String>(fs_file);
-
-        auto vs = r->createShader(ShaderType::Vertex, vs_source);
-        auto fs = r->createShader(ShaderType::Fragment, fs_source);
+        auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/object_gbuffer.vs");
+        auto fs = util::loadShader(context(), ShaderType::Fragment, "shaders/object_gbuffer.fs");
         cube_program_ = r->createProgram();
         r->attachShader(cube_program_, vs);
         r->attachShader(cube_program_, fs);
@@ -468,19 +444,16 @@ TEST_CLASS(DeferredShading) {
         util::createFullscreenQuad(r, fsq_vb_);
 
         // Set up frame buffer.
-        u16 width = 1280, height = 800;
         auto format = TextureFormat::RGBA32F;
-        gbuffer_ = r->createFrameBuffer({r->createTexture2D(width, height, format, nullptr, 0),
-                                         r->createTexture2D(width, height, format, nullptr, 0),
-                                         r->createTexture2D(width, height, format, nullptr, 0)});
+        gbuffer_ =
+            r->createFrameBuffer({r->createTexture2D(width(), height(), format, nullptr, 0),
+                                  r->createTexture2D(width(), height(), format, nullptr, 0),
+                                  r->createTexture2D(width(), height(), format, nullptr, 0)});
 
         // Load post process shader.
-        File pp_vs_file{context(), "shaders/post_process.vs"};
-        String pp_vs_source = dw::stream::read<String>(pp_vs_file);
-        File pp_fs_file{context(), "shaders/deferred_ambient_light_pass.fs"};
-        String pp_fs_source = dw::stream::read<String>(pp_fs_file);
-        auto pp_vs = r->createShader(ShaderType::Vertex, pp_vs_source);
-        auto pp_fs = r->createShader(ShaderType::Fragment, pp_fs_source);
+        auto pp_vs = util::loadShader(context(), ShaderType::Vertex, "shaders/post_process.vs");
+        auto pp_fs = util::loadShader(context(), ShaderType::Fragment,
+                                      "shaders/deferred_ambient_light_pass.fs");
         post_process_ = r->createProgram();
         r->attachShader(post_process_, pp_vs);
         r->attachShader(post_process_, pp_fs);
@@ -494,7 +467,9 @@ TEST_CLASS(DeferredShading) {
         // Lights.
         for (int x = -3; x <= 3; x++) {
             for (int z = -3; z <= 3; z++) {
-                point_lights.emplace_back(makeUnique<PointLight>(context(), 10.0f));
+                point_lights.emplace_back(makeUnique<PointLight>(
+                    context(), 10.0f,
+                    Vec2{static_cast<float>(width()), static_cast<float>(height())}));
                 point_lights.back()->setPosition(Vec3(x * 30.0f, -9.0f, z * 30.0f - 40.0f));
             }
         }
@@ -512,7 +487,7 @@ TEST_CLASS(DeferredShading) {
                      Mat4::RotateX(math::pi * -0.5f);
         static Mat4 view = Mat4::Translate(Vec3{0.0f, 0.0f, 50.0f}).ToFloat4x4().Inverted();
         static Mat4 proj =
-            util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(WIDTH) / HEIGHT);
+            util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(width()) / height());
         r->setUniform("model_matrix", model);
         r->setUniform("mvp_matrix", proj * view * model);
 
