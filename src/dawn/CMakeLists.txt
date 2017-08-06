@@ -74,6 +74,7 @@ set(SOURCE_FILES
     renderer/CustomMesh.h
     renderer/EntityRenderer.cpp
     renderer/EntityRenderer.h
+    renderer/GLSL.h
     renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h
     renderer/Material.cpp
@@ -92,6 +93,7 @@ set(SOURCE_FILES
     renderer/RenderTask.h
     renderer/Shader.cpp
     renderer/Shader.h
+    renderer/SPIRV.h
 	renderer/StbImage.h
     renderer/Texture.cpp
     renderer/Texture.h

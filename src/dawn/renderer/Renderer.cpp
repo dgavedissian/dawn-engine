@@ -5,6 +5,7 @@
 #include "Common.h"
 #include "renderer/Renderer.h"
 #include "renderer/api/GLRenderContext.h"
+#include "renderer/GLSL.h"
 
 namespace dw {
 Memory::Memory() : Memory{nullptr, 0} {
@@ -93,9 +94,11 @@ Renderer::Renderer(Context* context)
       shared_frame_barrier_{2},
       submit_{&frames_[0]},
       render_{&frames_[1]} {
+    glslang::InitializeProcess();
 }
 
 Renderer::~Renderer() {
+    glslang::FinalizeProcess();
     if (!shared_rt_finished_) {
         // Flag to the render thread that it should exit.
         shared_rt_should_exit_ = true;

@@ -179,6 +179,12 @@ add_subdirectory(glfw EXCLUDE_FROM_ALL)
 target_include_directories(glfw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
 set(LIBS ${LIBS} glfw)
 
+# glslang
+set(SKIP_GLSLANG_INSTALL ON CACHE BOOL "" FORCE)
+add_subdirectory(glslang EXCLUDE_FROM_ALL)
+target_include_directories(glslang PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glslang/glslang/Public ${CMAKE_CURRENT_SOURCE_DIR}/glslang/SPIRV)
+set(LIBS ${LIBS} glslang SPIRV)
+
 # gtest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory(gtest EXCLUDE_FROM_ALL)
@@ -200,6 +206,11 @@ set(LIBS ${LIBS} json)
 add_library(sol INTERFACE)
 target_include_directories(sol INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/sol)
 set(LIBS ${LIBS} sol)
+
+# SPIRV-Cross
+add_subdirectory(SPIRV-Cross EXCLUDE_FROM_ALL)
+#target_include_directories(glfw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
+set(LIBS ${LIBS} spirv-cross-glsl spirv-cross-hlsl spirv-cross-msl)
 
 # stb_image
 add_library(stb_image INTERFACE)

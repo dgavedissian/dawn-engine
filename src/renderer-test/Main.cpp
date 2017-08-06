@@ -98,9 +98,13 @@ uint createFullscreenQuad(Renderer* r, VertexBufferHandle& vb) {
 }
 
 ShaderHandle loadShader(Context* ctx, ShaderType type, const String& source_file) {
+    static Vector<SharedPtr<Shader>> shader_map;
+    SharedPtr<Shader> shader = makeShared<Shader>(ctx, type);
     File file{ctx, source_file};
-    String source = dw::stream::read<String>(file);
-    return ctx->subsystem<Renderer>()->createShader(type, source);
+    shader->beginLoad(file);
+    shader->endLoad();
+    shader_map.emplace_back(shader);
+    return shader->internalHandle();
 }
 }  // namespace util
 

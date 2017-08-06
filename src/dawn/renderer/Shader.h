@@ -12,7 +12,7 @@ class DW_API Shader : public Resource {
 public:
     DW_OBJECT(Shader);
 
-    Shader(Context* context);
+    Shader(Context* context, ShaderType type);
     ~Shader();
 
     bool beginLoad(InputStream& src) override;
@@ -21,8 +21,7 @@ public:
     ShaderHandle internalHandle() const;
 
 private:
-    byte* src_data_;
-    u32 src_len_;
+    ShaderType type_;
     ShaderHandle handle_;
 };
 }  // namespace dw
