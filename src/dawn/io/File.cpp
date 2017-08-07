@@ -7,6 +7,8 @@
 
 #if DW_PLATFORM == DW_WIN32
 #include <io.h>
+#else
+#include <sys/stat.h>
 #endif
 
 namespace dw {

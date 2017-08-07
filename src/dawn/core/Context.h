@@ -22,7 +22,7 @@ using Json = nlohmann::json;
 /// also contains the engine and game configuration encoded as JSON.
 class DW_API Context {
 public:
-    Context(String basePath, String prefPath);
+    Context(String base_path, String pref_path);
     Context(Context& other) = delete;
     ~Context();
 
@@ -30,9 +30,9 @@ public:
     Context& operator=(const Context& other) = delete;
 
     /// Accesses a subsystem by type hash. Requires a downcast.
-    /// @param subsystemType Subsystem type hash.
+    /// @param subsystem_type Subsystem type hash.
     /// @return A pointer to the subsystem instance, or nullptr otherwise.
-    Object* subsystem(StringHash subsystemType) const;
+    Object* subsystem(StringHash subsystem_type) const;
 
     /// Adds a subsystem to this context.
     /// @param subsystem Subsystem instance.
@@ -40,8 +40,8 @@ public:
 
     /// Removes a subsystem contained within the context, calling the subsystems
     /// deconstructor.
-    /// @param subsystemType Subsystem type hash.
-    void removeSubsystem(StringHash subsystemType);
+    /// @param subsystem_type Subsystem type hash.
+    void removeSubsystem(StringHash subsystem_type);
 
     /// Clears all subsystems from this context. Equivalent to calling removeSubsystem on
     /// every subsystem.

@@ -103,7 +103,7 @@ void init_resources(TBuiltInResource& resources) {
     resources.limits.generalVariableIndexing = 1;
     resources.limits.generalConstantMatrixVectorIndexing = 1;
 }
-}
+}  // namespace
 
 namespace dw {
 Shader::Shader(Context* context, ShaderStage type) : Resource{context}, type_{type} {
@@ -159,14 +159,14 @@ bool Shader::beginLoad(InputStream& src) {
     handle_ = subsystem<Renderer>()->createShader(type_, spirv_out.data(),
                                                   spirv_out.size() * sizeof(u32));
 
-    // TEST: SPIR-V -> HLSL. For the hell of it.
-    {
-        spirv_cross::CompilerHLSL hlsl_out{spirv_out.data(), spirv_out.size()};
-        spirv_cross::CompilerHLSL::Options options;
-        hlsl_out.set_options(options);
-        String source = hlsl_out.compile();
-        log().info("Decompiled HLSL from SPIR-V: %s", source);
-    }
+    //    // TEST: SPIR-V -> HLSL. For the hell of it.
+    //    {
+    //        spirv_cross::CompilerHLSL hlsl_out{spirv_out.data(), spirv_out.size()};
+    //        spirv_cross::CompilerHLSL::Options options;
+    //        hlsl_out.set_options(options);
+    //        String source = hlsl_out.compile();
+    //        log().info("Decompiled HLSL from SPIR-V: %s", source);
+    //    }
 
     return true;
 }

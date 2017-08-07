@@ -6,14 +6,15 @@
 #include "io/File.h"
 
 namespace dw {
-Context::Context(String basePath, String prefPath) : base_path_{basePath}, pref_path_{prefPath} {
+Context::Context(String base_path, String pref_path)
+    : base_path_{base_path}, pref_path_{pref_path}, config_{Json::object()} {
 }
 
 Context::~Context() {
 }
 
-Object* Context::subsystem(StringHash subsystemType) const {
-    auto it = subsystems_.find(subsystemType);
+Object* Context::subsystem(StringHash subsystem_type) const {
+    auto it = subsystems_.find(subsystem_type);
     if (it != subsystems_.end()) {
         return (*it).second.get();
     }
@@ -26,8 +27,8 @@ Object* Context::addSubsystem(UniquePtr<Object> subsystem) {
     return subsystem_ptr;
 }
 
-void Context::removeSubsystem(StringHash subsystemType) {
-    subsystems_.erase(subsystemType);
+void Context::removeSubsystem(StringHash subsystem_type) {
+    subsystems_.erase(subsystem_type);
 }
 
 void Context::clearSubsystems() {

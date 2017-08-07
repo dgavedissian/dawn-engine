@@ -3,8 +3,9 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "renderer/api/GLRenderContext.h"
+#include "core/StringUtils.h"
 #include "renderer/SPIRV.h"
+#include "renderer/api/GLRenderContext.h"
 
 #define GL_CHECK() __CHECK(__FILE__, __LINE__)
 #define __CHECK(FILE, LINE)                                                        \
@@ -13,6 +14,7 @@
         if (err != 0) {                                                            \
             log().error("glGetError() returned 0x%.4X at %s:%s", err, FILE, LINE); \
             assert(false);                                                         \
+            abort();                                                               \
         }                                                                          \
     }
 
@@ -461,21 +463,8 @@ void GLRenderContext::operator()(const cmd::DeleteIndexBuffer& c) {
 void GLRenderContext::operator()(const cmd::CreateShader& c) {
     // Convert SPIR-V into GLSL.
     spirv_cross::CompilerGLSL glsl_out{reinterpret_cast<const u32*>(c.data.data()),
-                                       c.data.size() / sizeof u32};
+                                       c.data.size() / sizeof(u32)};
     spirv_cross::ShaderResources resources = glsl_out.get_shader_resources();
-
-    // Get all sampled images in the shader.
-    for (auto& resource : resources.sampled_images) {
-        unsigned set = glsl_out.get_decoration(resource.id, spv::DecorationDescriptorSet);
-        unsigned binding = glsl_out.get_decoration(resource.id, spv::DecorationBinding);
-        log().info("Image %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
-
-        // Modify the decoration to prepare it for GLSL.
-        glsl_out.unset_decoration(resource.id, spv::DecorationDescriptorSet);
-
-        // Some arbitrary remapping if we want.
-        glsl_out.set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
-    }
 
     // Compile to GLSL, ready to give to GL driver.
     spirv_cross::CompilerGLSL::Options options;
@@ -483,6 +472,10 @@ void GLRenderContext::operator()(const cmd::CreateShader& c) {
     options.es = false;
     glsl_out.set_options(options);
     String source = glsl_out.compile();
+
+    // Postprocess the GLSL to remove the 4.2 extension, which doesn't exist on macOS.
+    source = str::replace(source, "#extension GL_ARB_shading_language_420pack : require",
+                          "#extension GL_ARB_shading_language_420pack : disable");
     log().debug("Decompiled GLSL from SPIR-V: %s", source);
 
     // Compile shader.
