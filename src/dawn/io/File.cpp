@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "io/File.h"
 
-#ifdef DW_PLATFORM == DW_WIN32
+#if DW_PLATFORM == DW_WIN32
 #include <io.h>
 #endif
 

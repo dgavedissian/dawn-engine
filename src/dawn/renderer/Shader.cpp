@@ -7,7 +7,6 @@
 #include "renderer/Shader.h"
 #include "renderer/GLSL.h"
 #include "renderer/SPIRV.h"
-#include "spirv_hlsl.hpp"
 
 namespace {
 void init_resources(TBuiltInResource& resources) {
@@ -107,7 +106,7 @@ void init_resources(TBuiltInResource& resources) {
 }
 
 namespace dw {
-Shader::Shader(Context* context, ShaderType type) : Resource{context}, type_{type} {
+Shader::Shader(Context* context, ShaderStage type) : Resource{context}, type_{type} {
 }
 
 Shader::~Shader() {
@@ -123,13 +122,13 @@ bool Shader::beginLoad(InputStream& src) {
     // Parse GLSL code.
     EShLanguage stage;
     switch (type_) {
-        case ShaderType::Vertex:
+        case ShaderStage::Vertex:
             stage = EShLangVertex;
             break;
-        case ShaderType::Geometry:
+        case ShaderStage::Geometry:
             stage = EShLangGeometry;
             break;
-        case ShaderType::Fragment:
+        case ShaderStage::Fragment:
             stage = EShLangFragment;
             break;
     }
@@ -154,41 +153,11 @@ bool Shader::beginLoad(InputStream& src) {
         return false;
     }
 
-    // Convert to SPIR-V.
+    // Convert to SPIR-V and hand to renderer.
     Vector<u32> spirv_out;
     glslang::GlslangToSpv(*program.getIntermediate(stage), spirv_out);
-
-    // TEST: SPIR-V -> GLSL. Given a byte ptr and length.
-    {
-        spirv_cross::CompilerGLSL glsl_out{spirv_out.data(), spirv_out.size()};
-
-        // The SPIR-V is now parsed, and we can perform reflection on it.
-        spirv_cross::ShaderResources resources = glsl_out.get_shader_resources();
-
-        // Get all sampled images in the shader.
-        for (auto& resource : resources.sampled_images) {
-            unsigned set = glsl_out.get_decoration(resource.id, spv::DecorationDescriptorSet);
-            unsigned binding = glsl_out.get_decoration(resource.id, spv::DecorationBinding);
-            log().info("Image %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
-
-            // Modify the decoration to prepare it for GLSL.
-            glsl_out.unset_decoration(resource.id, spv::DecorationDescriptorSet);
-
-            // Some arbitrary remapping if we want.
-            glsl_out.set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
-        }
-
-        // Set some options.
-        spirv_cross::CompilerGLSL::Options options;
-        options.version = 330;
-        options.es = false;
-        glsl_out.set_options(options);
-
-        // Compile to GLSL, ready to give to GL driver.
-        String source = glsl_out.compile();
-        log().info("Decompiled GLSL from SPIR-V: %s", source);
-        handle_ = subsystem<Renderer>()->createShader(type_, source);
-    }
+    handle_ = subsystem<Renderer>()->createShader(type_, spirv_out.data(),
+                                                  spirv_out.size() * sizeof(u32));
 
     // TEST: SPIR-V -> HLSL. For the hell of it.
     {

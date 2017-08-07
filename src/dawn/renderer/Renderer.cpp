@@ -152,9 +152,9 @@ void Renderer::deleteIndexBuffer(IndexBufferHandle handle) {
     submitPostFrameCommand(cmd::DeleteIndexBuffer{handle});
 }
 
-ShaderHandle Renderer::createShader(ShaderType type, const String& source) {
+ShaderHandle Renderer::createShader(ShaderStage stage, const void* data, u32 size) {
     auto handle = shader_handle_.next();
-    submitPreFrameCommand(cmd::CreateShader{handle, type, source});
+    submitPreFrameCommand(cmd::CreateShader{handle, stage, Memory{data, size}});
     return handle;
 }
 

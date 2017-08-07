@@ -4,6 +4,7 @@
  */
 #include "Common.h"
 #include "renderer/api/GLRenderContext.h"
+#include "renderer/SPIRV.h"
 
 #define GL_CHECK() __CHECK(__FILE__, __LINE__)
 #define __CHECK(FILE, LINE)                                                        \
@@ -458,17 +459,44 @@ void GLRenderContext::operator()(const cmd::DeleteIndexBuffer& c) {
 }
 
 void GLRenderContext::operator()(const cmd::CreateShader& c) {
-    static HashMap<ShaderType, GLenum> shader_type_map = {
-        {ShaderType::Vertex, GL_VERTEX_SHADER},
-        {ShaderType::Geometry, GL_GEOMETRY_SHADER},
-        {ShaderType::Fragment, GL_FRAGMENT_SHADER}};
-    GLuint shader = glCreateShader(shader_type_map.at(c.type));
+    // Convert SPIR-V into GLSL.
+    spirv_cross::CompilerGLSL glsl_out{reinterpret_cast<const u32*>(c.data.data()),
+                                       c.data.size() / sizeof u32};
+    spirv_cross::ShaderResources resources = glsl_out.get_shader_resources();
+
+    // Get all sampled images in the shader.
+    for (auto& resource : resources.sampled_images) {
+        unsigned set = glsl_out.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        unsigned binding = glsl_out.get_decoration(resource.id, spv::DecorationBinding);
+        log().info("Image %s at set = %u, binding = %u\n", resource.name.c_str(), set, binding);
+
+        // Modify the decoration to prepare it for GLSL.
+        glsl_out.unset_decoration(resource.id, spv::DecorationDescriptorSet);
+
+        // Some arbitrary remapping if we want.
+        glsl_out.set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
+    }
+
+    // Compile to GLSL, ready to give to GL driver.
+    spirv_cross::CompilerGLSL::Options options;
+    options.version = 330;
+    options.es = false;
+    glsl_out.set_options(options);
+    String source = glsl_out.compile();
+    log().debug("Decompiled GLSL from SPIR-V: %s", source);
+
+    // Compile shader.
+    static HashMap<ShaderStage, GLenum> shader_type_map = {
+        {ShaderStage::Vertex, GL_VERTEX_SHADER},
+        {ShaderStage::Geometry, GL_GEOMETRY_SHADER},
+        {ShaderStage::Fragment, GL_FRAGMENT_SHADER}};
+    GLuint shader = glCreateShader(shader_type_map.at(c.stage));
     if (shader == 0) {
         GL_CHECK();
         // TODO: an error occurred.
     }
-    const char* source[] = {c.source.c_str()};
-    glShaderSource(shader, 1, source, nullptr);
+    const char* sources[] = {source.c_str()};
+    glShaderSource(shader, 1, sources, nullptr);
     glCompileShader(shader);
 
     // Check compilation result.

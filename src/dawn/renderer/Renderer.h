@@ -29,7 +29,7 @@ using TextureHandle = Handle<detail::TextureTag, -1>;
 using FrameBufferHandle = Handle<detail::FrameBufferTag, -1>;
 
 // Shader type.
-enum class ShaderType { Vertex, Geometry, Fragment };
+enum class ShaderStage { Vertex, Geometry, Fragment };
 
 // A blob of memory.
 class Memory {
@@ -176,8 +176,8 @@ struct DeleteIndexBuffer {
 
 struct CreateShader {
     ShaderHandle handle;
-    ShaderType type;
-    const String source;
+    ShaderStage stage;
+    Memory data;
 };
 
 struct DeleteShader {
@@ -351,7 +351,7 @@ public:
     void deleteIndexBuffer(IndexBufferHandle handle);
 
     /// Create shader.
-    ShaderHandle createShader(ShaderType type, const String& source);
+    ShaderHandle createShader(ShaderStage type, const void* data, uint size);
     void deleteShader(ShaderHandle handle);
 
     /// Create program.

@@ -12,7 +12,7 @@ class DW_API Shader : public Resource {
 public:
     DW_OBJECT(Shader);
 
-    Shader(Context* context, ShaderType type);
+    Shader(Context* context, ShaderStage type);
     ~Shader();
 
     bool beginLoad(InputStream& src) override;
@@ -21,7 +21,34 @@ public:
     ShaderHandle internalHandle() const;
 
 private:
-    ShaderType type_;
+    ShaderStage type_;
     ShaderHandle handle_;
+};
+
+class DW_API VertexShader : public Shader {
+public:
+    DW_OBJECT(VertexShader);
+
+    VertexShader(Context* context) : Shader{context, ShaderStage::Vertex} {
+    }
+    ~VertexShader() = default;
+};
+
+class DW_API GeometryShader : public Shader {
+public:
+    DW_OBJECT(VertexShader);
+
+    GeometryShader(Context* context) : Shader{context, ShaderStage::Geometry} {
+    }
+    ~GeometryShader() = default;
+};
+
+class DW_API FragmentShader : public Shader {
+public:
+    DW_OBJECT(VertexShader);
+
+    FragmentShader(Context* context) : Shader{context, ShaderStage::Fragment} {
+    }
+    ~FragmentShader() = default;
 };
 }  // namespace dw

@@ -97,7 +97,7 @@ uint createFullscreenQuad(Renderer* r, VertexBufferHandle& vb) {
     return 3;
 }
 
-ShaderHandle loadShader(Context* ctx, ShaderType type, const String& source_file) {
+ShaderHandle loadShader(Context* ctx, ShaderStage type, const String& source_file) {
     static Vector<SharedPtr<Shader>> shader_map;
     SharedPtr<Shader> shader = makeShared<Shader>(ctx, type);
     File file{ctx, source_file};
@@ -118,8 +118,8 @@ TEST_CLASS(BasicVertexBuffer) {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/test.vs");
-        auto fs = util::loadShader(context(), ShaderType::Fragment, "shaders/test.fs");
+        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/test.vs");
+        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/test.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -167,8 +167,8 @@ TEST_CLASS(BasicIndexBuffer) {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/test.vs");
-        auto fs = util::loadShader(context(), ShaderType::Fragment, "shaders/test.fs");
+        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/test.vs");
+        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/test.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -216,8 +216,8 @@ TEST_CLASS(Textured3DCube) {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/cube_textured.vs");
-        auto fs = util::loadShader(context(), ShaderType::Fragment, "shaders/cube_textured.fs");
+        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/cube_textured.vs");
+        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/cube_textured.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -275,8 +275,8 @@ TEST_CLASS(PostProcessing) {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/cube_solid.vs");
-        auto fs = util::loadShader(context(), ShaderType::Fragment, "shaders/cube_solid.fs");
+        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/cube_solid.vs");
+        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/cube_solid.fs");
         box_program_ = r->createProgram();
         r->attachShader(box_program_, vs);
         r->attachShader(box_program_, fs);
@@ -292,8 +292,8 @@ TEST_CLASS(PostProcessing) {
         fb_handle_ = r->createFrameBuffer(1280, 800, TextureFormat::RGB8);
 
         // Load post process shader.
-        auto pp_vs = util::loadShader(context(), ShaderType::Vertex, "shaders/post_process.vs");
-        auto pp_fs = util::loadShader(context(), ShaderType::Fragment, "shaders/post_process.fs");
+        auto pp_vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/post_process.vs");
+        auto pp_fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/post_process.fs");
         post_process_ = r->createProgram();
         r->attachShader(post_process_, pp_vs);
         r->attachShader(post_process_, pp_fs);
@@ -360,9 +360,9 @@ TEST_CLASS(DeferredShading) {
         PointLight(Context* ctx, float radius, const Vec2& screen_size)
             : Object{ctx}, light_sphere_radius_{radius * 4}, r{subsystem<Renderer>()} {
             // Load shaders.
-            auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/light_pass.vs");
+            auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/light_pass.vs");
             auto fs =
-                util::loadShader(context(), ShaderType::Fragment, "shaders/point_light_pass.fs");
+                util::loadShader(context(), ShaderStage::Fragment, "shaders/point_light_pass.fs");
             program_ = r->createProgram();
             r->attachShader(program_, vs);
             r->attachShader(program_, fs);
@@ -425,8 +425,8 @@ TEST_CLASS(DeferredShading) {
         subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), ShaderType::Vertex, "shaders/object_gbuffer.vs");
-        auto fs = util::loadShader(context(), ShaderType::Fragment, "shaders/object_gbuffer.fs");
+        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/object_gbuffer.vs");
+        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/object_gbuffer.fs");
         cube_program_ = r->createProgram();
         r->attachShader(cube_program_, vs);
         r->attachShader(cube_program_, fs);
@@ -455,8 +455,8 @@ TEST_CLASS(DeferredShading) {
                                   r->createTexture2D(width(), height(), format, nullptr, 0)});
 
         // Load post process shader.
-        auto pp_vs = util::loadShader(context(), ShaderType::Vertex, "shaders/post_process.vs");
-        auto pp_fs = util::loadShader(context(), ShaderType::Fragment,
+        auto pp_vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/post_process.vs");
+        auto pp_fs = util::loadShader(context(), ShaderStage::Fragment,
                                       "shaders/deferred_ambient_light_pass.fs");
         post_process_ = r->createProgram();
         r->attachShader(post_process_, pp_vs);

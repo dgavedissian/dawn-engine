@@ -12,6 +12,8 @@
 #endif
 
 #include <spirv_glsl.hpp>
+#include <spirv_hlsl.hpp>
+#include <spirv_msl.hpp>
 
 // Re-enable warnings
 #if defined(DW_MSVC)
