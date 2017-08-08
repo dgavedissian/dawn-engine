@@ -338,7 +338,7 @@ public:
     ~Renderer();
 
     /// Initialise.
-    void init(u16 width, u16 height, const String& title);
+    void init(u16 width, u16 height, const String& title, bool use_render_thread);
 
     /// Create vertex buffer.
     VertexBufferHandle createVertexBuffer(const void* data, uint size, const VertexDecl& decl);
@@ -408,6 +408,7 @@ private:
     u16 width_, height_;
     String window_title_;
 
+    bool use_render_thread_;
     Thread render_thread_;
 
     // Main thread.
@@ -450,5 +451,6 @@ private:
 
     // Render thread proc.
     void renderThread();
+    bool renderFrame(Frame* frame);
 };
 }  // namespace dw

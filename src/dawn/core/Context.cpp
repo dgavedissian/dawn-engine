@@ -7,7 +7,7 @@
 
 namespace dw {
 Context::Context(String base_path, String pref_path)
-    : base_path_{base_path}, pref_path_{pref_path}, config_{Json::object()} {
+    : base_path_{base_path}, pref_path_{pref_path}, config_(Json::object()) {
 }
 
 Context::~Context() {
@@ -43,13 +43,13 @@ const Json& Context::config() const {
     return config_;
 }
 
-void Context::loadConfig(const String& configFile) {
-    File inFile(this, configFile, FileMode::Read);
+void Context::loadConfig(const String& config_file) {
+    File inFile(this, config_file, FileMode::Read);
     config_ = Json::parse(stream::read<String>(inFile));
 }
 
-void Context::saveConfig(const String& configFile) {
-    File outFile(this, configFile, FileMode::Write);
+void Context::saveConfig(const String& config_file) {
+    File outFile(this, config_file, FileMode::Write);
     stream::write(outFile, config_.dump(4));
 }
 

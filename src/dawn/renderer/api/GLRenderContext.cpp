@@ -171,6 +171,7 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
     // Create the window.
     window_ = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     glfwMakeContextCurrent(window_);
+    glfwSwapInterval(0);
 
     // Initialise GL extensions.
     if (gl3wInit() != 0) {

@@ -99,27 +99,35 @@ Renderer::Renderer(Context* context)
 
 Renderer::~Renderer() {
     glslang::FinalizeProcess();
-    if (!shared_rt_finished_) {
-        // Flag to the render thread that it should exit.
-        shared_rt_should_exit_ = true;
+    // Wait for render thread if multithreaded.
+    if (use_render_thread_) {
+        if (!shared_rt_finished_) {
+            // Flag to the render thread that it should exit.
+            shared_rt_should_exit_ = true;
 
-        // Wait for the render thread to complete its last frame.
-        shared_frame_barrier_.wait();
+            // Wait for the render thread to complete its last frame.
+            shared_frame_barrier_.wait();
 
-        // Wait for the render thread to exit completely.
-        render_thread_.join();
+            // Wait for the render thread to exit completely.
+            render_thread_.join();
+        }
     }
 }
 
-void Renderer::init(u16 width, u16 height, const String& title) {
+void Renderer::init(u16 width, u16 height, const String& title, bool use_render_thread) {
     width_ = width;
     height_ = height;
     window_title_ = title;
+    use_render_thread_ = use_render_thread;
 
     // Kick off rendering thread.
     shared_render_context_ = makeUnique<GLRenderContext>(context());
     shared_render_context_->createWindow(width_, height_, window_title_);
-    render_thread_ = Thread{[this]() { renderThread(); }};
+    if (use_render_thread) {
+        render_thread_ = Thread{ [this]() { renderThread(); } };
+    } else {
+        shared_render_context_->startRendering();
+    }
 }
 
 VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size,
@@ -354,22 +362,31 @@ void Renderer::frame() {
     bgfx::frame();
      */
 
-    // If the rendering thread is doing nothing, print a warning and give up.
-    if (shared_rt_finished_) {
-        log().warn("Rendering thread has finished running. Sending shutdown signal.");
-        subsystem<EventSystem>()->triggerEvent(makeShared<EvtData_Exit>());
-        return;
+    // If we are rendering in multithreaded mode, wait for the render thread/
+    if (use_render_thread_) {
+        // If the rendering thread is doing nothing, print a warning and give up.
+        if (shared_rt_finished_) {
+            log().warn("Rendering thread has finished running. Sending shutdown signal.");
+            subsystem<EventSystem>()->triggerEvent(makeShared<EvtData_Exit>());
+            return;
+        }
+
+        // Wait for render thread.
+        shared_frame_barrier_.wait();
+
+        // Wait for frame swap, then reset swapped_frames_. This has no race here, because the render
+        // thread will not modify "swapped_frames_" again until after this thread hits the barrier
+        // again.
+        UniqueLock<Mutex> lock{ swap_mutex_ };
+        swap_cv_.wait(lock, [this] { return swapped_frames_; });
+        swapped_frames_ = false;
+    } else {
+        if (!renderFrame(submit_)) {
+            subsystem<EventSystem>()->triggerEvent(makeShared<EvtData_Exit>());
+            log().warn("Rendering failed. Sending shutdown signal.");
+            return;
+        }
     }
-
-    // Wait for render thread.
-    shared_frame_barrier_.wait();
-
-    // Wait for frame swap, then reset swapped_frames_. This has no race here, because the render
-    // thread will not modify "swapped_frames_" again until after this thread hits the barrier
-    // again.
-    UniqueLock<Mutex> lock{swap_mutex_};
-    swap_cv_.wait(lock, [this] { return swapped_frames_; });
-    swapped_frames_ = false;
 
     // Update window events.
     shared_render_context_->processEvents();
@@ -393,20 +410,9 @@ void Renderer::renderThread() {
 
     // Start render loop.
     while (!shared_rt_should_exit_) {
-        // Hand off commands to the render context.
-        shared_render_context_->processCommandList(render_->commands_pre);
-        if (!shared_render_context_->frame(render_->views)) {
+        if (!renderFrame(render_)) {
             shared_rt_should_exit_ = true;
         }
-        shared_render_context_->processCommandList(render_->commands_post);
-
-        // Clear the frame state.
-        render_->current_item.clear();
-        for (auto& view : render_->views) {
-            view.render_items.clear();
-        }
-        render_->commands_pre.clear();
-        render_->commands_post.clear();
 
         // Wait for submit thread.
         shared_frame_barrier_.wait();
@@ -424,5 +430,24 @@ void Renderer::renderThread() {
         }
         swap_cv_.notify_all();
     }
+}
+
+bool Renderer::renderFrame(Frame* frame) {
+    // Hand off commands to the render context.
+    shared_render_context_->processCommandList(frame->commands_pre);
+    if (!shared_render_context_->frame(frame->views)) {
+        return false;
+    }
+    shared_render_context_->processCommandList(frame->commands_post);
+
+    // Clear the frame state.
+    frame->current_item.clear();
+    for (auto& view : frame->views) {
+        view.render_items.clear();
+    }
+    frame->commands_pre.clear();
+    frame->commands_post.clear();
+
+    return true;
 }
 }  // namespace dw
