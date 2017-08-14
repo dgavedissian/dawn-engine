@@ -5,7 +5,7 @@
 #pragma once
 
 #include "math/Defs.h"
-#include "renderer/api/GL.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
 enum class RenderTaskType { SetCameraMatrices, Primitive };
@@ -18,9 +18,10 @@ struct RenderTask {
     } camera;
     struct {
         Mat4 model_matrix;
-        //        bgfx::VertexBufferHandle vb;
-        //        bgfx::IndexBufferHandle ib;
-        //        bgfx::ProgramHandle shader;
+        u32 count;
+        VertexBufferHandle vb;
+        IndexBufferHandle ib;
+        ProgramHandle shader;
     } primitive;
 };
 }  // namespace dw

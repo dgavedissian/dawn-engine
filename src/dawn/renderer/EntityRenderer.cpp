@@ -38,11 +38,11 @@ void EntityRenderer::dispatchRenderTasks() {
         setup_camera.type = RenderTaskType::SetCameraMatrices;
         setup_camera.camera = {math::TranslateOp(0.0f, 0.0f, -20.0f).ToFloat4x4().Inverted(),
                                Mat4::OpenGLPerspProjLH(0.1f, 1000.0f, 60.0f, 60.0f)};
-        renderer.pushRenderTask(std::move(setup_camera));
+        // renderer.pushRenderTask(std::move(setup_camera));
 
         // Push render tasks for this camera.
         for (auto render_task : render_tasks_list.second) {
-            renderer.pushRenderTask(std::move(render_task));
+            // renderer.pushRenderTask(std::move(render_task));
         }
         render_tasks_list.second.clear();
     }

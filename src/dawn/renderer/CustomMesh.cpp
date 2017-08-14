@@ -17,8 +17,11 @@ CustomMesh::~CustomMesh() {
 RenderTask CustomMesh::draw(const Mat4& modelMatrix) {
     RenderTask task;
     task.type = RenderTaskType::Primitive;
-    //    task.primitive = {modelMatrix, vertex_buffer_->internalHandle(),
-    //                      index_buffer_->internalHandle(), material_->internalHandle()};
+    task.primitive = {modelMatrix,
+                      index_buffer_ ? index_buffer_->indexCount() : vertex_buffer_->vertexCount(),
+                      vertex_buffer_->internalHandle(),
+                      index_buffer_ ? index_buffer_->internalHandle() : IndexBufferHandle{},
+                      /*TODO: remove*/ ProgramHandle{}};
     return task;
 }
 }  // namespace dw

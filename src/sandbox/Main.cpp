@@ -5,7 +5,6 @@
 #include "DawnEngine.h"
 #include "ecs/EntityManager.h"
 #include "ecs/SystemManager.h"
-#include "io/File.h"
 #include "renderer/MeshBuilder.h"
 #include "renderer/Program.h"
 #include "resource/ResourceCache.h"
@@ -53,10 +52,10 @@ public:
         // Create a node.
         node = makeUnique<Node>(context());
         SharedPtr<Program> material =
-            makeShared<Program>(context(), rc->get<Shader>("shaders/bin/sphere.vs"),
-                                rc->get<Shader>("shaders/bin/sphere.fs"));
+            makeShared<Program>(context(), rc->get<VertexShader>("shaders/bin/sphere.vs"),
+                                rc->get<FragmentShader>("shaders/bin/sphere.fs"));
         node->setRenderable(
-            MeshBuilder(context()).withNormals(false).withTexcoords(false).createSphere(10.0f));
+            MeshBuilder(context()).normals(false).normals(false).createSphere(10.0f));
         node->renderable()->setMaterial(material);
 
         auto sm = subsystem<SystemManager>();

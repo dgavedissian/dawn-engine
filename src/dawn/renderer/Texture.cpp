@@ -3,17 +3,8 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
+#include "renderer/StbImage.h"
 #include "renderer/Texture.h"
-
-#if defined(DW_MSVC)
-#pragma warning(push)
-#pragma warning(disable : 4100 4244)
-#endif
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#if defined(DW_MSVC)
-#pragma warning(pop)
-#endif
 
 namespace dw {
 
@@ -21,7 +12,8 @@ namespace dw {
 namespace {
 int imageCallbackRead(void* user, char* data, int size) {
     InputStream& stream = *reinterpret_cast<InputStream*>(user);
-    // If we want to read past the end of the buffer, clamp the size to prevent an error occurring.
+    // If we want to read past the end of the buffer, clamp the size to prevent an error occurring,
+    // as the stream API will read either the entire block or nothing at all.
     if ((stream.position() + size) > stream.size()) {
         size = static_cast<int>(stream.size() - stream.position());
     }

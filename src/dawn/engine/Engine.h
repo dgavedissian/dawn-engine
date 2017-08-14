@@ -4,8 +4,6 @@
  */
 #pragma once
 
-#include "renderer/Window.h"
-
 namespace dw {
 
 class App;
@@ -44,15 +42,12 @@ private:
 
     double frame_time_;
 
-    // Window.
-    UniquePtr<Window> window_;
-
     // Configuration.
     String log_file_;
     String config_file_;
 
     void printSystemInfo();
-    String getBasePath() const;
+    String basePath() const;
     void update(float dt);
     void preRender(Camera* camera);
     void handleEvent(EventDataPtr eventData);

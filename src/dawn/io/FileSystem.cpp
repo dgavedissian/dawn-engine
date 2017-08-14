@@ -41,7 +41,7 @@ bool FileSystem::setWorkingDir(const Path& path) const {
     return true;
 }
 
-Path FileSystem::getWorkingDir() const {
+Path FileSystem::workingDir() const {
     char path[MAX_PATH];
     path[0] = 0;
 #if DW_PLATFORM == DW_WIN32

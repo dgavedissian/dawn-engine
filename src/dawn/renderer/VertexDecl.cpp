@@ -25,6 +25,10 @@ VertexDecl& VertexDecl::end() {
     return *this;
 }
 
+u16 VertexDecl::stride() const {
+    return stride_;
+}
+
 u16 VertexDecl::encodeAttributes(VertexDecl::Attribute attribute, uint count,
                                  VertexDecl::AttributeType type, bool normalised) {
     // Attribute: 7
@@ -51,9 +55,9 @@ void VertexDecl::decodeAttributes(u16 encoded_attribute, Attribute& attribute, u
 uint VertexDecl::attributeTypeSize(AttributeType type) {
     switch (type) {
         case AttributeType::Uint8:
-            return 1;
+            return sizeof(u8);
         case AttributeType::Float:
-            return 4;
+            return sizeof(float);
         default:
             assert(false);
     }

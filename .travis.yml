@@ -24,11 +24,10 @@ matrix:
     env: C_COMPILER=clang CXX_COMPILER=clang++
     osx_image: xcode8.2
 
-  # Linux / GCC
+  # Linux / GCC 5
 
   - os: linux
     env: C_COMPILER=gcc-5 CXX_COMPILER=g++-5
-    compiler: gcc
     addons:
       apt:
         sources:
@@ -39,11 +38,38 @@ matrix:
           - xorg-dev
           - libgl1-mesa-dev
 
-  # Linux / Clang
+  # Linux / GCC 6
+
+  - os: linux
+    env: C_COMPILER=gcc-6 CXX_COMPILER=g++-6
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - gcc-6
+          - g++-6
+          - xorg-dev
+          - libgl1-mesa-dev
+
+  # Linux / GCC 7
+
+  - os: linux
+    env: C_COMPILER=gcc-7 CXX_COMPILER=g++-7
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - gcc-7
+          - g++-7
+          - xorg-dev
+          - libgl1-mesa-dev
+
+  # Linux / Clang 3.5
 
   - os: linux
     env: C_COMPILER=clang CXX_COMPILER=clang++
-    compiler: clang
     addons:
       apt:
         sources:
@@ -51,6 +77,22 @@ matrix:
         packages:
           - gcc-5
           - g++-5
+          - xorg-dev
+          - libgl1-mesa-dev
+
+  # Linux / Clang 4.0
+
+  - os: linux
+    env: C_COMPILER=clang-4.0 CXX_COMPILER=clang++-4.0
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+          - llvm-toolchain-trusty-4.0
+        packages:
+          - gcc-5
+          - g++-5
+          - clang-4.0
           - xorg-dev
           - libgl1-mesa-dev
 
@@ -58,8 +100,20 @@ matrix:
 # build script
 ################################
 
+before_install:
+  - pip install --user cpp-coveralls
+
 script:
   - mkdir build
   - cd build
   - cmake -DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CXX_COMPILER ..
   - make
+  - cd test/dawn
+  - ./DawnTest
+  - cd ../..
+
+after_success:
+  - coveralls --root ../src/dawn -E "old" -E "ecs/ontology"
+
+notifications:
+  email: false

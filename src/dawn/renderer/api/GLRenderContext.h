@@ -5,6 +5,7 @@
 #pragma once
 
 #include "renderer/Renderer.h"
+#include "renderer/api/GL.h"
 
 namespace dw {
 class DW_API GLRenderContext : public RenderContext {
@@ -14,6 +15,18 @@ public:
     GLRenderContext(Context* context);
     virtual ~GLRenderContext();
 
+    // Window management. Executed on the main thread.
+    void createWindow(u16 width, u16 height, const String& title) override;
+    void destroyWindow() override;
+    void processEvents() override;
+    bool isWindowClosed() const override;
+
+    // Command buffer processing. Executed on the render thread.
+    void startRendering() override;
+    void processCommandList(Vector<RenderCommand>& command_list) override;
+    bool frame(const Vector<View>& views) override;
+
+    // Variant walker methods. Executed on the render thread.
     void operator()(const cmd::CreateVertexBuffer& c);
     void operator()(const cmd::DeleteVertexBuffer& c);
     void operator()(const cmd::CreateIndexBuffer& c);
@@ -28,15 +41,13 @@ public:
     void operator()(const cmd::DeleteTexture& c);
     void operator()(const cmd::CreateFrameBuffer& c);
     void operator()(const cmd::DeleteFrameBuffer& c);
-
-    void processCommandList(Vector<RenderCommand>& command_list) override;
-    void frame(const Vector<View>& views) override;
-
     template <typename T> void operator()(const T& c) {
         static_assert(!std::is_same<T, T>::value, "Unimplemented RenderCommand");
     }
 
 private:
+    GLFWwindow* window_;
+
     // Vertex and index buffers.
     struct IndexBufferData {
         GLuint element_buffer;

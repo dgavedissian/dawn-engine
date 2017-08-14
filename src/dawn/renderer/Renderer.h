@@ -7,9 +7,7 @@
 #include "core/Concurrency.h"
 #include "core/Handle.h"
 #include "math/Colour.h"
-#include "renderer/RenderTask.h"
 #include "renderer/VertexDecl.h"
-#include "renderer/Window.h"
 
 #define MAX_TEXTURE_SAMPLERS 8
 
@@ -31,7 +29,7 @@ using TextureHandle = Handle<detail::TextureTag, -1>;
 using FrameBufferHandle = Handle<detail::FrameBufferTag, -1>;
 
 // Shader type.
-enum class ShaderType { Vertex, Geometry, Fragment };
+enum class ShaderStage { Vertex, Geometry, Fragment };
 
 // A blob of memory.
 class Memory {
@@ -132,6 +130,28 @@ enum class TextureFormat {
     Count
 };
 
+// Render states.
+enum class RenderState { CullFace, Depth, Blending };
+enum class CullFrontFace { CCW, CW };
+enum class BlendFunc {
+    Zero,
+    One,
+    SrcColor,
+    OneMinusSrcColor,
+    DstColor,
+    OneMinusDstColor,
+    SrcAlpha,
+    OneMinusSrcAlpha,
+    DstAlpha,
+    OneMinusDstAlpha,
+    ConstantColor,
+    OneMinusConstantColor,
+    ConstantAlpha,
+    OneMinusConstantAlpha,
+    SrcAlphaSaturate
+};
+enum class BlendEquation { Add, Subtract, ReverseSubtract, Min, Max };
+
 // Render commands.
 namespace cmd {
 struct CreateVertexBuffer {
@@ -156,8 +176,8 @@ struct DeleteIndexBuffer {
 
 struct CreateShader {
     ShaderHandle handle;
-    ShaderType type;
-    const String source;
+    ShaderStage stage;
+    Memory data;
 };
 
 struct DeleteShader {
@@ -228,6 +248,7 @@ using RenderCommand =
 
 // Current render state.
 struct RenderItem {
+    RenderItem();
     void clear();
 
     using UniformData = Variant<int, float, Vec2, Vec3, Vec4, Mat3, Mat4>;
@@ -245,6 +266,18 @@ struct RenderItem {
     ProgramHandle program;
     HashMap<String, UniformData> uniforms;
     Array<TextureBinding, MAX_TEXTURE_SAMPLERS> textures;
+
+    // Render state.
+    bool depth_enabled;
+    bool cull_face_enabled;
+    CullFrontFace cull_front_face;
+    bool blend_enabled;
+    BlendEquation blend_equation_rgb;
+    BlendFunc blend_src_rgb;
+    BlendFunc blend_dest_rgb;
+    BlendEquation blend_equation_a;
+    BlendFunc blend_src_a;
+    BlendFunc blend_dest_a;
 };
 
 // View.
@@ -282,8 +315,17 @@ public:
 
     RenderContext(Context* context);
     virtual ~RenderContext() = default;
+
+    // Window management. Executed on the main thread.
+    virtual void createWindow(u16 width, u16 height, const String& title) = 0;
+    virtual void destroyWindow() = 0;
+    virtual void processEvents() = 0;
+    virtual bool isWindowClosed() const = 0;
+
+    // Command buffer processing. Executed on the render thread.
+    virtual void startRendering() = 0;
     virtual void processCommandList(Vector<RenderCommand>& command_list) = 0;
-    virtual void frame(const Vector<View>& views) = 0;
+    virtual bool frame(const Vector<View>& views) = 0;
 };
 
 // Low level renderer.
@@ -292,8 +334,11 @@ class DW_API Renderer : public Object {
 public:
     DW_OBJECT(Renderer)
 
-    Renderer(Context* context, Window* window);
+    Renderer(Context* context);
     ~Renderer();
+
+    /// Initialise.
+    void init(u16 width, u16 height, const String& title, bool use_render_thread);
 
     /// Create vertex buffer.
     VertexBufferHandle createVertexBuffer(const void* data, uint size, const VertexDecl& decl);
@@ -306,7 +351,7 @@ public:
     void deleteIndexBuffer(IndexBufferHandle handle);
 
     /// Create shader.
-    ShaderHandle createShader(ShaderType type, const String& source);
+    ShaderHandle createShader(ShaderStage type, const void* data, uint size);
     void deleteShader(ShaderHandle handle);
 
     /// Create program.
@@ -328,16 +373,26 @@ public:
     TextureHandle createTexture2D(u16 width, u16 height, TextureFormat format, const void* data,
                                   u32 size);
     void setTexture(TextureHandle handle, uint sampler_unit);
+    // get texture information.
     void deleteTexture(TextureHandle handle);
 
     // Framebuffer.
     FrameBufferHandle createFrameBuffer(u16 width, u16 height, TextureFormat format);
+    FrameBufferHandle createFrameBuffer(Vector<TextureHandle> textures);
     TextureHandle getFrameBufferTexture(FrameBufferHandle handle, uint index);
     void deleteFrameBuffer(FrameBufferHandle handle);
 
     /// View.
     void setViewClear(uint view, const Colour& colour);
     void setViewFrameBuffer(uint view, FrameBufferHandle handle);
+
+    /// Update state.
+    void setStateEnable(RenderState state);
+    void setStateDisable(RenderState state);
+    void setStateCullFrontFace(CullFrontFace front_face);
+    void setStateBlendEquation(BlendEquation equation, BlendFunc src, BlendFunc dest);
+    void setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_rgb, BlendFunc dest_rgb,
+                               BlendEquation equation_a, BlendFunc src_a, BlendFunc dest_a);
 
     /// Update uniform and draw state, but submit no geometry.
     void submit(uint view, ProgramHandle program);
@@ -346,17 +401,14 @@ public:
     /// https://github.com/bkaradzic/bgfx/blob/master/src/bgfx.cpp#L854
     void submit(uint view, ProgramHandle program, uint vertex_count);
 
-    /// Push render task.
-    void pushRenderTask(RenderTask&& task);
-
     /// Render a single frame.
     void frame();
 
 private:
     u16 width_, height_;
-    Vector<RenderTask> render_tasks_;  // deprecated.
+    String window_title_;
 
-    GLFWwindow* window_;
+    bool use_render_thread_;
     Thread render_thread_;
 
     // Main thread.
@@ -367,13 +419,21 @@ private:
     HandleGenerator<TextureHandle> texture_handle_;
     HandleGenerator<FrameBufferHandle> frame_buffer_handle_;
 
+    // Textures.
+    struct TextureData {
+        u16 width;
+        u16 height;
+        TextureFormat format;
+    };
+    HashMap<TextureHandle, TextureData> texture_data_;
+
     // Framebuffers.
     HashMap<FrameBufferHandle, Vector<TextureHandle>> frame_buffer_textures_;
 
     // Shared.
-    Atomic<bool> should_exit_;
-
-    Barrier frame_barrier_;
+    Atomic<bool> shared_rt_should_exit_;
+    bool shared_rt_finished_;
+    Barrier shared_frame_barrier_;
     Mutex swap_mutex_;
     ConditionVariable swap_cv_;
     bool swapped_frames_;
@@ -387,9 +447,10 @@ private:
     void submitPostFrameCommand(RenderCommand&& command);
 
     // Renderer.
-    UniquePtr<RenderContext> r_render_context_;
+    UniquePtr<RenderContext> shared_render_context_;
 
     // Render thread proc.
     void renderThread();
+    bool renderFrame(Frame* frame);
 };
 }  // namespace dw

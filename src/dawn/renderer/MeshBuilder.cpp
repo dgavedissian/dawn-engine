@@ -6,7 +6,6 @@
 #include "renderer/CustomMesh.h"
 #include "renderer/TriangleBuffer.h"
 #include "renderer/MeshBuilder.h"
-#include <Math/MathConstants.h>
 
 namespace dw {
 MeshBuilder::MeshBuilder(Context* context)
@@ -16,14 +15,125 @@ MeshBuilder::MeshBuilder(Context* context)
 MeshBuilder::~MeshBuilder() {
 }
 
-MeshBuilder& MeshBuilder::withNormals(bool normals) {
+MeshBuilder& MeshBuilder::normals(bool normals) {
     with_normals_ = normals;
     return *this;
 }
 
-MeshBuilder& MeshBuilder::withTexcoords(bool texcoords) {
+MeshBuilder& MeshBuilder::texcoords(bool texcoords) {
     with_texcoords_ = texcoords;
     return *this;
+}
+
+SharedPtr<CustomMesh> MeshBuilder::createPlane(float width, float height) {
+    TriangleBuffer buffer{context_};
+    buffer.begin();
+    buffer.estimateVertexCount(4);
+    buffer.estimateIndexCount(6);
+    // Top-left.
+    buffer.position({-width * 0.5f, height * 0.5f, 0.0f});
+    if (with_normals_) {
+        buffer.normal({0.0f, 0.0f, 1.0f});
+    }
+    if (with_texcoords_) {
+        buffer.texcoord({0.0f, 0.0f});
+    }
+    // Top-right.
+    buffer.position({width * 0.5f, height * 0.5f, 0.0f});
+    if (with_normals_) {
+        buffer.normal({0.0f, 0.0f, 1.0f});
+    }
+    if (with_texcoords_) {
+        buffer.texcoord({1.0f, 0.0f});
+    }
+    // Bottom-left.
+    buffer.position({-width * 0.5f, -height * 0.5f, 0.0f});
+    if (with_normals_) {
+        buffer.normal({0.0f, 0.0f, 1.0f});
+    }
+    if (with_texcoords_) {
+        buffer.texcoord({0.0f, 1.0f});
+    }
+    // Bottom-right.
+    buffer.position({width * 0.5f, -height * 0.5f, 0.0f});
+    if (with_normals_) {
+        buffer.normal({0.0f, 0.0f, 1.0f});
+    }
+    if (with_texcoords_) {
+        buffer.texcoord({1.0f, 1.0f});
+    }
+    // Triangles.
+    buffer.triangle(0, 2, 1);
+    buffer.triangle(1, 2, 3);
+    return buffer.end();
+}
+
+SharedPtr<CustomMesh> MeshBuilder::createBox(float half_size) {
+    // clang-format off
+    float vertices[] = {
+        // Position						| Normals		      | UVs
+        -half_size, -half_size, -half_size, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
+        half_size,  -half_size, -half_size, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f,
+        half_size,  half_size,  -half_size, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
+        half_size,  half_size,  -half_size, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
+        -half_size, half_size,  -half_size, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f,
+        -half_size, -half_size, -half_size, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
+
+        -half_size, -half_size, half_size,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
+        half_size,  -half_size, half_size,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
+        half_size,  half_size,  half_size,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
+        half_size,  half_size,  half_size,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f,
+        -half_size, half_size,  half_size,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
+        -half_size, -half_size, half_size,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
+
+        -half_size, half_size,  half_size,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,
+        -half_size, half_size,  -half_size, -1.0f, 0.0f,  0.0f,  1.0f, 0.0f,
+        -half_size, -half_size, -half_size, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
+        -half_size, -half_size, -half_size, -1.0f, 0.0f,  0.0f,  1.0f, 1.0f,
+        -half_size, -half_size, half_size,  -1.0f, 0.0f,  0.0f,  0.0f, 1.0f,
+        -half_size, half_size,  half_size,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,
+
+        half_size,  half_size,  half_size,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        half_size,  half_size,  -half_size, 1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        half_size,  -half_size, -half_size, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        half_size,  -half_size, -half_size, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        half_size,  -half_size, half_size,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        half_size,  half_size,  half_size,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+
+        -half_size, -half_size, -half_size, 0.0f,  -1.0f, 0.0f,  0.0f, 0.0f,
+        half_size,  -half_size, -half_size, 0.0f,  -1.0f, 0.0f,  1.0f, 0.0f,
+        half_size,  -half_size, half_size,  0.0f,  -1.0f, 0.0f,  1.0f, 1.0f,
+        half_size,  -half_size, half_size,  0.0f,  -1.0f, 0.0f,  1.0f, 1.0f,
+        -half_size, -half_size, half_size,  0.0f,  -1.0f, 0.0f,  0.0f, 1.0f,
+        -half_size, -half_size, -half_size, 0.0f,  -1.0f, 0.0f,  0.0f, 0.0f,
+
+        -half_size, half_size,  -half_size, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+        half_size,  half_size,  -half_size, 0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+        half_size,  half_size,  half_size,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+        half_size,  half_size,  half_size,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+        -half_size, half_size,  half_size,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+        -half_size, half_size,  -half_size, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f };
+    // clang-format on
+
+    // Build mesh.
+    TriangleBuffer buffer{context_};
+    buffer.begin();
+    buffer.estimateVertexCount(36);
+    buffer.estimateIndexCount(36);
+    for (uint tri = 0; tri < 12; ++tri) {
+        for (uint v = 0; v < 3; ++v) {
+            float* data = &vertices[(tri * 3 + v) * 8];
+            buffer.position({data[0], data[1], data[2]});
+            if (with_normals_) {
+                buffer.normal({data[3], data[4], data[5]});
+            }
+            if (with_texcoords_) {
+                buffer.texcoord({data[6], data[7]});
+            }
+        }
+        buffer.triangle(tri * 3, tri * 3 + 1, tri * 3 + 2);
+    }
+    return buffer.end();
 }
 
 SharedPtr<CustomMesh> MeshBuilder::createSphere(float radius, uint num_rings, uint num_segments) {
@@ -35,7 +145,7 @@ SharedPtr<CustomMesh> MeshBuilder::createSphere(float radius, uint num_rings, ui
 
     float delta_ring_angle = (math::pi / num_rings);
     float delta_seg_angle = (math::pi * 2.0f / num_segments);
-    int offset = 0;
+    uint offset = 0;
 
     // Generate the group of rings for the sphere.
     for (uint ring = 0; ring <= num_rings; ring++) {
@@ -48,13 +158,13 @@ SharedPtr<CustomMesh> MeshBuilder::createSphere(float radius, uint num_rings, ui
             float z0 = r0 * cosf(seg * delta_seg_angle);
 
             // Add one vertex to the strip which makes up the sphere.
-            buffer.position(Vec3(x0, y0, z0));
+            buffer.position({x0, y0, z0});
             if (with_normals_) {
-                buffer.normal(Vec3(x0, y0, z0));
+                buffer.normal({x0, y0, z0});
             }
             if (with_texcoords_) {
-                buffer.texcoord(Vec2(static_cast<float>(seg) / static_cast<float>(num_segments),
-                                     static_cast<float>(ring) / static_cast<float>(num_rings)));
+                buffer.texcoord({static_cast<float>(seg) / static_cast<float>(num_segments),
+                                 static_cast<float>(ring) / static_cast<float>(num_rings)});
             }
 
             if (ring != num_rings) {
@@ -74,7 +184,6 @@ SharedPtr<CustomMesh> MeshBuilder::createSphere(float radius, uint num_rings, ui
     }
 
     // Generate the mesh.
-    auto builtMesh = buffer.end();
-    return makeShared<CustomMesh>(context_, builtMesh.first, builtMesh.second);
+    return buffer.end();
 }
 }  // namespace dw

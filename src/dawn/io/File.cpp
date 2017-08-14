@@ -5,9 +5,15 @@
 #include "Common.h"
 #include "io/File.h"
 
+#if DW_PLATFORM == DW_WIN32
+#include <io.h>
+#else
+#include <sys/stat.h>
+#endif
+
 namespace dw {
 
-File::File(Context* context) : Object(context), handle_(nullptr), mode_(0) {
+File::File(Context* context) : Object{context}, handle_{nullptr}, mode_{0} {
 }
 
 File::File(Context* context, const Path& path, int mode) : File(context) {
@@ -76,10 +82,18 @@ bool File::open(const Path& path, int mode) {
         return false;
     }
 
-    // Determine file size
-    fseek(handle_, 0, SEEK_END);
-    size_ = (u64)ftell(handle_);
-    fseek(handle_, 0, SEEK_SET);
+// Determine file size.
+// Based off
+// https://www.securecoding.cert.org/confluence/display/c/FIO19-C.+Do+not+use+fseek%28%29+and+ftell%28%29+to+compute+the+size+of+a+regular+file
+#if DW_PLATFORM == DW_WIN32
+    size_ = _filelengthi64(_fileno(handle_));
+#else
+    struct stat stbuf;
+    if ((fstat(fileno(handle_), &stbuf) != 0) || (!S_ISREG(stbuf.st_mode))) {
+        // TODO Handle error
+    }
+    size_ = stbuf.st_size;
+#endif
 
     return true;
 }
@@ -94,20 +108,20 @@ void File::close() {
 String File::fileModeMapper(int mode) {
     assert(mode != 0);
 
+    String str_mode;
     if (mode & FileMode::Read) {
         if (mode & FileMode::Write) {
-            return (mode & FileMode::Append) ? "a+b" : "w+b";
+            str_mode = mode & FileMode::Append ? "a+b" : "w+b";
         } else {
-            return "rb";
+            str_mode = "rb";
         }
     }
 
     if (mode & FileMode::Write) {
-        return (mode & FileMode::Append) ? "ab" : "wb";
+        str_mode = mode & FileMode::Append ? "ab" : "wb";
     }
 
-    // This should never happen
-    assert(false && "Invalid file mode specified");
-    return "rb";
+    assert(str_mode.length() > 0);
+    return str_mode;
 }
 }  // namespace dw

@@ -26,7 +26,7 @@ public:
     template <typename T> void setUniform(const String& name, const T& value) {
     }
 
-    //    bgfx::ProgramHandle internalHandle() const;
+    ProgramHandle internalHandle() const;
 
 private:
     //    Option<bgfx::UniformHandle> uniformHandle(const String& name, bgfx::UniformType::Enum
@@ -39,7 +39,7 @@ private:
     SharedPtr<Shader> fragment_shader_;
     Array<SharedPtr<Texture>, 8> texture_units_;
 
-    //    bgfx::ProgramHandle handle_;
+    ProgramHandle handle_;
 };
 
 // Note: https://github.com/bkaradzic/bgfx/issues/653

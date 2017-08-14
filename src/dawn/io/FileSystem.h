@@ -15,11 +15,14 @@ public:
     ~FileSystem();
 
     bool setWorkingDir(const Path& path) const;
-    Path getWorkingDir() const;
+    Path workingDir() const;
     Path tempDir() const;
 
     bool fileExists(const Path& path) const;
     bool rename(const Path& oldname, const Path& newname) const;
     bool deleteFile(const Path& path) const;
+
+    // TODO: list files in directory.
+    // TODO: file walker.
 };
 }  // namespace dw

@@ -39,7 +39,7 @@ void Engine::setup() {
     assert(!initialised_);
 
     // Create context.
-    context_ = new Context(getBasePath(), "");
+    context_ = new Context(basePath(), "");
 
     // Initialise file system.
     context_->addSubsystem<FileSystem>();
@@ -66,9 +66,6 @@ void Engine::setup() {
     window_title += " (debug)";
 #endif
 
-    // Create the window.
-    window_ = makeUnique<Window>(context_, 1280, 800, window_title);
-
     // Low-level subsystems
     context_->addSubsystem<EventSystem>();
 
@@ -78,6 +75,7 @@ void Engine::setup() {
         context_->loadConfig(config_file_);
     } else {
         log().info("Configuration does not exist, creating %s", config_file_);
+        context_->setDefaultConfig();
     }
 
     // Initialise the Lua VM first so bindings can be defined in Constructors
@@ -86,7 +84,9 @@ void Engine::setup() {
 
     // Create the engine subsystems.
     context_->addSubsystem<Input>();
-    context_->addSubsystem<Renderer>(window_.get());
+    auto* renderer = context_->addSubsystem<Renderer>();
+    renderer->init(context_->config().at("window_width").get<u16>(),
+                   context_->config().at("window_height").get<u16>(), window_title, true);
     // mUI = new UI(mRenderer, mInput, mLuaState);
     // mAudio = new Audio;
     // mPhysicsWorld = new PhysicsWorld(mRenderer);
@@ -117,7 +117,7 @@ void Engine::setup() {
      */
 
     // Display startup info
-    log().info("Current Working Directory: %s", subsystem<FileSystem>()->getWorkingDir());
+    log().info("Current Working Directory: %s", subsystem<FileSystem>()->workingDir());
 
     // The engine is now initialised
     initialised_ = true;
@@ -141,9 +141,6 @@ void Engine::shutdown() {
     context_->removeSubsystem<StateManager>();
     context_->clearSubsystems();
 
-    // Destroy window.
-    window_.reset();
-
     // The engine is no longer initialised.
     initialised_ = false;
 }
@@ -157,14 +154,6 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
     time::TimePoint previous_time = time::beginTiming();
     double accumulator = 0.0;
     while (running_) {
-        // mUI->beginFrame();
-
-        // Message pump.
-        window_->pollEvents();
-        if (window_->shouldClose()) {
-            running_ = false;
-        }
-
         // Update game logic.
         while (accumulator >= dt) {
             update(dt);
@@ -236,7 +225,7 @@ static String readSymLink(const String& path) {
 }
 #endif
 
-String Engine::getBasePath() const {
+String Engine::basePath() const {
 #if DW_PLATFORM == DW_WIN32
     u32 buffer_length = 128;
     char* path_array = NULL;

@@ -24,7 +24,7 @@ TEST_F(FileTest, ReadByte) {
     dw::File file(context_, "testfiles/data", dw::FileMode::Read);
     dw::u32 data;
     dw::u32 bytes_read = file.read(&data, sizeof(dw::u32));
-    EXPECT_EQ(0x906f6f66, data);
+    EXPECT_EQ(0x806f6f66, data);
     EXPECT_EQ(4, bytes_read);
     EXPECT_EQ(true, file.eof());
 }

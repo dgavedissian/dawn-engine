@@ -11,12 +11,14 @@ class DW_API IndexBuffer : public Object {
 public:
     DW_OBJECT(IndexBuffer);
 
-    IndexBuffer(Context* context);
+    IndexBuffer(Context* context, const void* data, uint size, IndexBufferType type);
     ~IndexBuffer();
 
-    //    bgfx::IndexBufferHandle internalHandle() const;
+    IndexBufferHandle internalHandle() const;
+    u32 indexCount() const;
 
 private:
-    //    bgfx::IndexBufferHandle handle_;
+    IndexBufferHandle handle_;
+    u32 index_count_;
 };
 }  // namespace dw
