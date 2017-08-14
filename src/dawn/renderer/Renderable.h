@@ -6,7 +6,6 @@
 
 #include "renderer/Program.h"
 #include "ecs/Component.h"
-#include "renderer/RenderTask.h"
 
 namespace dw {
 class DW_API Renderable : public Object {
@@ -24,17 +23,14 @@ public:
     /// @param material The material to assign to this Renderable.
     void setMaterial(SharedPtr<Program> material);
 
-    /// Generates a render task.
-    /// @return A generated render task for this draw event.
-    virtual RenderTask draw(const Mat4& modelMatrix) = 0;
+    /// Draws this renderable to the specified view.
+    virtual void draw(Renderer* renderer, uint view, const Mat4& modelMatrix) = 0;
 
 protected:
     SharedPtr<Program> material_;
 };
 
 struct RenderableComponent : public Component {
-    RenderableComponent(Renderable* renderable) : renderable{renderable} {
-    }
     Renderable* renderable;
 };
 }  // namespace dw

@@ -250,10 +250,9 @@ TEST_CLASS(Textured3DCube) {
         // Set vertex buffer and submit.
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
         r->setTexture(texture_resource_->internalHandle(), 0);
-        auto task = box_->draw(model);
-        r->setVertexBuffer(task.primitive.vb);
-        r->setIndexBuffer(task.primitive.ib);
-        r->submit(0, program_, task.primitive.count);
+        r->setVertexBuffer(box_->vertexBuffer()->internalHandle());
+        r->setIndexBuffer(box_->indexBuffer()->internalHandle());
+        r->submit(0, program_, box_->indexBuffer()->indexCount());
     }
 
     void stop() {
@@ -321,10 +320,9 @@ TEST_CLASS(PostProcessing) {
         r->setViewFrameBuffer(1, FrameBufferHandle{0});
 
         // Set vertex buffer and submit.
-        auto task = box_->draw(model);
-        r->setVertexBuffer(task.primitive.vb);
-        r->setIndexBuffer(task.primitive.ib);
-        r->submit(0, box_program_, task.primitive.count);
+        r->setVertexBuffer(box_->vertexBuffer()->internalHandle());
+        r->setIndexBuffer(box_->indexBuffer()->internalHandle());
+        r->submit(0, box_program_, box_->indexBuffer()->indexCount());
 
         // Draw fb.
         r->setTexture(r->getFrameBufferTexture(fb_handle_, 0), 0);
@@ -400,12 +398,12 @@ TEST_CLASS(DeferredShading) {
             r->setStateEnable(RenderState::Blending);
             r->setStateBlendEquation(BlendEquation::Add, BlendFunc::One, BlendFunc::One);
 
-            auto task = sphere_->draw(Mat4::identity);
-            r->setVertexBuffer(task.primitive.vb);
-            r->setIndexBuffer(task.primitive.ib);
+            // Draw sphere.
+            r->setVertexBuffer(sphere_->vertexBuffer()->internalHandle());
+            r->setIndexBuffer(sphere_->indexBuffer()->internalHandle());
             r->setUniform("mvp_matrix", mvp);
             r->setUniform("light_position", position_);
-            r->submit(view, program_, task.primitive.count);
+            r->submit(view, program_, sphere_->indexBuffer()->indexCount());
         }
 
     private:
@@ -496,11 +494,10 @@ TEST_CLASS(DeferredShading) {
         r->setUniform("mvp_matrix", proj * view * model);
 
         // Set vertex buffer and submit.
-        auto task = ground_->draw(Mat4::identity);
-        r->setVertexBuffer(task.primitive.vb);
-        r->setIndexBuffer(task.primitive.ib);
+        r->setVertexBuffer(ground_->vertexBuffer()->internalHandle());
+        r->setIndexBuffer(ground_->indexBuffer()->internalHandle());
         r->setTexture(texture_resource_->internalHandle(), 0);
-        r->submit(0, cube_program_, task.primitive.count);
+        r->submit(0, cube_program_, ground_->indexBuffer()->indexCount());
 
         // Draw fb.
         r->setTexture(r->getFrameBufferTexture(gbuffer_, 0), 0);

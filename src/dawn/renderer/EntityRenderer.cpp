@@ -11,7 +11,7 @@
 namespace dw {
 EntityRenderer::EntityRenderer(Context* context) : System{context} {
     supportsComponents<RenderableComponent, Transform>();
-    render_tasks_by_camera_.emplace(makePair<String, Vector<RenderTask>>("main_camera", {}));
+    //render_tasks_by_camera_.emplace(makePair<String, Vector<RenderTask>>("main_camera", {}));
 }
 
 void EntityRenderer::processEntity(Entity& entity) {
@@ -25,12 +25,13 @@ void EntityRenderer::processEntity(Entity& entity) {
     if (parent) {
     model = model * DeriveWorldTransform(parent.entity);
     }
-    */
     render_tasks_by_camera_["main_camera"].emplace_back(
         renderable->renderable->draw(Mat4::identity));
+    */
 }
 
 void EntityRenderer::dispatchRenderTasks() {
+    /*
     auto& renderer = *subsystem<Renderer>();
     for (auto render_tasks_list : render_tasks_by_camera_) {
         // Setup camera matrices.
@@ -46,5 +47,6 @@ void EntityRenderer::dispatchRenderTasks() {
         }
         render_tasks_list.second.clear();
     }
+     */
 }
 }  // namespace dw

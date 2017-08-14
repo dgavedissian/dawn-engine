@@ -337,31 +337,6 @@ void Renderer::submit(uint view, ProgramHandle program, uint vertex_count) {
 }
 
 void Renderer::frame() {
-    /*
-    bgfx::setViewRect(0, 0, 0, width_, height_);
-    for (auto task : render_tasks_) {
-        // Set camera state.
-        if (task.type == RenderTaskType::SetCameraMatrices) {
-            auto& task_data = task.camera;
-            task_data.view_matrix.Transpose();
-            task_data.proj_matrix.Transpose();
-            bgfx::setViewTransform(0, &task_data.view_matrix.v[0][0],
-                                   &task_data.proj_matrix.v[0][0]);
-        }
-        // Render.
-        if (task.type == RenderTaskType::Primitive) {
-            auto& task_data = task.primitive;
-            task_data.model_matrix.Transpose();
-            bgfx::setTransform(&task_data.model_matrix.v[0][0]);
-            bgfx::setVertexBuffer(task_data.vb);
-            bgfx::setIndexBuffer(task_data.ib);
-            bgfx::submit(0, task_data.shader);
-        }
-    }
-    render_tasks_.clear();
-    bgfx::frame();
-     */
-
     // If we are rendering in multithreaded mode, wait for the render thread/
     if (use_render_thread_) {
         // If the rendering thread is doing nothing, print a warning and give up.

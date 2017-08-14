@@ -89,8 +89,6 @@ set(SOURCE_FILES
     renderer/Renderable.cpp
     renderer/Renderer.cpp
     renderer/Renderer.h
-    renderer/RenderTask.cpp
-    renderer/RenderTask.h
     renderer/Shader.cpp
     renderer/Shader.h
     renderer/SPIRV.h

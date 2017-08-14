@@ -17,7 +17,10 @@ public:
                SharedPtr<IndexBuffer> indexBuffer);
     ~CustomMesh();
 
-    RenderTask draw(const Mat4& modelMatrix) override;
+    void draw(Renderer* renderer, uint view, const Mat4& modelMatrix) override;
+
+    const VertexBuffer* vertexBuffer() const;
+    const IndexBuffer* indexBuffer() const;
 
 private:
     SharedPtr<VertexBuffer> vertex_buffer_;
