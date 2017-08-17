@@ -11,7 +11,7 @@
 namespace dw {
 EntityRenderer::EntityRenderer(Context* context) : System{context} {
     supportsComponents<RenderableComponent, Transform>();
-    //render_tasks_by_camera_.emplace(makePair<String, Vector<RenderTask>>("main_camera", {}));
+    // render_tasks_by_camera_.emplace(makePair<String, Vector<RenderTask>>("main_camera", {}));
 }
 
 void EntityRenderer::processEntity(Entity& entity) {

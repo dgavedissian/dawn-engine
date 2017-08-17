@@ -74,7 +74,7 @@ public:
     }
 
     String gameName() override {
-        return "RendererTest";
+        return "Sandbox";
     }
 
     String gameVersion() override {

@@ -20,6 +20,6 @@ public:
     void dispatchRenderTasks();
 
 private:
-    //HashMap<String, Vector<RenderTask>> render_tasks_by_camera_;
+    // HashMap<String, Vector<RenderTask>> render_tasks_by_camera_;
 };
 }  // namespace dw

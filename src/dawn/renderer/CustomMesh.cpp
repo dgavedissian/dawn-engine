@@ -23,7 +23,7 @@ void CustomMesh::draw(Renderer* renderer, uint view, const Mat4& modelMatrix) {
     renderer->submit(view, material_->internalHandle(), vertex_count);
 }
 
-const VertexBuffer *CustomMesh::vertexBuffer() const {
+const VertexBuffer* CustomMesh::vertexBuffer() const {
     return vertex_buffer_.get();
 }
 

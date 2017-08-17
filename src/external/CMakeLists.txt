@@ -45,8 +45,8 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include)
 ExternalProject_Add(Assimp
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    URL https://github.com/assimp/assimp/archive/v4.0.0.zip
-    URL_MD5 055be08044d5d877db4e4e44020e8614
+    URL https://github.com/assimp/assimp/archive/6b4e3177e836dfb05c7eb5e3347b15a9916eebe7.zip
+    URL_MD5 f7bb45ebbccdde3997be22e61fdb242b
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DASSIMP_BUILD_ASSIMP_TOOLS=0

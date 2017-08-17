@@ -31,6 +31,8 @@ protected:
 };
 
 struct RenderableComponent : public Component {
+    RenderableComponent(Renderable* r) : renderable{r} {
+    }
     Renderable* renderable;
 };
 }  // namespace dw

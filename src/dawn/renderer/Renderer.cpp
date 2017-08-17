@@ -124,7 +124,7 @@ void Renderer::init(u16 width, u16 height, const String& title, bool use_render_
     shared_render_context_ = makeUnique<GLRenderContext>(context());
     shared_render_context_->createWindow(width_, height_, window_title_);
     if (use_render_thread) {
-        render_thread_ = Thread{ [this]() { renderThread(); } };
+        render_thread_ = Thread{[this]() { renderThread(); }};
     } else {
         shared_render_context_->startRendering();
     }
@@ -349,10 +349,11 @@ void Renderer::frame() {
         // Wait for render thread.
         shared_frame_barrier_.wait();
 
-        // Wait for frame swap, then reset swapped_frames_. This has no race here, because the render
+        // Wait for frame swap, then reset swapped_frames_. This has no race here, because the
+        // render
         // thread will not modify "swapped_frames_" again until after this thread hits the barrier
         // again.
-        UniqueLock<Mutex> lock{ swap_mutex_ };
+        UniqueLock<Mutex> lock{swap_mutex_};
         swap_cv_.wait(lock, [this] { return swapped_frames_; });
         swapped_frames_ = false;
     } else {
