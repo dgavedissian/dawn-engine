@@ -23,6 +23,8 @@ public:
         program_->setUniform(name, value);
     }
 
+    Program* program();
+
 private:
     SharedPtr<Program> program_;
 };

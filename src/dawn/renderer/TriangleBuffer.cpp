@@ -30,7 +30,7 @@ void TriangleBuffer::begin() {
     contains_texcoords_ = false;
 }
 
-SharedPtr<CustomMesh> TriangleBuffer::end() {
+SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
     // Set up vertex data.
     const void* data;
     uint size;
@@ -83,7 +83,7 @@ SharedPtr<CustomMesh> TriangleBuffer::end() {
     }
 
     // Create custom mesh.
-    auto custom_mesh = makeShared<CustomMesh>(
+    auto custom_mesh = makeShared<CustomMeshRenderable>(
         context_, makeShared<VertexBuffer>(context_, data, size, vertices_.size(), decl),
         makeShared<IndexBuffer>(context_, indices_.data(), indices_.size() * sizeof(u32),
                                 IndexBufferType::U32));

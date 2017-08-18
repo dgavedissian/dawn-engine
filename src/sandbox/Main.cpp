@@ -8,7 +8,6 @@
 #include "renderer/MeshBuilder.h"
 #include "renderer/Program.h"
 #include "resource/ResourceCache.h"
-#include "scene/Node.h"
 #include "scene/Parent.h"
 #include "scene/Transform.h"
 
@@ -41,8 +40,6 @@ class Sandbox : public App {
 public:
     DW_OBJECT(Sandbox);
 
-    UniquePtr<Node> node;
-
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
@@ -50,21 +47,20 @@ public:
         rc->addResourcePath("media/sandbox");
 
         // Create a node.
-        node = makeUnique<Node>(context());
-        SharedPtr<Program> material =
+        auto material = makeShared<Material>(
+            context(),
             makeShared<Program>(context(), rc->get<VertexShader>("shaders/bin/sphere.vs"),
-                                rc->get<FragmentShader>("shaders/bin/sphere.fs"));
-        node->setRenderable(
-            MeshBuilder(context()).normals(false).normals(false).createSphere(10.0f));
-        node->renderable()->setMaterial(material);
+                                rc->get<FragmentShader>("shaders/bin/sphere.fs")));
+        auto renderable = MeshBuilder(context()).normals(false).normals(false).createSphere(10.0f);
+        renderable->setMaterial(material);
 
         auto sm = subsystem<SystemManager>();
         auto em = subsystem<EntityManager>();
         // sm->addSystem<Test>();
         // em->createEntity().addComponent<PositionData>(0.0f, 0.0f, 0.0f).addComponent<Parent>(1);
         em->createEntity()
-            .addComponent<RenderableComponent>(node->renderable())
-            .addComponent<Transform>(Position(), Quat::identity);
+            .addComponent<RenderableComponent>(renderable)
+            .addComponent<Transform>(Position{}, Quat::identity);
     }
 
     void update(float dt) override {

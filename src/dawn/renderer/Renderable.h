@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/Program.h"
+#include "renderer/Material.h"
 #include "ecs/Component.h"
 
 namespace dw {
@@ -17,22 +17,22 @@ public:
 
     /// Returns the material of this Renderable.
     /// @return The material currently assigned to this Renderable.
-    Program* material() const;
+    Material* material() const;
 
     /// Changes the material used to render this Renderable object.
     /// @param material The material to assign to this Renderable.
-    void setMaterial(SharedPtr<Program> material);
+    void setMaterial(SharedPtr<Material> material);
 
     /// Draws this renderable to the specified view.
     virtual void draw(Renderer* renderer, uint view, const Mat4& modelMatrix) = 0;
 
 protected:
-    SharedPtr<Program> material_;
+    SharedPtr<Material> material_;
 };
 
 struct RenderableComponent : public Component {
-    RenderableComponent(Renderable* r) : renderable{r} {
+    RenderableComponent(SharedPtr<Renderable> r) : renderable{r} {
     }
-    Renderable* renderable;
+    SharedPtr<Renderable> renderable;
 };
 }  // namespace dw

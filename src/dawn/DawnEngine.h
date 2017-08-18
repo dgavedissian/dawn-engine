@@ -21,7 +21,7 @@
 #include "math/Vec4i.h"
 #include "input/Input.h"
 #include "physics/PhysicsWorld.h"
-#include "renderer/CustomMesh.h"
+#include "renderer/CustomMeshRenderable.h"
 #include "renderer/EntityRenderer.h"
 #include "renderer/Renderer.h"
 #include "resource/ResourceCache.h"

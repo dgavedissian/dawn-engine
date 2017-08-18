@@ -70,8 +70,8 @@ set(SOURCE_FILES
     renderer/api/GL.h
     renderer/api/GLRenderContext.cpp
     renderer/api/GLRenderContext.h
-    renderer/CustomMesh.cpp
-    renderer/CustomMesh.h
+    renderer/CustomMeshRenderable.cpp
+    renderer/CustomMeshRenderable.h
     renderer/EntityRenderer.cpp
     renderer/EntityRenderer.h
     renderer/GLSL.h

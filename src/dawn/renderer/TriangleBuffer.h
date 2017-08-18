@@ -5,7 +5,7 @@
 #pragma once
 
 #include "math/Defs.h"
-#include "renderer/CustomMesh.h"
+#include "renderer/CustomMeshRenderable.h"
 
 namespace dw {
 class DW_API TriangleBuffer : public Object {
@@ -23,7 +23,7 @@ public:
     void begin();
 
     // Compile the vertex and index arrays into GPU buffers.
-    SharedPtr<CustomMesh> end();
+    SharedPtr<CustomMeshRenderable> end();
 
     // Add a vertex.
     void position(const Vec3& p);

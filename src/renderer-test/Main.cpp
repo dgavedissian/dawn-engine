@@ -206,7 +206,7 @@ TEST_CLASS(BasicIndexBuffer) {
 TEST_CLASS(Textured3DCube) {
     TEST_BODY(Textured3DCube);
 
-    SharedPtr<CustomMesh> box_;
+    SharedPtr<CustomMeshRenderable> box_;
     ProgramHandle program_;
 
     // Uses the higher level wrapper which provides loading from files.
@@ -263,7 +263,7 @@ TEST_CLASS(Textured3DCube) {
 TEST_CLASS(PostProcessing) {
     TEST_BODY(PostProcessing);
 
-    SharedPtr<CustomMesh> box_;
+    SharedPtr<CustomMeshRenderable> box_;
     ProgramHandle box_program_;
 
     VertexBufferHandle fsq_vb_;
@@ -340,7 +340,7 @@ TEST_CLASS(PostProcessing) {
 TEST_CLASS(DeferredShading) {
     TEST_BODY(DeferredShading);
 
-    SharedPtr<CustomMesh> ground_;
+    SharedPtr<CustomMeshRenderable> ground_;
     ProgramHandle cube_program_;
 
     // Uses the higher level wrapper which provides loading from files.
@@ -408,7 +408,7 @@ TEST_CLASS(DeferredShading) {
 
     private:
         Renderer* r;
-        SharedPtr<CustomMesh> sphere_;
+        SharedPtr<CustomMeshRenderable> sphere_;
         ProgramHandle program_;
 
         Vec3 position_;
