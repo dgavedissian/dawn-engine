@@ -246,12 +246,12 @@ using RenderCommand =
             cmd::DeleteFrameBuffer>;
 // clang-format on
 
+using UniformData = Variant<int, float, Vec2, Vec3, Vec4, Mat3, Mat4>;
+
 // Current render state.
 struct RenderItem {
     RenderItem();
     void clear();
-
-    using UniformData = Variant<int, float, Vec2, Vec3, Vec4, Mat3, Mat4>;
 
     struct TextureBinding {
         TextureHandle handle;
@@ -368,6 +368,7 @@ public:
     void setUniform(const String& uniform_name, const Vec4& value);
     void setUniform(const String& uniform_name, const Mat3& value);
     void setUniform(const String& uniform_name, const Mat4& value);
+    void setUniform(const String& uniform_name, UniformData data);
 
     // Create texture.
     TextureHandle createTexture2D(u16 width, u16 height, TextureFormat format, const void* data,

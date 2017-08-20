@@ -189,31 +189,35 @@ void Renderer::deleteProgram(ProgramHandle program) {
 }
 
 void Renderer::setUniform(const String& uniform_name, int value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, float value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, const Vec2& value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, const Vec3& value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, const Vec4& value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, const Mat3& value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, const Mat4& value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
+}
+
+void Renderer::setUniform(const String &uniform_name, UniformData data) {
+    submit_->current_item.uniforms[uniform_name] = data;
 }
 
 TextureHandle Renderer::createTexture2D(u16 width, u16 height, TextureFormat format,

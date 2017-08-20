@@ -15,13 +15,15 @@ CustomMeshRenderable::CustomMeshRenderable(Context* context, SharedPtr<VertexBuf
 CustomMeshRenderable::~CustomMeshRenderable() {
 }
 
-void CustomMeshRenderable::draw(Renderer* renderer, uint view, const Mat4& modelMatrix) {
+void CustomMeshRenderable::draw(uint view, const Mat4& modelMatrix) {
+    Renderer* r = subsystem<Renderer>();
     u32 vertex_count = index_buffer_ ? index_buffer_->indexCount() : vertex_buffer_->vertexCount();
-    renderer->setVertexBuffer(vertex_buffer_->internalHandle());
+    r->setVertexBuffer(vertex_buffer_->internalHandle());
     if (index_buffer_) {
-        renderer->setIndexBuffer(index_buffer_->internalHandle());
+        r->setIndexBuffer(index_buffer_->internalHandle());
     }
-    renderer->submit(view, material_->program()->internalHandle(), vertex_count);
+    material_->program()->prepareForRendering();
+    r->submit(view, material_->program()->internalHandle(), vertex_count);
 }
 
 const VertexBuffer* CustomMeshRenderable::vertexBuffer() const {

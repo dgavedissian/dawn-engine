@@ -24,7 +24,7 @@ public:
     void setMaterial(SharedPtr<Material> material);
 
     /// Draws this renderable to the specified view.
-    virtual void draw(Renderer* renderer, uint view, const Mat4& modelMatrix) = 0;
+    virtual void draw(uint view, const Mat4& modelMatrix) = 0;
 
 protected:
     SharedPtr<Material> material_;

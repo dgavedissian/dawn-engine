@@ -13,7 +13,7 @@ public:
     DW_OBJECT(Shader);
 
     Shader(Context* context, ShaderStage type);
-    ~Shader();
+    virtual ~Shader() = default;
 
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
@@ -36,7 +36,7 @@ public:
 
 class DW_API GeometryShader : public Shader {
 public:
-    DW_OBJECT(VertexShader);
+    DW_OBJECT(GeometryShader);
 
     GeometryShader(Context* context) : Shader{context, ShaderStage::Geometry} {
     }
@@ -45,7 +45,7 @@ public:
 
 class DW_API FragmentShader : public Shader {
 public:
-    DW_OBJECT(VertexShader);
+    DW_OBJECT(FragmentShader);
 
     FragmentShader(Context* context) : Shader{context, ShaderStage::Fragment} {
     }
