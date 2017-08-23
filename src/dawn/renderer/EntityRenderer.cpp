@@ -19,6 +19,8 @@ void EntityRenderer::processEntity(Entity& entity) {
     auto transform = entity.component<Transform>();
     auto parent = entity.component<Parent>();
 
+    Mat4 model = Mat4::Translate(transform->position.x, transform->position.y, transform->position.z);
+
     // For each camera.
     /*Vec3 relative_position = PositionData::WorldToRelative(current_camera, transform.position);
     Mat4 model = CalcModelMatrix(relative_position, transform.orientation);

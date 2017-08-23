@@ -8,7 +8,7 @@
 #include "renderer/GLSL.h"
 
 namespace {
-void initResourcesGLSL(TBuiltInResource &resources) {
+void initResourcesGLSL(TBuiltInResource& resources) {
     resources.maxLights = 32;
     resources.maxClipPlanes = 6;
     resources.maxTextureUnits = 32;

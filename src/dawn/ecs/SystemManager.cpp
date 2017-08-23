@@ -10,10 +10,9 @@ SystemManager::SystemManager(Context* context)
     : Object{context}, system_manager_{context->ontology_world_.getSystemManager()} {
 }
 
-    void SystemManager::beginMainLoop()
-    {
-        system_manager_.initialise();
-    }
+void SystemManager::beginMainLoop() {
+    system_manager_.initialise();
+}
 
 void SystemManager::update() {
     context_->ontology_world_.update();

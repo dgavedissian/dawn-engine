@@ -136,7 +136,7 @@ public:
         GL_CHECK();
     }
 
-    void updateUniform(GLint location, const RenderItem::UniformData& data) {
+    void updateUniform(GLint location, const UniformData& data) {
         uniform_location_ = location;
         VariantApplyVisitor(*this, data);
     }

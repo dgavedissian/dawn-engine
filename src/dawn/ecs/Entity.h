@@ -53,7 +53,7 @@ inline EntityId Entity::id() const {
 }
 
 template <typename T> T* Entity::component() const {
-    return internal_entity_.getComponentPtr<T>();
+    return internal_entity_.hasComponent<T>() ? internal_entity_.getComponentPtr<T>() : nullptr;
 }
 
 template <typename T> bool Entity::hasComponent() const {

@@ -216,7 +216,7 @@ void Renderer::setUniform(const String& uniform_name, const Mat4& value) {
     setUniform(uniform_name, UniformData{value});
 }
 
-void Renderer::setUniform(const String &uniform_name, UniformData data) {
+void Renderer::setUniform(const String& uniform_name, UniformData data) {
     submit_->current_item.uniforms[uniform_name] = data;
 }
 
@@ -341,7 +341,7 @@ void Renderer::submit(uint view, ProgramHandle program, uint vertex_count) {
 }
 
 void Renderer::frame() {
-    // If we are rendering in multithreaded mode, wait for the render thread/
+    // If we are rendering in multithreaded mode, wait for the render thread.
     if (use_render_thread_) {
         // If the rendering thread is doing nothing, print a warning and give up.
         if (shared_rt_finished_) {
@@ -354,9 +354,8 @@ void Renderer::frame() {
         shared_frame_barrier_.wait();
 
         // Wait for frame swap, then reset swapped_frames_. This has no race here, because the
-        // render
-        // thread will not modify "swapped_frames_" again until after this thread hits the barrier
-        // again.
+        // render thread will not modify "swapped_frames_" again until after this thread hits the
+        // barrier again.
         UniqueLock<Mutex> lock{swap_mutex_};
         swap_cv_.wait(lock, [this] { return swapped_frames_; });
         swapped_frames_ = false;

@@ -43,14 +43,13 @@ public:
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
-        rc->addResourcePath("media/base");
-        rc->addResourcePath("media/sandbox");
+        rc->addResourcePath("../media/base");
+        rc->addResourcePath("../media/sandbox");
 
         // Create an object.
         auto material = makeShared<Material>(
-            context(),
-            makeShared<Program>(context(), rc->get<VertexShader>("shaders/bin/sphere.vs"),
-                                rc->get<FragmentShader>("shaders/bin/sphere.fs")));
+            context(), makeShared<Program>(context(), rc->get<VertexShader>("ship.vs"),
+                                           rc->get<FragmentShader>("ship.fs")));
         auto renderable = MeshBuilder(context()).normals(false).normals(false).createSphere(10.0f);
         renderable->setMaterial(material);
 

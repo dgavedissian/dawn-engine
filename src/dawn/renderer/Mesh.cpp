@@ -28,9 +28,10 @@ bool Mesh::beginLoad(InputStream& is) {
 
     // Run importer.
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFileFromMemory(
-        data, size, aiProcess_CalcTangentSpace | aiProcess_Triangulate |
-                        aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
+    const aiScene* scene =
+        importer.ReadFileFromMemory(data, size,
+                                    aiProcess_CalcTangentSpace | aiProcess_Triangulate |
+                                        aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
     if (scene == nullptr) {
         log().error("Unable to load mesh. Reason: %s", importer.GetErrorString());
         return false;
