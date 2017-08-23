@@ -4,10 +4,9 @@
  */
 #include "Common.h"
 #include "renderer/Renderable.h"
-#include "renderer/Renderer.h"
 
 namespace dw {
-Renderable::Renderable(Context* context) : Object(context) {
+Renderable::Renderable() {
 }
 
 Renderable::~Renderable() {

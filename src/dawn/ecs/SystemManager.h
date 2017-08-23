@@ -31,6 +31,9 @@ public:
     /// @tparam T Entity system type.
     template <typename T> void removeSystem();
 
+    /// Begin main loop. Required by Ontology.
+    void beginMainLoop();
+
     /// Update the world.
     void update();
 

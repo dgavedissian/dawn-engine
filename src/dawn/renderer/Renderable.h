@@ -8,11 +8,9 @@
 #include "ecs/Component.h"
 
 namespace dw {
-class DW_API Renderable : public Object {
+class DW_API Renderable {
 public:
-    DW_OBJECT(Renderable);
-
-    Renderable(Context* context);
+    Renderable();
     virtual ~Renderable();
 
     /// Returns the material of this Renderable.

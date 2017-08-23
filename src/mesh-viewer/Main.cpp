@@ -36,9 +36,9 @@ public:
 };
  */
 
-class Sandbox : public App {
+class MeshViewer : public App {
 public:
-    DW_OBJECT(Sandbox);
+    DW_OBJECT(MeshViewer);
 
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
@@ -46,7 +46,7 @@ public:
         rc->addResourcePath("media/base");
         rc->addResourcePath("media/sandbox");
 
-        // Create an object.
+        // Create a node.
         auto material = makeShared<Material>(
             context(),
             makeShared<Program>(context(), rc->get<VertexShader>("shaders/bin/sphere.vs"),
@@ -70,7 +70,7 @@ public:
     }
 
     String gameName() override {
-        return "Sandbox";
+        return "MeshViewer";
     }
 
     String gameVersion() override {

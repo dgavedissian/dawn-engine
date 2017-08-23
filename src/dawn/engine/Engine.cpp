@@ -149,6 +149,9 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
     // TODO(David) stub
     Camera* main_camera = nullptr;
 
+    // Initialise the ECS dependency graph.
+    context_->subsystem<SystemManager>()->beginMainLoop();
+
     // Start the main loop.
     const float dt = 1.0f / 60.0f;
     time::TimePoint previous_time = time::beginTiming();
