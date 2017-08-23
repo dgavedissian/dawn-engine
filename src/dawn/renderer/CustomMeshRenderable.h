@@ -17,7 +17,8 @@ public:
                          SharedPtr<IndexBuffer> index_buffer);
     ~CustomMeshRenderable();
 
-    void draw(Renderer* renderer, uint view, const Mat4& model_matrix) override;
+    void draw(Renderer* renderer, uint view, const Mat4& model_matrix,
+              const Mat4& view_projection_matrix) override;
 
     const VertexBuffer* vertexBuffer() const;
     const IndexBuffer* indexBuffer() const;

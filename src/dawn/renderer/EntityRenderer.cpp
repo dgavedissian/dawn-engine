@@ -5,13 +5,22 @@
 #include "Common.h"
 #include "renderer/EntityRenderer.h"
 #include "renderer/Renderable.h"
+#include "ecs/SystemManager.h"
 #include "scene/Transform.h"
 #include "scene/Parent.h"
 
 namespace dw {
+namespace {
+Mat4 ConvertTransform(Transform& t) {
+    return Mat4::Translate(t.position.x, t.position.y, t.position.z).ToFloat4x4() *
+           Mat4::FromQuat(t.orientation);
+}
+}  // namespace
+
 EntityRenderer::EntityRenderer(Context* context) : System{context} {
     supportsComponents<RenderableComponent, Transform>();
-    // render_tasks_by_camera_.emplace(makePair<String, Vector<RenderTask>>("main_camera", {}));
+    camera_entity_system_ = subsystem<SystemManager>()->addSystem<CameraEntitySystem>();
+    executesAfter<CameraEntitySystem>();
 }
 
 void EntityRenderer::processEntity(Entity& entity) {
@@ -19,8 +28,11 @@ void EntityRenderer::processEntity(Entity& entity) {
     auto transform = entity.component<Transform>();
     auto parent = entity.component<Parent>();
 
-    Mat4 model = Mat4::Translate(transform->position.x, transform->position.y, transform->position.z);
-
+    for (auto camera : camera_entity_system_->cameras) {
+        Mat4 model = ConvertTransform(*transform);
+        renderable->renderable->draw(subsystem<Renderer>(), camera.view, model,
+                                     camera.view_projection_matrix);
+    }
     // For each camera.
     /*Vec3 relative_position = PositionData::WorldToRelative(current_camera, transform.position);
     Mat4 model = CalcModelMatrix(relative_position, transform.orientation);
@@ -32,23 +44,18 @@ void EntityRenderer::processEntity(Entity& entity) {
     */
 }
 
-void EntityRenderer::dispatchRenderTasks() {
-    /*
-    auto& renderer = *subsystem<Renderer>();
-    for (auto render_tasks_list : render_tasks_by_camera_) {
-        // Setup camera matrices.
-        RenderTask setup_camera;
-        setup_camera.type = RenderTaskType::SetCameraMatrices;
-        setup_camera.camera = {math::TranslateOp(0.0f, 0.0f, -20.0f).ToFloat4x4().Inverted(),
-                               Mat4::OpenGLPerspProjLH(0.1f, 1000.0f, 60.0f, 60.0f)};
-        // renderer.pushRenderTask(std::move(setup_camera));
+EntityRenderer::CameraEntitySystem::CameraEntitySystem(Context* context) : System{context} {
+    supportsComponents<Camera, Transform>();
+}
 
-        // Push render tasks for this camera.
-        for (auto render_task : render_tasks_list.second) {
-            // renderer.pushRenderTask(std::move(render_task));
-        }
-        render_tasks_list.second.clear();
-    }
-     */
+void EntityRenderer::CameraEntitySystem::beginProcessing() {
+    cameras.clear();
+}
+
+void EntityRenderer::CameraEntitySystem::processEntity(Entity& entity) {
+    auto camera = entity.component<Camera>();
+    auto transform = entity.component<Transform>();
+    Mat4 view = ConvertTransform(*transform).Inverted();
+    cameras.emplace_back(CameraState{0, camera->projection_matrix * view});
 }
 }  // namespace dw

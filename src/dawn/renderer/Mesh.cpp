@@ -97,12 +97,14 @@ bool Mesh::beginLoad(InputStream& is) {
 void Mesh::endLoad() {
 }
 
-void Mesh::draw(Renderer* renderer, uint view, const Mat4& model_matrix) {
+void Mesh::draw(Renderer* renderer, uint view, const Mat4& model_matrix,
+                const Mat4& view_projection_matrix) {
     u32 vertex_count = index_buffer_->indexCount();
     renderer->setVertexBuffer(vertex_buffer_->internalHandle());
     renderer->setIndexBuffer(index_buffer_->internalHandle());
     // TODO: Do this in the material class via a "bind" method.
     renderer->setUniform("model_matrix", model_matrix);
+    renderer->setUniform("mvp_matrix", view_projection_matrix * model_matrix);
     renderer->submit(view, material_->program()->internalHandle(), vertex_count);
 }
 }  // namespace dw

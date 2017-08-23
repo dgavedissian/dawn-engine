@@ -20,7 +20,8 @@ public:
     bool beginLoad(InputStream& src) override;
     void endLoad() override;
 
-    void draw(Renderer* renderer, uint view, const Mat4& modelMatrix) override;
+    void draw(Renderer* renderer, uint view, const Mat4& model_matrix,
+              const Mat4& view_projection_matrix) override;
 
 private:
     SharedPtr<VertexBuffer> vertex_buffer_;

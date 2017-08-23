@@ -147,7 +147,7 @@ void Engine::shutdown() {
 
 void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_callback) {
     // TODO(David) stub
-    Camera* main_camera = nullptr;
+    Camera_OLD* main_camera = nullptr;
 
     // Initialise the ECS dependency graph.
     context_->subsystem<SystemManager>()->beginMainLoop();
@@ -167,7 +167,6 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         // Render a frame.
         preRender(main_camera);
         render_callback();
-        context_->subsystem<SystemManager>()->getSystem<EntityRenderer>()->dispatchRenderTasks();
         context_->subsystem<Renderer>()->frame();
 
         // Calculate frameTime.
@@ -310,7 +309,7 @@ void Engine::update(float dt) {
     context_->subsystem<SystemManager>()->update();
 }
 
-void Engine::preRender(Camera* camera) {
+void Engine::preRender(Camera_OLD* camera) {
     context_->subsystem<SceneManager>()->preRender(camera);
     context_->subsystem<StateManager>()->preRender();
 }

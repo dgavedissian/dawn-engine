@@ -62,7 +62,13 @@ int getNumberOfCores() {
 #endif
 
 // ----------------------------------------------------------------------------
-System::System() : world(nullptr), m_Initialised(false) {
+System::System()
+    : world(nullptr),
+      m_Initialised(false)
+      // BEGIN DAVID
+      ,
+      first_iteration{false}  // END DAVID
+{
 }
 
 // ----------------------------------------------------------------------------
@@ -153,6 +159,9 @@ void System::waitForNotify() {
 // ----------------------------------------------------------------------------
 void System::update() {
 #pragma omp parallel for
+    // BEGIN DAVID
+    first_iteration = false;
+    // END DAVID
     for (auto it = m_EntityList.begin(); it < m_EntityList.end(); ++it)
         this->processEntity(*it);
     return;

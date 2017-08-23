@@ -20,6 +20,10 @@ public:
     }
 
     void processEntity(Ontology::Entity& entity) override {
+        if (!first_iteration) {
+            wrapped_system_->beginProcessing();
+            first_iteration = true;
+        }
         Entity wrapped_entity{wrapped_system_->context(), entity};
         wrapped_system_->processEntity(wrapped_entity);
     }
@@ -63,6 +67,10 @@ public:
         }
         depending_systems_ = Ontology::TypeSetGenerator<T...>();
         return *this;
+    }
+
+    /// Called when processing begins.
+    virtual void beginProcessing() {
     }
 
     /// Processes a single entity which matches the constraints set up by SupportsComponents.

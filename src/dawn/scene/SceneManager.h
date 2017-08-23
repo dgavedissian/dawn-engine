@@ -23,7 +23,7 @@ public:
     Node* getRootNode() const;
 
     /// Calls PreRender on each entity
-    void preRender(Camera* camera);
+    void preRender(Camera_OLD* camera);
 
 private:
     SharedPtr<Node> root_node_;

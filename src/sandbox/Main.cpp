@@ -14,14 +14,6 @@
 using namespace dw;
 
 /*
-struct PositionData : public Component {
-    PositionData(float x, float y, float z) : x{x}, y{y}, z{z} {
-    }
-    float x;
-    float y;
-    float z;
-};
-
 class Test : public System {
 public:
     Test(Context* context) : System{context} {
@@ -55,11 +47,14 @@ public:
 
         auto sm = subsystem<SystemManager>();
         auto em = subsystem<EntityManager>();
-        // sm->addSystem<Test>();
-        // em->createEntity().addComponent<PositionData>(0.0f, 0.0f, 0.0f).addComponent<Parent>(1);
         em->createEntity()
-            .addComponent<RenderableComponent>(renderable)
-            .addComponent<Transform>(Position{}, Quat::identity);
+            .addComponent<Transform>(Position{0.0f, 0.0f, -30.0f}, Quat::identity)
+            .addComponent<RenderableComponent>(renderable);
+
+        // Create a camera.
+        em->createEntity()
+            .addComponent<Transform>(Position{0.0f, 0.0f, 30.0f}, Quat::identity)
+            .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
     }
 
     void update(float dt) override {

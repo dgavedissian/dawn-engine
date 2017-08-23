@@ -15,7 +15,8 @@ CustomMeshRenderable::CustomMeshRenderable(Context* context, SharedPtr<VertexBuf
 CustomMeshRenderable::~CustomMeshRenderable() {
 }
 
-void CustomMeshRenderable::draw(Renderer* renderer, uint view, const Mat4& model_matrix) {
+void CustomMeshRenderable::draw(Renderer* renderer, uint view, const Mat4& model_matrix,
+                                const Mat4& view_projection_matrix) {
     u32 vertex_count = index_buffer_ ? index_buffer_->indexCount() : vertex_buffer_->vertexCount();
     renderer->setVertexBuffer(vertex_buffer_->internalHandle());
     if (index_buffer_) {
@@ -24,6 +25,7 @@ void CustomMeshRenderable::draw(Renderer* renderer, uint view, const Mat4& model
     // TODO: Do this in the material class via a "bind" method.
     auto program = material_->program();
     program->setUniform("model_matrix", model_matrix);
+    program->setUniform("mvp_matrix", view_projection_matrix * model_matrix);
     program->prepareForRendering();
     renderer->submit(view, program->internalHandle(), vertex_count);
 }

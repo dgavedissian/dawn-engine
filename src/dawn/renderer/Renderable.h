@@ -22,14 +22,15 @@ public:
     void setMaterial(SharedPtr<Material> material);
 
     /// Draws this renderable to the specified view.
-    virtual void draw(Renderer* renderer, uint view, const Mat4& modelMatrix) = 0;
+    virtual void draw(Renderer* renderer, uint view, const Mat4& model_matrix,
+                      const Mat4& view_projection_matrix) = 0;
 
 protected:
     SharedPtr<Material> material_;
 };
 
 struct RenderableComponent : public Component {
-    RenderableComponent(SharedPtr<Renderable> r) : renderable{r} {
+    explicit RenderableComponent(SharedPtr<Renderable> r) : renderable{r} {
     }
     SharedPtr<Renderable> renderable;
 };

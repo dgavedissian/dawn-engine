@@ -49,7 +49,7 @@ private:
     void printSystemInfo();
     String basePath() const;
     void update(float dt);
-    void preRender(Camera* camera);
+    void preRender(Camera_OLD* camera);
     void handleEvent(EventDataPtr eventData);
 };
 }  // namespace dw

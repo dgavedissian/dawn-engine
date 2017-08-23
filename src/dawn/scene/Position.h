@@ -7,7 +7,7 @@
 
 namespace dw {
 
-class Camera;
+class Camera_OLD;
 
 // A location in the game world, represented as a vector of doubles
 // Size: 24 bytes
@@ -22,10 +22,10 @@ public:
     Vec3 getRelativeTo(const Position& point) const;
 
     // Convert to camera space from world space
-    Vec3 toCameraSpace(Camera* camera) const;
+    Vec3 toCameraSpace(Camera_OLD* camera) const;
 
     // Convert to world space from camera space
-    static Position fromCameraSpace(Camera* camera, const Vec3& cameraSpace);
+    static Position fromCameraSpace(Camera_OLD* camera, const Vec3& cameraSpace);
 
     // Operators
     bool operator==(const Position& other) const;

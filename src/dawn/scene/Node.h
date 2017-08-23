@@ -7,7 +7,7 @@
 #include "renderer/Renderable.h"
 
 namespace dw {
-DEPRECATED class DW_API Node : public Object {
+class DEPRECATED DW_API Node : public Object {
 public:
     DW_OBJECT(Node);
 
