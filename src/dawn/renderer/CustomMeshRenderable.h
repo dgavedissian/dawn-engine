@@ -9,15 +9,15 @@
 #include "renderer/IndexBuffer.h"
 
 namespace dw {
-class DW_API CustomMeshRenderable : public Renderable {
+class DW_API CustomMeshRenderable : public Object, public Renderable {
 public:
     DW_OBJECT(CustomMeshRenderable);
 
-    CustomMeshRenderable(Context* context, SharedPtr<VertexBuffer> vertexBuffer,
-                         SharedPtr<IndexBuffer> indexBuffer);
+    CustomMeshRenderable(Context* context, SharedPtr<VertexBuffer> vertex_buffer,
+                         SharedPtr<IndexBuffer> index_buffer);
     ~CustomMeshRenderable();
 
-    void draw(Renderer* renderer, uint view, const Mat4& modelMatrix) override;
+    void draw(Renderer* renderer, uint view, const Mat4& model_matrix) override;
 
     const VertexBuffer* vertexBuffer() const;
     const IndexBuffer* indexBuffer() const;
