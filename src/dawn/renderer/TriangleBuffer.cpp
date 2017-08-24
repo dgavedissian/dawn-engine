@@ -48,7 +48,7 @@ SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
         decl.begin();
         decl.add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float);
         if (contains_normals_) {
-            decl.add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float);
+            decl.add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float, true);
         }
         if (contains_texcoords_) {
             decl.add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float);

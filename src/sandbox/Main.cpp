@@ -32,6 +32,9 @@ class Sandbox : public App {
 public:
     DW_OBJECT(Sandbox);
 
+    Entity* object;
+    Entity* camera;
+
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
@@ -42,22 +45,30 @@ public:
         auto material = makeShared<Material>(
             context(), makeShared<Program>(context(), rc->get<VertexShader>("ship.vs"),
                                            rc->get<FragmentShader>("ship.fs")));
-        auto renderable = MeshBuilder(context()).normals(false).normals(false).createSphere(10.0f);
+        auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
         renderable->setMaterial(material);
+        material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
         auto sm = subsystem<SystemManager>();
         auto em = subsystem<EntityManager>();
-        em->createEntity()
-            .addComponent<Transform>(Position{0.0f, 0.0f, -30.0f}, Quat::identity)
-            .addComponent<RenderableComponent>(renderable);
+        object = &em->createEntity()
+                      .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
+                      .addComponent<RenderableComponent>(renderable);
 
         // Create a camera.
-        em->createEntity()
-            .addComponent<Transform>(Position{0.0f, 0.0f, 30.0f}, Quat::identity)
-            .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+        camera = &em->createEntity()
+                      .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
+                      .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
     }
 
     void update(float dt) override {
+        static float angle = 0.0f;
+        angle += dt;
+        camera->component<Transform>()->position.x = sin(angle) * 30.0f;
+    }
+
+    void render() override {
+        subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
     }
 
     void shutdown() override {

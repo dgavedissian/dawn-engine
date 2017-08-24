@@ -123,6 +123,7 @@ set(SOURCE_FILES
     Prerequisites.h)
 
 # TODO: Replace prototype Ontology based ECS with custom implementation.
+add_definitions(-DONTOLOGY_WITH_ASSERT)
 set (SOURCE_FILES
     ${SOURCE_FILES}
     ecs/ontology/include/ontology/Config.hpp

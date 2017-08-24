@@ -63,9 +63,9 @@ public:
     /// @return This system.
     template <typename... T> System& executesAfter() {
         if (ontology_system_) {
-            ontology_system_->executesAfter<T...>();
+            ontology_system_->executesAfter<OntologySystemAdapter<T>...>();
         }
-        depending_systems_ = Ontology::TypeSetGenerator<T...>();
+        depending_systems_ = Ontology::TypeSetGenerator<OntologySystemAdapter<T>...>();
         return *this;
     }
 
