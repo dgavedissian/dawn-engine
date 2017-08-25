@@ -26,7 +26,8 @@ set(EXTERNAL_ARGS
     # ExternalProject needs to have these passed in.
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DBUILD_SHARED_LIBS=0)
 if(APPLE)
     set(EXTERNAL_ARGS ${EXTERNAL_ARGS}
         -DCMAKE_OSX_ARCHITECTURES=x86_64
@@ -51,8 +52,21 @@ ExternalProject_Add(Assimp
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DASSIMP_BUILD_ASSIMP_TOOLS=0
         -DASSIMP_BUILD_TESTS=0
+        -DASSIMP_INSTALL_PDB=0
 )
 set_target_properties(Assimp PROPERTIES EXCLUDE_FROM_ALL TRUE)
+# TODO: Fix RelWithDebInfo case by using Imported target instead.
+if(WIN32)
+    set(LIBS ${LIBS}
+        debug ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/irrXML/Debug/irrXML.lib
+        optimized ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/irrXML/Release/irrXML.lib
+        debug ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/zlib/Debug/zlibstaticd.lib
+        optimized ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/zlib/Release/zlibstatic.lib
+        ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
+else()
+    set(LIBS ${LIBS}
+        ${EXTERNAL_INSTALL}/lib/libassimp.a)
+endif()
 
 # Bullet
 ExternalProject_Add(Bullet

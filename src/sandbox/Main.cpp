@@ -5,11 +5,11 @@
 #include "DawnEngine.h"
 #include "ecs/EntityManager.h"
 #include "ecs/SystemManager.h"
-#include "renderer/MeshBuilder.h"
 #include "renderer/Program.h"
 #include "resource/ResourceCache.h"
 #include "scene/Parent.h"
 #include "scene/Transform.h"
+#include "renderer/Mesh.h"
 
 using namespace dw;
 
@@ -38,18 +38,17 @@ public:
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
-        rc->addResourcePath("../media/base");
-        rc->addResourcePath("../media/sandbox");
+        rc->addResourceLocation("../media/base");
+        rc->addResourceLocation("../media/sandbox");
 
         // Create an object.
         auto material = makeShared<Material>(
             context(), makeShared<Program>(context(), rc->get<VertexShader>("ship.vs"),
                                            rc->get<FragmentShader>("ship.fs")));
-        auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
+        auto renderable = rc->get<Mesh>("core-large.mesh.xml");
         renderable->setMaterial(material);
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
-        auto sm = subsystem<SystemManager>();
         auto em = subsystem<EntityManager>();
         object = &em->createEntity()
                       .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)

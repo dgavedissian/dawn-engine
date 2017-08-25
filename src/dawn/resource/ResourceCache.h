@@ -15,7 +15,7 @@ public:
     ResourceCache(Context* context);
     ~ResourceCache();
 
-    void addResourcePath(const Path& path);
+    void addResourceLocation(const Path& path);
 
     template <typename T> SharedPtr<T> get(const Path& filename) {
         String name(String(filename.c_str()));

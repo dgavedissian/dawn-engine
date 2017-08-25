@@ -156,12 +156,18 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
     const float dt = 1.0f / 60.0f;
     time::TimePoint previous_time = time::beginTiming();
     double accumulator = 0.0;
+    bool fixed_game_logic_update = false;
     while (running_) {
         // Update game logic.
-        while (accumulator >= dt) {
-            update(dt);
-            tick_callback(dt);
-            accumulator -= dt;
+        if (fixed_game_logic_update) {
+            while (accumulator >= dt) {
+                update(dt);
+                tick_callback(dt);
+                accumulator -= dt;
+            }
+        } else {
+            update(frame_time_);
+            tick_callback(frame_time_);
         }
 
         // Render a frame.
@@ -172,7 +178,9 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         // Calculate frameTime.
         time::TimePoint current_time = time::beginTiming();
         frame_time_ = time::elapsed(previous_time, current_time);
-        accumulator += frame_time_;
+        if (fixed_game_logic_update) {
+            accumulator += frame_time_;
+        }
         previous_time = current_time;
     }
 
