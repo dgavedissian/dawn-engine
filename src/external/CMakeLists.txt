@@ -58,11 +58,12 @@ set_target_properties(Assimp PROPERTIES EXCLUDE_FROM_ALL TRUE)
 # TODO: Fix RelWithDebInfo case by using Imported target instead.
 if(WIN32)
     set(LIBS ${LIBS}
-        debug ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/irrXML/Debug/irrXML.lib
+        debug ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/irrXML/Debug/irrXMLd.lib
         optimized ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/irrXML/Release/irrXML.lib
         debug ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/zlib/Debug/zlibstaticd.lib
         optimized ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/zlib/Release/zlibstatic.lib
-        ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
+        debug ${EXTERNAL_INSTALL}/lib/assimp-vc140-mtd.lib
+        optimized ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
 else()
     set(LIBS ${LIBS}
         ${EXTERNAL_INSTALL}/lib/libassimp.a)

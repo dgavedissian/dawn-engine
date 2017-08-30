@@ -5,13 +5,33 @@
 #include "Common.h"
 #include "io/InputStream.h"
 #include "renderer/Mesh.h"
+#include "core/StringUtils.h"
 
 #define ASSIMP_BUILD_BOOST_WORKAROUND
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
+#include <assimp/DefaultLogger.hpp>
+#include <assimp/Logger.hpp>
 #include <assimp/postprocess.h>
 
 namespace dw {
+namespace {
+class DawnAssimpLogStream : public Assimp::LogStream
+{
+public:
+    DawnAssimpLogStream(Context* ctx) : logger{ctx->subsystem<Logger>()} {}
+    ~DawnAssimpLogStream() = default;
+
+    void write(const char* message_cstr) {
+        String message{message_cstr};
+        logger->withObjectName("Mesh").info("Assimp Importer: %s", message.substr(0, message.length() - 1));
+    }
+
+private:
+    Logger* logger;
+};
+}
+
 Mesh::Mesh(Context* context) : Resource(context) {
 }
 
@@ -26,11 +46,17 @@ bool Mesh::beginLoad(InputStream& is) {
     is.read(data, size);
     assert(is.eof());
 
+    const unsigned int severity = Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Warn | Assimp::Logger::Err;
+
     // Run importer.
+    Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE, 0);
+    Assimp::DefaultLogger::get()->attachStream(new DawnAssimpLogStream(context()), severity);
     Assimp::Importer importer;
+    auto flags = aiProcess_CalcTangentSpace | aiProcess_Triangulate |
+        aiProcess_JoinIdenticalVertices | aiProcess_SortByPType;
     const aiScene* scene = importer.ReadFileFromMemory(
-        data, size, aiProcess_CalcTangentSpace | aiProcess_Triangulate |
-                        aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
+        data, size, flags, ".mesh.xml");
+    Assimp::DefaultLogger::kill();
     if (scene == nullptr) {
         log().error("Unable to load mesh. Reason: %s", importer.GetErrorString());
         return false;
