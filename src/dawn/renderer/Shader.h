@@ -15,7 +15,7 @@ public:
     Shader(Context* context, ShaderStage type);
     virtual ~Shader() = default;
 
-    bool beginLoad(InputStream& src) override;
+    bool beginLoad(const String& asset_name, InputStream& src) override;
     void endLoad() override;
 
     ShaderHandle internalHandle() const;

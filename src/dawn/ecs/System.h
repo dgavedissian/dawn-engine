@@ -24,7 +24,8 @@ public:
             wrapped_system_->beginProcessing();
             first_iteration = true;
         }
-        Entity wrapped_entity{wrapped_system_->context(), entity};
+        Entity wrapped_entity{wrapped_system_->context(), world->getEntityManager(),
+                              entity.getID()};
         wrapped_system_->processEntity(wrapped_entity);
     }
 

@@ -11,10 +11,11 @@ EntityManager::EntityManager(Context* context)
 }
 
 Entity& EntityManager::createEntity() {
-    UniquePtr<Entity> entity = makeUnique<Entity>(context(), entity_manager_.createEntity(""));
-    Entity* entityPtr = entity.get();
+    UniquePtr<Entity> entity =
+        makeUnique<Entity>(context(), entity_manager_, entity_manager_.createEntity("").getID());
+    auto entity_ptr = entity.get();
     entity_lookup_table_.emplace(makePair(entity->id(), std::move(entity)));
-    return *entityPtr;
+    return *entity_ptr;
 }
 
 Entity* EntityManager::findEntity(EntityId id) {

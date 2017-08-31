@@ -157,6 +157,7 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
     time::TimePoint previous_time = time::beginTiming();
     double accumulator = 0.0;
     bool fixed_game_logic_update = false;
+    frame_time_ = dt;
     while (running_) {
         // Update game logic.
         if (fixed_game_logic_update) {
@@ -166,8 +167,8 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
                 accumulator -= dt;
             }
         } else {
-            update(frame_time_);
             tick_callback(frame_time_);
+            update(frame_time_);
         }
 
         // Render a frame.

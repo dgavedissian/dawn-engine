@@ -60,7 +60,7 @@ SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
         uint stride =
             decl.stride() / sizeof(float);  // convert stride in bytes to stride in floats.
         float* packed_data = new float[vertices_.size() * decl.stride()];
-        for (int i = 0; i < vertices_.size(); i++) {
+        for (size_t i = 0; i < vertices_.size(); ++i) {
             uint offset = 0;
             Vertex& source_vertex = vertices_[i];
             float* vertex = &packed_data[i * stride];

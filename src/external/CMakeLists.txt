@@ -52,6 +52,7 @@ ExternalProject_Add(Assimp
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DASSIMP_BUILD_ASSIMP_TOOLS=0
         -DASSIMP_BUILD_TESTS=0
+        -DASSIMP_BUILD_ZLIB=1
         -DASSIMP_INSTALL_PDB=0
 )
 set_target_properties(Assimp PROPERTIES EXCLUDE_FROM_ALL TRUE)
@@ -66,7 +67,12 @@ if(WIN32)
         optimized ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
 else()
     set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/libassimp.a)
+        debug ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/irrXML/libIrrXMLd.a
+        optimized ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/irrXML/libIrrXML.a
+        debug ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/zlib/libzlibstaticd.a
+        optimized ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/zlib/libzlibstatic.a
+        debug ${EXTERNAL_INSTALL}/lib/libassimpd.a
+        optimized ${EXTERNAL_INSTALL}/lib/libassimp.a)
 endif()
 
 # Bullet

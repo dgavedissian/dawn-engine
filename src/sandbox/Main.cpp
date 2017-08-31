@@ -63,7 +63,8 @@ public:
     void update(float dt) override {
         static float angle = 0.0f;
         angle += dt;
-        camera->component<Transform>()->position.x = sin(angle) * 30.0f;
+        // camera->component<Transform>()->position.x = sin(angle) * 30.0f;
+        object->component<Transform>()->orientation = Quat::RotateY(angle);
     }
 
     void render() override {

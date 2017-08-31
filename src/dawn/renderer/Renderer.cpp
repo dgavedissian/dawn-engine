@@ -249,7 +249,7 @@ FrameBufferHandle Renderer::createFrameBuffer(u16 width, u16 height, TextureForm
 FrameBufferHandle Renderer::createFrameBuffer(Vector<TextureHandle> textures) {
     auto handle = frame_buffer_handle_.next();
     u16 width = texture_data_.at(textures[0]).width, height = texture_data_.at(textures[0]).height;
-    for (int i = 1; i < textures.size(); ++i) {
+    for (size_t i = 1; i < textures.size(); ++i) {
         auto& data = texture_data_.at(textures[i]);
         if (data.width != width || data.height != height) {
             // TODO: error.

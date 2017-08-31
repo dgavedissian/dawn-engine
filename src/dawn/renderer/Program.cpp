@@ -18,7 +18,7 @@ Program::Program(Context* context, SharedPtr<VertexShader> vs, SharedPtr<Fragmen
 Program::~Program() {
 }
 
-bool Program::beginLoad(InputStream&) {
+bool Program::beginLoad(const String& asset_name, InputStream&) {
     log().error("Program loading unimplemented");
     return false;
 }

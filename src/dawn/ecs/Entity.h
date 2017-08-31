@@ -6,9 +6,7 @@
 
 #include "ontology/Entity.hpp"
 
-// ReSharper disable CppUnusedIncludeDirective
 #include "ecs/Component.h"
-// ReSharper restore CppUnusedIncludeDirective
 
 namespace dw {
 /// Entity identifier.
@@ -19,7 +17,8 @@ class Entity : public Object {
 public:
     DW_OBJECT(Entity);
 
-    explicit Entity(Context* context, Ontology::Entity& entity);
+    explicit Entity(Context* context, Ontology::EntityManager& entity_manager,
+                    Ontology::Entity::ID entity_id);
     virtual ~Entity() = default;
 
     /// Accesses a component contained within this entity.
@@ -41,19 +40,25 @@ public:
     EntityId id() const;
 
 private:
-    Ontology::Entity& internal_entity_;
+    Ontology::EntityManager& entity_manager_;
+    Ontology::Entity::ID internal_entity_id_;
+
+    Ontology::Entity& entity() const {
+        return entity_manager_.getEntity(internal_entity_id_);
+    }
 };
 
-inline Entity::Entity(Context* context, Ontology::Entity& entity)
-    : Object{context}, internal_entity_{entity} {
+inline Entity::Entity(Context* context, Ontology::EntityManager& entity_manager,
+                      Ontology::Entity::ID entity_id)
+    : Object{context}, entity_manager_{entity_manager}, internal_entity_id_{entity_id} {
 }
 
 inline EntityId Entity::id() const {
-    return internal_entity_.getID();
+    return internal_entity_id_;
 }
 
 template <typename T> T* Entity::component() const {
-    return internal_entity_.hasComponent<T>() ? internal_entity_.getComponentPtr<T>() : nullptr;
+    return entity().hasComponent<T>() ? entity().getComponentPtr<T>() : nullptr;
 }
 
 template <typename T> bool Entity::hasComponent() const {
@@ -61,7 +66,7 @@ template <typename T> bool Entity::hasComponent() const {
 }
 
 template <typename T, typename... Args> Entity& Entity::addComponent(Args... args) {
-    internal_entity_.addComponent<T, Args...>(std::forward<Args>(args)...);
+    entity().addComponent<T, Args...>(std::forward<Args>(args)...);
     return *this;
 }
 }  // namespace dw

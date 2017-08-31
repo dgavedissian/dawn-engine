@@ -16,21 +16,22 @@
 
 namespace dw {
 namespace {
-class DawnAssimpLogStream : public Assimp::LogStream
-{
+class DawnAssimpLogStream : public Assimp::LogStream {
 public:
-    DawnAssimpLogStream(Context* ctx) : logger{ctx->subsystem<Logger>()} {}
+    DawnAssimpLogStream(Context* ctx) : logger{ctx->subsystem<Logger>()} {
+    }
     ~DawnAssimpLogStream() = default;
 
     void write(const char* message_cstr) {
         String message{message_cstr};
-        logger->withObjectName("Mesh").info("Assimp Importer: %s", message.substr(0, message.length() - 1));
+        logger->withObjectName("Mesh").info("Assimp Importer: %s",
+                                            message.substr(0, message.length() - 1));
     }
 
 private:
     Logger* logger;
 };
-}
+}  // namespace
 
 Mesh::Mesh(Context* context) : Resource(context) {
 }
@@ -38,7 +39,7 @@ Mesh::Mesh(Context* context) : Resource(context) {
 Mesh::~Mesh() {
 }
 
-bool Mesh::beginLoad(InputStream& is) {
+bool Mesh::beginLoad(const String& asset_name, InputStream& is) {
     // Read stream.
     assert(is.size() > 0);
     u64 size = is.size();
@@ -46,16 +47,16 @@ bool Mesh::beginLoad(InputStream& is) {
     is.read(data, size);
     assert(is.eof());
 
-    const unsigned int severity = Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Warn | Assimp::Logger::Err;
+    const unsigned int severity = Assimp::Logger::Debugging | Assimp::Logger::Info |
+                                  Assimp::Logger::Warn | Assimp::Logger::Err;
 
     // Run importer.
     Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE, 0);
     Assimp::DefaultLogger::get()->attachStream(new DawnAssimpLogStream(context()), severity);
     Assimp::Importer importer;
     auto flags = aiProcess_CalcTangentSpace | aiProcess_Triangulate |
-        aiProcess_JoinIdenticalVertices | aiProcess_SortByPType;
-    const aiScene* scene = importer.ReadFileFromMemory(
-        data, size, flags, ".mesh.xml");
+                 aiProcess_JoinIdenticalVertices | aiProcess_SortByPType;
+    const aiScene* scene = importer.ReadFileFromMemory(data, size, flags, asset_name.c_str());
     Assimp::DefaultLogger::kill();
     if (scene == nullptr) {
         log().error("Unable to load mesh. Reason: %s", importer.GetErrorString());
@@ -130,6 +131,7 @@ void Mesh::draw(Renderer* renderer, uint view, const Mat4& model_matrix,
     // TODO: Do this in the material class via a "bind" method.
     renderer->setUniform("model_matrix", model_matrix);
     renderer->setUniform("mvp_matrix", view_projection_matrix * model_matrix);
+    material_->program()->prepareForRendering();
     renderer->submit(view, material_->program()->internalHandle(), vertex_count);
 }
 }  // namespace dw

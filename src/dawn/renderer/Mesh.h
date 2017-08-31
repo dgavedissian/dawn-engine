@@ -17,7 +17,7 @@ public:
     Mesh(Context* context);
     ~Mesh();
 
-    bool beginLoad(InputStream& src) override;
+    bool beginLoad(const String& asset_name, InputStream& src) override;
     void endLoad() override;
 
     void draw(Renderer* renderer, uint view, const Mat4& model_matrix,

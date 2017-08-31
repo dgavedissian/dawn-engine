@@ -20,7 +20,6 @@ Mat4 ConvertTransform(Transform& t) {
 EntityRenderer::EntityRenderer(Context* context) : System{context} {
     supportsComponents<RenderableComponent, Transform>();
     camera_entity_system_ = subsystem<SystemManager>()->addSystem<CameraEntitySystem>();
-    executesAfter<CameraEntitySystem>();
 }
 
 void EntityRenderer::processEntity(Entity& entity) {
@@ -46,6 +45,7 @@ void EntityRenderer::processEntity(Entity& entity) {
 
 EntityRenderer::CameraEntitySystem::CameraEntitySystem(Context* context) : System{context} {
     supportsComponents<Camera, Transform>();
+    executesAfter<EntityRenderer>();
 }
 
 void EntityRenderer::CameraEntitySystem::beginProcessing() {
