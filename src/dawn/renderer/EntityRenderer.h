@@ -16,6 +16,7 @@ public:
     EntityRenderer(Context* context);
     ~EntityRenderer() = default;
 
+    void beginProcessing() override;
     void processEntity(Entity& entity) override;
 
 private:
@@ -36,5 +37,6 @@ private:
         Vector<CameraState> cameras;
     };
     CameraEntitySystem* camera_entity_system_;
+    HashMap<EntityId, Mat4> world_transform_cache_;
 };
 }  // namespace dw

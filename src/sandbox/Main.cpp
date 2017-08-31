@@ -6,27 +6,13 @@
 #include "ecs/EntityManager.h"
 #include "ecs/SystemManager.h"
 #include "renderer/Program.h"
+#include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
 #include "scene/Parent.h"
 #include "scene/Transform.h"
 #include "renderer/Mesh.h"
 
 using namespace dw;
-
-/*
-class Test : public System {
-public:
-    Test(Context* context) : System{context} {
-        supportsComponents<PositionData>();
-    }
-    void processEntity(Entity& e) override {
-        auto pos = *e.component<PositionData>();
-        pos.x = 3;
-        pos.y = 5;
-        pos.z += 1;
-    }
-};
- */
 
 class Sandbox : public App {
 public:
@@ -41,18 +27,31 @@ public:
         rc->addResourceLocation("../media/base");
         rc->addResourceLocation("../media/sandbox");
 
-        // Create an object.
+        // Create a material.
         auto material = makeShared<Material>(
             context(), makeShared<Program>(context(), rc->get<VertexShader>("ship.vs"),
                                            rc->get<FragmentShader>("ship.fs")));
-        auto renderable = rc->get<Mesh>("core-large.mesh.xml");
-        renderable->setMaterial(material);
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
+        // Create renderables.
+        auto renderable = rc->get<Mesh>("core-large.mesh.xml");
+        renderable->setMaterial(material);
+        auto sphere = MeshBuilder{context()}.normals(true).texcoords(false).createSphere(2.0f);
+        sphere->setMaterial(material);
+
+        // Create entities.
         auto em = subsystem<EntityManager>();
         object = &em->createEntity()
-                      .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
+                      .addComponent<Transform>(Position{-10.0f, 0.0f, 0.0f}, Quat::identity)
                       .addComponent<RenderableComponent>(renderable);
+        em->createEntity()
+            .addComponent<Transform>(Position{8.0f, 0.0f, 0.0f}, Quat::identity)
+            .addComponent<Parent>(object->id())
+            .addComponent<RenderableComponent>(sphere);
+        em->createEntity()
+            .addComponent<Transform>(Position{-8.0f, 0.0f, 0.0f}, Quat::identity)
+            .addComponent<Parent>(object->id())
+            .addComponent<RenderableComponent>(sphere);
 
         // Create a camera.
         camera = &em->createEntity()

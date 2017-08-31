@@ -23,6 +23,8 @@ void CustomMeshRenderable::draw(Renderer* renderer, uint view, const Mat4& model
         renderer->setIndexBuffer(index_buffer_->internalHandle());
     }
     // TODO: Do this in the material class via a "bind" method.
+    // TODO: Move this common "render vertex/index buffer + material" code somewhere.
+    // TODO: Support unset material.
     auto program = material_->program();
     program->setUniform("model_matrix", model_matrix);
     program->setUniform("mvp_matrix", view_projection_matrix * model_matrix);

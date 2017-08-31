@@ -330,45 +330,43 @@ bool GLRenderContext::frame(const Vector<View>& views) {
             }
 
             // Bind Program.
+            ProgramData& program_data = program_map_.at(current->program);
             if (!previous || previous->program != current->program) {
                 assert(current->program != ProgramHandle::invalid);
-                ProgramData& program_data = program_map_.at(current->program);
                 glUseProgram(program_data.program);
                 GL_CHECK();
+            }
 
-                // Bind uniforms.
-                UniformBinder binder{context_};
-                for (auto& uniform_pair : current->uniforms) {
-                    auto location = program_data.uniform_location_map.find(uniform_pair.first);
-                    GLint uniform_location;
-                    if (location != program_data.uniform_location_map.end()) {
-                        uniform_location = (*location).second;
-                    } else {
-                        uniform_location =
-                            glGetUniformLocation(program_data.program, uniform_pair.first.c_str());
-                        GL_CHECK();
-                        program_data.uniform_location_map.emplace(uniform_pair.first,
-                                                                  uniform_location);
-                        if (uniform_location == -1) {
-                            log().warn("[Frame] Unknown uniform '%s', skipping.",
-                                       uniform_pair.first);
-                        }
-                    }
-                    if (uniform_location == -1) {
-                        continue;
-                    }
-                    binder.updateUniform(uniform_location, uniform_pair.second);
-                }
-
-                // Bind textures.
-                for (uint j = 0; j < current->textures.size(); ++j) {
-                    if (current->textures[j].handle == TextureHandle::invalid) {
-                        break;
-                    }
-                    glActiveTexture(GL_TEXTURE0 + j);
-                    glBindTexture(GL_TEXTURE_2D, texture_map_.at(current->textures[j].handle));
+            // Bind uniforms.
+            UniformBinder binder{context_};
+            for (auto& uniform_pair : current->uniforms) {
+                auto location = program_data.uniform_location_map.find(uniform_pair.first);
+                GLint uniform_location;
+                if (location != program_data.uniform_location_map.end()) {
+                    uniform_location = (*location).second;
+                } else {
+                    uniform_location =
+                        glGetUniformLocation(program_data.program, uniform_pair.first.c_str());
                     GL_CHECK();
+                    program_data.uniform_location_map.emplace(uniform_pair.first, uniform_location);
+                    if (uniform_location == -1) {
+                        log().warn("[Frame] Unknown uniform '%s', skipping.", uniform_pair.first);
+                    }
                 }
+                if (uniform_location == -1) {
+                    continue;
+                }
+                binder.updateUniform(uniform_location, uniform_pair.second);
+            }
+
+            // Bind textures.
+            for (uint j = 0; j < current->textures.size(); ++j) {
+                if (current->textures[j].handle == TextureHandle::invalid) {
+                    break;
+                }
+                glActiveTexture(GL_TEXTURE0 + j);
+                glBindTexture(GL_TEXTURE_2D, texture_map_.at(current->textures[j].handle));
+                GL_CHECK();
             }
 
             // Submit.

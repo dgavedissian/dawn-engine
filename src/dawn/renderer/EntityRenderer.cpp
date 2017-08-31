@@ -5,6 +5,7 @@
 #include "Common.h"
 #include "renderer/EntityRenderer.h"
 #include "renderer/Renderable.h"
+#include "ecs/EntityManager.h"
 #include "ecs/SystemManager.h"
 #include "scene/Transform.h"
 #include "scene/Parent.h"
@@ -15,6 +16,33 @@ Mat4 ConvertTransform(Transform& t) {
     return Mat4::Translate(t.position.x, t.position.y, t.position.z).ToFloat4x4() *
            Mat4::FromQuat(t.orientation);
 }
+
+// Assumptions: Transform component exists, Parent component optional.
+Mat4 DeriveTransform(EntityManager& entity_manager, Entity& entity,
+                     HashMap<EntityId, Mat4>& transform_cache) {
+    auto transform = entity.component<Transform>();
+    auto parent = entity.component<Parent>();
+
+    // If this world transform hasn't been cached yet.
+    auto cached_transform = transform_cache.find(entity.id());
+    if (cached_transform == transform_cache.end()) {
+        // Calculate transform relative to parent.
+        Mat4 model = ConvertTransform(*transform);
+
+        // Derive world transform recursively.
+        if (parent) {
+            auto parent_entity = entity_manager.findEntity(parent->parent);
+            if (parent_entity) {
+                model = DeriveTransform(entity_manager, *parent_entity, transform_cache) * model;
+            }
+        }
+
+        // Save to cache.
+        transform_cache.insert({entity.id(), model});
+        return model;
+    }
+    return cached_transform->second;
+}
 }  // namespace
 
 EntityRenderer::EntityRenderer(Context* context) : System{context} {
@@ -22,25 +50,17 @@ EntityRenderer::EntityRenderer(Context* context) : System{context} {
     camera_entity_system_ = subsystem<SystemManager>()->addSystem<CameraEntitySystem>();
 }
 
+void EntityRenderer::beginProcessing() {
+    world_transform_cache_.clear();
+}
+
 void EntityRenderer::processEntity(Entity& entity) {
     auto renderable = entity.component<RenderableComponent>();
-    auto transform = entity.component<Transform>();
-    auto parent = entity.component<Parent>();
-
+    Mat4 model = DeriveTransform(*subsystem<EntityManager>(), entity, world_transform_cache_);
     for (auto camera : camera_entity_system_->cameras) {
-        Mat4 model = ConvertTransform(*transform);
         renderable->renderable->draw(subsystem<Renderer>(), camera.view, model,
                                      camera.view_projection_matrix);
     }
-    // For each camera.
-    /*Vec3 relative_position = PositionData::WorldToRelative(current_camera, transform.position);
-    Mat4 model = CalcModelMatrix(relative_position, transform.orientation);
-    if (parent) {
-    model = model * DeriveWorldTransform(parent.entity);
-    }
-    render_tasks_by_camera_["main_camera"].emplace_back(
-        renderable->renderable->draw(Mat4::identity));
-    */
 }
 
 EntityRenderer::CameraEntitySystem::CameraEntitySystem(Context* context) : System{context} {

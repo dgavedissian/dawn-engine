@@ -17,9 +17,6 @@
 #include <boost/asio/io_service.hpp>
 #endif  // ONTOLOGY_THREAD
 
-#include <Windows.h>
-#define _DEBUG
-
 namespace Ontology {
 
 // ----------------------------------------------------------------------------
@@ -111,7 +108,6 @@ TypeSet::iterator SystemManager::resolveDependencies(const std::type_info* node,
         const System* edgeSystem = edgeSystemIt->second;
 
 #ifdef _DEBUG
-        ::OutputDebugStringA(edgeSystemIt->first->name());
         std::cout << "  depends on " << edgeSystemIt->first->name() << std::endl;
 #endif
 
