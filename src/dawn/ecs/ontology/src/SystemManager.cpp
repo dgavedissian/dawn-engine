@@ -17,6 +17,9 @@
 #include <boost/asio/io_service.hpp>
 #endif  // ONTOLOGY_THREAD
 
+#include <Windows.h>
+#define _DEBUG
+
 namespace Ontology {
 
 // ----------------------------------------------------------------------------
@@ -108,13 +111,14 @@ TypeSet::iterator SystemManager::resolveDependencies(const std::type_info* node,
         const System* edgeSystem = edgeSystemIt->second;
 
 #ifdef _DEBUG
+        ::OutputDebugStringA(edgeSystemIt->first->name());
         std::cout << "  depends on " << edgeSystemIt->first->name() << std::endl;
 #endif
 
         // don't process edges already part of the final execution list
         if (!this->isInExecutionList(edgeSystem)) {
             // handle circular dependencies
-            ONTOLOGY_ASSERT(resolving.find(edge) != resolving.end(), CircularDependencyException,
+            ONTOLOGY_ASSERT(resolving.find(edge) == resolving.end(), CircularDependencyException,
                             SystemManager::resolveDependencies,
                             std::string("circular dependency detected with systems \"") +
                                 demangleTypeName(node->name()) + "\" and \"" +
