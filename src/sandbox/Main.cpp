@@ -67,6 +67,7 @@ public:
 
     void render() override {
         subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+        ImGui::ShowTestWindow();
     }
 
     void shutdown() override {

@@ -118,6 +118,7 @@ set(SOURCE_FILES
     script/LuaState.cpp
     script/LuaState.h
     script/Sol.h
+	ui/Imgui.h
     Common.h
     DawnEngine.h
     Prerequisites.h)

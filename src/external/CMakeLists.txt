@@ -236,13 +236,13 @@ set(LIBS ${LIBS} glslang SPIRV)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory(gtest EXCLUDE_FROM_ALL)
 
-# ImGui
-add_library(ImGui EXCLUDE_FROM_ALL
-    ImGui/imgui.cpp
-    ImGui/imgui_demo.cpp
-    ImGui/imgui_draw.cpp)
-target_include_directories(ImGui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ImGui)
-set(LIBS ${LIBS} ImGui)
+# imgui
+add_library(imgui EXCLUDE_FROM_ALL
+    imgui/imgui.cpp
+    imgui/imgui_demo.cpp
+    imgui/imgui_draw.cpp)
+target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
+set(LIBS ${LIBS} imgui)
 
 # json
 add_library(json INTERFACE)
