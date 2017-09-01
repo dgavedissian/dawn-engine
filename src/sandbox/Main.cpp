@@ -33,10 +33,9 @@ public:
                                            rc->get<FragmentShader>("ship.fs")));
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
-        // Create renderables.
-        auto renderable = rc->get<Mesh>("core-large.mesh.xml");
+        auto renderable = rc->get<Mesh>("model/core-large.mesh.xml");
         renderable->setMaterial(material);
-        auto sphere = MeshBuilder{context()}.normals(true).texcoords(false).createSphere(2.0f);
+        auto sphere = rc->get<Mesh>("model/side-wing.mesh.xml");
         sphere->setMaterial(material);
 
         // Create entities.
