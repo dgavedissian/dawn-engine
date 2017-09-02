@@ -4,6 +4,7 @@
 set(TEST_FILES
     io/FileSystemTest.cpp
     io/FileTest.cpp
+    io/StringInputStreamTest.cpp
     Testing.h)
 
 add_executable(DawnTest ${TEST_FILES})

@@ -47,6 +47,8 @@ public:
 
 private:
     GLFWwindow* window_;
+    u16 backbuffer_width_;
+    u16 backbuffer_height_;
 
     // Vertex and index buffers.
     struct IndexBufferData {
@@ -71,6 +73,8 @@ private:
     struct FrameBufferData {
         GLuint frame_buffer;
         GLuint depth_render_buffer;
+        u16 width;
+        u16 height;
         Vector<TextureHandle> textures;
     };
     HashMap<FrameBufferHandle, FrameBufferData> frame_buffer_map_;

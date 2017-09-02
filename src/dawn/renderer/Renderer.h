@@ -261,11 +261,19 @@ struct RenderItem {
     VertexBufferHandle vb;
     IndexBufferHandle ib;
     uint primitive_count;
+    uint primitive_offset;
 
     // Shader program and parameters.
     ProgramHandle program;
     HashMap<String, UniformData> uniforms;
     Array<TextureBinding, MAX_TEXTURE_SAMPLERS> textures;
+
+    // Scissor.
+    bool scissor_enabled;
+    u16 scissor_x;
+    u16 scissor_y;
+    u16 scissor_width;
+    u16 scissor_height;
 
     // Render state.
     bool depth_enabled;
@@ -395,12 +403,19 @@ public:
     void setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_rgb, BlendFunc dest_rgb,
                                BlendEquation equation_a, BlendFunc src_a, BlendFunc dest_a);
 
+    /// Scissor.
+    void setScissor(u16 x, u16 y, u16 width, u16 height);
+
     /// Update uniform and draw state, but submit no geometry.
     void submit(uint view, ProgramHandle program);
 
     /// Update uniform and draw state, then draw. Based off:
     /// https://github.com/bkaradzic/bgfx/blob/master/src/bgfx.cpp#L854
     void submit(uint view, ProgramHandle program, uint vertex_count);
+
+    /// Update uniform and draw state, then draw. Based off:
+    /// https://github.com/bkaradzic/bgfx/blob/master/src/bgfx.cpp#L854
+    void submit(uint view, ProgramHandle program, uint vertex_count, uint offset);
 
     /// Render a single frame.
     void frame();

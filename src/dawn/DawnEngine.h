@@ -27,3 +27,4 @@
 #include "resource/ResourceCache.h"
 #include "scene/SceneManager.h"
 #include "script/LuaState.h"
+#include "ui/UserInterface.h"

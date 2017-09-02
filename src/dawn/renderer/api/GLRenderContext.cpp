@@ -170,6 +170,8 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
 
     // Create the window.
     window_ = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+    backbuffer_width_ = width;
+    backbuffer_height_ = height;
     glfwMakeContextCurrent(window_);
     glfwSwapInterval(0);
 
@@ -225,18 +227,23 @@ bool GLRenderContext::frame(const Vector<View>& views) {
 
         // Set up framebuffer.
         assert(v.frame_buffer != FrameBufferHandle::invalid);
+        u16 fb_width, fb_height;
         if (v.frame_buffer.internal() > 0) {
             FrameBufferData& fb_data = frame_buffer_map_.at(v.frame_buffer);
+            fb_width = fb_data.width;
+            fb_height = fb_data.height;
             glBindFramebuffer(GL_FRAMEBUFFER, fb_data.frame_buffer);
             GL_CHECK();
         } else {
+            fb_width = backbuffer_width_;
+            fb_height = backbuffer_height_;
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
         // Set up view.
         glClearColor(v.clear_colour.r(), v.clear_colour.g(), v.clear_colour.b(),
                      v.clear_colour.a());
-        glEnable(GL_CULL_FACE);
+        glDisable(GL_SCISSOR_TEST);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Render items.
@@ -296,6 +303,7 @@ bool GLRenderContext::frame(const Vector<View>& views) {
                 previous->blend_equation_a != current->blend_equation_a) {
                 glBlendEquationSeparate(blend_equation_map.at(current->blend_equation_rgb),
                                         blend_equation_map.at(current->blend_equation_a));
+                GL_CHECK();
             }
             if (!previous || previous->blend_src_rgb != current->blend_src_rgb ||
                 previous->blend_src_a != current->blend_src_a ||
@@ -305,6 +313,21 @@ bool GLRenderContext::frame(const Vector<View>& views) {
                                     blend_func_map.at(current->blend_dest_rgb),
                                     blend_func_map.at(current->blend_src_a),
                                     blend_func_map.at(current->blend_dest_a));
+                GL_CHECK();
+            }
+
+            // Scissor.
+            if (!previous || previous->scissor_enabled != current->scissor_enabled) {
+                if (current->scissor_enabled) {
+                    glEnable(GL_SCISSOR_TEST);
+                } else {
+                    glDisable(GL_SCISSOR_TEST);
+                }
+            }
+            if (current->scissor_enabled) {
+                glScissor(current->scissor_x,
+                          fb_height - current->scissor_y - current->scissor_height,
+                          current->scissor_width, current->scissor_height);
             }
 
             // Bind VAO.
@@ -372,8 +395,12 @@ bool GLRenderContext::frame(const Vector<View>& views) {
             // Submit.
             if (current->primitive_count > 0) {
                 if (current->ib != IndexBufferHandle::invalid) {
-                    glDrawElements(GL_TRIANGLES, current->primitive_count * 3,
-                                   index_buffer_map_[current->ib].type, 0);
+                    GLenum element_type = index_buffer_map_[current->ib].type;
+                    uint element_size =
+                        element_type == GL_UNSIGNED_SHORT ? sizeof(u16) : sizeof(u32);
+                    glDrawElements(GL_TRIANGLES, current->primitive_count * 3, element_type,
+                                   reinterpret_cast<void*>(static_cast<std::uintptr_t>(
+                                       current->primitive_offset * element_size)));
                     GL_CHECK();
                 } else {
                     glDrawArrays(GL_TRIANGLES, 0, current->primitive_count * 3);
@@ -425,7 +452,7 @@ void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
 
         log().debug("[CreateVertexBuffer] Attrib %s: Count='%s' Type='%s' Stride='%s' Offset='%s'",
                     attrib_counter, count, static_cast<int>(gl_type->first), c.decl.stride_,
-                    reinterpret_cast<intptr_t>(attrib.second));
+                    reinterpret_cast<uintptr_t>(attrib.second));
 
         // Set attribute.
         glEnableVertexAttribArray(attrib_counter);
@@ -585,6 +612,8 @@ void GLRenderContext::operator()(const cmd::DeleteTexture& c) {
 void GLRenderContext::operator()(const cmd::CreateFrameBuffer& c) {
     FrameBufferData fb_data;
     fb_data.textures = c.textures;
+    fb_data.width = c.width;
+    fb_data.height = c.height;
 
     glGenFramebuffers(1, &fb_data.frame_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, fb_data.frame_buffer);

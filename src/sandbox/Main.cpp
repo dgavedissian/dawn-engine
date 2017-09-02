@@ -11,6 +11,7 @@
 #include "scene/Parent.h"
 #include "scene/Transform.h"
 #include "renderer/Mesh.h"
+#include "ui/Imgui.h"
 
 using namespace dw;
 

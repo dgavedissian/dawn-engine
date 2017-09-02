@@ -71,11 +71,19 @@ void RenderItem::clear() {
     vb = VertexBufferHandle::invalid;
     ib = IndexBufferHandle::invalid;
     primitive_count = 0;
+    primitive_offset = 0;
     program = ProgramHandle::invalid;
     uniforms.clear();
     for (auto& texture : textures) {
         texture.handle = TextureHandle::invalid;
     }
+
+    // Default scissor.
+    scissor_enabled = false;
+    scissor_x = 0;
+    scissor_y = 0;
+    scissor_width = 0;
+    scissor_height = 0;
 
     // Default render state.
     cull_face_enabled = true;
@@ -327,15 +335,26 @@ void Renderer::setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_r
     submit_->current_item.blend_dest_a = dest_a;
 }
 
+void Renderer::setScissor(u16 x, u16 y, u16 width, u16 height) {
+    submit_->current_item.scissor_enabled = true;
+    submit_->current_item.scissor_x = x;
+    submit_->current_item.scissor_y = y;
+    submit_->current_item.scissor_width = width;
+    submit_->current_item.scissor_height = height;
+}
+
 void Renderer::submit(uint view, ProgramHandle program) {
-    submit_->current_item.program = program;
-    submit_->view(view).render_items.emplace_back(submit_->current_item);
-    submit_->current_item.clear();
+    submit(view, program, 0);
 }
 
 void Renderer::submit(uint view, ProgramHandle program, uint vertex_count) {
+    submit(view, program, vertex_count, 0);
+}
+
+void Renderer::submit(uint view, ProgramHandle program, uint vertex_count, uint offset) {
     submit_->current_item.program = program;
     submit_->current_item.primitive_count = vertex_count / 3;
+    submit_->current_item.primitive_offset = offset;
     submit_->view(view).render_items.emplace_back(submit_->current_item);
     submit_->current_item.clear();
 }

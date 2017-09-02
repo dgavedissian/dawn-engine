@@ -46,6 +46,8 @@ set(SOURCE_FILES
     io/OutputStream.h
     io/Path.cpp
     io/Path.h
+    io/StringInputStream.cpp
+    io/StringInputStream.h
     math/Colour.h
     math/Colour.cpp
     math/Defs.h
@@ -118,7 +120,9 @@ set(SOURCE_FILES
     script/LuaState.cpp
     script/LuaState.h
     script/Sol.h
-	ui/Imgui.h
+    ui/Imgui.h
+    ui/UserInterface.cpp
+    ui/UserInterface.h
     Common.h
     DawnEngine.h
     Prerequisites.h)

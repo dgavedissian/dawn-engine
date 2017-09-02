@@ -87,7 +87,7 @@ void Engine::setup() {
     auto* renderer = context_->addSubsystem<Renderer>();
     renderer->init(context_->config().at("window_width").get<u16>(),
                    context_->config().at("window_height").get<u16>(), window_title, true);
-    // mUI = new UI(mRenderer, mInput, mLuaState);
+    context_->addSubsystem<UserInterface>();
     // mAudio = new Audio;
     // mPhysicsWorld = new PhysicsWorld(mRenderer);
     // mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->getSceneMgr());
@@ -316,11 +316,13 @@ void Engine::update(float dt) {
     context_->subsystem<SceneManager>()->update(dt);
 
     context_->subsystem<SystemManager>()->update();
+    context_->subsystem<UserInterface>()->update(dt);
 }
 
 void Engine::preRender(Camera_OLD* camera) {
     context_->subsystem<SceneManager>()->preRender(camera);
     context_->subsystem<StateManager>()->preRender();
+    context_->subsystem<UserInterface>()->render();
 }
 
 void Engine::handleEvent(EventDataPtr eventData) {
