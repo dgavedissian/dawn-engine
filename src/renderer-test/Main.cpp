@@ -19,14 +19,26 @@ public:
     }
 
     void render() override {
-        // Display FPS.
-        static double accumulated_time = 1.0;
+        // Store FPS history.
+        float current_fps = static_cast<float>(1.0 / engine_->frameTime());
+        static const int FPS_HISTORY_COUNT = 100;
+        static float fps_history[FPS_HISTORY_COUNT];
+        static double accumulated_time = 0.0;
         accumulated_time += engine_->frameTime();
-        if (accumulated_time > 1.0) {
-            log().info("Elapsed time: %s, FPS: %s", engine_->frameTime(),
-                       1.0 / engine_->frameTime());
-            accumulated_time = 0;
+        if (accumulated_time > 1.0 / 60.0) {
+            accumulated_time = 0.0;
+            for (int i = 1; i < FPS_HISTORY_COUNT; ++i) {
+                fps_history[i - 1] = fps_history[i];
+            }
+            fps_history[FPS_HISTORY_COUNT - 1] = current_fps;
         }
+
+        // Display FPS information.
+        ImGui::SetNextWindowSize({280, 200});
+        ImGui::Begin("FPS");
+        ImGui::Text("FPS: %f", 1.0 / engine_->frameTime());
+        ImGui::PlotLines("", fps_history, FPS_HISTORY_COUNT, 0, nullptr, 0.0f, 1000.0f, {250, 150});
+        ImGui::End();
 
         // Render example.
         example_->render();
