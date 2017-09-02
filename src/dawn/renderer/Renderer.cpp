@@ -138,11 +138,11 @@ void Renderer::init(u16 width, u16 height, const String& title, bool use_render_
     }
 }
 
-VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size,
-                                                const VertexDecl& decl) {
+VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size, const VertexDecl& decl,
+                                                BufferUsage usage) {
     // TODO: Validate data.
     auto handle = vertex_buffer_handle_.next();
-    submitPreFrameCommand(cmd::CreateVertexBuffer{handle, Memory{data, size}, decl});
+    submitPreFrameCommand(cmd::CreateVertexBuffer{handle, Memory{data, size}, decl, usage});
     return handle;
 }
 
@@ -150,18 +150,31 @@ void Renderer::setVertexBuffer(VertexBufferHandle handle) {
     submit_->current_item.vb = handle;
 }
 
+void Renderer::updateVertexBuffer(VertexBufferHandle handle, const void* data, uint size,
+                                  uint offset) {
+    // TODO: Validate data.
+    submitPreFrameCommand(cmd::UpdateVertexBuffer{handle, Memory{data, size}, offset});
+}
+
 void Renderer::deleteVertexBuffer(VertexBufferHandle handle) {
     submitPostFrameCommand(cmd::DeleteVertexBuffer{handle});
 }
 
-IndexBufferHandle Renderer::createIndexBuffer(const void* data, uint size, IndexBufferType type) {
+IndexBufferHandle Renderer::createIndexBuffer(const void* data, uint size, IndexBufferType type,
+                                              BufferUsage usage) {
     auto handle = index_buffer_handle_.next();
-    submitPreFrameCommand(cmd::CreateIndexBuffer{handle, Memory{data, size}, type});
+    submitPreFrameCommand(cmd::CreateIndexBuffer{handle, Memory{data, size}, type, usage});
     return handle;
 }
 
 void Renderer::setIndexBuffer(IndexBufferHandle handle) {
     submit_->current_item.ib = handle;
+}
+
+void Renderer::updateIndexBuffer(IndexBufferHandle handle, const void* data, uint size,
+                                 uint offset) {
+    // TODO: Validate data.
+    submitPreFrameCommand(cmd::UpdateIndexBuffer{handle, Memory{data, size}, offset});
 }
 
 void Renderer::deleteIndexBuffer(IndexBufferHandle handle) {

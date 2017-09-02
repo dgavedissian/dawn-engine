@@ -54,6 +54,13 @@ private:
     uint size_;
 };
 
+// Buffer usage.
+enum class BufferUsage {
+    Static,   // Never modified.
+    Dynamic,  // Modified occasionally.
+    Stream    // Modified every time.
+};
+
 // Index buffer type.
 enum class IndexBufferType { U16, U32 };
 
@@ -158,6 +165,13 @@ struct CreateVertexBuffer {
     VertexBufferHandle handle;
     Memory data;
     VertexDecl decl;
+    BufferUsage usage;
+};
+
+struct UpdateVertexBuffer {
+    VertexBufferHandle handle;
+    Memory data;
+    uint offset;
 };
 
 struct DeleteVertexBuffer {
@@ -168,6 +182,13 @@ struct CreateIndexBuffer {
     IndexBufferHandle handle;
     Memory data;
     IndexBufferType type;
+    BufferUsage usage;
+};
+
+struct UpdateIndexBuffer {
+    IndexBufferHandle handle;
+    Memory data;
+    uint offset;
 };
 
 struct DeleteIndexBuffer {
@@ -231,8 +252,10 @@ struct DeleteFrameBuffer {
 // clang-format off
 using RenderCommand =
     Variant<cmd::CreateVertexBuffer,
+            cmd::UpdateVertexBuffer,
             cmd::DeleteVertexBuffer,
             cmd::CreateIndexBuffer,
+            cmd::UpdateIndexBuffer,
             cmd::DeleteIndexBuffer,
             cmd::CreateShader,
             cmd::DeleteShader,
@@ -349,13 +372,17 @@ public:
     void init(u16 width, u16 height, const String& title, bool use_render_thread);
 
     /// Create vertex buffer.
-    VertexBufferHandle createVertexBuffer(const void* data, uint size, const VertexDecl& decl);
+    VertexBufferHandle createVertexBuffer(const void* data, uint size, const VertexDecl& decl,
+                                          BufferUsage usage = BufferUsage::Static);
     void setVertexBuffer(VertexBufferHandle handle);
+    void updateVertexBuffer(VertexBufferHandle handle, const void* data, uint size, uint offset);
     void deleteVertexBuffer(VertexBufferHandle handle);
 
     /// Create index buffer.
-    IndexBufferHandle createIndexBuffer(const void* data, uint size, IndexBufferType type);
+    IndexBufferHandle createIndexBuffer(const void* data, uint size, IndexBufferType type,
+                                        BufferUsage usage = BufferUsage::Static);
     void setIndexBuffer(IndexBufferHandle handle);
+    void updateIndexBuffer(IndexBufferHandle handle, const void* data, uint size, uint offset);
     void deleteIndexBuffer(IndexBufferHandle handle);
 
     /// Create shader.

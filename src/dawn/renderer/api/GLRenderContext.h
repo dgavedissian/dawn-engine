@@ -28,8 +28,10 @@ public:
 
     // Variant walker methods. Executed on the render thread.
     void operator()(const cmd::CreateVertexBuffer& c);
+    void operator()(const cmd::UpdateVertexBuffer& c);
     void operator()(const cmd::DeleteVertexBuffer& c);
     void operator()(const cmd::CreateIndexBuffer& c);
+    void operator()(const cmd::UpdateIndexBuffer& c);
     void operator()(const cmd::DeleteIndexBuffer& c);
     void operator()(const cmd::CreateShader& c);
     void operator()(const cmd::DeleteShader& c);
@@ -51,11 +53,19 @@ private:
     u16 backbuffer_height_;
 
     // Vertex and index buffers.
+    struct VertexBufferData {
+        GLuint vertex_array_object;
+        GLuint vertex_buffer;
+        GLenum usage;
+        size_t size;
+    };
     struct IndexBufferData {
         GLuint element_buffer;
         GLenum type;
+        GLenum usage;
+        size_t size;
     };
-    HashMap<VertexBufferHandle, GLuint> vertex_buffer_map_;
+    HashMap<VertexBufferHandle, VertexBufferData> vertex_buffer_map_;
     HashMap<IndexBufferHandle, IndexBufferData> index_buffer_map_;
 
     // Shaders programs.

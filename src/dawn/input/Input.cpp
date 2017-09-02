@@ -22,28 +22,52 @@ Input::Input(Context* context) : Object(context) {
 Input::~Input() {
 }
 
-void Input::lockCursor(bool relative) {
-}
-
 bool Input::isKeyDown(Key key) const {
-    return false;
+    return keyboard_state_[(int)key];
 }
 
-bool Input::isMouseButtonDown(uint button) const {
-    return false;
+bool Input::isMouseButtonDown(MouseButton button) const {
+    return mouse_button_state_[(int)button];
 }
 
-Vec2i Input::getMousePosition() const {
-    Vec2i pos;
-    return pos;
+Vec2i Input::mousePosition() const {
+    return mouse_position_;
 }
 
-Vec2 Input::getMousePositionRel() const {
-    Vec2i mousePosition = getMousePosition();
-    return Vec2((float)mousePosition.x / mViewportSize.x, (float)mousePosition.y / mViewportSize.y);
+Vec2 Input::mousePositionRelative() const {
+    Vec2i mouse_position = mousePosition();
+    return {(float)mouse_position.x / viewport_size_.x, (float)mouse_position.y / viewport_size_.y};
 }
 
-Vec3i Input::getMouseMove() const {
-    return Vec3i();
+Vec2i Input::mouseMove() const {
+    return mouse_move_;
+}
+
+Vec2 Input::mouseScroll() const {
+    return mouse_scroll_;
+}
+
+void Input::_notifyKeyPress(Key key, Modifier modifier, bool state) {
+    keyboard_state_[(int)key] = state;
+    log().debug("Key %d state: %d - modifier: %d", (int)key, (int)state, (int)modifier);
+    // TODO: Send event.
+}
+
+void Input::_notifyMouseButtonPress(MouseButton button, bool state) {
+    mouse_button_state_[(int)button] = state;
+    log().debug("Mouse Button %d state: %d", (int)button, (int)state);
+    // TODO: Send event.
+}
+
+void Input::_notifyMouseMove(const Vec2i& position) {
+    mouse_move_ = position - mouse_position_;
+    mouse_position_ = position;
+    log().debug("Mouse position {%d,%d}", position.x, position.y);
+    // TODO: Send event.
+}
+
+void Input::_notifyScroll(const Vec2& offset) {
+    mouse_scroll_ = offset;
+    // TODO: Send event.
 }
 }  // namespace dw

@@ -9,16 +9,9 @@
 
 namespace dw {
 
-enum class MouseButton {
-    None,
-    Left,
-    Middle,
-    Right,
+enum class MouseButton { Left = 0, Middle, Right, Count };
 
-    Count
-};
-
-enum class Modifier {
+enum class Modifier : u16 {
     None = 0,
     LeftAlt = 0x01,
     RightAlt = 0x02,
@@ -31,8 +24,7 @@ enum class Modifier {
 };
 
 enum class Key {
-    None = 0,
-    Esc,
+    Esc = 0,
     Return,
     Tab,
     Space,
@@ -48,17 +40,20 @@ enum class Key {
     PageUp,
     PageDown,
     Print,
-    Plus,
-    Minus,
-    LeftBracket,
-    RightBracket,
-    Semicolon,
-    Quote,
-    Comma,
-    Period,
-    Slash,
-    Backslash,
-    Tilde,
+    Plus,         /* + */
+    Minus,        /* - */
+    Equals,       /* = */
+    LeftBracket,  /* [ */
+    RightBracket, /* ] */
+    Semicolon,    /* ; */
+    Quote,        /* " */
+    Apostrophe,   /* ' */
+    Comma,        /* , */
+    Period,       /* . */
+    Slash,        /* / */
+    Backslash,    /* \ */
+    Tilde,        /* ~ */
+    Backtick,     /* ` */
     F1,
     F2,
     F3,
@@ -144,20 +139,37 @@ public:
     Input(Context* context);
     ~Input();
 
-    /// Toggles the relative mouse mode, which fixes the position and hides
-    /// the cursor
-    /// @param relative True if relative, false otherwise
-    void lockCursor(bool relative);
-
-    // Check the current state of the input devices
+    /// Key state.
     bool isKeyDown(Key key) const;
-    bool isMouseButtonDown(uint button) const;
-    Vec2i getMousePosition() const;
-    Vec2 getMousePositionRel() const;
-    Vec3i getMouseMove() const;
+
+    /// Mouse button state.
+    bool isMouseButtonDown(MouseButton button) const;
+
+    /// Mouse position.
+    Vec2i mousePosition() const;
+
+    /// Mouse position (relative to viewport size).
+    Vec2 mousePositionRelative() const;
+
+    /// Mouse move since last event.
+    Vec2i mouseMove() const;
+
+    /// Mouse scroll since last event.
+    Vec2 mouseScroll() const;
+
+    // Notifications. Internal.
+    void _notifyKeyPress(Key key, Modifier modifier, bool state);
+    void _notifyMouseButtonPress(MouseButton button, bool state);
+    void _notifyMouseMove(const Vec2i& position);
+    void _notifyScroll(const Vec2& offset);
 
 private:
-    Vec2i mViewportSize;
+    Vec2i viewport_size_;
+    bool keyboard_state_[(int)Key::Count];
+    bool mouse_button_state_[(int)MouseButton::Count];
+    Vec2i mouse_position_;
+    Vec2i mouse_move_;
+    Vec2 mouse_scroll_;
 };
 
 class DW_API EvtData_KeyDown : public EventData {

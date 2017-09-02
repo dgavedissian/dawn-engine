@@ -75,21 +75,30 @@ UserInterface::UserInterface(Context* ctx)
     program_ = makeShared<Program>(context(), vertex_shader, fragment_shader);
     program_->setUniform<int>("ui_texture", 0);
 
+    // Set up GPU buffers.
+    imgui_vb_ = renderer_->createVertexBuffer(nullptr, 0, vertex_decl_, BufferUsage::Stream);
+    imgui_ib_ = renderer_->createIndexBuffer(
+        nullptr, 0, sizeof(ImDrawIdx) == 2 ? IndexBufferType::U16 : IndexBufferType::U32, BufferUsage::Stream);
+
     // Begin a new frame.
     ImGui::NewFrame();
 }
 
 UserInterface::~UserInterface() {
+    renderer_->deleteVertexBuffer(imgui_vb_);
+    renderer_->deleteIndexBuffer(imgui_ib_);
 }
 
 void UserInterface::update(float dt) {
-    // Give input state to imgui.
+    // Read input state and pass to imgui.
     auto input = subsystem<Input>();
     imgui_io_.DeltaTime = dt;
-    imgui_io_.MousePos = {static_cast<float>(input->getMousePosition().x),
-                          static_cast<float>(input->getMousePosition().y)};
-    imgui_io_.MouseDown[0] = input->isMouseButtonDown(0);
-    imgui_io_.MouseDown[1] = input->isMouseButtonDown(1);
+    imgui_io_.MousePos = {static_cast<float>(input->mousePosition().x),
+                          static_cast<float>(input->mousePosition().y)};
+    log().debug("%d %d", imgui_io_.MousePos.x, imgui_io_.MousePos.y);
+    imgui_io_.MouseDown[0] = input->isMouseButtonDown(MouseButton::Left);
+    imgui_io_.MouseDown[1] = input->isMouseButtonDown(MouseButton::Right);
+    imgui_io_.MouseDown[2] = input->isMouseButtonDown(MouseButton::Middle);
 }
 
 void UserInterface::render() {
@@ -107,14 +116,13 @@ void UserInterface::render() {
     for (int n = 0; n < draw_data->CmdListsCount; ++n) {
         auto cmd_list = draw_data->CmdLists[n];
 
-        // Create vertex and index buffers.
+        // Update GPU buffers.
         auto& vtx_buffer = cmd_list->VtxBuffer;
         auto& idx_buffer = cmd_list->IdxBuffer;
-        VertexBufferHandle vb = renderer_->createVertexBuffer(
-            vtx_buffer.Data, vtx_buffer.Size * sizeof(ImDrawVert), vertex_decl_);
-        IndexBufferHandle ib = renderer_->createIndexBuffer(
-            idx_buffer.Data, idx_buffer.Size * sizeof(ImDrawIdx),
-            sizeof(ImDrawIdx) == 2 ? IndexBufferType::U16 : IndexBufferType::U32);
+        renderer_->updateVertexBuffer(imgui_vb_, vtx_buffer.Data,
+                                      vtx_buffer.Size * sizeof(ImDrawVert), 0);
+        renderer_->updateIndexBuffer(imgui_ib_, idx_buffer.Data,
+                                     idx_buffer.Size * sizeof(ImDrawIdx), 0);
 
         // Execute draw commands.
         uint offset = 0;
@@ -138,8 +146,8 @@ void UserInterface::render() {
                 renderer_->setTexture(TextureHandle{static_cast<TextureHandle::base_type>(
                                           reinterpret_cast<std::intptr_t>(cmd->TextureId))},
                                       0);
-                renderer_->setVertexBuffer(vb);
-                renderer_->setIndexBuffer(ib);
+                renderer_->setVertexBuffer(imgui_vb_);
+                renderer_->setIndexBuffer(imgui_ib_);
 
                 // Draw.
                 program_->prepareForRendering();
@@ -147,8 +155,6 @@ void UserInterface::render() {
             }
             offset += cmd->ElemCount;
         }
-        renderer_->deleteVertexBuffer(vb);
-        renderer_->deleteIndexBuffer(ib);
     }
 
     // Begin a new frame.
