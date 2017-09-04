@@ -43,7 +43,7 @@ endif()
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include)
 
 # Assimp
-ExternalProject_Add(Assimp
+ExternalProject_Add(Assimp_Build
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/assimp/assimp/archive/6b4e3177e836dfb05c7eb5e3347b15a9916eebe7.zip
@@ -55,25 +55,36 @@ ExternalProject_Add(Assimp
         -DASSIMP_BUILD_ZLIB=1
         -DASSIMP_INSTALL_PDB=0
 )
-set_target_properties(Assimp PROPERTIES EXCLUDE_FROM_ALL TRUE)
-# TODO: Fix RelWithDebInfo case by using Imported target instead.
+set_target_properties(Assimp_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
+add_library(Assimp STATIC IMPORTED GLOBAL)
+add_library(Assimp_irrXML STATIC IMPORTED)
+add_library(Assimp_zlib STATIC IMPORTED)
+add_dependencies(Assimp Assimp_Build)
+target_link_libraries(Assimp INTERFACE Assimp_irrXML Assimp_zlib)
+set_property(TARGET Assimp PROPERTY INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
 if(WIN32)
-    set(LIBS ${LIBS}
-        debug ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/irrXML/Debug/irrXMLd.lib
-        optimized ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/irrXML/Release/irrXML.lib
-        debug ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/zlib/Debug/zlibstaticd.lib
-        optimized ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/zlib/Release/zlibstatic.lib
-        debug ${EXTERNAL_INSTALL}/lib/assimp-vc140-mtd.lib
-        optimized ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
+    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/Release/irrXML.lib)
+    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/RelWithDebInfo/irrXML.lib)
+    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/Debug/irrXMLd.lib)
+    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/Release/zlibstatic.lib)
+    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/RelWithDebInfo/zlibstatic.lib)
+    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/Debug/zlibstaticd.lib)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/assimp-vc140-mtd.lib)
 else()
-    set(LIBS ${LIBS}
-        debug ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/irrXML/libIrrXMLd.a
-        optimized ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/irrXML/libIrrXML.a
-        debug ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/zlib/libzlibstaticd.a
-        optimized ${EXTERNAL_PREFIX}/src/Assimp-build/contrib/zlib/libzlibstatic.a
-        debug ${EXTERNAL_INSTALL}/lib/libassimpd.a
-        optimized ${EXTERNAL_INSTALL}/lib/libassimp.a)
+    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML.a)
+    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML.a)
+    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXMLd.a)
+    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a)
+    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a)
+    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstaticd.a)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/libassimp.a)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/libassimp.lib)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/libassimpd.a)
 endif()
+set(LIBS ${LIBS} Assimp)
 
 # Bullet
 ExternalProject_Add(Bullet
