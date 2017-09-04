@@ -29,6 +29,7 @@ public:
         // Load the file which contains this resource data.
         SharedPtr<File> file = getFile(filename);
         if (!file) {
+            log().error("Cannot find file %s", filename);
             return nullptr;
         }
         SharedPtr<T> resource = makeShared<T>(context());

@@ -24,9 +24,9 @@ set(EXTERNAL_ARGS
     -G ${CMAKE_GENERATOR}
     -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL}
     # ExternalProject needs to have these passed in.
+    -DCMAKE_BUILD_TYPE=$<CONFIG>
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DBUILD_SHARED_LIBS=0)
 if(APPLE)
     set(EXTERNAL_ARGS ${EXTERNAL_ARGS}
@@ -39,8 +39,8 @@ elseif(UNIX)
         -DCMAKE_CXX_FLAGS=-fPIC)
 endif()
 
-# General include directory for all external dependencies
-set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include)
+# Note that "set_property(TARGET Assimp PROPERTY INTERFACE_INCLUDE_DIRECTORIES ...)" checks for the
+# existence of the path. Therefore, we create the path beforehand.
 
 # Assimp
 ExternalProject_Add(Assimp_Build
@@ -48,7 +48,9 @@ ExternalProject_Add(Assimp_Build
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/assimp/assimp/archive/6b4e3177e836dfb05c7eb5e3347b15a9916eebe7.zip
     URL_MD5 f7bb45ebbccdde3997be22e61fdb242b
+    BUILD_COMMAND ""
     UPDATE_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DASSIMP_BUILD_ASSIMP_TOOLS=0
         -DASSIMP_BUILD_TESTS=0
@@ -56,43 +58,44 @@ ExternalProject_Add(Assimp_Build
         -DASSIMP_INSTALL_PDB=0
 )
 set_target_properties(Assimp_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
-
 add_library(Assimp STATIC IMPORTED GLOBAL)
-add_library(Assimp_irrXML STATIC IMPORTED)
-add_library(Assimp_zlib STATIC IMPORTED)
 add_dependencies(Assimp Assimp_Build)
-target_link_libraries(Assimp INTERFACE Assimp_irrXML Assimp_zlib)
-set_property(TARGET Assimp PROPERTY INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
+file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
+set_property(TARGET Assimp PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
 if(WIN32)
-    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/Release/irrXML.lib)
-    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/RelWithDebInfo/irrXML.lib)
-    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/Debug/irrXMLd.lib)
-    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/Release/zlibstatic.lib)
-    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/RelWithDebInfo/zlibstatic.lib)
-    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/Debug/zlibstaticd.lib)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
+    set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
+        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/Debug/irrXMLd.lib>
+        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/RelWithDebInfo/irrXML.lib>
+        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/Release/irrXML.lib>
+        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/Debug/zlibstaticd.lib>
+        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/RelWithDebInfo/zlibstatic.lib>
+        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/Release/zlibstatic.lib>)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/assimp-vc140-mtd.lib)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
 else()
-    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML.a)
-    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML.a)
-    set_property(TARGET Assimp_irrXML PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXMLd.a)
-    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a)
-    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a)
-    set_property(TARGET Assimp_zlib PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstaticd.a)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/libassimp.a)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/libassimp.lib)
+    set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
+        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXMLd.a>
+        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML.a>
+        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML.a>
+        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstaticd.a>
+        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a>
+        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a>)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/libassimpd.a)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/libassimp.a)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/libassimp.a)
 endif()
 set(LIBS ${LIBS} Assimp)
 
 # Bullet
-ExternalProject_Add(Bullet
+ExternalProject_Add(Bullet_Build
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/bulletphysics/bullet3/archive/2.86.zip
     URL_MD5 8b57278946186e9792824069637bbc97
+    BUILD_COMMAND ""
     UPDATE_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_EXTRAS=0
         -DBUILD_BULLET2_DEMOS=0
@@ -101,60 +104,72 @@ ExternalProject_Add(Bullet
         -DINSTALL_LIBS=1
         -DUSE_MSVC_RUNTIME_LIBRARY_DLL=1
 )
-set_target_properties(Bullet PROPERTIES EXCLUDE_FROM_ALL TRUE)
-set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include/bullet)
+set_target_properties(Bullet_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(Bullet STATIC IMPORTED GLOBAL)
+add_dependencies(Bullet Bullet_Build)
+file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/bullet)
+set_property(TARGET Bullet PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include/bullet)
 if(WIN32)
-    set(LIBS ${LIBS}
-        debug ${EXTERNAL_INSTALL}/lib/BulletCollision_Debug.lib
-        optimized ${EXTERNAL_INSTALL}/lib/BulletCollision.lib
-        debug ${EXTERNAL_INSTALL}/lib/BulletDynamics_Debug.lib
-        optimized ${EXTERNAL_INSTALL}/lib/BulletDynamics.lib
-        debug ${EXTERNAL_INSTALL}/lib/LinearMath_Debug.lib
-        optimized ${EXTERNAL_INSTALL}/lib/LinearMath.lib)
+    set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
+        $<$<CONFIG:Debug>:${EXTERNAL_INSTALL}/lib/BulletCollision_Debug.lib>
+        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_INSTALL}/lib/BulletCollision.lib>
+        $<$<CONFIG:Release>:${EXTERNAL_INSTALL}/lib/BulletCollision.lib>
+        $<$<CONFIG:Debug>:${EXTERNAL_INSTALL}/lib/LinearMath_Debug.lib>
+        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_INSTALL}/lib/LinearMath.lib>
+        $<$<CONFIG:Release>:${EXTERNAL_INSTALL}/lib/LinearMath.lib>)
+    set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/BulletDynamics_Debug.lib)
+    set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/BulletDynamics.lib)
+    set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/BulletDynamics.lib)
 else()
-    set(LIBS ${LIBS}
+    set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
         ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a
         ${EXTERNAL_INSTALL}/lib/libBulletCollision.a
         ${EXTERNAL_INSTALL}/lib/libLinearMath.a)
+    set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a)
 endif()
+set(LIBS ${LIBS} Bullet)
 
 # MathGeoLib
-ExternalProject_Add(MathGeoLib
+ExternalProject_Add(MathGeoLib_Build
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/davedissian/dawnengine-MathGeoLib/archive/master.zip
     URL_MD5 d1fd2ed6aa2284049234f377c6a6f1e9
+    BUILD_COMMAND ""
     UPDATE_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
     CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DBUILD_SHARED_LIBS=0
 )
-set_target_properties(MathGeoLib PROPERTIES EXCLUDE_FROM_ALL TRUE)
-set(INCLUDE_DIRS ${INCLUDE_DIRS}
-    ${EXTERNAL_INSTALL}/include/MathGeoLib)
+set_target_properties(MathGeoLib_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(MathGeoLib STATIC IMPORTED GLOBAL)
+add_dependencies(MathGeoLib MathGeoLib_Build)
+file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/MathGeoLib)
+set_property(TARGET MathGeoLib PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include/MathGeoLib)
 if(WIN32)
-    set(LIBS ${LIBS}
-        debug ${EXTERNAL_INSTALL}/lib/MathGeoLib_d.lib
-        optimized ${EXTERNAL_INSTALL}/lib/MathGeoLib.lib)
+    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/MathGeoLib_d.lib)
+    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/MathGeoLib.lib)
+    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/MathGeoLib.lib)
 else()
-    set(LIBS ${LIBS}
-        debug ${EXTERNAL_INSTALL}/lib/libMathGeoLib_d.a
-        optimized ${EXTERNAL_INSTALL}/lib/libMathGeoLib.a)
+    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/libMathGeoLib_d.a)
+    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/libMathGeoLib.a)
+    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/libMathGeoLib.alib)
 endif()
+set(LIBS ${LIBS} MathGeoLib)
 
 # Luajit
 if (MSVC)
-    ExternalProject_Add(Luajit
+    ExternalProject_Add(Luajit_Build
         PREFIX ${EXTERNAL_PREFIX}
         URL http://luajit.org/download/LuaJIT-2.1.0-beta2.zip
         URL_MD5 b5d943c0174ca217736e2ddc2d9721c3
-        BINARY_DIR ${EXTERNAL_PREFIX}/src/Luajit/src
+        BINARY_DIR ${EXTERNAL_PREFIX}/src/Luajit_Build/src
         CONFIGURE_COMMAND ""
         BUILD_COMMAND msvcbuild.bat static
         INSTALL_COMMAND ""
         UPDATE_COMMAND ""
     )
 else()
-    ExternalProject_Add(Luajit
+    ExternalProject_Add(Luajit_Build
         PREFIX ${EXTERNAL_PREFIX}
         URL http://luajit.org/download/LuaJIT-2.1.0-beta2.zip
         URL_MD5 b5d943c0174ca217736e2ddc2d9721c3
@@ -165,17 +180,17 @@ else()
         UPDATE_COMMAND ""
     )
 endif()
-set_target_properties(Luajit PROPERTIES EXCLUDE_FROM_ALL TRUE)
-set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_PREFIX}/src/Luajit/src)
+set_target_properties(Luajit_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(Luajit STATIC IMPORTED GLOBAL)
+add_dependencies(Luajit Luajit_Build)
+file(MAKE_DIRECTORY ${EXTERNAL_PREFIX}/src/Luajit_Build/src)
+set_property(TARGET Luajit PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PREFIX}/src/Luajit_Build/src)
 if(WIN32)
-    set(LIBS ${LIBS}
-        ${EXTERNAL_PREFIX}/src/Luajit/src/lua51.lib)
+    set_property(TARGET Luajit PROPERTY IMPORTED_LOCATION ${EXTERNAL_PREFIX}/src/Luajit_Build/src/lua51.lib)
 else()
-    set(LIBS ${LIBS}
-        ${EXTERNAL_INSTALL}/lib/libluajit-5.1.a)
+    set_property(TARGET Luajit PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libluajit-5.1.a)
 endif()
-
-set(EXTERNAL_DEPS Assimp Bullet MathGeoLib Luajit PARENT_SCOPE)
+set(LIBS ${LIBS} Luajit)
 
 
 ##############################################################

@@ -33,12 +33,12 @@ public:
                                            rc->get<FragmentShader>("ship.fs")));
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
-        auto renderable = rc->get<Mesh>("model/core-large.mesh.xml");
+        auto renderable = rc->get<Mesh>("models/core-large.mesh.xml");
         renderable->setMaterial(material);
-        auto sphere = rc->get<Mesh>("model/side-wing.mesh.xml");
+        auto sphere = rc->get<Mesh>("models/side-wing.mesh.xml");
         sphere->setMaterial(material);
 
-        // Create entities.
+        // Create entities.Wor
         auto em = subsystem<EntityManager>();
         object = &em->createEntity()
                       .addComponent<Transform>(Position{-10.0f, 0.0f, 0.0f}, Quat::identity)
