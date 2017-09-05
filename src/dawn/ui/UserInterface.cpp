@@ -78,7 +78,8 @@ UserInterface::UserInterface(Context* ctx)
     // Set up GPU buffers.
     imgui_vb_ = renderer_->createVertexBuffer(nullptr, 0, vertex_decl_, BufferUsage::Stream);
     imgui_ib_ = renderer_->createIndexBuffer(
-        nullptr, 0, sizeof(ImDrawIdx) == 2 ? IndexBufferType::U16 : IndexBufferType::U32, BufferUsage::Stream);
+        nullptr, 0, sizeof(ImDrawIdx) == 2 ? IndexBufferType::U16 : IndexBufferType::U32,
+        BufferUsage::Stream);
 
     // Begin a new frame.
     ImGui::NewFrame();
@@ -95,7 +96,10 @@ void UserInterface::update(float dt) {
     imgui_io_.DeltaTime = dt;
     imgui_io_.MousePos = {static_cast<float>(input->mousePosition().x),
                           static_cast<float>(input->mousePosition().y)};
-    log().debug("%d %d", imgui_io_.MousePos.x, imgui_io_.MousePos.y);
+    if (imgui_io_.MouseDown[0] != input->isMouseButtonDown(MouseButton::Left)) {
+        log().debug("%d %d %d", imgui_io_.MousePos.x, imgui_io_.MousePos.y,
+                    (int)input->isMouseButtonDown(MouseButton::Left));
+    }
     imgui_io_.MouseDown[0] = input->isMouseButtonDown(MouseButton::Left);
     imgui_io_.MouseDown[1] = input->isMouseButtonDown(MouseButton::Right);
     imgui_io_.MouseDown[2] = input->isMouseButtonDown(MouseButton::Middle);
@@ -152,7 +156,8 @@ void UserInterface::render() {
                 // Draw.
                 program_->prepareForRendering();
                 renderer_->submit(0, program_->internalHandle(), cmd->ElemCount, offset);
-                log().debug("Submit Count %d Offset %d", cmd->ElemCount, offset * sizeof(ImDrawIdx));
+                // log().debug("Submit Count %d Offset %d", cmd->ElemCount, offset *
+                // sizeof(ImDrawIdx));
             }
             offset += cmd->ElemCount;
         }

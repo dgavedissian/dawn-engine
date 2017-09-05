@@ -139,6 +139,8 @@ void Engine::shutdown() {
 
     // Remove subsystems.
     context_->removeSubsystem<StateManager>();
+    context_->removeSubsystem<UserInterface>();
+    context_->removeSubsystem<ResourceCache>();
     context_->clearSubsystems();
 
     // The engine is no longer initialised.

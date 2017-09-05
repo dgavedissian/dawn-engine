@@ -9,8 +9,6 @@
 
 namespace dw {
 
-enum class MouseButton { Left = 0, Middle, Right, Count };
-
 enum class Modifier : u16 {
     None = 0,
     LeftAlt = 0x01,
@@ -131,6 +129,8 @@ enum class Key {
 
     Count
 };
+
+enum class MouseButton { Left = 0, Middle, Right, Count };
 
 class DW_API Input : public Object {
 public:

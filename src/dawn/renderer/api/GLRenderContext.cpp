@@ -302,26 +302,23 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
                 return;
             }
 
-                if (action == GLFW_PRESS) {
-                    ctx->subsystem<Input>()->_notifyKeyPress(key_it->second, Modifier::None,
-                                                             true);
-                } else if (action == GLFW_RELEASE) {
-                    ctx->subsystem<Input>()->_notifyKeyPress(key_it->second, Modifier::None,
-                                                             false);
-
-                }
+            if (action == GLFW_PRESS) {
+                ctx->subsystem<Input>()->_notifyKeyPress(key_it->second, Modifier::None, true);
+            } else if (action == GLFW_RELEASE) {
+                ctx->subsystem<Input>()->_notifyKeyPress(key_it->second, Modifier::None, false);
+            }
         });
     glfwSetMouseButtonCallback(window_, [](GLFWwindow* window, int button, int action, int mode) {
         auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
         auto mouse_button = s_mouse_button_map.find(button);
         if (mouse_button == s_mouse_button_map.end()) {
-            ctx->subsystem<Logger>()->withObjectName("GLFW").warn("Unknown mouse button %s", button);
+            ctx->subsystem<Logger>()->withObjectName("GLFW").warn("Unknown mouse button %s",
+                                                                  button);
             return;
         }
         if (action == GLFW_PRESS) {
             ctx->subsystem<Input>()->_notifyMouseButtonPress(mouse_button->second, true);
-        } else  if (action == GLFW_RELEASE)
-        {
+        } else if (action == GLFW_RELEASE) {
             ctx->subsystem<Input>()->_notifyMouseButtonPress(mouse_button->second, false);
         }
     });
@@ -488,18 +485,17 @@ bool GLRenderContext::frame(const Vector<View>& views) {
                           current->scissor_width, current->scissor_height);
             }
 
-            // Bind VAO.
-            if (true) {//if (!previous || previous->vb != current->vb) {
-                if (current->vb != VertexBufferHandle::invalid) {
-                    glBindVertexArray(vertex_buffer_map_.at(current->vb).vertex_array_object);
-                } else {
-                    glBindVertexArray(0);
-                }
+            // Bind VAO, VBO and EBO.
+            bool vertex_array_changed = false;
+            if (!previous || previous->vb != current->vb) {
+                assert(current->vb != VertexBufferHandle::invalid);
+                auto& vb_data = vertex_buffer_map_.at(current->vb);
+                glBindVertexArray(vb_data.vertex_array_object);
+                glBindBuffer(GL_ARRAY_BUFFER, vb_data.vertex_buffer);
+                vertex_array_changed = true;
                 GL_CHECK();
             }
-
-            // Bind EBO.
-            if (true) {//if (!previous || previous->ib != current->ib) {
+            if (vertex_array_changed || !previous || previous->ib != current->ib) {
                 if (current->ib != IndexBufferHandle::invalid) {
                     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                                  index_buffer_map_.at(current->ib).element_buffer);
@@ -556,10 +552,10 @@ bool GLRenderContext::frame(const Vector<View>& views) {
                     GLenum element_type = index_buffer_map_[current->ib].type;
                     uint element_size =
                         element_type == GL_UNSIGNED_SHORT ? sizeof(u16) : sizeof(u32);
-                    log().debug("Count %d Offset %d", current->primitive_count * 3, current->primitive_offset * element_size);
+                    void* offset =
+                        (void*)(std::uintptr_t)(current->primitive_offset * element_size);
                     glDrawElements(GL_TRIANGLES, current->primitive_count * 3, element_type,
-                                   reinterpret_cast<void*>(static_cast<std::uintptr_t>(
-                                       current->primitive_offset * element_size)));
+                                   offset);
                     GL_CHECK();
                 } else {
                     glDrawArrays(GL_TRIANGLES, 0, current->primitive_count * 3);
@@ -628,7 +624,7 @@ void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
 
 void GLRenderContext::operator()(const cmd::UpdateVertexBuffer& c) {
     auto& vb_data = vertex_buffer_map_.at(c.handle);
-    glBindVertexArray(vb_data.vertex_array_object);
+    glBindBuffer(GL_ARRAY_BUFFER, vb_data.vertex_buffer);
     if (c.data.size() > vb_data.size) {
         glBufferData(GL_ARRAY_BUFFER, c.data.size(), c.data.data(), vb_data.usage);
         vb_data.size = c.data.size();
@@ -658,9 +654,8 @@ void GLRenderContext::operator()(const cmd::CreateIndexBuffer& c) {
 
     index_buffer_map_.emplace(
         c.handle,
-        IndexBufferData{ebo,
-                        static_cast<GLenum>(c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT
-                                                                           : GL_UNSIGNED_INT),
+        IndexBufferData{ebo, static_cast<GLenum>(c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT
+                                                                                : GL_UNSIGNED_INT),
                         usage, c.data.size()});
 }
 
@@ -698,7 +693,7 @@ void GLRenderContext::operator()(const cmd::CreateShader& c) {
     // Postprocess the GLSL to remove the 4.2 extension, which doesn't exist on macOS.
     source = str::replace(source, "#extension GL_ARB_shading_language_420pack : require",
                           "#extension GL_ARB_shading_language_420pack : disable");
-    log().debug("Decompiled GLSL from SPIR-V: %s", source);
+    // log().debug("Decompiled GLSL from SPIR-V: %s", source);
 
     // Compile shader.
     static HashMap<ShaderStage, GLenum> shader_type_map = {

@@ -16,18 +16,29 @@ const EventType EvtData_MouseUp::eventType(0x2c080377);
 const EventType EvtData_MouseMove::eventType(0xcfcf6020);
 const EventType EvtData_MouseWheel::eventType(0xabc23f35);
 
-Input::Input(Context* context) : Object(context) {
+Input::Input(Context* context)
+    : Object(context),
+      viewport_size_(1280, 800),
+      mouse_position_(0, 0),
+      mouse_move_(0, 0),
+      mouse_scroll_(0.0f, 0.0f) {
+    for (int i = 0; i < int(Key::Count); ++i) {
+        keyboard_state_[i] = false;
+    }
+    for (int i = 0; i < int(MouseButton::Count); ++i) {
+        mouse_button_state_[i] = false;
+    }
 }
 
 Input::~Input() {
 }
 
 bool Input::isKeyDown(Key key) const {
-    return keyboard_state_[(int)key];
+    return keyboard_state_[int(key)];
 }
 
 bool Input::isMouseButtonDown(MouseButton button) const {
-    return mouse_button_state_[(int)button];
+    return mouse_button_state_[int(button)];
 }
 
 Vec2i Input::mousePosition() const {
@@ -36,7 +47,8 @@ Vec2i Input::mousePosition() const {
 
 Vec2 Input::mousePositionRelative() const {
     Vec2i mouse_position = mousePosition();
-    return {(float)mouse_position.x / viewport_size_.x, (float)mouse_position.y / viewport_size_.y};
+    return {static_cast<float>(mouse_position.x) / viewport_size_.x,
+            static_cast<float>(mouse_position.y) / viewport_size_.y};
 }
 
 Vec2i Input::mouseMove() const {
@@ -48,21 +60,19 @@ Vec2 Input::mouseScroll() const {
 }
 
 void Input::_notifyKeyPress(Key key, Modifier modifier, bool state) {
-    keyboard_state_[(int)key] = state;
-    log().debug("Key %d state: %d - modifier: %d", (int)key, (int)state, (int)modifier);
+    keyboard_state_[int(key)] = state;
+    log().debug("Key %d state: %d - modifier: %d", int(key), int(state), int(modifier));
     // TODO: Send event.
 }
 
 void Input::_notifyMouseButtonPress(MouseButton button, bool state) {
-    mouse_button_state_[(int)button] = state;
-    log().debug("Mouse Button %d state: %d", (int)button, (int)state);
+    mouse_button_state_[int(button)] = state;
     // TODO: Send event.
 }
 
 void Input::_notifyMouseMove(const Vec2i& position) {
     mouse_move_ = position - mouse_position_;
     mouse_position_ = position;
-    log().debug("Mouse position {%d,%d}", position.x, position.y);
     // TODO: Send event.
 }
 
