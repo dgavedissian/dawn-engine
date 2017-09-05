@@ -24,7 +24,7 @@ set(EXTERNAL_ARGS
     -G ${CMAKE_GENERATOR}
     -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL}
     # ExternalProject needs to have these passed in.
-    -DCMAKE_BUILD_TYPE=$<CONFIG>
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     -DBUILD_SHARED_LIBS=0)
@@ -50,7 +50,7 @@ ExternalProject_Add(Assimp_Build
     URL_MD5 f7bb45ebbccdde3997be22e61fdb242b
     BUILD_COMMAND ""
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config ${CMAKE_BUILD_TYPE}
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DASSIMP_BUILD_ASSIMP_TOOLS=0
         -DASSIMP_BUILD_TESTS=0
@@ -71,8 +71,7 @@ if(WIN32)
         $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/RelWithDebInfo/zlibstatic.lib>
         $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/Release/zlibstatic.lib>)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/assimp-vc140-mtd.lib)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
 else()
     set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
         $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXMLd.a>
@@ -82,8 +81,7 @@ else()
         $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a>
         $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a>)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/libassimpd.a)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/libassimp.a)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/libassimp.a)
+    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libassimp.a)
 endif()
 set(LIBS ${LIBS} Assimp)
 
@@ -95,7 +93,7 @@ ExternalProject_Add(Bullet_Build
     URL_MD5 8b57278946186e9792824069637bbc97
     BUILD_COMMAND ""
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config ${CMAKE_BUILD_TYPE}
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_EXTRAS=0
         -DBUILD_BULLET2_DEMOS=0
@@ -118,8 +116,7 @@ if(WIN32)
         $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_INSTALL}/lib/LinearMath.lib>
         $<$<CONFIG:Release>:${EXTERNAL_INSTALL}/lib/LinearMath.lib>)
     set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/BulletDynamics_Debug.lib)
-    set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/BulletDynamics.lib)
-    set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/BulletDynamics.lib)
+    set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/BulletDynamics.lib)
 else()
     set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
         ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a
@@ -137,7 +134,7 @@ ExternalProject_Add(MathGeoLib_Build
     URL_MD5 d1fd2ed6aa2284049234f377c6a6f1e9
     BUILD_COMMAND ""
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config ${CMAKE_BUILD_TYPE}
     CMAKE_ARGS ${EXTERNAL_ARGS}
 )
 set_target_properties(MathGeoLib_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
@@ -147,12 +144,10 @@ file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/MathGeoLib)
 set_property(TARGET MathGeoLib PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include/MathGeoLib)
 if(WIN32)
     set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/MathGeoLib_d.lib)
-    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/MathGeoLib.lib)
-    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/MathGeoLib.lib)
+    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/MathGeoLib.lib)
 else()
     set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/libMathGeoLib_d.a)
-    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/libMathGeoLib.a)
-    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_RELEASE ${EXTERNAL_INSTALL}/lib/libMathGeoLib.alib)
+    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libMathGeoLib.a)
 endif()
 set(LIBS ${LIBS} MathGeoLib)
 
