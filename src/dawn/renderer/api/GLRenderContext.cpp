@@ -489,7 +489,7 @@ bool GLRenderContext::frame(const Vector<View>& views) {
             }
 
             // Bind VAO.
-            if (!previous || previous->vb != current->vb) {
+            if (true) {//if (!previous || previous->vb != current->vb) {
                 if (current->vb != VertexBufferHandle::invalid) {
                     glBindVertexArray(vertex_buffer_map_.at(current->vb).vertex_array_object);
                 } else {
@@ -499,7 +499,7 @@ bool GLRenderContext::frame(const Vector<View>& views) {
             }
 
             // Bind EBO.
-            if (!previous || previous->ib != current->ib) {
+            if (true) {//if (!previous || previous->ib != current->ib) {
                 if (current->ib != IndexBufferHandle::invalid) {
                     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                                  index_buffer_map_.at(current->ib).element_buffer);
@@ -556,6 +556,7 @@ bool GLRenderContext::frame(const Vector<View>& views) {
                     GLenum element_type = index_buffer_map_[current->ib].type;
                     uint element_size =
                         element_type == GL_UNSIGNED_SHORT ? sizeof(u16) : sizeof(u32);
+                    log().debug("Count %d Offset %d", current->primitive_count * 3, current->primitive_offset * element_size);
                     glDrawElements(GL_TRIANGLES, current->primitive_count * 3, element_type,
                                    reinterpret_cast<void*>(static_cast<std::uintptr_t>(
                                        current->primitive_offset * element_size)));

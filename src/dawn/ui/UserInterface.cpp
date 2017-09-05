@@ -152,6 +152,7 @@ void UserInterface::render() {
                 // Draw.
                 program_->prepareForRendering();
                 renderer_->submit(0, program_->internalHandle(), cmd->ElemCount, offset);
+                log().debug("Submit Count %d Offset %d", cmd->ElemCount, offset * sizeof(ImDrawIdx));
             }
             offset += cmd->ElemCount;
         }

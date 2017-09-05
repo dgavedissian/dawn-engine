@@ -43,15 +43,15 @@ public:
         auto em = subsystem<EntityManager>();
         object = &em->createEntity()
                       .addComponent<Transform>(Position{-10.0f, 0.0f, 0.0f}, Quat::identity)
-                      .addComponent<RenderableComponent>(renderable);
+                      ;//.addComponent<RenderableComponent>(renderable);
         em->createEntity()
             .addComponent<Transform>(Position{8.0f, 0.0f, 0.0f}, Quat::identity)
             .addComponent<Parent>(object->id())
-            .addComponent<RenderableComponent>(sphere);
+            ;//.addComponent<RenderableComponent>(sphere);
         em->createEntity()
             .addComponent<Transform>(Position{-8.0f, 0.0f, 0.0f}, Quat::identity)
             .addComponent<Parent>(object->id())
-            .addComponent<RenderableComponent>(sphere);
+            ;//.addComponent<RenderableComponent>(sphere);
 
         // Create a camera.
         camera = &em->createEntity()

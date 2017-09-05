@@ -86,7 +86,7 @@ void Engine::setup() {
     context_->addSubsystem<Input>();
     auto* renderer = context_->addSubsystem<Renderer>();
     renderer->init(context_->config().at("window_width").get<u16>(),
-                   context_->config().at("window_height").get<u16>(), window_title, true);
+                   context_->config().at("window_height").get<u16>(), window_title, false);
     context_->addSubsystem<UserInterface>();
     // mAudio = new Audio;
     // mPhysicsWorld = new PhysicsWorld(mRenderer);
