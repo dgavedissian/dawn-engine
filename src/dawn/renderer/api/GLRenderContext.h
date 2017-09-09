@@ -23,8 +23,9 @@ public:
 
     // Command buffer processing. Executed on the render thread.
     void startRendering() override;
+    void stopRendering() override;
     void processCommandList(Vector<RenderCommand>& command_list) override;
-    bool frame(const Vector<View>& views) override;
+    bool frame(const Frame* frame) override;
 
     // Variant walker methods. Executed on the render thread.
     void operator()(const cmd::CreateVertexBuffer& c);
@@ -52,10 +53,13 @@ private:
     u16 backbuffer_width_;
     u16 backbuffer_height_;
 
+    GLuint vao_;
+    VertexDecl current_vertex_decl;
+
     // Vertex and index buffers.
     struct VertexBufferData {
-        GLuint vertex_array_object;
         GLuint vertex_buffer;
+        VertexDecl decl;
         GLenum usage;
         size_t size;
     };
@@ -68,7 +72,7 @@ private:
     HashMap<VertexBufferHandle, VertexBufferData> vertex_buffer_map_;
     HashMap<IndexBufferHandle, IndexBufferData> index_buffer_map_;
 
-    // Shaders programs.
+    // Shaders and programs.
     struct ProgramData {
         GLuint program;
         HashMap<String, GLint> uniform_location_map;
@@ -88,5 +92,8 @@ private:
         Vector<TextureHandle> textures;
     };
     HashMap<FrameBufferHandle, FrameBufferData> frame_buffer_map_;
+
+    // Helper functions.
+    void setupVertexArrayAttributes(const VertexDecl& decl, uint vb_offset);
 };
 }  // namespace dw

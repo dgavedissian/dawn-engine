@@ -27,8 +27,5 @@ private:
     ImGuiStyle& imgui_style_;
     SharedPtr<Program> program_;
     VertexDecl vertex_decl_;
-
-    VertexBufferHandle imgui_vb_;
-    IndexBufferHandle imgui_ib_;
 };
 }  // namespace dw

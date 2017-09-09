@@ -362,6 +362,18 @@ bool GLRenderContext::isWindowClosed() const {
 
 void GLRenderContext::startRendering() {
     glfwMakeContextCurrent(window_);
+
+    glGenVertexArrays(1, &vao_);
+    GL_CHECK();
+    glBindVertexArray(vao_);
+    GL_CHECK();
+}
+
+void GLRenderContext::stopRendering() {
+    glBindVertexArray(0);
+    GL_CHECK();
+    glDeleteVertexArrays(1, &vao_);
+    GL_CHECK();
 }
 
 void GLRenderContext::processCommandList(Vector<RenderCommand>& command_list) {
@@ -371,17 +383,29 @@ void GLRenderContext::processCommandList(Vector<RenderCommand>& command_list) {
     }
 }
 
-bool GLRenderContext::frame(const Vector<View>& views) {
+bool GLRenderContext::frame(const Frame* frame) {
     assert(window_);
 
+    // Upload transient vertex/element buffer data.
+    auto& tvb = frame->transient_vb_storage;
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_map_.at(tvb.handle).vertex_buffer);
+    GL_CHECK();
+    glBufferSubData(GL_ARRAY_BUFFER, 0, tvb.size, tvb.data);
+    GL_CHECK();
+    auto& tib = frame->transient_ib_storage;
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_map_.at(tib.handle).element_buffer);
+    GL_CHECK();
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, tib.size, tib.data);
+    GL_CHECK();
+
     // Process views.
-    for (auto& v : views) {
+    for (auto& v : frame->views) {
         if (v.render_items.empty()) {
             continue;
         }
 
         // Set up framebuffer.
-        assert(v.frame_buffer != FrameBufferHandle::invalid);
+        assert(v.frame_buffer.isValid());
         u16 fb_width, fb_height;
         if (v.frame_buffer.internal() > 0) {
             FrameBufferData& fb_data = frame_buffer_map_.at(v.frame_buffer);
@@ -485,31 +509,10 @@ bool GLRenderContext::frame(const Vector<View>& views) {
                           current->scissor_width, current->scissor_height);
             }
 
-            // Bind VAO, VBO and EBO.
-            bool vertex_array_changed = false;
-            if (!previous || previous->vb != current->vb) {
-                assert(current->vb != VertexBufferHandle::invalid);
-                auto& vb_data = vertex_buffer_map_.at(current->vb);
-                glBindVertexArray(vb_data.vertex_array_object);
-                glBindBuffer(GL_ARRAY_BUFFER, vb_data.vertex_buffer);
-                vertex_array_changed = true;
-                GL_CHECK();
-            }
-            if (vertex_array_changed || !previous || previous->ib != current->ib) {
-                if (current->ib != IndexBufferHandle::invalid) {
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                                 index_buffer_map_.at(current->ib).element_buffer);
-                    GL_CHECK();
-                } else {
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-                    GL_CHECK();
-                }
-            }
-
             // Bind Program.
             ProgramData& program_data = program_map_.at(current->program);
             if (!previous || previous->program != current->program) {
-                assert(current->program != ProgramHandle::invalid);
+                assert(current->program.isValid());
                 glUseProgram(program_data.program);
                 GL_CHECK();
             }
@@ -538,7 +541,7 @@ bool GLRenderContext::frame(const Vector<View>& views) {
 
             // Bind textures.
             for (uint j = 0; j < current->textures.size(); ++j) {
-                if (current->textures[j].handle == TextureHandle::invalid) {
+                if (!current->textures[j].handle.isValid()) {
                     break;
                 }
                 glActiveTexture(GL_TEXTURE0 + j);
@@ -546,16 +549,46 @@ bool GLRenderContext::frame(const Vector<View>& views) {
                 GL_CHECK();
             }
 
+            // Bind vertex data.
+            if (!previous || previous->vb != current->vb) {
+                if (current->vb.isValid()) {
+                    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_map_.at(current->vb).vertex_buffer);
+                    GL_CHECK();
+                }
+            }
+
+            // Bind attributes.
+            for (uint attrib = 0; attrib < current_vertex_decl.attributes_.size(); ++attrib) {
+                glDisableVertexAttribArray(attrib);
+                GL_CHECK();
+            }
+            if (current->vb.isValid()) {
+                current_vertex_decl = current->vertex_decl_override.empty()
+                                          ? vertex_buffer_map_.at(current->vb).decl
+                                          : current->vertex_decl_override;
+                setupVertexArrayAttributes(current_vertex_decl, current->vb_offset);
+            } else {
+                current_vertex_decl = VertexDecl{};
+            }
+
+            // Bind element data.
+            if (!previous || previous->ib != current->ib) {
+                if (current->ib.isValid()) {
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                                 index_buffer_map_.at(current->ib).element_buffer);
+                    GL_CHECK();
+                } else {
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+                    GL_CHECK();
+                }
+            }
+
             // Submit.
             if (current->primitive_count > 0) {
-                if (current->ib != IndexBufferHandle::invalid) {
+                if (current->ib.isValid()) {
                     GLenum element_type = index_buffer_map_[current->ib].type;
-                    uint element_size =
-                        element_type == GL_UNSIGNED_SHORT ? sizeof(u16) : sizeof(u32);
-                    void* offset =
-                        (void*)(std::uintptr_t)(current->primitive_offset * element_size);
                     glDrawElements(GL_TRIANGLES, current->primitive_count * 3, element_type,
-                                   offset);
+                                   (void*)current->ib_offset);
                     GL_CHECK();
                 } else {
                     glDrawArrays(GL_TRIANGLES, 0, current->primitive_count * 3);
@@ -573,11 +606,6 @@ bool GLRenderContext::frame(const Vector<View>& views) {
 }
 
 void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
-    // Create vertex array object.
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
     // Create vertex buffer object.
     GLenum usage = mapBufferUsage(c.usage);
     GLuint vbo;
@@ -585,41 +613,12 @@ void GLRenderContext::operator()(const cmd::CreateVertexBuffer& c) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     if (c.data.data()) {
         glBufferData(GL_ARRAY_BUFFER, c.data.size(), c.data.data(), usage);
+    } else {
+        glBufferData(GL_ARRAY_BUFFER, c.size, nullptr, usage);
     }
     GL_CHECK();
 
-    // Set up vertex array attributes.
-    static HashMap<VertexDecl::AttributeType, GLenum> attribute_type_map = {
-        {VertexDecl::AttributeType::Float, GL_FLOAT},
-        {VertexDecl::AttributeType::Uint8, GL_UNSIGNED_BYTE}};
-    u16 attrib_counter = 0;
-    for (auto& attrib : c.decl.attributes_) {
-        // Decode attribute.
-        VertexDecl::Attribute attribute;
-        uint count;
-        VertexDecl::AttributeType type;
-        bool normalised;
-        VertexDecl::decodeAttributes(attrib.first, attribute, count, type, normalised);
-
-        // Convert type.
-        auto gl_type = attribute_type_map.find(type);
-        if (gl_type == attribute_type_map.end()) {
-            log().warn("[CreateVertexBuffer] Unknown attribute type: %i", (uint)type);
-            continue;
-        }
-
-        log().debug("[CreateVertexBuffer] Attrib %s: Count='%s' Type='%s' Stride='%s' Offset='%s'",
-                    attrib_counter, count, static_cast<int>(gl_type->first), c.decl.stride_,
-                    reinterpret_cast<uintptr_t>(attrib.second));
-
-        // Set attribute.
-        glEnableVertexAttribArray(attrib_counter);
-        glVertexAttribPointer(attrib_counter, count, gl_type->second,
-                              static_cast<GLboolean>(normalised ? GL_TRUE : GL_FALSE),
-                              c.decl.stride_, attrib.second);
-        attrib_counter++;
-    }
-    vertex_buffer_map_.emplace(c.handle, VertexBufferData{vao, vbo, usage, c.data.size()});
+    vertex_buffer_map_.insert({c.handle, VertexBufferData{vbo, c.decl, usage, c.size}});
 }
 
 void GLRenderContext::operator()(const cmd::UpdateVertexBuffer& c) {
@@ -636,7 +635,6 @@ void GLRenderContext::operator()(const cmd::UpdateVertexBuffer& c) {
 
 void GLRenderContext::operator()(const cmd::DeleteVertexBuffer& c) {
     auto it = vertex_buffer_map_.find(c.handle);
-    glDeleteVertexArrays(1, &it->second.vertex_array_object);
     glDeleteBuffers(1, &it->second.vertex_buffer);
     vertex_buffer_map_.erase(it);
 }
@@ -646,17 +644,20 @@ void GLRenderContext::operator()(const cmd::CreateIndexBuffer& c) {
     GLenum usage = mapBufferUsage(c.usage);
     GLuint ebo;
     glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     if (c.data.data()) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, c.data.size(), c.data.data(), usage);
+    } else {
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, c.size, nullptr, usage);
     }
     GL_CHECK();
 
-    index_buffer_map_.emplace(
-        c.handle,
-        IndexBufferData{ebo, static_cast<GLenum>(c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT
-                                                                                : GL_UNSIGNED_INT),
-                        usage, c.data.size()});
+    index_buffer_map_.insert(
+        {c.handle,
+         IndexBufferData{ebo,
+                         static_cast<GLenum>(c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT
+                                                                            : GL_UNSIGNED_INT),
+                         usage, c.size}});
 }
 
 void GLRenderContext::operator()(const cmd::UpdateIndexBuffer& c) {
@@ -845,4 +846,39 @@ void GLRenderContext::operator()(const cmd::DeleteFrameBuffer& c) {
     // TODO: unimplemented.
 }
 
+void GLRenderContext::setupVertexArrayAttributes(const VertexDecl& decl, uint vb_offset) {
+    static HashMap<VertexDecl::AttributeType, GLenum> attribute_type_map = {
+        {VertexDecl::AttributeType::Float, GL_FLOAT},
+        {VertexDecl::AttributeType::Uint8, GL_UNSIGNED_BYTE}};
+    u16 attrib_counter = 0;
+    for (auto& attrib : decl.attributes_) {
+        // Decode attribute.
+        VertexDecl::Attribute attribute;
+        uint count;
+        VertexDecl::AttributeType type;
+        bool normalised;
+        VertexDecl::decodeAttributes(attrib.first, attribute, count, type, normalised);
+
+        // Convert type.
+        auto gl_type = attribute_type_map.find(type);
+        if (gl_type == attribute_type_map.end()) {
+            log().warn("[SetupVertexArrayAttributes] Unknown attribute type: %i", (uint)type);
+            continue;
+        }
+
+        //        log().debug("[SetupVertexArrayAttributes] Attrib %s: Count='%s' Type='%s'
+        //        Stride='%s' Offset='%s'",
+        //                    attrib_counter, count, static_cast<int>(gl_type->first), decl.stride_,
+        //                    reinterpret_cast<uintptr_t>(attrib.second));
+
+        // Set attribute.
+        glEnableVertexAttribArray(attrib_counter);
+        GL_CHECK();
+        glVertexAttribPointer(attrib_counter, count, gl_type->second,
+                              static_cast<GLboolean>(normalised ? GL_TRUE : GL_FALSE), decl.stride_,
+                              attrib.second + vb_offset);
+        GL_CHECK();
+        attrib_counter++;
+    }
+}
 }  // namespace dw

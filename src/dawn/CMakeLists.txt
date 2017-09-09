@@ -14,6 +14,8 @@ set(SOURCE_FILES
 	core/Handle.h
     core/Log.cpp
     core/Log.h
+    core/Memory.cpp
+    core/Memory.h
     core/Object.cpp
     core/Object.h
     core/Option.h
@@ -51,7 +53,7 @@ set(SOURCE_FILES
     math/Colour.h
     math/Colour.cpp
     math/Defs.h
-	math/MathGeoLib.h
+    math/MathGeoLib.h
     math/Noise.cpp
     math/Noise.h
     math/Rect.cpp
@@ -64,7 +66,7 @@ set(SOURCE_FILES
     math/Vec3i.h
     math/Vec4i.cpp
     math/Vec4i.h
-	physics/BulletDynamics.h
+    physics/BulletDynamics.h
     physics/PhysicsWorld.cpp
     physics/PhysicsWorld.h
     platform/Defines.h
@@ -72,10 +74,10 @@ set(SOURCE_FILES
     renderer/api/GL.h
     renderer/api/GLRenderContext.cpp
     renderer/api/GLRenderContext.h
-	renderer/Camera.cpp
-	renderer/Camera.h
-	renderer/CustomMeshRenderable.cpp
-	renderer/CustomMeshRenderable.h
+    renderer/Camera.cpp
+    renderer/Camera.h
+    renderer/CustomMeshRenderable.cpp
+    renderer/CustomMeshRenderable.h
     renderer/EntityRenderer.cpp
     renderer/EntityRenderer.h
     renderer/GLSL.h
@@ -96,7 +98,7 @@ set(SOURCE_FILES
     renderer/Shader.cpp
     renderer/Shader.h
     renderer/SPIRV.h
-	renderer/StbImage.h
+    renderer/StbImage.h
     renderer/Texture.cpp
     renderer/Texture.h
     renderer/TriangleBuffer.cpp

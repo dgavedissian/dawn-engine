@@ -6,23 +6,30 @@
 
 #include "core/Concurrency.h"
 #include "core/Handle.h"
+#include "core/Memory.h"
 #include "math/Colour.h"
 #include "renderer/VertexDecl.h"
 
 #define MAX_TEXTURE_SAMPLERS 8
+#define MAX_TRANSIENT_VERTEX_BUFFER_SIZE (1 << 20)
+#define MAX_TRANSIENT_INDEX_BUFFER_SIZE (1 << 20)
 
 namespace dw {
 // Handles.
 namespace detail {
 struct VertexBufferTag {};
+struct TransientVertexBufferTag {};
 struct IndexBufferTag {};
+struct TransientIndexBufferTag {};
 struct ShaderTag {};
 struct ProgramTag {};
 struct TextureTag {};
 struct FrameBufferTag {};
 }  // namespace detail
 using VertexBufferHandle = Handle<detail::VertexBufferTag, -1>;
+using TransientVertexBufferHandle = Handle<detail::TransientVertexBufferTag, -1>;
 using IndexBufferHandle = Handle<detail::IndexBufferTag, -1>;
+using TransientIndexBufferHandle = Handle<detail::TransientIndexBufferTag, -1>;
 using ShaderHandle = Handle<detail::ShaderTag, -1>;
 using ProgramHandle = Handle<detail::ProgramTag, -1>;
 using TextureHandle = Handle<detail::TextureTag, -1>;
@@ -30,29 +37,6 @@ using FrameBufferHandle = Handle<detail::FrameBufferTag, -1>;
 
 // Shader type.
 enum class ShaderStage { Vertex, Geometry, Fragment };
-
-// A blob of memory.
-class Memory {
-public:
-    Memory();
-    Memory(const void* data, uint size);
-    ~Memory();
-
-    // Copyable.
-    Memory(const Memory&) noexcept;
-    Memory& operator=(const Memory&) noexcept;
-
-    // Movable.
-    Memory(Memory&&) noexcept;
-    Memory& operator=(Memory&&) noexcept;
-
-    void* data() const;
-    uint size() const;
-
-private:
-    byte* data_;
-    uint size_;
-};
 
 // Buffer usage.
 enum class BufferUsage {
@@ -164,6 +148,7 @@ namespace cmd {
 struct CreateVertexBuffer {
     VertexBufferHandle handle;
     Memory data;
+    uint size;
     VertexDecl decl;
     BufferUsage usage;
 };
@@ -181,6 +166,7 @@ struct DeleteVertexBuffer {
 struct CreateIndexBuffer {
     IndexBufferHandle handle;
     Memory data;
+    uint size;
     IndexBufferType type;
     BufferUsage usage;
 };
@@ -280,11 +266,13 @@ struct RenderItem {
         TextureHandle handle;
     };
 
-    // Vertices and Indices.
+    // Vertices and indices.
     VertexBufferHandle vb;
-    IndexBufferHandle ib;
+    uint vb_offset;  // Offset in bytes.
+    VertexDecl vertex_decl_override;
+    IndexBufferHandle ib;  // Offset in bytes.
+    uint ib_offset;
     uint primitive_count;
-    uint primitive_offset;
 
     // Shader program and parameters.
     ProgramHandle program;
@@ -321,22 +309,51 @@ struct View {
 };
 
 // Frame.
+class Renderer;
 struct Frame {
-    Frame() {
-        current_item.clear();
-    }
+    Frame();
+    ~Frame();
 
-    View& view(uint view_index) {
-        if (views.size() <= view_index) {
-            views.resize(view_index + 1);
-        }
-        return views[view_index];
-    }
+    View& view(uint view_index);
 
     RenderItem current_item;
     Vector<View> views;
     Vector<RenderCommand> commands_pre;
     Vector<RenderCommand> commands_post;
+
+    // Transient vertex/index buffer storage.
+    struct {
+        byte* data;
+        uint size;
+        VertexBufferHandle handle;
+    } transient_vb_storage;
+
+    struct {
+        byte* data;
+        uint size;
+        IndexBufferHandle handle;
+    } transient_ib_storage;
+
+    // Transient vertex/index buffer data.
+    struct TransientVertexBufferData {
+        byte* data;
+        uint size;
+        VertexDecl decl;
+    };
+    HashMap<TransientVertexBufferHandle, TransientVertexBufferData> transient_vertex_buffers_;
+    TransientVertexBufferHandle next_transient_vertex_buffer_handle_;
+    struct TransientIndexBufferData {
+        byte* data;
+        uint size;
+    };
+    HashMap<TransientIndexBufferHandle, TransientIndexBufferData> transient_index_buffers_;
+    TransientIndexBufferHandle next_transient_index_buffer_handle_;
+
+#ifdef DW_DEBUG
+    // Used for debugging to ensure that vertex buffers aren't updated multiple times a frame.
+    HashSet<VertexBufferHandle> updated_vertex_buffers;
+    HashSet<IndexBufferHandle> updated_index_buffers;
+#endif
 };
 
 // Abstract rendering context.
@@ -355,8 +372,9 @@ public:
 
     // Command buffer processing. Executed on the render thread.
     virtual void startRendering() = 0;
+    virtual void stopRendering() = 0;
     virtual void processCommandList(Vector<RenderCommand>& command_list) = 0;
-    virtual bool frame(const Vector<View>& views) = 0;
+    virtual bool frame(const Frame* frame) = 0;
 };
 
 // Low level renderer.
@@ -384,6 +402,17 @@ public:
     void setIndexBuffer(IndexBufferHandle handle);
     void updateIndexBuffer(IndexBufferHandle handle, const void* data, uint size, uint offset);
     void deleteIndexBuffer(IndexBufferHandle handle);
+
+    /// Transient vertex buffer.
+    TransientVertexBufferHandle allocTransientVertexBuffer(uint vertex_count,
+                                                           const VertexDecl& decl);
+    byte* getTransientVertexBufferData(TransientVertexBufferHandle handle);
+    void setVertexBuffer(TransientVertexBufferHandle handle);
+
+    /// Transient index buffer.
+    TransientIndexBufferHandle allocTransientIndexBuffer(uint index_count);
+    byte* getTransientIndexBufferData(TransientIndexBufferHandle handle);
+    void setIndexBuffer(TransientIndexBufferHandle handle);
 
     /// Create shader.
     ShaderHandle createShader(ShaderStage type, const void* data, uint size);
@@ -442,6 +471,7 @@ public:
 
     /// Update uniform and draw state, then draw. Based off:
     /// https://github.com/bkaradzic/bgfx/blob/master/src/bgfx.cpp#L854
+    /// Offset is in vertices/indices depending on whether an index buffer is being used.
     void submit(uint view, ProgramHandle program, uint vertex_count, uint offset);
 
     /// Render a single frame.
@@ -454,13 +484,21 @@ private:
     bool use_render_thread_;
     Thread render_thread_;
 
-    // Main thread.
+    // Handles.
     HandleGenerator<VertexBufferHandle> vertex_buffer_handle_;
     HandleGenerator<IndexBufferHandle> index_buffer_handle_;
     HandleGenerator<ShaderHandle> shader_handle_;
     HandleGenerator<ProgramHandle> program_handle_;
     HandleGenerator<TextureHandle> texture_handle_;
     HandleGenerator<FrameBufferHandle> frame_buffer_handle_;
+
+    // Vertex/index buffers.
+    HashMap<VertexBufferHandle, VertexDecl> vertex_buffer_decl_;
+    HashMap<IndexBufferHandle, IndexBufferType> index_buffer_types_;
+    VertexBufferHandle transient_vb;
+    uint transient_vb_max_size;
+    IndexBufferHandle transient_ib;
+    uint transient_ib_max_size;
 
     // Textures.
     struct TextureData {

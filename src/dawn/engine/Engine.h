@@ -50,6 +50,7 @@ private:
     String basePath() const;
     void update(float dt);
     void preRender(Camera_OLD* camera);
+    void postRender();
     void handleEvent(EventDataPtr eventData);
 };
 }  // namespace dw

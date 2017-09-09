@@ -176,6 +176,7 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         // Render a frame.
         preRender(main_camera);
         render_callback();
+        postRender();
         context_->subsystem<Renderer>()->frame();
 
         // Calculate frameTime.
@@ -324,6 +325,9 @@ void Engine::update(float dt) {
 void Engine::preRender(Camera_OLD* camera) {
     context_->subsystem<SceneManager>()->preRender(camera);
     context_->subsystem<StateManager>()->preRender();
+}
+
+void Engine::postRender() {
     context_->subsystem<UserInterface>()->render();
 }
 

@@ -145,9 +145,9 @@ TEST_CLASS(BasicVertexBuffer) {
         };
         Vertex vertices[] = {
             // Little-endian, so colours are 0xAABBGGRR.
-            {0.0f, 0.5f, 0xff0000ff},   // Vertex 1: Red
-            {0.5f, -0.5f, 0xff00ff00},  // Vertex 2: Green
-            {-0.5f, -0.5f, 0xffff0000}  // Vertex 3: Blue
+            {0.0f, 0.5f, 0xff0000ff},    // Vertex 1: Red
+            {-0.5f, -0.5f, 0xff00ff00},  // Vertex 2: Green
+            {0.5f, -0.5f, 0xffff0000}    // Vertex 3: Blue
         };
         VertexDecl decl;
         decl.begin()
@@ -200,7 +200,7 @@ TEST_CLASS(BasicIndexBuffer) {
             .end();
         vb_ = r->createVertexBuffer(vertices, sizeof(vertices), decl);
 
-        GLuint elements[] = {0, 1, 2, 2, 3, 0};
+        GLuint elements[] = {0, 2, 1, 2, 0, 3};
         ib_ = r->createIndexBuffer(elements, sizeof(elements), IndexBufferType::U32);
     }
 
@@ -213,6 +213,59 @@ TEST_CLASS(BasicIndexBuffer) {
     void stop() {
         r->deleteProgram(program_);
         r->deleteVertexBuffer(vb_);
+    }
+};
+
+TEST_CLASS(TransientIndexBuffer) {
+    TEST_BODY(TransientIndexBuffer);
+
+    ProgramHandle program_;
+
+    void start() {
+        subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
+
+        // Load shaders.
+        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/test.vs");
+        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/test.fs");
+        program_ = r->createProgram();
+        r->attachShader(program_, vs);
+        r->attachShader(program_, fs);
+        r->linkProgram(program_);
+    }
+
+    void render() {
+        r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+
+        static float angle = 0.0f;
+        angle += engine_->frameTime();
+        float size_multiplier = 1.0f;  //((float)sin(angle) + 1.0f) * 0.25f;
+        float vertices[] = {
+            -0.5f * size_multiplier, 0.5f * size_multiplier,  1.0f, 0.0f, 0.0f,  // Top-left
+            0.5f * size_multiplier,  0.5f * size_multiplier,  0.0f, 1.0f, 0.0f,  // Top-right
+            0.5f * size_multiplier,  -0.5f * size_multiplier, 0.0f, 0.0f, 1.0f,  // Bottom-right
+            -0.5f * size_multiplier, -0.5f * size_multiplier, 1.0f, 1.0f, 1.0f   // Bottom-left
+        };
+        VertexDecl decl;
+        decl.begin()
+            .add(VertexDecl::Attribute::Position, 2, VertexDecl::AttributeType::Float)
+            .add(VertexDecl::Attribute::Colour, 3, VertexDecl::AttributeType::Float)
+            .end();
+        auto tvb = r->allocTransientVertexBuffer(sizeof(vertices) / decl.stride(), decl);
+        float* vertex_data = (float*)r->getTransientVertexBufferData(tvb);
+        memcpy(vertex_data, vertices, sizeof(vertices));
+
+        u16 elements[] = {0, 2, 1, 2, 0, 3};
+        auto tib = r->allocTransientIndexBuffer(sizeof(elements) / sizeof(elements[0]));
+        u16* index_data = (u16*)r->getTransientIndexBufferData(tib);
+        memcpy(index_data, elements, sizeof(elements));
+
+        r->setVertexBuffer(tvb);
+        r->setIndexBuffer(tib);
+        r->submit(0, program_, 6);
+    }
+
+    void stop() {
+        r->deleteProgram(program_);
     }
 };
 

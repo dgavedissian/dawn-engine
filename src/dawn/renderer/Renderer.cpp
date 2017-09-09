@@ -8,58 +8,6 @@
 #include "renderer/GLSL.h"
 
 namespace dw {
-Memory::Memory() : Memory{nullptr, 0} {
-}
-
-Memory::Memory(const void* data, uint size) : data_{nullptr}, size_{size} {
-    if (data != nullptr) {
-        data_ = new byte[size];
-        memcpy(data_, data, size);
-    }
-}
-
-Memory::~Memory() {
-    if (data_) {
-        delete[] data_;
-    }
-}
-
-Memory::Memory(const Memory& other) noexcept {
-    *this = other;
-}
-
-Memory& Memory::operator=(const Memory& other) noexcept {
-    if (other.data_ != nullptr) {
-        data_ = new byte[other.size_];
-        size_ = other.size_;
-        memcpy(data_, other.data_, other.size_);
-    } else {
-        data_ = nullptr;
-        size_ = 0;
-    }
-    return *this;
-}
-
-Memory::Memory(Memory&& other) noexcept {
-    *this = std::move(other);
-}
-
-Memory& Memory::operator=(Memory&& other) noexcept {
-    data_ = other.data_;
-    size_ = other.size_;
-    other.data_ = nullptr;
-    other.size_ = 0;
-    return *this;
-}
-
-void* Memory::data() const {
-    return data_;
-}
-
-uint Memory::size() const {
-    return size_;
-}
-
 RenderContext::RenderContext(Context* context) : Object{context} {
 }
 
@@ -69,9 +17,11 @@ RenderItem::RenderItem() {
 
 void RenderItem::clear() {
     vb = VertexBufferHandle::invalid;
+    vb_offset = 0;
+    vertex_decl_override = VertexDecl();
     ib = IndexBufferHandle::invalid;
+    ib_offset = 0;
     primitive_count = 0;
-    primitive_offset = 0;
     program = ProgramHandle::invalid;
     uniforms.clear();
     for (auto& texture : textures) {
@@ -93,6 +43,28 @@ void RenderItem::clear() {
     blend_equation_rgb = blend_equation_a = BlendEquation::Add;
     blend_src_rgb = blend_src_a = BlendFunc::One;
     blend_dest_rgb = blend_dest_a = BlendFunc::Zero;
+}
+
+Frame::Frame() {
+    current_item.clear();
+    transient_vb_storage.data = new byte[MAX_TRANSIENT_VERTEX_BUFFER_SIZE];
+    transient_vb_storage.size = 0;
+    transient_ib_storage.data = new byte[MAX_TRANSIENT_INDEX_BUFFER_SIZE];
+    transient_ib_storage.size = 0;
+    next_transient_vertex_buffer_handle_ = TransientVertexBufferHandle{0};
+    next_transient_index_buffer_handle_ = TransientIndexBufferHandle{0};
+}
+
+Frame::~Frame() {
+    delete transient_ib_storage.data;
+    delete transient_vb_storage.data;
+}
+
+View& Frame::view(uint view_index) {
+    if (views.size() <= view_index) {
+        views.resize(view_index + 1);
+    }
+    return views[view_index];
 }
 
 Renderer::Renderer(Context* context)
@@ -128,6 +100,16 @@ void Renderer::init(u16 width, u16 height, const String& title, bool use_render_
     window_title_ = title;
     use_render_thread_ = use_render_thread;
 
+    // Initialise transient vb/ib.
+    transient_vb_max_size = MAX_TRANSIENT_VERTEX_BUFFER_SIZE;
+    transient_vb =
+        createVertexBuffer(nullptr, transient_vb_max_size, VertexDecl{}, BufferUsage::Stream);
+    transient_ib_max_size = MAX_TRANSIENT_INDEX_BUFFER_SIZE;
+    transient_ib = createIndexBuffer(nullptr, transient_ib_max_size, IndexBufferType::U16,
+                                     BufferUsage::Stream);
+    frames_[0].transient_vb_storage.handle = frames_[1].transient_vb_storage.handle = transient_vb;
+    frames_[0].transient_ib_storage.handle = frames_[1].transient_ib_storage.handle = transient_ib;
+
     // Kick off rendering thread.
     shared_render_context_ = makeUnique<GLRenderContext>(context());
     shared_render_context_->createWindow(width_, height_, window_title_);
@@ -142,18 +124,30 @@ VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size, con
                                                 BufferUsage usage) {
     // TODO: Validate data.
     auto handle = vertex_buffer_handle_.next();
-    submitPreFrameCommand(cmd::CreateVertexBuffer{handle, Memory{data, size}, decl, usage});
+    submitPreFrameCommand(cmd::CreateVertexBuffer{handle, Memory{data, size}, size, decl, usage});
+    vertex_buffer_decl_[handle] = decl;
     return handle;
 }
 
 void Renderer::setVertexBuffer(VertexBufferHandle handle) {
     submit_->current_item.vb = handle;
+    submit_->current_item.vb_offset = 0;
+    submit_->current_item.vertex_decl_override = VertexDecl{};
 }
 
 void Renderer::updateVertexBuffer(VertexBufferHandle handle, const void* data, uint size,
                                   uint offset) {
     // TODO: Validate data.
     submitPreFrameCommand(cmd::UpdateVertexBuffer{handle, Memory{data, size}, offset});
+
+#ifdef DW_DEBUG
+    if (submit_->updated_vertex_buffers.count(handle) != 0) {
+        log().warn("Warning: Updating vertex buffer %d which has been updated already this frame.",
+                   handle.internal());
+    } else {
+        submit_->updated_vertex_buffers.insert(handle);
+    }
+#endif
 }
 
 void Renderer::deleteVertexBuffer(VertexBufferHandle handle) {
@@ -163,22 +157,93 @@ void Renderer::deleteVertexBuffer(VertexBufferHandle handle) {
 IndexBufferHandle Renderer::createIndexBuffer(const void* data, uint size, IndexBufferType type,
                                               BufferUsage usage) {
     auto handle = index_buffer_handle_.next();
-    submitPreFrameCommand(cmd::CreateIndexBuffer{handle, Memory{data, size}, type, usage});
+    submitPreFrameCommand(cmd::CreateIndexBuffer{handle, Memory{data, size}, size, type, usage});
+    index_buffer_types_[handle] = type;
     return handle;
 }
 
 void Renderer::setIndexBuffer(IndexBufferHandle handle) {
     submit_->current_item.ib = handle;
+    submit_->current_item.ib_offset = 0;
 }
 
 void Renderer::updateIndexBuffer(IndexBufferHandle handle, const void* data, uint size,
                                  uint offset) {
     // TODO: Validate data.
     submitPreFrameCommand(cmd::UpdateIndexBuffer{handle, Memory{data, size}, offset});
+
+#ifdef DW_DEBUG
+    if (submit_->updated_index_buffers.count(handle) != 0) {
+        log().warn("Warning: Updating index buffer %d which has been updated already this frame.",
+                   handle.internal());
+    } else {
+        submit_->updated_index_buffers.insert(handle);
+    }
+#endif
 }
 
 void Renderer::deleteIndexBuffer(IndexBufferHandle handle) {
     submitPostFrameCommand(cmd::DeleteIndexBuffer{handle});
+}
+
+TransientVertexBufferHandle Renderer::allocTransientVertexBuffer(uint vertex_count,
+                                                                 const VertexDecl& decl) {
+    // Check that we have enough space.
+    uint size = vertex_count * decl.stride();
+    if (size > transient_vb_max_size - submit_->transient_vb_storage.size) {
+        return TransientVertexBufferHandle{};
+    }
+
+    // Allocate handle.
+    auto handle = submit_->next_transient_vertex_buffer_handle_++;
+    byte* data = submit_->transient_vb_storage.data + submit_->transient_vb_storage.size;
+    submit_->transient_vb_storage.size += size;
+    submit_->transient_vertex_buffers_[handle] = {data, size, decl};
+    return handle;
+}
+
+byte* Renderer::getTransientVertexBufferData(TransientVertexBufferHandle handle) {
+    auto it = submit_->transient_vertex_buffers_.find(handle);
+    if (it != submit_->transient_vertex_buffers_.end()) {
+        return it->second.data;
+    }
+    return nullptr;
+}
+
+void Renderer::setVertexBuffer(TransientVertexBufferHandle handle) {
+    Frame::TransientVertexBufferData& tvb = submit_->transient_vertex_buffers_.at(handle);
+    submit_->current_item.vb = transient_vb;
+    submit_->current_item.vb_offset = (uint)(tvb.data - submit_->transient_vb_storage.data);
+    submit_->current_item.vertex_decl_override = tvb.decl;
+}
+
+TransientIndexBufferHandle Renderer::allocTransientIndexBuffer(uint index_count) {
+    // Check that we have enough space.
+    uint size = index_count * sizeof(u16);
+    if (size > transient_ib_max_size - submit_->transient_ib_storage.size) {
+        return TransientIndexBufferHandle{};
+    }
+
+    // Allocate handle.
+    auto handle = submit_->next_transient_index_buffer_handle_++;
+    byte* data = submit_->transient_ib_storage.data + submit_->transient_ib_storage.size;
+    submit_->transient_ib_storage.size += size;
+    submit_->transient_index_buffers_[handle] = {data, size};
+    return handle;
+}
+
+byte* Renderer::getTransientIndexBufferData(TransientIndexBufferHandle handle) {
+    auto it = submit_->transient_index_buffers_.find(handle);
+    if (it != submit_->transient_index_buffers_.end()) {
+        return it->second.data;
+    }
+    return nullptr;
+}
+
+void Renderer::setIndexBuffer(TransientIndexBufferHandle handle) {
+    Frame::TransientIndexBufferData& tib = submit_->transient_index_buffers_.at(handle);
+    submit_->current_item.ib = transient_ib;
+    submit_->current_item.ib_offset = (uint)(tib.data - submit_->transient_ib_storage.data);
 }
 
 ShaderHandle Renderer::createShader(ShaderStage stage, const void* data, u32 size) {
@@ -365,11 +430,20 @@ void Renderer::submit(uint view, ProgramHandle program, uint vertex_count) {
 }
 
 void Renderer::submit(uint view, ProgramHandle program, uint vertex_count, uint offset) {
-    submit_->current_item.program = program;
-    submit_->current_item.primitive_count = vertex_count / 3;
-    submit_->current_item.primitive_offset = offset;
-    submit_->view(view).render_items.emplace_back(submit_->current_item);
-    submit_->current_item.clear();
+    auto& item = submit_->current_item;
+    item.program = program;
+    item.primitive_count = vertex_count / 3;
+    if (vertex_count > 0) {
+        if (item.ib.isValid()) {
+            IndexBufferType type = index_buffer_types_.at(item.ib);
+            item.ib_offset += offset * (type == IndexBufferType::U16 ? sizeof(u16) : sizeof(u32));
+        } else {
+            const VertexDecl& decl = vertex_buffer_decl_.at(item.vb);
+            item.vb_offset += offset * decl.stride();
+        }
+    }
+    submit_->view(view).render_items.emplace_back(std::move(item));
+    item.clear();
 }
 
 void Renderer::frame() {
@@ -416,10 +490,8 @@ void Renderer::submitPostFrameCommand(RenderCommand&& command) {
 }
 
 void Renderer::renderThread() {
-    // Start rendering.
     shared_render_context_->startRendering();
 
-    // Start render loop.
     while (!shared_rt_should_exit_) {
         if (!renderFrame(render_)) {
             shared_rt_should_exit_ = true;
@@ -441,12 +513,14 @@ void Renderer::renderThread() {
         }
         swap_cv_.notify_all();
     }
+
+    shared_render_context_->stopRendering();
 }
 
 bool Renderer::renderFrame(Frame* frame) {
     // Hand off commands to the render context.
     shared_render_context_->processCommandList(frame->commands_pre);
-    if (!shared_render_context_->frame(frame->views)) {
+    if (!shared_render_context_->frame(frame)) {
         return false;
     }
     shared_render_context_->processCommandList(frame->commands_post);
@@ -458,6 +532,16 @@ bool Renderer::renderFrame(Frame* frame) {
     }
     frame->commands_pre.clear();
     frame->commands_post.clear();
+    frame->transient_vb_storage.size = 0;
+    frame->transient_ib_storage.size = 0;
+    frame->transient_vertex_buffers_.clear();
+    frame->next_transient_vertex_buffer_handle_ = TransientVertexBufferHandle{0};
+    frame->transient_index_buffers_.clear();
+    frame->next_transient_index_buffer_handle_ = TransientIndexBufferHandle{0};
+#ifdef DW_DEBUG
+    frame->updated_vertex_buffers.clear();
+    frame->updated_index_buffers.clear();
+#endif
 
     return true;
 }

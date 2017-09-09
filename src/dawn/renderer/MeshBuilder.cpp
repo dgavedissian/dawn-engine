@@ -71,13 +71,13 @@ SharedPtr<CustomMeshRenderable> MeshBuilder::createPlane(float width, float heig
 SharedPtr<CustomMeshRenderable> MeshBuilder::createBox(float half_size) {
     // clang-format off
     float vertices[] = {
-        // Position						| Normals		      | UVs
+        // Position						  | Normals		       | UVs
         -half_size, -half_size, -half_size, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
+        half_size,  half_size,  -half_size, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
         half_size,  -half_size, -half_size, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f,
         half_size,  half_size,  -half_size, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
-        half_size,  half_size,  -half_size, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f,
-        -half_size, half_size,  -half_size, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f,
         -half_size, -half_size, -half_size, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f,
+        -half_size, half_size,  -half_size, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f,
 
         -half_size, -half_size, half_size,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
         half_size,  -half_size, half_size,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
@@ -94,11 +94,11 @@ SharedPtr<CustomMeshRenderable> MeshBuilder::createBox(float half_size) {
         -half_size, half_size,  half_size,  -1.0f, 0.0f,  0.0f,  0.0f, 0.0f,
 
         half_size,  half_size,  half_size,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        half_size,  -half_size, -half_size, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
         half_size,  half_size,  -half_size, 1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
         half_size,  -half_size, -half_size, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-        half_size,  -half_size, -half_size, 1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-        half_size,  -half_size, half_size,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
         half_size,  half_size,  half_size,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        half_size,  -half_size, half_size,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
 
         -half_size, -half_size, -half_size, 0.0f,  -1.0f, 0.0f,  0.0f, 0.0f,
         half_size,  -half_size, -half_size, 0.0f,  -1.0f, 0.0f,  1.0f, 0.0f,
@@ -108,11 +108,12 @@ SharedPtr<CustomMeshRenderable> MeshBuilder::createBox(float half_size) {
         -half_size, -half_size, -half_size, 0.0f,  -1.0f, 0.0f,  0.0f, 0.0f,
 
         -half_size, half_size,  -half_size, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+        half_size,  half_size,  half_size,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
         half_size,  half_size,  -half_size, 0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
         half_size,  half_size,  half_size,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-        half_size,  half_size,  half_size,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-        -half_size, half_size,  half_size,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-        -half_size, half_size,  -half_size, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f };
+        -half_size, half_size,  -half_size, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+        -half_size, half_size,  half_size,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
+    };
     // clang-format on
 
     // Build mesh.

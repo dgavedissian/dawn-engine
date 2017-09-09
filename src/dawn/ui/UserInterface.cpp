@@ -8,6 +8,8 @@
 #include "ui/Imgui.h"
 #include "ui/UserInterface.h"
 
+static_assert(sizeof(ImDrawIdx) == sizeof(dw::u16), "Only 16-bit ImGUI indices are supported.");
+
 namespace dw {
 UserInterface::UserInterface(Context* ctx)
     : Object{ctx},
@@ -75,19 +77,11 @@ UserInterface::UserInterface(Context* ctx)
     program_ = makeShared<Program>(context(), vertex_shader, fragment_shader);
     program_->setUniform<int>("ui_texture", 0);
 
-    // Set up GPU buffers.
-    imgui_vb_ = renderer_->createVertexBuffer(nullptr, 0, vertex_decl_, BufferUsage::Stream);
-    imgui_ib_ = renderer_->createIndexBuffer(
-        nullptr, 0, sizeof(ImDrawIdx) == 2 ? IndexBufferType::U16 : IndexBufferType::U32,
-        BufferUsage::Stream);
-
     // Begin a new frame.
     ImGui::NewFrame();
 }
 
 UserInterface::~UserInterface() {
-    renderer_->deleteVertexBuffer(imgui_vb_);
-    renderer_->deleteIndexBuffer(imgui_ib_);
 }
 
 void UserInterface::update(float dt) {
@@ -123,10 +117,20 @@ void UserInterface::render() {
         // Update GPU buffers.
         auto& vtx_buffer = cmd_list->VtxBuffer;
         auto& idx_buffer = cmd_list->IdxBuffer;
-        renderer_->updateVertexBuffer(imgui_vb_, vtx_buffer.Data,
-                                      vtx_buffer.Size * sizeof(ImDrawVert), 0);
-        renderer_->updateIndexBuffer(imgui_ib_, idx_buffer.Data,
-                                     idx_buffer.Size * sizeof(ImDrawIdx), 0);
+        auto tvb = renderer_->allocTransientVertexBuffer(vtx_buffer.Size, vertex_decl_);
+        if (tvb == TransientVertexBufferHandle::invalid) {
+            log().warn("Failed to allocate transient vertex buffer for ImGui");
+            continue;
+        }
+        auto tib = renderer_->allocTransientIndexBuffer(idx_buffer.Size);
+        if (tib == TransientIndexBufferHandle::invalid) {
+            log().warn("Failed to allocate transient index buffer for ImGui");
+            continue;
+        }
+        memcpy(renderer_->getTransientVertexBufferData(tvb), vtx_buffer.Data,
+               vtx_buffer.Size * sizeof(ImDrawVert));
+        memcpy(renderer_->getTransientIndexBufferData(tib), idx_buffer.Data,
+               idx_buffer.Size * sizeof(ImDrawIdx));
 
         // Execute draw commands.
         uint offset = 0;
@@ -150,14 +154,12 @@ void UserInterface::render() {
                 renderer_->setTexture(TextureHandle{static_cast<TextureHandle::base_type>(
                                           reinterpret_cast<std::intptr_t>(cmd->TextureId))},
                                       0);
-                renderer_->setVertexBuffer(imgui_vb_);
-                renderer_->setIndexBuffer(imgui_ib_);
+                renderer_->setVertexBuffer(tvb);
+                renderer_->setIndexBuffer(tib);
 
                 // Draw.
                 program_->prepareForRendering();
                 renderer_->submit(0, program_->internalHandle(), cmd->ElemCount, offset);
-                // log().debug("Submit Count %d Offset %d", cmd->ElemCount, offset *
-                // sizeof(ImDrawIdx));
             }
             offset += cmd->ElemCount;
         }
