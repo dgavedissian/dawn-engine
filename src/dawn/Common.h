@@ -50,7 +50,7 @@ template <class T1, class T2> inline SharedPtr<T1> dynamicPointerCast(const Shar
 }
 
 // Stubs
-class Camera {};  // TODO(David) stub until ECS is integrated
+class Camera_OLD {};  // TODO(David) stub until ECS is integrated
 }  // namespace dw
 
 // Error macros

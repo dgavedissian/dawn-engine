@@ -30,7 +30,7 @@ void TriangleBuffer::begin() {
     contains_texcoords_ = false;
 }
 
-SharedPtr<CustomMesh> TriangleBuffer::end() {
+SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
     // Set up vertex data.
     const void* data;
     uint size;
@@ -48,7 +48,7 @@ SharedPtr<CustomMesh> TriangleBuffer::end() {
         decl.begin();
         decl.add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float);
         if (contains_normals_) {
-            decl.add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float);
+            decl.add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float, true);
         }
         if (contains_texcoords_) {
             decl.add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float);
@@ -60,7 +60,7 @@ SharedPtr<CustomMesh> TriangleBuffer::end() {
         uint stride =
             decl.stride() / sizeof(float);  // convert stride in bytes to stride in floats.
         float* packed_data = new float[vertices_.size() * decl.stride()];
-        for (int i = 0; i < vertices_.size(); i++) {
+        for (size_t i = 0; i < vertices_.size(); ++i) {
             uint offset = 0;
             Vertex& source_vertex = vertices_[i];
             float* vertex = &packed_data[i * stride];
@@ -83,7 +83,7 @@ SharedPtr<CustomMesh> TriangleBuffer::end() {
     }
 
     // Create custom mesh.
-    auto custom_mesh = makeShared<CustomMesh>(
+    auto custom_mesh = makeShared<CustomMeshRenderable>(
         context_, makeShared<VertexBuffer>(context_, data, size, vertices_.size(), decl),
         makeShared<IndexBuffer>(context_, indices_.data(), indices_.size() * sizeof(u32),
                                 IndexBufferType::U32));

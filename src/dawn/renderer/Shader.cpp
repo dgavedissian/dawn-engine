@@ -6,10 +6,9 @@
 #include "io/InputStream.h"
 #include "renderer/Shader.h"
 #include "renderer/GLSL.h"
-#include "renderer/SPIRV.h"
 
 namespace {
-void init_resources(TBuiltInResource& resources) {
+void initResourcesGLSL(TBuiltInResource& resources) {
     resources.maxLights = 32;
     resources.maxClipPlanes = 6;
     resources.maxTextureUnits = 32;
@@ -109,10 +108,7 @@ namespace dw {
 Shader::Shader(Context* context, ShaderStage type) : Resource{context}, type_{type} {
 }
 
-Shader::~Shader() {
-}
-
-bool Shader::beginLoad(InputStream& src) {
+bool Shader::beginLoad(const String& asset_name, InputStream& src) {
     u32 src_len = static_cast<u32>(src.size());
     assert(src_len != 0);
     char* src_data = new char[src_len + 1];
@@ -136,8 +132,8 @@ bool Shader::beginLoad(InputStream& src) {
     const char* shader_strings[1];
     shader_strings[0] = src_data;
     shader.setStrings(shader_strings, 1);
-    TBuiltInResource resources;
-    init_resources(resources);
+    TBuiltInResource resources{};
+    initResourcesGLSL(resources);
     if (!shader.parse(&resources, 330, false, EShMsgDefault)) {
         // Error when compiling.
         log().error("GLSL Compile error: %s", shader.getInfoLog());
@@ -158,15 +154,6 @@ bool Shader::beginLoad(InputStream& src) {
     glslang::GlslangToSpv(*program.getIntermediate(stage), spirv_out);
     handle_ = subsystem<Renderer>()->createShader(type_, spirv_out.data(),
                                                   spirv_out.size() * sizeof(u32));
-
-    //    // TEST: SPIR-V -> HLSL. For the hell of it.
-    //    {
-    //        spirv_cross::CompilerHLSL hlsl_out{spirv_out.data(), spirv_out.size()};
-    //        spirv_cross::CompilerHLSL::Options options;
-    //        hlsl_out.set_options(options);
-    //        String source = hlsl_out.compile();
-    //        log().info("Decompiled HLSL from SPIR-V: %s", source);
-    //    }
 
     return true;
 }

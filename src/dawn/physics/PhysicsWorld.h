@@ -11,7 +11,7 @@
 namespace dw {
 class Renderer;
 class RigidEntity;
-class Camera;
+class Camera_OLD;
 
 // Structure to hold the result of a raycast
 // TODO: merge this with RendererRaycastResult
@@ -31,13 +31,13 @@ public:
     ~PhysicsWorld();
 
     // Takes a step of dt seconds in the simulation
-    void update(float dt, Camera* camera);
+    void update(float dt, Camera_OLD* camera);
 
     // Event Delegate
     void handleEvent(EventDataPtr eventData);
 
     // Performs a raycast query
-    bool rayQuery(const Position& start, const Position& end, Camera* camera,
+    bool rayQuery(const Position& start, const Position& end, Camera_OLD* camera,
                   PhysicsRaycastResult& result);
 
 private:

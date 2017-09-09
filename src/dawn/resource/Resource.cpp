@@ -11,8 +11,8 @@ namespace dw {
 Resource::Resource(Context* context) : Object(context), mLoaded(false) {
 }
 
-bool Resource::load(InputStream& src) {
-    if (!beginLoad(src)) {
+bool Resource::load(const String& asset_name, InputStream& src) {
+    if (!beginLoad(asset_name, src)) {
         return false;
     }
     endLoad();
@@ -24,8 +24,6 @@ void Resource::endLoad() {
 }
 
 void Resource::save(OutputStream&) {
-    // Just wanted to say this is kinda nice as typeName() is virtual so whichever resource type
-    // doesn't implement saving will write "Save not supported for UnsavableResource" to the log.
     log().error("Save not supported for %s", typeName());
 }
 

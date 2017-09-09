@@ -70,8 +70,10 @@ set(SOURCE_FILES
     renderer/api/GL.h
     renderer/api/GLRenderContext.cpp
     renderer/api/GLRenderContext.h
-    renderer/CustomMesh.cpp
-    renderer/CustomMesh.h
+	renderer/Camera.cpp
+	renderer/Camera.h
+	renderer/CustomMeshRenderable.cpp
+	renderer/CustomMeshRenderable.h
     renderer/EntityRenderer.cpp
     renderer/EntityRenderer.h
     renderer/GLSL.h
@@ -89,8 +91,6 @@ set(SOURCE_FILES
     renderer/Renderable.cpp
     renderer/Renderer.cpp
     renderer/Renderer.h
-    renderer/RenderTask.cpp
-    renderer/RenderTask.h
     renderer/Shader.cpp
     renderer/Shader.h
     renderer/SPIRV.h
@@ -123,6 +123,7 @@ set(SOURCE_FILES
     Prerequisites.h)
 
 # TODO: Replace prototype Ontology based ECS with custom implementation.
+add_definitions(-DONTOLOGY_WITH_ASSERT)
 set (SOURCE_FILES
     ${SOURCE_FILES}
     ecs/ontology/include/ontology/Config.hpp
@@ -160,7 +161,6 @@ set(BUILD_SHARED_LIBS OFF)
 add_library(Dawn ${SOURCE_FILES})
 enable_cpp14(Dawn)
 enable_maximum_warnings(Dawn)
-add_dependencies(Dawn ${EXTERNAL_DEPS})
 set_output_dir(Dawn ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)
     set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")

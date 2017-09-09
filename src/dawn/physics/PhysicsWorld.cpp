@@ -32,7 +32,7 @@ PhysicsWorld::~PhysicsWorld() {
     log().info("Bullet cleaned up");
 }
 
-void PhysicsWorld::update(float dt, Camera*) {
+void PhysicsWorld::update(float dt, Camera_OLD*) {
     // Call PreSimulationStep on each rigid body
     // for (auto body : rigid_body_list_)
     //   static_cast<RigidEntity*>(body->getUserPointer())->PreSimulationStep(camera);
@@ -51,7 +51,7 @@ void PhysicsWorld::handleEvent(EventDataPtr eventData) {
     }
 }
 
-bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera* camera,
+bool PhysicsWorld::rayQuery(const Position& start, const Position& end, Camera_OLD* camera,
                             PhysicsRaycastResult& result) {
     // Make sure this is done in camera-space
     btVector3 start_cs = start.toCameraSpace(camera);

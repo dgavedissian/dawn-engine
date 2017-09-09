@@ -20,6 +20,6 @@ Node* SceneManager::getRootNode() const {
     return root_node_.get();
 }
 
-void SceneManager::preRender(Camera* camera) {
+void SceneManager::preRender(Camera_OLD* camera) {
 }
 }  // namespace dw

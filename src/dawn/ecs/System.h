@@ -20,7 +20,12 @@ public:
     }
 
     void processEntity(Ontology::Entity& entity) override {
-        Entity wrapped_entity{wrapped_system_->context(), entity};
+        if (!first_iteration) {
+            wrapped_system_->beginProcessing();
+            first_iteration = true;
+        }
+        Entity wrapped_entity{wrapped_system_->context(), world->getEntityManager(),
+                              entity.getID()};
         wrapped_system_->processEntity(wrapped_entity);
     }
 
@@ -59,10 +64,14 @@ public:
     /// @return This system.
     template <typename... T> System& executesAfter() {
         if (ontology_system_) {
-            ontology_system_->executesAfter<T...>();
+            ontology_system_->executesAfter<OntologySystemAdapter<T>...>();
         }
-        depending_systems_ = Ontology::TypeSetGenerator<T...>();
+        depending_systems_ = Ontology::TypeSetGenerator<OntologySystemAdapter<T>...>();
         return *this;
+    }
+
+    /// Called when processing begins.
+    virtual void beginProcessing() {
     }
 
     /// Processes a single entity which matches the constraints set up by SupportsComponents.

@@ -15,7 +15,7 @@ public:
     Texture(Context* context);
     ~Texture();
 
-    bool beginLoad(InputStream& src) override;
+    bool beginLoad(const String& asset_name, InputStream& src) override;
     void endLoad() override;
 
     TextureHandle internalHandle() const;

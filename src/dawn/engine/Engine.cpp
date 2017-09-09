@@ -147,30 +147,41 @@ void Engine::shutdown() {
 
 void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_callback) {
     // TODO(David) stub
-    Camera* main_camera = nullptr;
+    Camera_OLD* main_camera = nullptr;
+
+    // Initialise the ECS dependency graph.
+    context_->subsystem<SystemManager>()->beginMainLoop();
 
     // Start the main loop.
     const float dt = 1.0f / 60.0f;
     time::TimePoint previous_time = time::beginTiming();
     double accumulator = 0.0;
+    bool fixed_game_logic_update = false;
+    frame_time_ = dt;
     while (running_) {
         // Update game logic.
-        while (accumulator >= dt) {
-            update(dt);
-            tick_callback(dt);
-            accumulator -= dt;
+        if (fixed_game_logic_update) {
+            while (accumulator >= dt) {
+                update(dt);
+                tick_callback(dt);
+                accumulator -= dt;
+            }
+        } else {
+            tick_callback(frame_time_);
+            update(frame_time_);
         }
 
         // Render a frame.
         preRender(main_camera);
         render_callback();
-        context_->subsystem<SystemManager>()->getSystem<EntityRenderer>()->dispatchRenderTasks();
         context_->subsystem<Renderer>()->frame();
 
         // Calculate frameTime.
         time::TimePoint current_time = time::beginTiming();
         frame_time_ = time::elapsed(previous_time, current_time);
-        accumulator += frame_time_;
+        if (fixed_game_logic_update) {
+            accumulator += frame_time_;
+        }
         previous_time = current_time;
     }
 
@@ -307,7 +318,7 @@ void Engine::update(float dt) {
     context_->subsystem<SystemManager>()->update();
 }
 
-void Engine::preRender(Camera* camera) {
+void Engine::preRender(Camera_OLD* camera) {
     context_->subsystem<SceneManager>()->preRender(camera);
     context_->subsystem<StateManager>()->preRender();
 }

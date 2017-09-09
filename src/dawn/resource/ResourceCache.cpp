@@ -15,7 +15,7 @@ ResourceCache::ResourceCache(Context* context) : Object(context) {
 ResourceCache::~ResourceCache() {
 }
 
-void ResourceCache::addResourcePath(const Path& path) {
+void ResourceCache::addResourceLocation(const Path& path) {
     mResourcePaths.push_back(path);
 }
 

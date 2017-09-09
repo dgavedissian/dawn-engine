@@ -5,6 +5,7 @@
 #include "DawnEngine.h"
 #include "renderer/MeshBuilder.h"
 #include "core/Timer.h"
+#include "scene/Transform.h"
 
 using namespace dw;
 
@@ -101,7 +102,7 @@ ShaderHandle loadShader(Context* ctx, ShaderStage type, const String& source_fil
     static Vector<SharedPtr<Shader>> shader_map;
     SharedPtr<Shader> shader = makeShared<Shader>(ctx, type);
     File file{ctx, source_file};
-    shader->beginLoad(file);
+    shader->beginLoad(source_file, file);
     shader->endLoad();
     shader_map.emplace_back(shader);
     return shader->internalHandle();
@@ -206,7 +207,7 @@ TEST_CLASS(BasicIndexBuffer) {
 TEST_CLASS(Textured3DCube) {
     TEST_BODY(Textured3DCube);
 
-    SharedPtr<CustomMesh> box_;
+    SharedPtr<CustomMeshRenderable> box_;
     ProgramHandle program_;
 
     // Uses the higher level wrapper which provides loading from files.
@@ -228,7 +229,7 @@ TEST_CLASS(Textured3DCube) {
         // Load texture.
         File texture_file{context(), "wall.jpg"};
         texture_resource_ = makeUnique<Texture>(context());
-        texture_resource_->beginLoad(texture_file);
+        texture_resource_->beginLoad("wall.jpg", texture_file);
         texture_resource_->endLoad();
 
         // Create box.
@@ -250,10 +251,9 @@ TEST_CLASS(Textured3DCube) {
         // Set vertex buffer and submit.
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
         r->setTexture(texture_resource_->internalHandle(), 0);
-        auto task = box_->draw(model);
-        r->setVertexBuffer(task.primitive.vb);
-        r->setIndexBuffer(task.primitive.ib);
-        r->submit(0, program_, task.primitive.count);
+        r->setVertexBuffer(box_->vertexBuffer()->internalHandle());
+        r->setIndexBuffer(box_->indexBuffer()->internalHandle());
+        r->submit(0, program_, box_->indexBuffer()->indexCount());
     }
 
     void stop() {
@@ -264,7 +264,7 @@ TEST_CLASS(Textured3DCube) {
 TEST_CLASS(PostProcessing) {
     TEST_BODY(PostProcessing);
 
-    SharedPtr<CustomMesh> box_;
+    SharedPtr<CustomMeshRenderable> box_;
     ProgramHandle box_program_;
 
     VertexBufferHandle fsq_vb_;
@@ -321,10 +321,9 @@ TEST_CLASS(PostProcessing) {
         r->setViewFrameBuffer(1, FrameBufferHandle{0});
 
         // Set vertex buffer and submit.
-        auto task = box_->draw(model);
-        r->setVertexBuffer(task.primitive.vb);
-        r->setIndexBuffer(task.primitive.ib);
-        r->submit(0, box_program_, task.primitive.count);
+        r->setVertexBuffer(box_->vertexBuffer()->internalHandle());
+        r->setIndexBuffer(box_->indexBuffer()->internalHandle());
+        r->submit(0, box_program_, box_->indexBuffer()->indexCount());
 
         // Draw fb.
         r->setTexture(r->getFrameBufferTexture(fb_handle_, 0), 0);
@@ -342,7 +341,7 @@ TEST_CLASS(PostProcessing) {
 TEST_CLASS(DeferredShading) {
     TEST_BODY(DeferredShading);
 
-    SharedPtr<CustomMesh> ground_;
+    SharedPtr<CustomMeshRenderable> ground_;
     ProgramHandle cube_program_;
 
     // Uses the higher level wrapper which provides loading from files.
@@ -400,17 +399,17 @@ TEST_CLASS(DeferredShading) {
             r->setStateEnable(RenderState::Blending);
             r->setStateBlendEquation(BlendEquation::Add, BlendFunc::One, BlendFunc::One);
 
-            auto task = sphere_->draw(Mat4::identity);
-            r->setVertexBuffer(task.primitive.vb);
-            r->setIndexBuffer(task.primitive.ib);
+            // Draw sphere.
+            r->setVertexBuffer(sphere_->vertexBuffer()->internalHandle());
+            r->setIndexBuffer(sphere_->indexBuffer()->internalHandle());
             r->setUniform("mvp_matrix", mvp);
             r->setUniform("light_position", position_);
-            r->submit(view, program_, task.primitive.count);
+            r->submit(view, program_, sphere_->indexBuffer()->indexCount());
         }
 
     private:
         Renderer* r;
-        SharedPtr<CustomMesh> sphere_;
+        SharedPtr<CustomMeshRenderable> sphere_;
         ProgramHandle program_;
 
         Vec3 position_;
@@ -441,7 +440,7 @@ TEST_CLASS(DeferredShading) {
         // Load texture.
         File texture_file{context(), "wall.jpg"};
         texture_resource_ = makeUnique<Texture>(context());
-        texture_resource_->beginLoad(texture_file);
+        texture_resource_->beginLoad("wall.jpg", texture_file);
         texture_resource_->endLoad();
 
         // Create full screen quad.
@@ -496,11 +495,10 @@ TEST_CLASS(DeferredShading) {
         r->setUniform("mvp_matrix", proj * view * model);
 
         // Set vertex buffer and submit.
-        auto task = ground_->draw(Mat4::identity);
-        r->setVertexBuffer(task.primitive.vb);
-        r->setIndexBuffer(task.primitive.ib);
+        r->setVertexBuffer(ground_->vertexBuffer()->internalHandle());
+        r->setIndexBuffer(ground_->indexBuffer()->internalHandle());
         r->setTexture(texture_resource_->internalHandle(), 0);
-        r->submit(0, cube_program_, task.primitive.count);
+        r->submit(0, cube_program_, ground_->indexBuffer()->indexCount());
 
         // Draw fb.
         r->setTexture(r->getFrameBufferTexture(gbuffer_, 0), 0);
@@ -533,4 +531,50 @@ TEST_CLASS(DeferredShading) {
     }
 };
 
-TEST_IMPLEMENT_MAIN(DeferredShading);
+TEST_CLASS(MovingSphereHighLevel) {
+    TEST_BODY(MovingSphereHighLevel);
+
+    Entity* object;
+    Entity* camera;
+
+    void start() {
+        auto rc = subsystem<ResourceCache>();
+        assert(rc);
+        rc->addResourceLocation("../media/base");
+        rc->addResourceLocation("../media/renderer-test");
+
+        // Create an object.
+        auto material = makeShared<Material>(
+            context(),
+            makeShared<Program>(context(), rc->get<VertexShader>("shaders/cube_solid.vs"),
+                                rc->get<FragmentShader>("shaders/cube_solid.fs")));
+        auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
+        renderable->setMaterial(material);
+        material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
+
+        auto sm = subsystem<SystemManager>();
+        auto em = subsystem<EntityManager>();
+        object = &em->createEntity()
+                      .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
+                      .addComponent<RenderableComponent>(renderable);
+
+        // Create a camera.
+        camera = &em->createEntity()
+                      .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
+                      .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+    }
+
+    void render() {
+        static float angle = 0.0f;
+        angle += engine_->frameTime();
+        camera->component<Transform>()->position.x = sin(angle) * 30.0f;
+        subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+    }
+
+    void stop() {
+        subsystem<EntityManager>()->removeEntity(object);
+        subsystem<EntityManager>()->removeEntity(camera);
+    }
+};
+
+TEST_IMPLEMENT_MAIN(MovingSphereHighLevel);

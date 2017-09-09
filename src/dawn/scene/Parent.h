@@ -9,7 +9,7 @@
 
 namespace dw {
 struct Parent : public Component {
-    Parent(EntityId parent) : parent{parent} {
+    explicit Parent(EntityId parent) : parent{parent} {
     }
 
     EntityId parent;

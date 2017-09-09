@@ -5,10 +5,9 @@
 #pragma once
 
 #include "renderer/Renderable.h"
-#include "renderer/Program.h"
 
 namespace dw {
-class DW_API Node : public Object {
+class DEPRECATED DW_API Node : public Object {
 public:
     DW_OBJECT(Node);
 

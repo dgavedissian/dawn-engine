@@ -20,4 +20,8 @@ Material::~Material() {
 void Material::setTextureUnit(SharedPtr<Texture> texture, uint unit) {
     program_->setTextureUnit(texture, unit);
 }
+
+Program* Material::program() {
+    return program_.get();
+}
 }  // namespace dw

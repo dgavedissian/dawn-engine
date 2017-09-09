@@ -5,76 +5,75 @@
 #include "DawnEngine.h"
 #include "ecs/EntityManager.h"
 #include "ecs/SystemManager.h"
-#include "renderer/MeshBuilder.h"
 #include "renderer/Program.h"
+#include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
-#include "scene/Node.h"
 #include "scene/Parent.h"
 #include "scene/Transform.h"
+#include "renderer/Mesh.h"
 
 using namespace dw;
-
-/*
-struct PositionData : public Component {
-    PositionData(float x, float y, float z) : x{x}, y{y}, z{z} {
-    }
-    float x;
-    float y;
-    float z;
-};
-
-class Test : public System {
-public:
-    Test(Context* context) : System{context} {
-        supportsComponents<PositionData>();
-    }
-    void processEntity(Entity& e) override {
-        auto pos = *e.component<PositionData>();
-        pos.x = 3;
-        pos.y = 5;
-        pos.z += 1;
-    }
-};
- */
 
 class Sandbox : public App {
 public:
     DW_OBJECT(Sandbox);
 
-    UniquePtr<Node> node;
+    Entity* object;
+    Entity* camera;
 
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
-        rc->addResourcePath("media/base");
-        rc->addResourcePath("media/sandbox");
+        rc->addResourceLocation("../media/base");
+        rc->addResourceLocation("../media/sandbox");
 
-        // Create a node.
-        node = makeUnique<Node>(context());
-        SharedPtr<Program> material =
-            makeShared<Program>(context(), rc->get<VertexShader>("shaders/bin/sphere.vs"),
-                                rc->get<FragmentShader>("shaders/bin/sphere.fs"));
-        node->setRenderable(
-            MeshBuilder(context()).normals(false).normals(false).createSphere(10.0f));
-        node->renderable()->setMaterial(material);
+        // Create a material.
+        auto material = makeShared<Material>(
+            context(), makeShared<Program>(context(), rc->get<VertexShader>("ship.vs"),
+                                           rc->get<FragmentShader>("ship.fs")));
+        material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
-        auto sm = subsystem<SystemManager>();
+        auto renderable = rc->get<Mesh>("models/core-large.mesh.xml");
+        renderable->setMaterial(material);
+        auto sphere = rc->get<Mesh>("models/side-wing.mesh.xml");
+        sphere->setMaterial(material);
+
+        // Create entities.Wor
         auto em = subsystem<EntityManager>();
-        // sm->addSystem<Test>();
-        // em->createEntity().addComponent<PositionData>(0.0f, 0.0f, 0.0f).addComponent<Parent>(1);
+        object = &em->createEntity()
+                      .addComponent<Transform>(Position{-10.0f, 0.0f, 0.0f}, Quat::identity)
+                      .addComponent<RenderableComponent>(renderable);
         em->createEntity()
-            .addComponent<RenderableComponent>(node->renderable())
-            .addComponent<Transform>(Position(), Quat::identity);
+            .addComponent<Transform>(Position{8.0f, 0.0f, 0.0f}, Quat::identity)
+            .addComponent<Parent>(object->id())
+            .addComponent<RenderableComponent>(sphere);
+        em->createEntity()
+            .addComponent<Transform>(Position{-8.0f, 0.0f, 0.0f}, Quat::identity)
+            .addComponent<Parent>(object->id())
+            .addComponent<RenderableComponent>(sphere);
+
+        // Create a camera.
+        camera = &em->createEntity()
+                      .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
+                      .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
     }
 
     void update(float dt) override {
+        static float angle = 0.0f;
+        angle += dt;
+        // camera->component<Transform>()->position.x = sin(angle) * 30.0f;
+        object->component<Transform>()->orientation = Quat::RotateY(angle);
+    }
+
+    void render() override {
+        subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
     }
 
     void shutdown() override {
     }
 
     String gameName() override {
-        return "RendererTest";
+        return "Sandbox";
     }
 
     String gameVersion() override {

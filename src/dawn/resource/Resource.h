@@ -16,8 +16,8 @@ public:
     Resource(Context* context);
     virtual ~Resource() = default;
 
-    bool load(InputStream& src);
-    virtual bool beginLoad(InputStream& src) = 0;
+    bool load(const String& asset_name, InputStream& src);
+    virtual bool beginLoad(const String& asset_name, InputStream& src) = 0;
     virtual void endLoad();
     virtual void save(OutputStream& dest);
 

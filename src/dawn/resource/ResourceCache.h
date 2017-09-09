@@ -15,7 +15,7 @@ public:
     ResourceCache(Context* context);
     ~ResourceCache();
 
-    void addResourcePath(const Path& path);
+    void addResourceLocation(const Path& path);
 
     template <typename T> SharedPtr<T> get(const Path& filename) {
         String name(String(filename.c_str()));
@@ -29,11 +29,13 @@ public:
         // Load the file which contains this resource data.
         SharedPtr<File> file = getFile(filename);
         if (!file) {
+            log().error("Cannot find file %s", filename);
             return nullptr;
         }
         SharedPtr<T> resource = makeShared<T>(context());
         mResourceCache.emplace(name, resource);
-        resource->load(*file.get());
+        log().info("Loading Asset '%s'", filename);
+        resource->load(filename, *file.get());
         return resource;
     }
 

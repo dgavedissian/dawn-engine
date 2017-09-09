@@ -124,7 +124,7 @@ void Renderer::init(u16 width, u16 height, const String& title, bool use_render_
     shared_render_context_ = makeUnique<GLRenderContext>(context());
     shared_render_context_->createWindow(width_, height_, window_title_);
     if (use_render_thread) {
-        render_thread_ = Thread{ [this]() { renderThread(); } };
+        render_thread_ = Thread{[this]() { renderThread(); }};
     } else {
         shared_render_context_->startRendering();
     }
@@ -189,31 +189,35 @@ void Renderer::deleteProgram(ProgramHandle program) {
 }
 
 void Renderer::setUniform(const String& uniform_name, int value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, float value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, const Vec2& value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, const Vec3& value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, const Vec4& value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, const Mat3& value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
 }
 
 void Renderer::setUniform(const String& uniform_name, const Mat4& value) {
-    submit_->current_item.uniforms[uniform_name] = value;
+    setUniform(uniform_name, UniformData{value});
+}
+
+void Renderer::setUniform(const String& uniform_name, UniformData data) {
+    submit_->current_item.uniforms[uniform_name] = data;
 }
 
 TextureHandle Renderer::createTexture2D(u16 width, u16 height, TextureFormat format,
@@ -245,7 +249,7 @@ FrameBufferHandle Renderer::createFrameBuffer(u16 width, u16 height, TextureForm
 FrameBufferHandle Renderer::createFrameBuffer(Vector<TextureHandle> textures) {
     auto handle = frame_buffer_handle_.next();
     u16 width = texture_data_.at(textures[0]).width, height = texture_data_.at(textures[0]).height;
-    for (int i = 1; i < textures.size(); ++i) {
+    for (size_t i = 1; i < textures.size(); ++i) {
         auto& data = texture_data_.at(textures[i]);
         if (data.width != width || data.height != height) {
             // TODO: error.
@@ -337,32 +341,7 @@ void Renderer::submit(uint view, ProgramHandle program, uint vertex_count) {
 }
 
 void Renderer::frame() {
-    /*
-    bgfx::setViewRect(0, 0, 0, width_, height_);
-    for (auto task : render_tasks_) {
-        // Set camera state.
-        if (task.type == RenderTaskType::SetCameraMatrices) {
-            auto& task_data = task.camera;
-            task_data.view_matrix.Transpose();
-            task_data.proj_matrix.Transpose();
-            bgfx::setViewTransform(0, &task_data.view_matrix.v[0][0],
-                                   &task_data.proj_matrix.v[0][0]);
-        }
-        // Render.
-        if (task.type == RenderTaskType::Primitive) {
-            auto& task_data = task.primitive;
-            task_data.model_matrix.Transpose();
-            bgfx::setTransform(&task_data.model_matrix.v[0][0]);
-            bgfx::setVertexBuffer(task_data.vb);
-            bgfx::setIndexBuffer(task_data.ib);
-            bgfx::submit(0, task_data.shader);
-        }
-    }
-    render_tasks_.clear();
-    bgfx::frame();
-     */
-
-    // If we are rendering in multithreaded mode, wait for the render thread/
+    // If we are rendering in multithreaded mode, wait for the render thread.
     if (use_render_thread_) {
         // If the rendering thread is doing nothing, print a warning and give up.
         if (shared_rt_finished_) {
@@ -374,10 +353,10 @@ void Renderer::frame() {
         // Wait for render thread.
         shared_frame_barrier_.wait();
 
-        // Wait for frame swap, then reset swapped_frames_. This has no race here, because the render
-        // thread will not modify "swapped_frames_" again until after this thread hits the barrier
-        // again.
-        UniqueLock<Mutex> lock{ swap_mutex_ };
+        // Wait for frame swap, then reset swapped_frames_. This has no race here, because the
+        // render thread will not modify "swapped_frames_" again until after this thread hits the
+        // barrier again.
+        UniqueLock<Mutex> lock{swap_mutex_};
         swap_cv_.wait(lock, [this] { return swapped_frames_; });
         swapped_frames_ = false;
     } else {

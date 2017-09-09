@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "renderer/CustomMesh.h"
+#include "renderer/CustomMeshRenderable.h"
 #include "renderer/TriangleBuffer.h"
 #include "renderer/MeshBuilder.h"
 
@@ -25,7 +25,7 @@ MeshBuilder& MeshBuilder::texcoords(bool texcoords) {
     return *this;
 }
 
-SharedPtr<CustomMesh> MeshBuilder::createPlane(float width, float height) {
+SharedPtr<CustomMeshRenderable> MeshBuilder::createPlane(float width, float height) {
     TriangleBuffer buffer{context_};
     buffer.begin();
     buffer.estimateVertexCount(4);
@@ -68,7 +68,7 @@ SharedPtr<CustomMesh> MeshBuilder::createPlane(float width, float height) {
     return buffer.end();
 }
 
-SharedPtr<CustomMesh> MeshBuilder::createBox(float half_size) {
+SharedPtr<CustomMeshRenderable> MeshBuilder::createBox(float half_size) {
     // clang-format off
     float vertices[] = {
         // Position						| Normals		      | UVs
@@ -136,7 +136,8 @@ SharedPtr<CustomMesh> MeshBuilder::createBox(float half_size) {
     return buffer.end();
 }
 
-SharedPtr<CustomMesh> MeshBuilder::createSphere(float radius, uint num_rings, uint num_segments) {
+SharedPtr<CustomMeshRenderable> MeshBuilder::createSphere(float radius, uint num_rings,
+                                                          uint num_segments) {
     TriangleBuffer buffer{context_};
 
     buffer.begin();

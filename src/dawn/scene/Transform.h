@@ -10,9 +10,8 @@
 
 namespace dw {
 struct Transform : public Component {
-    Transform(Position position, Quat orientation) : position{position}, orientation{orientation} {
+    Transform(Position p, Quat o) : position{p}, orientation{o} {
     }
-
     Position position;
     Quat orientation;
 };

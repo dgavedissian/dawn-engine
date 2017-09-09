@@ -181,6 +181,7 @@ PUBLIC:
         m_SupportedComponents = supportedComponents;
         m_DependingSystems = dependingSystems;
     }
+    bool first_iteration;
 // END DAVID
 
 PROTECTED:

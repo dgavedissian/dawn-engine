@@ -5,46 +5,77 @@
 #include "Common.h"
 #include "renderer/EntityRenderer.h"
 #include "renderer/Renderable.h"
+#include "ecs/EntityManager.h"
+#include "ecs/SystemManager.h"
 #include "scene/Transform.h"
 #include "scene/Parent.h"
 
 namespace dw {
+namespace {
+Mat4 ConvertTransform(Transform& t) {
+    return Mat4::Translate(t.position.x, t.position.y, t.position.z).ToFloat4x4() *
+           Mat4::FromQuat(t.orientation);
+}
+
+// Assumptions: Transform component exists, Parent component optional.
+Mat4 DeriveTransform(EntityManager& entity_manager, Entity& entity,
+                     HashMap<EntityId, Mat4>& transform_cache) {
+    auto transform = entity.component<Transform>();
+    auto parent = entity.component<Parent>();
+
+    // If this world transform hasn't been cached yet.
+    auto cached_transform = transform_cache.find(entity.id());
+    if (cached_transform == transform_cache.end()) {
+        // Calculate transform relative to parent.
+        Mat4 model = ConvertTransform(*transform);
+
+        // Derive world transform recursively.
+        if (parent) {
+            auto parent_entity = entity_manager.findEntity(parent->parent);
+            if (parent_entity) {
+                model = DeriveTransform(entity_manager, *parent_entity, transform_cache) * model;
+            }
+        }
+
+        // Save to cache.
+        transform_cache.insert({entity.id(), model});
+        return model;
+    }
+    return cached_transform->second;
+}
+}  // namespace
+
 EntityRenderer::EntityRenderer(Context* context) : System{context} {
     supportsComponents<RenderableComponent, Transform>();
-    render_tasks_by_camera_.emplace(makePair<String, Vector<RenderTask>>("main_camera", {}));
+    camera_entity_system_ = subsystem<SystemManager>()->addSystem<CameraEntitySystem>();
+}
+
+void EntityRenderer::beginProcessing() {
+    world_transform_cache_.clear();
 }
 
 void EntityRenderer::processEntity(Entity& entity) {
     auto renderable = entity.component<RenderableComponent>();
-    auto transform = entity.component<Transform>();
-    auto parent = entity.component<Parent>();
-
-    // For each camera.
-    /*Vec3 relative_position = PositionData::WorldToRelative(current_camera, transform.position);
-    Mat4 model = CalcModelMatrix(relative_position, transform.orientation);
-    if (parent) {
-    model = model * DeriveWorldTransform(parent.entity);
+    Mat4 model = DeriveTransform(*subsystem<EntityManager>(), entity, world_transform_cache_);
+    for (auto camera : camera_entity_system_->cameras) {
+        renderable->renderable->draw(subsystem<Renderer>(), camera.view, model,
+                                     camera.view_projection_matrix);
     }
-    */
-    render_tasks_by_camera_["main_camera"].emplace_back(
-        renderable->renderable->draw(Mat4::identity));
 }
 
-void EntityRenderer::dispatchRenderTasks() {
-    auto& renderer = *subsystem<Renderer>();
-    for (auto render_tasks_list : render_tasks_by_camera_) {
-        // Setup camera matrices.
-        RenderTask setup_camera;
-        setup_camera.type = RenderTaskType::SetCameraMatrices;
-        setup_camera.camera = {math::TranslateOp(0.0f, 0.0f, -20.0f).ToFloat4x4().Inverted(),
-                               Mat4::OpenGLPerspProjLH(0.1f, 1000.0f, 60.0f, 60.0f)};
-        // renderer.pushRenderTask(std::move(setup_camera));
+EntityRenderer::CameraEntitySystem::CameraEntitySystem(Context* context) : System{context} {
+    supportsComponents<Camera, Transform>();
+    executesAfter<EntityRenderer>();
+}
 
-        // Push render tasks for this camera.
-        for (auto render_task : render_tasks_list.second) {
-            // renderer.pushRenderTask(std::move(render_task));
-        }
-        render_tasks_list.second.clear();
-    }
+void EntityRenderer::CameraEntitySystem::beginProcessing() {
+    cameras.clear();
+}
+
+void EntityRenderer::CameraEntitySystem::processEntity(Entity& entity) {
+    auto camera = entity.component<Camera>();
+    auto transform = entity.component<Transform>();
+    Mat4 view = ConvertTransform(*transform).Inverted();
+    cameras.emplace_back(CameraState{0, camera->projection_matrix * view});
 }
 }  // namespace dw

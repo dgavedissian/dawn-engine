@@ -4,21 +4,19 @@
  */
 #include "Common.h"
 #include "renderer/Renderable.h"
-#include "renderer/Renderer.h"
 
 namespace dw {
-
-Renderable::Renderable(Context* context) : Object(context) {
+Renderable::Renderable() {
 }
 
 Renderable::~Renderable() {
 }
 
-void Renderable::setMaterial(SharedPtr<Program> material) {
+void Renderable::setMaterial(SharedPtr<Material> material) {
     material_ = material;
 }
 
-Program* Renderable::material() const {
+Material* Renderable::material() const {
     return material_.get();
 }
 }  // namespace dw

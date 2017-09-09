@@ -4,8 +4,8 @@
  */
 #pragma once
 
+#include "renderer/Camera.h"
 #include "renderer/Renderer.h"
-#include "renderer/RenderTask.h"
 #include "ecs/System.h"
 
 namespace dw {
@@ -16,11 +16,27 @@ public:
     EntityRenderer(Context* context);
     ~EntityRenderer() = default;
 
+    void beginProcessing() override;
     void processEntity(Entity& entity) override;
 
-    void dispatchRenderTasks();
-
 private:
-    HashMap<String, Vector<RenderTask>> render_tasks_by_camera_;
+    class DW_API CameraEntitySystem : public System {
+    public:
+        DW_OBJECT(CameraEntitySystem);
+
+        CameraEntitySystem(Context* context);
+        ~CameraEntitySystem() = default;
+
+        void beginProcessing() override;
+        void processEntity(Entity& entity) override;
+
+        struct CameraState {
+            uint view;
+            Mat4 view_projection_matrix;
+        };
+        Vector<CameraState> cameras;
+    };
+    CameraEntitySystem* camera_entity_system_;
+    HashMap<EntityId, Mat4> world_transform_cache_;
 };
 }  // namespace dw
