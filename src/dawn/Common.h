@@ -48,9 +48,6 @@ template <class T1, class T2> inline SharedPtr<T1> staticPointerCast(const Share
 template <class T1, class T2> inline SharedPtr<T1> dynamicPointerCast(const SharedPtr<T2>& other) {
     return std::dynamic_pointer_cast<T1, T2>(other);
 }
-
-// Stubs
-class Camera_OLD {};  // TODO(David) stub until ECS is integrated
 }  // namespace dw
 
 // Error macros
@@ -59,6 +56,9 @@ class Camera_OLD {};  // TODO(David) stub until ECS is integrated
         log().error(x);              \
         throw std::runtime_error(x); \
     }
+
+// Preprocessor library.
+#include "core/Preprocessor.h"
 
 // Common includes.
 #include "core/Context.h"

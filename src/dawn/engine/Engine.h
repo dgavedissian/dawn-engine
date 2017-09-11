@@ -7,6 +7,7 @@
 namespace dw {
 
 class App;
+class Camera_OLD;
 
 typedef std::function<void(float)> EngineTickCallback;
 typedef std::function<void()> EngineRenderCallback;

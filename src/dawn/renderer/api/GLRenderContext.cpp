@@ -102,7 +102,7 @@ TextureFormatInfo s_texture_format[] = {
     };
 
 // GLFW key map.
-HashMap<int, Key> s_key_map = {
+HashMap<int, Key::Enum> s_key_map = {
         {GLFW_KEY_ESCAPE, Key::Esc},
         {GLFW_KEY_ENTER, Key::Return},
         {GLFW_KEY_TAB, Key::Tab},
@@ -192,7 +192,7 @@ HashMap<int, Key> s_key_map = {
     };
 
 // GLFW mouse button map.
-HashMap<int, MouseButton> s_mouse_button_map = {
+HashMap<int, MouseButton::Enum> s_mouse_button_map = {
         {GLFW_MOUSE_BUTTON_LEFT, MouseButton::Left},
         {GLFW_MOUSE_BUTTON_MIDDLE, MouseButton::Middle},
         {GLFW_MOUSE_BUTTON_RIGHT, MouseButton::Right}
@@ -328,6 +328,7 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
     });
     glfwSetScrollCallback(window_, [](GLFWwindow* window, double xoffset, double yoffset) {
         auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
+        ctx->subsystem<Input>()->_notifyScroll(Vec2((float)xoffset, (float)yoffset));
     });
 
     // Initialise GL extensions.
@@ -588,7 +589,7 @@ bool GLRenderContext::frame(const Frame* frame) {
                 if (current->ib.isValid()) {
                     GLenum element_type = index_buffer_map_[current->ib].type;
                     glDrawElements(GL_TRIANGLES, current->primitive_count * 3, element_type,
-                                   (void*)current->ib_offset);
+                                   (void*)(std::intptr_t)current->ib_offset);
                     GL_CHECK();
                 } else {
                     glDrawArrays(GL_TRIANGLES, 0, current->primitive_count * 3);

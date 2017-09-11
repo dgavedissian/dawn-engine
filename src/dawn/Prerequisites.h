@@ -47,9 +47,6 @@
 // imgui
 //#include "imgui.h"
 
-// FastDelegate
-#include "FastDelegate.h"
-
 // Re-enable warnings
 #if defined(DW_MSVC)
 #pragma warning(pop)

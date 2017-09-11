@@ -452,7 +452,7 @@ void Renderer::frame() {
         // If the rendering thread is doing nothing, print a warning and give up.
         if (shared_rt_finished_) {
             log().warn("Rendering thread has finished running. Sending shutdown signal.");
-            subsystem<EventSystem>()->triggerEvent(makeShared<EvtData_Exit>());
+            subsystem<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
             return;
         }
 
@@ -467,7 +467,7 @@ void Renderer::frame() {
         swapped_frames_ = false;
     } else {
         if (!renderFrame(submit_)) {
-            subsystem<EventSystem>()->triggerEvent(makeShared<EvtData_Exit>());
+            subsystem<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
             log().warn("Rendering failed. Sending shutdown signal.");
             return;
         }
@@ -477,7 +477,7 @@ void Renderer::frame() {
     shared_render_context_->processEvents();
     if (shared_render_context_->isWindowClosed()) {
         log().info("Window closed. Sending shutdown signal.");
-        subsystem<EventSystem>()->triggerEvent(makeShared<EvtData_Exit>());
+        subsystem<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
     }
 }
 

@@ -22,23 +22,23 @@ Input::Input(Context* context)
       mouse_position_(0, 0),
       mouse_move_(0, 0),
       mouse_scroll_(0.0f, 0.0f) {
-    for (int i = 0; i < int(Key::Count); ++i) {
-        keyboard_state_[i] = false;
+    for (bool &i : key_down_) {
+        i = false;
     }
-    for (int i = 0; i < int(MouseButton::Count); ++i) {
-        mouse_button_state_[i] = false;
+    for (bool &i : mouse_button_state_) {
+        i = false;
     }
 }
 
 Input::~Input() {
 }
 
-bool Input::isKeyDown(Key key) const {
-    return keyboard_state_[int(key)];
+bool Input::isKeyDown(Key::Enum key) const {
+    return key_down_[key];
 }
 
-bool Input::isMouseButtonDown(MouseButton button) const {
-    return mouse_button_state_[int(button)];
+bool Input::isMouseButtonDown(MouseButton::Enum button) const {
+    return mouse_button_state_[button];
 }
 
 Vec2i Input::mousePosition() const {
@@ -59,15 +59,23 @@ Vec2 Input::mouseScroll() const {
     return mouse_scroll_;
 }
 
-void Input::_notifyKeyPress(Key key, Modifier modifier, bool state) {
-    keyboard_state_[int(key)] = state;
-    log().debug("Key %d state: %d - modifier: %d", int(key), int(state), int(modifier));
-    // TODO: Send event.
+void Input::_notifyKeyPress(Key::Enum key, Modifier::Enum modifier, bool state) {
+    key_down_[key] = state;
+    log().debug("Key %d state: %d - modifier: %d", key, state, modifier);
+    if (state) {
+        triggerEvent<EvtData_KeyDown>(key, modifier);
+    } else {
+        triggerEvent<EvtData_KeyUp>(key, modifier);
+    }
 }
 
-void Input::_notifyMouseButtonPress(MouseButton button, bool state) {
-    mouse_button_state_[int(button)] = state;
-    // TODO: Send event.
+void Input::_notifyMouseButtonPress(MouseButton::Enum button, bool state) {
+    mouse_button_state_[button] = state;
+    if (state) {
+        triggerEvent<EvtData_MouseDown>(button);
+    } else {
+        triggerEvent<EvtData_MouseUp>(button);
+    }
 }
 
 void Input::_notifyMouseMove(const Vec2i& position) {

@@ -9,7 +9,8 @@
 
 namespace dw {
 
-enum class Modifier : u16 {
+namespace Modifier {
+enum Enum {
     None = 0,
     LeftAlt = 0x01,
     RightAlt = 0x02,
@@ -20,8 +21,10 @@ enum class Modifier : u16 {
     LeftMeta = 0x40,
     RightMeta = 0x80
 };
+}
 
-enum class Key {
+namespace Key {
+enum Enum {
     Esc = 0,
     Return,
     Tab,
@@ -129,8 +132,13 @@ enum class Key {
 
     Count
 };
+}
 
-enum class MouseButton { Left = 0, Middle, Right, Count };
+namespace MouseButton {
+enum Enum {
+    Left = 0, Middle, Right, Count
+};
+}
 
 class DW_API Input : public Object {
 public:
@@ -140,10 +148,10 @@ public:
     ~Input();
 
     /// Key state.
-    bool isKeyDown(Key key) const;
+    bool isKeyDown(Key::Enum key) const;
 
     /// Mouse button state.
-    bool isMouseButtonDown(MouseButton button) const;
+    bool isMouseButtonDown(MouseButton::Enum button) const;
 
     /// Mouse position.
     Vec2i mousePosition() const;
@@ -158,25 +166,27 @@ public:
     Vec2 mouseScroll() const;
 
     // Notifications. Internal.
-    void _notifyKeyPress(Key key, Modifier modifier, bool state);
-    void _notifyMouseButtonPress(MouseButton button, bool state);
+    void _notifyKeyPress(Key::Enum key, Modifier::Enum modifier, bool state);
+    void _notifyMouseButtonPress(MouseButton::Enum button, bool state);
     void _notifyMouseMove(const Vec2i& position);
     void _notifyScroll(const Vec2& offset);
 
 private:
     Vec2i viewport_size_;
-    bool keyboard_state_[(int)Key::Count];
+    bool key_down_[(int)Key::Count];
     bool mouse_button_state_[(int)MouseButton::Count];
     Vec2i mouse_position_;
     Vec2i mouse_move_;
     Vec2 mouse_scroll_;
+
+    friend class UserInterface;
 };
 
 class DW_API EvtData_KeyDown : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_KeyDown(Key k, u16 m) : key(k), mod(m) {
+    EvtData_KeyDown(Key::Enum k, Modifier::Enum m) : key(k), mod(m) {
     }
 
     const EventType& getType() const override {
@@ -187,15 +197,15 @@ public:
         return "EvtData_KeyDown";
     }
 
-    Key key;
-    u16 mod;
+    Key::Enum key;
+    Modifier::Enum mod;
 };
 
 class DW_API EvtData_KeyUp : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_KeyUp(Key k, u16 m) : key(k), mod(m) {
+    EvtData_KeyUp(Key::Enum k, u16 m) : key(k), mod(m) {
     }
 
     const EventType& getType() const override {
@@ -206,7 +216,7 @@ public:
         return "EvtData_KeyDown";
     }
 
-    Key key;
+    Key::Enum key;
     u16 mod;
 };
 
@@ -231,7 +241,7 @@ class DW_API EvtData_MouseDown : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_MouseDown(uint b) : button(b) {
+    EvtData_MouseDown(MouseButton::Enum b) : button(b) {
     }
 
     const EventType& getType() const override {
@@ -242,14 +252,14 @@ public:
         return "EvtData_MouseDown";
     }
 
-    uint button;
+    MouseButton::Enum button;
 };
 
 class DW_API EvtData_MouseUp : public EventData {
 public:
     static const EventType eventType;
 
-    EvtData_MouseUp(uint b) : button(b) {
+    EvtData_MouseUp(MouseButton::Enum b) : button(b) {
     }
 
     const EventType& getType() const override {
@@ -260,7 +270,7 @@ public:
         return "EvtData_MouseUp";
     }
 
-    uint button;
+    MouseButton::Enum button;
 };
 
 class DW_API EvtData_MouseMove : public EventData {

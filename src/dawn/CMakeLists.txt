@@ -7,6 +7,8 @@ set(SOURCE_FILES
     core/Concurrency.h
     core/Context.cpp
     core/Context.h
+    core/Delegate.h
+    core/EventData.h
     core/EventSystem.cpp
     core/EventSystem.h
     core/Exception.h
@@ -19,6 +21,7 @@ set(SOURCE_FILES
     core/Object.cpp
     core/Object.h
     core/Option.h
+    core/Preprocessor.h
     core/StateManager.cpp
     core/StateManager.h
     core/StringUtils.cpp

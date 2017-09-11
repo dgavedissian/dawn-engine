@@ -124,7 +124,7 @@ void Engine::setup() {
     log().info("Engine initialised. Starting %s %s", game_name_, game_version_);
 
     // Register event delegate
-    ADD_LISTENER(Engine, EvtData_Exit);
+    ADD_LISTENER(Engine, ExitEvent);
 }
 
 void Engine::shutdown() {
@@ -332,7 +332,7 @@ void Engine::postRender() {
 }
 
 void Engine::handleEvent(EventDataPtr eventData) {
-    assert(eventIs<EvtData_Exit>(eventData));
+    assert(eventIs<ExitEvent>(eventData));
     running_ = false;
 }
 }  // namespace dw

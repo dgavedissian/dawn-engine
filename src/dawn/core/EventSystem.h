@@ -4,41 +4,43 @@
  */
 #pragma once
 
+#include "core/EventData.h"
+#include "core/Preprocessor.h"
+
 // Macros to make adding/removing event Listeners more sane
-#define ADD_LISTENER(LISTENER, EVENT)                \
-    context_->subsystem<EventSystem>()->addListener( \
-        fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), EVENT::eventType);
-#define REMOVE_LISTENER(LISTENER, EVENT)                \
-    context_->subsystem<EventSystem>()->removeListener( \
-        fastdelegate::MakeDelegate(this, &LISTENER::handleEvent), EVENT::eventType);
-#define REMOVE_ALL_LISTENERS(LISTENER)                      \
-    context().subsystem<EventSystem>()->removeAllListeners( \
-        fastdelegate::MakeDelegate(this, &LISTENER::handleEvent))
+#define ADD_LISTENER(LISTENER, EVENT) addEventListener<EVENT>(makeDelegate(this, &LISTENER::handleEvent))
+#define REMOVE_LISTENER(LISTENER, EVENT) removeEventListener<EVENT>(makeDelegate(this, &LISTENER::handleEvent))
+
+// Event definition generator macro.
+#define DEFINE_EMPTY_EVENT(name) \
+    struct name : public dw::EventData { \
+        static const dw::EventType eventType; \
+        name() {} \
+        const dw::EventType& getType() const override { return eventType; } \
+        dw::String getName() const override { return #name; } \
+    }
+#define DEFINE_EVENT(name, ...) \
+    struct name : public dw::EventData { \
+        static const dw::EventType eventType; \
+        name(EVENT_CTOR_ARGS(__VA_ARGS__)) : EVENT_INITIALISER_LIST(__VA_ARGS__) {} \
+        const dw::EventType& getType() const override { return eventType; } \
+        dw::String getName() const override { return #name; } \
+        EVENT_DATA_FIELDS(__VA_ARGS__) \
+    }
+#define EVENT_CTOR_ARGS(...) VFUNC(EVENT_CTOR_ARGS, __VA_ARGS__)
+#define EVENT_CTOR_ARGS2(type, name) const type1& name1
+#define EVENT_CTOR_ARGS4(type1, name1, type2, name2) const type1& name1, const type2& name2
+#define EVENT_CTOR_ARGS6(type1, name1, type2, name2, type3, name3) const type1& name1, const type2& name2, const type3& name3
+#define EVENT_INITIALISER_LIST(...) VFUNC(EVENT_INITIALISER_LIST, __VA_ARGS__)
+#define EVENT_INITIALISER_LIST2(type, name) name1(name1)
+#define EVENT_INITIALISER_LIST4(type1, name1, type2, name2) name1(name1), name2(name2)
+#define EVENT_INITIALISER_LIST6(type1, name1, type2, name2, type3, name3) name1(name1), name2(name2), name3(name3)
+#define EVENT_DATA_FIELDS(...) VFUNC(EVENT_DATA_FIELDS, __VA_ARGS__)
+#define EVENT_DATA_FIELDS2(type1, name1) type1 name1;
+#define EVENT_DATA_FIELDS4(type1, name1, type2, name2) type1 name1; type2 name2;
+#define EVENT_DATA_FIELDS6(type1, name1, type2, name2, type3, name3) type1 name1; type2 name2; type3 name3;
 
 namespace dw {
-
-// Event type ID
-typedef uint EventType;
-
-// Event data interface
-class DW_API EventData {
-public:
-    virtual ~EventData() {
-    }
-    virtual const EventType& getType() const = 0;
-    virtual String getName() const = 0;
-};
-
-typedef SharedPtr<EventData> EventDataPtr;
-typedef fastdelegate::FastDelegate1<SharedPtr<EventData>> EventListenerDelegate;
-
-// Event listener interface
-class DW_API EventListener {
-public:
-    virtual ~EventListener() = default;
-    virtual void handleEvent(EventDataPtr eventData) = 0;
-};
-
 #define EVENTSYSTEM_NUM_QUEUES 2
 
 template <class T> bool eventIs(const EventDataPtr eventData) {
@@ -107,58 +109,7 @@ private:
     Map<EventType, List<EventListenerDelegate>> mRemovedEventListeners;
 };
 
-// Some bog-standard events
-class DW_API EvtData_Exit : public EventData {
-public:
-    static const EventType eventType;
-
-    EvtData_Exit() {
-    }
-
-    const EventType& getType() const override {
-        return eventType;
-    }
-
-    String getName() const override {
-        return "EvtData_ExitEvent";
-    }
-};
-
-class DW_API EvtData_SendMessage : public EventData {
-public:
-    static const EventType eventType;
-
-    EvtData_SendMessage(const String& s, const String& m) : sender(s), message(m) {
-    }
-
-    const EventType& getType() const override {
-        return eventType;
-    }
-
-    String getName() const override {
-        return "EvtData_SendMessage";
-    }
-
-    String sender;
-    String message;
-};
-
-class DW_API EvtData_Message : public EventData {
-public:
-    static const EventType eventType;
-
-    EvtData_Message(const String& s, const String& m) : sender(s), message(m) {
-    }
-
-    const EventType& getType() const override {
-        return eventType;
-    }
-
-    String getName() const override {
-        return "EvtData_Message";
-    }
-
-    String sender;
-    String message;
-};
+DEFINE_EMPTY_EVENT(ExitEvent);
+DEFINE_EVENT(SendMessageEvent, String, sender, String, message);
+DEFINE_EVENT(MessageEvent, String, sender, String, message);
 }  // namespace dw

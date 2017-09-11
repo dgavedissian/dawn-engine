@@ -8,9 +8,9 @@
 
 namespace dw {
 
-const EventType EvtData_Exit::eventType(0x98aceab8);
-const EventType EvtData_SendMessage::eventType(0x244cec1b);
-const EventType EvtData_Message::eventType(0x8d859562);
+const EventType ExitEvent::eventType(0x98aceab8);
+const EventType SendMessageEvent::eventType(0x244cec1b);
+const EventType MessageEvent::eventType(0x8d859562);
 
 EventSystem::EventSystem(Context* context)
     : Object(context), mActiveQueue(0), mProcessingEvents(false) {

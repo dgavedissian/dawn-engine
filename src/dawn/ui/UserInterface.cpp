@@ -21,6 +21,7 @@ UserInterface::UserInterface(Context* ctx)
     imgui_io_.DisplaySize.x = 1280.0f;
     imgui_io_.DisplaySize.y = 800.0f;
     imgui_io_.RenderDrawListsFn = nullptr;
+    imgui_io_.IniFilename = nullptr;
 
     // Load font texture atlas.
     unsigned char* pixels;
@@ -87,16 +88,36 @@ UserInterface::~UserInterface() {
 void UserInterface::update(float dt) {
     // Read input state and pass to imgui.
     auto input = subsystem<Input>();
+
+    memcpy(imgui_io_.KeysDown, input->key_down_, sizeof(input->key_down_));
+
+    imgui_io_.KeyMap[ImGuiKey_Tab] = Key::Tab;
+    imgui_io_.KeyMap[ImGuiKey_LeftArrow] = Key::Left;
+    imgui_io_.KeyMap[ImGuiKey_RightArrow] = Key::Right;
+    imgui_io_.KeyMap[ImGuiKey_UpArrow] = Key::Up;
+    imgui_io_.KeyMap[ImGuiKey_DownArrow] = Key::Down;
+    imgui_io_.KeyMap[ImGuiKey_PageUp] = Key::PageUp;
+    imgui_io_.KeyMap[ImGuiKey_PageDown] = Key::PageDown;
+    imgui_io_.KeyMap[ImGuiKey_Home] = Key::Home;
+    imgui_io_.KeyMap[ImGuiKey_End] = Key::End;
+    imgui_io_.KeyMap[ImGuiKey_Delete] = Key::Delete;
+    imgui_io_.KeyMap[ImGuiKey_Backspace] = Key::Backspace;
+    imgui_io_.KeyMap[ImGuiKey_Enter] = Key::Return;
+    imgui_io_.KeyMap[ImGuiKey_Escape] = Key::Esc;
+    imgui_io_.KeyMap[ImGuiKey_A] = Key::KeyA;
+    imgui_io_.KeyMap[ImGuiKey_C] = Key::KeyC;
+    imgui_io_.KeyMap[ImGuiKey_V] = Key::KeyV;
+    imgui_io_.KeyMap[ImGuiKey_X] = Key::KeyX;
+    imgui_io_.KeyMap[ImGuiKey_Y] = Key::KeyY;
+    imgui_io_.KeyMap[ImGuiKey_Z] = Key::KeyZ;
+
     imgui_io_.DeltaTime = dt;
     imgui_io_.MousePos = {static_cast<float>(input->mousePosition().x),
                           static_cast<float>(input->mousePosition().y)};
-    if (imgui_io_.MouseDown[0] != input->isMouseButtonDown(MouseButton::Left)) {
-        log().debug("%d %d %d", imgui_io_.MousePos.x, imgui_io_.MousePos.y,
-                    (int)input->isMouseButtonDown(MouseButton::Left));
-    }
     imgui_io_.MouseDown[0] = input->isMouseButtonDown(MouseButton::Left);
     imgui_io_.MouseDown[1] = input->isMouseButtonDown(MouseButton::Right);
     imgui_io_.MouseDown[2] = input->isMouseButtonDown(MouseButton::Middle);
+    imgui_io_.MouseWheel += input->mouseScroll().y;
 }
 
 void UserInterface::render() {
