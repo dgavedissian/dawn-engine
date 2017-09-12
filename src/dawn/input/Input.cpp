@@ -22,10 +22,10 @@ Input::Input(Context* context)
       mouse_position_(0, 0),
       mouse_move_(0, 0),
       mouse_scroll_(0.0f, 0.0f) {
-    for (bool &i : key_down_) {
+    for (bool& i : key_down_) {
         i = false;
     }
-    for (bool &i : mouse_button_state_) {
+    for (bool& i : mouse_button_state_) {
         i = false;
     }
 }

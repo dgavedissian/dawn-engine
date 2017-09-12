@@ -135,9 +135,7 @@ enum Enum {
 }
 
 namespace MouseButton {
-enum Enum {
-    Left = 0, Middle, Right, Count
-};
+enum Enum { Left = 0, Middle, Right, Count };
 }
 
 class DW_API Input : public Object {

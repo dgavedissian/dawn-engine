@@ -8,37 +8,56 @@
 #include "core/Preprocessor.h"
 
 // Macros to make adding/removing event Listeners more sane
-#define ADD_LISTENER(LISTENER, EVENT) addEventListener<EVENT>(makeDelegate(this, &LISTENER::handleEvent))
-#define REMOVE_LISTENER(LISTENER, EVENT) removeEventListener<EVENT>(makeDelegate(this, &LISTENER::handleEvent))
+#define ADD_LISTENER(LISTENER, EVENT) \
+    addEventListener<EVENT>(makeDelegate(this, &LISTENER::handleEvent))
+#define REMOVE_LISTENER(LISTENER, EVENT) \
+    removeEventListener<EVENT>(makeDelegate(this, &LISTENER::handleEvent))
 
 // Event definition generator macro.
-#define DEFINE_EMPTY_EVENT(name) \
-    struct name : public dw::EventData { \
-        static const dw::EventType eventType; \
-        name() {} \
-        const dw::EventType& getType() const override { return eventType; } \
-        dw::String getName() const override { return #name; } \
+#define DEFINE_EMPTY_EVENT(name)                        \
+    struct name : public dw::EventData {                \
+        static const dw::EventType eventType;           \
+        name() {                                        \
+        }                                               \
+        const dw::EventType& getType() const override { \
+            return eventType;                           \
+        }                                               \
+        dw::String getName() const override {           \
+            return #name;                               \
+        }                                               \
     }
-#define DEFINE_EVENT(name, ...) \
-    struct name : public dw::EventData { \
-        static const dw::EventType eventType; \
-        name(EVENT_CTOR_ARGS(__VA_ARGS__)) : EVENT_INITIALISER_LIST(__VA_ARGS__) {} \
-        const dw::EventType& getType() const override { return eventType; } \
-        dw::String getName() const override { return #name; } \
-        EVENT_DATA_FIELDS(__VA_ARGS__) \
+#define DEFINE_EVENT(name, ...)                                                    \
+    struct name : public dw::EventData {                                           \
+        static const dw::EventType eventType;                                      \
+        name(EVENT_CTOR_ARGS(__VA_ARGS__)) : EVENT_INITIALISER_LIST(__VA_ARGS__) { \
+        }                                                                          \
+        const dw::EventType& getType() const override {                            \
+            return eventType;                                                      \
+        }                                                                          \
+        dw::String getName() const override {                                      \
+            return #name;                                                          \
+        }                                                                          \
+        EVENT_DATA_FIELDS(__VA_ARGS__)                                             \
     }
-#define EVENT_CTOR_ARGS(...) VFUNC(EVENT_CTOR_ARGS, __VA_ARGS__)
+#define EVENT_CTOR_ARGS(...) CALL_OVERLOAD(EVENT_CTOR_ARGS, __VA_ARGS__)
 #define EVENT_CTOR_ARGS2(type, name) const type1& name1
-#define EVENT_CTOR_ARGS4(type1, name1, type2, name2) const type1& name1, const type2& name2
-#define EVENT_CTOR_ARGS6(type1, name1, type2, name2, type3, name3) const type1& name1, const type2& name2, const type3& name3
-#define EVENT_INITIALISER_LIST(...) VFUNC(EVENT_INITIALISER_LIST, __VA_ARGS__)
+#define EVENT_CTOR_ARGS4(type1, name1, type2, name2) const type1 &name1, const type2 &name2
+#define EVENT_CTOR_ARGS6(type1, name1, type2, name2, type3, name3) \
+    const type1 &name1, const type2 &name2, const type3 &name3
+#define EVENT_INITIALISER_LIST(...) CALL_OVERLOAD(EVENT_INITIALISER_LIST, __VA_ARGS__)
 #define EVENT_INITIALISER_LIST2(type, name) name1(name1)
 #define EVENT_INITIALISER_LIST4(type1, name1, type2, name2) name1(name1), name2(name2)
-#define EVENT_INITIALISER_LIST6(type1, name1, type2, name2, type3, name3) name1(name1), name2(name2), name3(name3)
-#define EVENT_DATA_FIELDS(...) VFUNC(EVENT_DATA_FIELDS, __VA_ARGS__)
+#define EVENT_INITIALISER_LIST6(type1, name1, type2, name2, type3, name3) \
+    name1(name1), name2(name2), name3(name3)
+#define EVENT_DATA_FIELDS(...) CALL_OVERLOAD(EVENT_DATA_FIELDS, __VA_ARGS__)
 #define EVENT_DATA_FIELDS2(type1, name1) type1 name1;
-#define EVENT_DATA_FIELDS4(type1, name1, type2, name2) type1 name1; type2 name2;
-#define EVENT_DATA_FIELDS6(type1, name1, type2, name2, type3, name3) type1 name1; type2 name2; type3 name3;
+#define EVENT_DATA_FIELDS4(type1, name1, type2, name2) \
+    type1 name1;                                       \
+    type2 name2;
+#define EVENT_DATA_FIELDS6(type1, name1, type2, name2, type3, name3) \
+    type1 name1;                                                     \
+    type2 name2;                                                     \
+    type3 name3;
 
 namespace dw {
 #define EVENTSYSTEM_NUM_QUEUES 2

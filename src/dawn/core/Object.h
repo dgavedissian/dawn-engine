@@ -58,13 +58,16 @@ public:
     /// A convenient wrapper for context()->subsystem<Logger>()->withSection(typeName())
     Logger& log() const;
 
-    /// A convenient wrapper for context()->subsystem<EventSystem>()->triggerEvent(makeShared<T>(...))
+    /// A convenient wrapper for
+    /// context()->subsystem<EventSystem>()->triggerEvent(makeShared<T>(...))
     template <typename T, typename... Args> bool triggerEvent(Args&&... args) const;
 
-    /// A convenient wrapper for context()->subsystem<EventSystem>()->addListener(delegate, E::eventType)
+    /// A convenient wrapper for context()->subsystem<EventSystem>()->addListener(delegate,
+    /// E::eventType)
     template <typename E> bool addEventListener(const EventListenerDelegate& delegate);
 
-    /// A convenient wrapper for context()->subsystem<EventSystem>()->removeListener(delegate, E::eventType)
+    /// A convenient wrapper for context()->subsystem<EventSystem>()->removeListener(delegate,
+    /// E::eventType)
     template <typename E> bool removeEventListener(const EventListenerDelegate& delegate);
 
     /// A convenient wrapper for context().subsystem<T>().
@@ -85,7 +88,8 @@ protected:
 
 namespace dw {
 template <typename T, typename... Args> bool Object::triggerEvent(Args&&... args) const {
-    return context_->subsystem<EventSystem>()->triggerEvent(makeShared<T>(std::forward<Args>(args)...));
+    return context_->subsystem<EventSystem>()->triggerEvent(
+        makeShared<T>(std::forward<Args>(args)...));
 };
 
 template <typename E> bool Object::addEventListener(const EventListenerDelegate& delegate) {

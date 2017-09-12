@@ -4,27 +4,17 @@
  */
 #pragma once
 
-// Get number of arguments with __NARG__
-#define __NARG__(...)  __NARG_I_(__VA_ARGS__,__RSEQ_N())
-#define __NARG_I_(...) __ARG_N(__VA_ARGS__)
-#define __ARG_N( \
-      _1, _2, _3, _4, _5, _6, _7, _8, _9,_10, \
-     _11,_12,_13,_14,_15,_16,_17,_18,_19,_20, \
-     _21,_22,_23,_24,_25,_26,_27,_28,_29,_30, \
-     _31,_32,_33,_34,_35,_36,_37,_38,_39,_40, \
-     _41,_42,_43,_44,_45,_46,_47,_48,_49,_50, \
-     _51,_52,_53,_54,_55,_56,_57,_58,_59,_60, \
-     _61,_62,_63,N,...) N
-#define __RSEQ_N() \
-     63,62,61,60,                   \
-     59,58,57,56,55,54,53,52,51,50, \
-     49,48,47,46,45,44,43,42,41,40, \
-     39,38,37,36,35,34,33,32,31,30, \
-     29,28,27,26,25,24,23,22,21,20, \
-     19,18,17,16,15,14,13,12,11,10, \
-     9,8,7,6,5,4,3,2,1,0
+// Macro machinery to enable macro overloading. Source: https://stackoverflow.com/a/24028231
 
-// Utility to enable macro overloading. E.g.
-#define _VFUNC_(name, n) name##n
-#define _VFUNC(name, n) _VFUNC_(name, n)
-#define VFUNC(func, ...) _VFUNC(func, __NARG__(__VA_ARGS__)) (__VA_ARGS__)
+#define GLUE(x, y) x y
+
+#define RETURN_ARG_COUNT(_1, _2, _3, _4, _5, _6, count, ...) count
+#define EXPAND_ARGS(args) RETURN_ARG_COUNT args
+#define COUNT_ARGS_MAX6(...) EXPAND_ARGS((__VA_ARGS__, 6, 5, 4, 3, 2, 1, 0))
+
+#define OVERLOAD_MACRO2(name, count) name##count
+#define OVERLOAD_MACRO1(name, count) OVERLOAD_MACRO2(name, count)
+#define OVERLOAD_MACRO(name, count) OVERLOAD_MACRO1(name, count)
+
+#define CALL_OVERLOAD(name, ...) \
+    GLUE(OVERLOAD_MACRO(name, COUNT_ARGS_MAX6(__VA_ARGS__)), (__VA_ARGS__))

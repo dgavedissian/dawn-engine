@@ -18,7 +18,7 @@ VertexDecl& VertexDecl::add(VertexDecl::Attribute attribute, uint count,
     attributes_.emplace_back(
         makePair(encodeAttributes(attribute, count, type, normalised),
                  reinterpret_cast<byte*>(static_cast<std::uintptr_t>(stride_))));
-    stride_ += count * attributeTypeSize(type);
+    stride_ += static_cast<u16>(count) * attributeTypeSize(type);
     return *this;
 }
 
@@ -57,7 +57,7 @@ void VertexDecl::decodeAttributes(u16 encoded_attribute, Attribute& attribute, u
     normalised = (encoded_attribute & 0x1) == 1;
 }
 
-uint VertexDecl::attributeTypeSize(AttributeType type) {
+u16 VertexDecl::attributeTypeSize(AttributeType type) {
     switch (type) {
         case AttributeType::Uint8:
             return sizeof(u8);
@@ -65,6 +65,7 @@ uint VertexDecl::attributeTypeSize(AttributeType type) {
             return sizeof(float);
         default:
             assert(false);
+            return 0;
     }
 }
 }  // namespace dw

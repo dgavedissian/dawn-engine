@@ -15,17 +15,17 @@
 #include "FastDelegate.h"
 
 namespace dw {
-template<typename S> using Delegate = fastdelegate::FastDelegate<S>;
+template <typename S> using Delegate = fastdelegate::FastDelegate<S>;
 
-template<typename X, typename Y, typename R, typename... Args>
-Delegate<R(Args...)> makeDelegate(Y *x, R (X::*func)(Args...)) {
+template <typename X, typename Y, typename R, typename... Args>
+Delegate<R(Args...)> makeDelegate(Y* x, R (X::*func)(Args...)) {
     Delegate<R(Args...)> result;
     result = fastdelegate::MakeDelegate<X, Y, Args..., R>(x, func);
     return result;
 }
 
-template<typename X, typename Y, typename R, typename... Args>
-Delegate<R(Args...)> makeDelegate(Y *x, R (X::*func)(Args...) const) {
+template <typename X, typename Y, typename R, typename... Args>
+Delegate<R(Args...)> makeDelegate(Y* x, R (X::*func)(Args...) const) {
     Delegate<R(Args...)> result;
     result = fastdelegate::MakeDelegate<X, Y, Args..., R>(x, func);
     return result;

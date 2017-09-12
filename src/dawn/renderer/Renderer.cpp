@@ -69,11 +69,13 @@ View& Frame::view(uint view_index) {
 
 Renderer::Renderer(Context* context)
     : Object{context},
-      shared_rt_should_exit_{false},
-      shared_rt_finished_{false},
-      shared_frame_barrier_{2},
-      submit_{&frames_[0]},
-      render_{&frames_[1]} {
+      use_render_thread_(false),
+      is_first_frame_(true),
+      shared_rt_should_exit_(false),
+      shared_rt_finished_(false),
+      shared_frame_barrier_(2),
+      submit_(&frames_[0]),
+      render_(&frames_[1]) {
     glslang::InitializeProcess();
 }
 
@@ -99,6 +101,7 @@ void Renderer::init(u16 width, u16 height, const String& title, bool use_render_
     height_ = height;
     window_title_ = title;
     use_render_thread_ = use_render_thread;
+    is_first_frame_ = true;
 
     // Initialise transient vb/ib.
     transient_vb_max_size = MAX_TRANSIENT_VERTEX_BUFFER_SIZE;
@@ -461,11 +464,14 @@ void Renderer::frame() {
 
         // Wait for frame swap, then reset swapped_frames_. This has no race here, because the
         // render thread will not modify "swapped_frames_" again until after this thread hits the
-        // barrier again.
+        // barrier.
         UniqueLock<Mutex> lock{swap_mutex_};
         swap_cv_.wait(lock, [this] { return swapped_frames_; });
         swapped_frames_ = false;
     } else {
+        if (is_first_frame_) {
+            is_first_frame_ = false;
+        }
         if (!renderFrame(submit_)) {
             subsystem<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
             log().warn("Rendering failed. Sending shutdown signal.");
@@ -493,8 +499,14 @@ void Renderer::renderThread() {
     shared_render_context_->startRendering();
 
     while (!shared_rt_should_exit_) {
-        if (!renderFrame(render_)) {
-            shared_rt_should_exit_ = true;
+        // Skip rendering first frame (as this will be a no-op, but causes a crash as transient
+        // buffers are not created yet).
+        if (is_first_frame_) {
+            is_first_frame_ = false;
+        } else {
+            if (!renderFrame(render_)) {
+                shared_rt_should_exit_ = true;
+            }
         }
 
         // Wait for submit thread.

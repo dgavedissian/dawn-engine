@@ -482,6 +482,7 @@ private:
     String window_title_;
 
     bool use_render_thread_;
+    bool is_first_frame_;
     Thread render_thread_;
 
     // Handles.
