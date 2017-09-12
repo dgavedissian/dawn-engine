@@ -30,7 +30,7 @@ Delegate<R(Args...)> makeDelegate(Y* x, R (X::*func)(Args...) const) {
     result = fastdelegate::MakeDelegate<X, Y, Args..., R>(x, func);
     return result;
 }
-}
+}  // namespace dw
 
 // Re-enable warnings
 #if defined(DW_MSVC)

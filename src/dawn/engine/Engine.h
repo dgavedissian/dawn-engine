@@ -52,6 +52,7 @@ private:
     void update(float dt);
     void preRender(Camera_OLD* camera);
     void postRender();
-    void handleEvent(EventDataPtr eventData);
+
+    void onExit(const ExitEvent& data);
 };
 }  // namespace dw

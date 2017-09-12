@@ -9,8 +9,7 @@ class MemoryPool {
 public:
     MemoryPool() {
     }
-    virtual ~MemoryPool() {
-    }
+    virtual ~MemoryPool() = default;
 
     template <class T, class... Args> T* alloc(Args... args) {
         return new (internalAlloc()) T(args...);

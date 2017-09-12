@@ -7,7 +7,7 @@
 
 namespace dw {
 Context::Context(String base_path, String pref_path)
-    : base_path_{base_path}, pref_path_{pref_path}, config_(Json::object()) {
+    : config_(Json::object()), base_path_(base_path), pref_path_(pref_path) {
 }
 
 Context::~Context() {

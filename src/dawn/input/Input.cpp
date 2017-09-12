@@ -14,7 +14,7 @@ const EventType EvtData_TextInput::eventType(0x4d82f23e);
 const EventType EvtData_MouseDown::eventType(0x6f510a5e);
 const EventType EvtData_MouseUp::eventType(0x2c080377);
 const EventType EvtData_MouseMove::eventType(0xcfcf6020);
-const EventType EvtData_MouseWheel::eventType(0xabc23f35);
+const EventType EvtData_MouseScroll::eventType(0xabc23f35);
 
 Input::Input(Context* context)
     : Object(context),
@@ -81,11 +81,11 @@ void Input::_notifyMouseButtonPress(MouseButton::Enum button, bool state) {
 void Input::_notifyMouseMove(const Vec2i& position) {
     mouse_move_ = position - mouse_position_;
     mouse_position_ = position;
-    // TODO: Send event.
+    triggerEvent<EvtData_MouseMove>(mouse_position_, mousePositionRelative(), mouse_move_);
 }
 
 void Input::_notifyScroll(const Vec2& offset) {
     mouse_scroll_ = offset;
-    // TODO: Send event.
+    triggerEvent<EvtData_MouseScroll>(offset);
 }
 }  // namespace dw

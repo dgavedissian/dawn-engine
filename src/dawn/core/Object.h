@@ -64,11 +64,11 @@ public:
 
     /// A convenient wrapper for context()->subsystem<EventSystem>()->addListener(delegate,
     /// E::eventType)
-    template <typename E> bool addEventListener(const EventListenerDelegate& delegate);
+    template <typename E> bool addEventListener(const EventDelegate& delegate);
 
     /// A convenient wrapper for context()->subsystem<EventSystem>()->removeListener(delegate,
     /// E::eventType)
-    template <typename E> bool removeEventListener(const EventListenerDelegate& delegate);
+    template <typename E> bool removeEventListener(const EventDelegate& delegate);
 
     /// A convenient wrapper for context().subsystem<T>().
     /// @tparam T Subsystem type.
@@ -92,15 +92,15 @@ template <typename T, typename... Args> bool Object::triggerEvent(Args&&... args
         makeShared<T>(std::forward<Args>(args)...));
 };
 
-template <typename E> bool Object::addEventListener(const EventListenerDelegate& delegate) {
+template <typename E> bool Object::addEventListener(const EventDelegate& delegate) {
     return context_->subsystem<EventSystem>()->addListener(delegate, E::eventType);
 }
 
-template <typename E> bool Object::removeEventListener(const EventListenerDelegate& delegate) {
+template <typename E> bool Object::removeEventListener(const EventDelegate& delegate) {
     return context_->subsystem<EventSystem>()->removeListener(delegate, E::eventType);
 }
 
 template <typename T> T* Object::subsystem() const {
     return context_->subsystem<T>();
 }
-}
+}  // namespace dw
