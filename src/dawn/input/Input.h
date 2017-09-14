@@ -164,27 +164,24 @@ public:
     Vec2 mouseScroll() const;
 
     // Notifications. Internal.
-    void _notifyKeyPress(Key::Enum key, Modifier::Enum modifier, bool state);
+    void _notifyKey(Key::Enum key, Modifier::Enum modifier, bool state);
+    void _notifyCharInput(const String& text);
     void _notifyMouseButtonPress(MouseButton::Enum button, bool state);
     void _notifyMouseMove(const Vec2i& position);
     void _notifyScroll(const Vec2& offset);
 
 private:
     Vec2i viewport_size_;
-    bool key_down_[(int)Key::Count];
-    bool mouse_button_state_[(int)MouseButton::Count];
+    bool key_down_[Key::Count];
+    bool mouse_button_state_[MouseButton::Count];
     Vec2i mouse_position_;
     Vec2i mouse_move_;
     Vec2 mouse_scroll_;
-
-    friend class UserInterface;
 };
 
-DEFINE_EVENT(EvtData_KeyDown, Key::Enum, key, Modifier::Enum, mod);
-DEFINE_EVENT(EvtData_KeyUp, Key::Enum, key, Modifier::Enum, mod);
-DEFINE_EVENT(EvtData_TextInput, String, text);
-DEFINE_EVENT(EvtData_MouseDown, MouseButton::Enum, button);
-DEFINE_EVENT(EvtData_MouseUp, MouseButton::Enum, button);
+DEFINE_EVENT(EvtData_Key, Key::Enum, key, Modifier::Enum, mod, bool, down);
+DEFINE_EVENT(EvtData_CharInput, String, text);  // Text is a single UTF-8 character
+DEFINE_EVENT(EvtData_MouseButton, MouseButton::Enum, button, bool, down);
 DEFINE_EVENT(EvtData_MouseMove, Vec2i, position, Vec2, position_relative, Vec2i, offset);
-DEFINE_EVENT(EvtData_MouseScroll, Vec2i, motion);
+DEFINE_EVENT(EvtData_MouseScroll, Vec2, motion);
 }  // namespace dw

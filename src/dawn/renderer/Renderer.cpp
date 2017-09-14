@@ -487,6 +487,10 @@ void Renderer::frame() {
     }
 }
 
+Vec2i Renderer::getBackbufferSize() const {
+    return Vec2i(width_, height_);
+}
+
 void Renderer::submitPreFrameCommand(RenderCommand&& command) {
     submit_->commands_pre.emplace_back(std::move(command));
 }

@@ -23,11 +23,11 @@ PhysicsWorld::PhysicsWorld(Context* context) : Object(context) {
     world_->setInternalTickCallback(bulletTickCallback);
 
     // Register delegates.
-    addEventListener<EvtData_KeyDown>(makeEventDelegate(this, &PhysicsWorld::onKeyDown));
+    addEventListener<EvtData_Key>(makeEventDelegate(this, &PhysicsWorld::onKey));
 }
 
 PhysicsWorld::~PhysicsWorld() {
-    removeEventListener<EvtData_KeyDown>(makeEventDelegate(this, &PhysicsWorld::onKeyDown));
+    removeEventListener<EvtData_Key>(makeEventDelegate(this, &PhysicsWorld::onKey));
 
     log().info("Bullet cleaned up");
 }
@@ -42,8 +42,8 @@ void PhysicsWorld::update(float dt, Camera_OLD*) {
     // mDebugDrawer->step();
 }
 
-void PhysicsWorld::onKeyDown(const EvtData_KeyDown& data) {
-    if (data.key == Key::F2) {
+void PhysicsWorld::onKey(const EvtData_Key& data) {
+    if (data.key == Key::F2 && data.down) {
         // mDebugDrawer->setDebugMode(!mDebugDrawer->getDebugMode());
     }
 }

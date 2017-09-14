@@ -56,6 +56,7 @@ ExternalProject_Add(Assimp_Build
         -DASSIMP_BUILD_TESTS=0
         -DASSIMP_BUILD_ZLIB=1
         -DASSIMP_INSTALL_PDB=0
+        -DCMAKE_DEBUG_POSTFIX=d
 )
 set_target_properties(Assimp_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
 add_library(Assimp STATIC IMPORTED GLOBAL)

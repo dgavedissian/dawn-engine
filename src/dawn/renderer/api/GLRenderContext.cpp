@@ -8,6 +8,9 @@
 #include "renderer/api/GLRenderContext.h"
 #include "input/Input.h"
 
+#include <locale>
+#include <codecvt>
+
 #define GL_CHECK() __CHECK(__FILE__, __LINE__)
 #define __CHECK(FILE, LINE)                                                        \
     {                                                                              \
@@ -306,11 +309,16 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
             }
 
             if (action == GLFW_PRESS) {
-                ctx->subsystem<Input>()->_notifyKeyPress(key_it->second, Modifier::None, true);
+                ctx->subsystem<Input>()->_notifyKey(key_it->second, Modifier::None, true);
             } else if (action == GLFW_RELEASE) {
-                ctx->subsystem<Input>()->_notifyKeyPress(key_it->second, Modifier::None, false);
+                ctx->subsystem<Input>()->_notifyKey(key_it->second, Modifier::None, false);
             }
         });
+    glfwSetCharCallback(window_, [](GLFWwindow* window, unsigned int c) {
+        auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
+        std::wstring_convert<std::codecvt_utf8<i32>, i32> conv;
+        ctx->subsystem<Input>()->_notifyCharInput(conv.to_bytes(static_cast<char32_t>(c)));
+    });
     glfwSetMouseButtonCallback(window_, [](GLFWwindow* window, int button, int action, int mode) {
         auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
         auto mouse_button = s_mouse_button_map.find(button);
@@ -331,7 +339,8 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
     });
     glfwSetScrollCallback(window_, [](GLFWwindow* window, double xoffset, double yoffset) {
         auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
-        ctx->subsystem<Input>()->_notifyScroll(Vec2((float)xoffset, (float)yoffset));
+        ctx->subsystem<Input>()->_notifyScroll(
+            Vec2(static_cast<float>(xoffset), static_cast<float>(yoffset)));
     });
 
     // Initialise GL extensions.

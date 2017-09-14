@@ -8,6 +8,7 @@
 #include "core/Handle.h"
 #include "core/Memory.h"
 #include "math/Colour.h"
+#include "math/Vec2i.h"
 #include "renderer/VertexDecl.h"
 
 #define MAX_TEXTURE_SAMPLERS 8
@@ -476,6 +477,9 @@ public:
 
     /// Render a single frame.
     void frame();
+
+    /// Get the current backbuffer size.
+    Vec2i getBackbufferSize() const;
 
 private:
     u16 width_, height_;

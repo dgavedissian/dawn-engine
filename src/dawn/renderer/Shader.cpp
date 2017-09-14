@@ -116,7 +116,7 @@ bool Shader::beginLoad(const String&, InputStream& src) {
     src_data[src_len] = '\0';
 
     // Parse GLSL code.
-    EShLanguage stage;
+    EShLanguage stage = EShLangVertex;
     switch (type_) {
         case ShaderStage::Vertex:
             stage = EShLangVertex;
@@ -126,6 +126,9 @@ bool Shader::beginLoad(const String&, InputStream& src) {
             break;
         case ShaderStage::Fragment:
             stage = EShLangFragment;
+            break;
+        default:
+            assert(false);
             break;
     }
     glslang::TShader shader{stage};

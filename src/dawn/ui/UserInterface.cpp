@@ -12,14 +12,20 @@ static_assert(sizeof(ImDrawIdx) == sizeof(dw::u16), "Only 16-bit ImGUI indices a
 
 namespace dw {
 UserInterface::UserInterface(Context* ctx)
-    : Object{ctx},
-      renderer_{subsystem<Renderer>()},
-      imgui_io_{ImGui::GetIO()},
-      imgui_style_{ImGui::GetStyle()} {
+    : Object(ctx),
+      renderer_(subsystem<Renderer>()),
+      imgui_io_(ImGui::GetIO()),
+      imgui_style_(ImGui::GetStyle()),
+      mouse_wheel_(0.0f) {
+    // Initialise mouse state.
+    for (bool& state : mouse_pressed_) {
+        state = false;
+    }
+
     // TODO: Resize this on screen size change.
     // TODO: Fill others settings of the io structure later.
-    imgui_io_.DisplaySize.x = 1280.0f;
-    imgui_io_.DisplaySize.y = 800.0f;
+    imgui_io_.DisplaySize.x = renderer_->getBackbufferSize().x;
+    imgui_io_.DisplaySize.y = renderer_->getBackbufferSize().y;
     imgui_io_.RenderDrawListsFn = nullptr;
     imgui_io_.IniFilename = nullptr;
 
@@ -29,7 +35,28 @@ UserInterface::UserInterface(Context* ctx)
     imgui_io_.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
     TextureHandle handle =
         renderer_->createTexture2D(width, height, TextureFormat::RGBA8, pixels, width * height * 4);
-    imgui_io_.Fonts->TexID = (void*)(std::intptr_t)handle.internal();
+    imgui_io_.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(handle.internal()));
+
+    // Set up key map.
+    imgui_io_.KeyMap[ImGuiKey_Tab] = Key::Tab;
+    imgui_io_.KeyMap[ImGuiKey_LeftArrow] = Key::Left;
+    imgui_io_.KeyMap[ImGuiKey_RightArrow] = Key::Right;
+    imgui_io_.KeyMap[ImGuiKey_UpArrow] = Key::Up;
+    imgui_io_.KeyMap[ImGuiKey_DownArrow] = Key::Down;
+    imgui_io_.KeyMap[ImGuiKey_PageUp] = Key::PageUp;
+    imgui_io_.KeyMap[ImGuiKey_PageDown] = Key::PageDown;
+    imgui_io_.KeyMap[ImGuiKey_Home] = Key::Home;
+    imgui_io_.KeyMap[ImGuiKey_End] = Key::End;
+    imgui_io_.KeyMap[ImGuiKey_Delete] = Key::Delete;
+    imgui_io_.KeyMap[ImGuiKey_Backspace] = Key::Backspace;
+    imgui_io_.KeyMap[ImGuiKey_Enter] = Key::Return;
+    imgui_io_.KeyMap[ImGuiKey_Escape] = Key::Esc;
+    imgui_io_.KeyMap[ImGuiKey_A] = Key::KeyA;
+    imgui_io_.KeyMap[ImGuiKey_C] = Key::KeyC;
+    imgui_io_.KeyMap[ImGuiKey_V] = Key::KeyV;
+    imgui_io_.KeyMap[ImGuiKey_X] = Key::KeyX;
+    imgui_io_.KeyMap[ImGuiKey_Y] = Key::KeyY;
+    imgui_io_.KeyMap[ImGuiKey_Z] = Key::KeyZ;
 
     // Set up renderer resources.
     vertex_decl_.begin()
@@ -80,44 +107,46 @@ UserInterface::UserInterface(Context* ctx)
 
     // Begin a new frame.
     ImGui::NewFrame();
+
+    // Register delegates.
+    addEventListener<EvtData_Key>(makeEventDelegate(this, &UserInterface::onKey));
+    addEventListener<EvtData_CharInput>(makeEventDelegate(this, &UserInterface::onCharInput));
+    addEventListener<EvtData_MouseButton>(makeEventDelegate(this, &UserInterface::onMouseButton));
+    addEventListener<EvtData_MouseScroll>(makeEventDelegate(this, &UserInterface::onMouseScroll));
 }
 
 UserInterface::~UserInterface() {
+    removeEventListener<EvtData_Key>(makeEventDelegate(this, &UserInterface::onKey));
+    removeEventListener<EvtData_CharInput>(makeEventDelegate(this, &UserInterface::onCharInput));
+    removeEventListener<EvtData_MouseButton>(
+        makeEventDelegate(this, &UserInterface::onMouseButton));
+    removeEventListener<EvtData_MouseScroll>(
+        makeEventDelegate(this, &UserInterface::onMouseScroll));
 }
 
 void UserInterface::update(float dt) {
     // Read input state and pass to imgui.
     auto input = subsystem<Input>();
 
-    memcpy(imgui_io_.KeysDown, input->key_down_, sizeof(input->key_down_));
-
-    imgui_io_.KeyMap[ImGuiKey_Tab] = Key::Tab;
-    imgui_io_.KeyMap[ImGuiKey_LeftArrow] = Key::Left;
-    imgui_io_.KeyMap[ImGuiKey_RightArrow] = Key::Right;
-    imgui_io_.KeyMap[ImGuiKey_UpArrow] = Key::Up;
-    imgui_io_.KeyMap[ImGuiKey_DownArrow] = Key::Down;
-    imgui_io_.KeyMap[ImGuiKey_PageUp] = Key::PageUp;
-    imgui_io_.KeyMap[ImGuiKey_PageDown] = Key::PageDown;
-    imgui_io_.KeyMap[ImGuiKey_Home] = Key::Home;
-    imgui_io_.KeyMap[ImGuiKey_End] = Key::End;
-    imgui_io_.KeyMap[ImGuiKey_Delete] = Key::Delete;
-    imgui_io_.KeyMap[ImGuiKey_Backspace] = Key::Backspace;
-    imgui_io_.KeyMap[ImGuiKey_Enter] = Key::Return;
-    imgui_io_.KeyMap[ImGuiKey_Escape] = Key::Esc;
-    imgui_io_.KeyMap[ImGuiKey_A] = Key::KeyA;
-    imgui_io_.KeyMap[ImGuiKey_C] = Key::KeyC;
-    imgui_io_.KeyMap[ImGuiKey_V] = Key::KeyV;
-    imgui_io_.KeyMap[ImGuiKey_X] = Key::KeyX;
-    imgui_io_.KeyMap[ImGuiKey_Y] = Key::KeyY;
-    imgui_io_.KeyMap[ImGuiKey_Z] = Key::KeyZ;
-
     imgui_io_.DeltaTime = dt;
-    imgui_io_.MousePos = {static_cast<float>(input->mousePosition().x),
-                          static_cast<float>(input->mousePosition().y)};
-    imgui_io_.MouseDown[0] = input->isMouseButtonDown(MouseButton::Left);
-    imgui_io_.MouseDown[1] = input->isMouseButtonDown(MouseButton::Right);
-    imgui_io_.MouseDown[2] = input->isMouseButtonDown(MouseButton::Middle);
-    imgui_io_.MouseWheel += input->mouseScroll().y;
+
+    // Mouse position and wheel.
+    const auto& mouse_position = input->mousePosition();
+    imgui_io_.MousePos.x = mouse_position.x;
+    imgui_io_.MousePos.y = mouse_position.y;
+    imgui_io_.MouseWheel = mouse_wheel_;
+    mouse_wheel_ = 0.0f;
+
+    // Pass mouse button state and reset.
+    imgui_io_.MouseDown[0] =
+        mouse_pressed_[MouseButton::Left] || input->isMouseButtonDown(MouseButton::Left);
+    imgui_io_.MouseDown[1] =
+        mouse_pressed_[MouseButton::Right] || input->isMouseButtonDown(MouseButton::Right);
+    imgui_io_.MouseDown[2] =
+        mouse_pressed_[MouseButton::Middle] || input->isMouseButtonDown(MouseButton::Middle);
+    for (bool& state : mouse_pressed_) {
+        state = false;
+    }
 }
 
 void UserInterface::render() {
@@ -173,7 +202,7 @@ void UserInterface::render() {
 
                 // Set resources.
                 renderer_->setTexture(TextureHandle{static_cast<TextureHandle::base_type>(
-                                          reinterpret_cast<std::intptr_t>(cmd->TextureId))},
+                                          reinterpret_cast<uintptr>(cmd->TextureId))},
                                       0);
                 renderer_->setVertexBuffer(tvb);
                 renderer_->setIndexBuffer(tib);
@@ -188,5 +217,29 @@ void UserInterface::render() {
 
     // Begin a new frame.
     ImGui::NewFrame();
+}
+
+void UserInterface::onKey(const EvtData_Key& state) {
+    imgui_io_.KeysDown[state.key] = state.down;
+    imgui_io_.KeyCtrl =
+        imgui_io_.KeysDown[GLFW_KEY_LEFT_CONTROL] || imgui_io_.KeysDown[GLFW_KEY_RIGHT_CONTROL];
+    imgui_io_.KeyShift =
+        imgui_io_.KeysDown[GLFW_KEY_LEFT_SHIFT] || imgui_io_.KeysDown[GLFW_KEY_RIGHT_SHIFT];
+    imgui_io_.KeyAlt =
+        imgui_io_.KeysDown[GLFW_KEY_LEFT_ALT] || imgui_io_.KeysDown[GLFW_KEY_RIGHT_ALT];
+    imgui_io_.KeySuper =
+        imgui_io_.KeysDown[GLFW_KEY_LEFT_SUPER] || imgui_io_.KeysDown[GLFW_KEY_RIGHT_SUPER];
+}
+
+void UserInterface::onCharInput(const EvtData_CharInput& text) {
+    imgui_io_.AddInputCharactersUTF8(text.text.c_str());
+}
+
+void UserInterface::onMouseButton(const EvtData_MouseButton& mouse_button) {
+    mouse_pressed_[mouse_button.button] = mouse_button.down;
+}
+
+void UserInterface::onMouseScroll(const EvtData_MouseScroll& scroll) {
+    mouse_wheel_ += scroll.motion.y;
 }
 }  // namespace dw
