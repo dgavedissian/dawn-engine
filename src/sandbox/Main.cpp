@@ -68,12 +68,40 @@ public:
 
     void render() override {
         subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
-        ImGui::ShowTestWindow();
+
+        // Calculate average FPS.
+        float current_fps = 1.0 / engine_->frameTime();
+        static const int FPS_HISTORY_COUNT = 100;
+        static float fps_history[FPS_HISTORY_COUNT];
+        for (int i = 1; i < FPS_HISTORY_COUNT; ++i) {
+            fps_history[i - 1] = fps_history[i];
+        }
+        fps_history[FPS_HISTORY_COUNT - 1] = current_fps;
+        float average_fps = 0.0f;
+        for (int i = 1; i < FPS_HISTORY_COUNT; ++i) {
+            average_fps += fps_history[i] / FPS_HISTORY_COUNT;
+        }
+
+        // Update displayed FPS information every 100ms.
+        static double accumulated_time = 0.0;
+        static float displayed_fps = 60.0f;
+        accumulated_time += engine_->frameTime();
+        if (accumulated_time > 1.0f / 30.0f)
+        {
+            accumulated_time = 0;
+            displayed_fps = average_fps;
+        }
 
         // Display FPS information.
-        ImGui::SetNextWindowSize({280, 200});
-        ImGui::Begin("FPS");
-        ImGui::Text("FPS: %f", 1.0 / engine_->frameTime());
+        ImGui::SetNextWindowPos({10, 10});
+        ImGui::SetNextWindowSize({140, 40});
+        if (!ImGui::Begin("FPS", nullptr, {0, 0}, 0.5f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
+        {
+            ImGui::End();
+            return;
+        }
+        ImGui::Text("FPS:   %.1f", displayed_fps);
+        ImGui::Text("Frame: %.4f ms", 1000.0f / displayed_fps);
         ImGui::End();
     }
 

@@ -328,8 +328,10 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
 
     // Create the window.
     window_ = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-    backbuffer_width_ = width;
-    backbuffer_height_ = height;
+    int fb_width, fb_height;
+    glfwGetFramebufferSize(window_, &fb_width, &fb_height);
+    backbuffer_width_ = fb_width;
+    backbuffer_height_ = fb_height;
     glfwMakeContextCurrent(window_);
     glfwSwapInterval(0);
     glfwSetWindowUserPointer(window_, static_cast<void*>(context()));
