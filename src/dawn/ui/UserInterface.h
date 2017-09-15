@@ -33,9 +33,9 @@ private:
     bool mouse_pressed_[MouseButton::Count];
 
     // Callback handlers.
-    void onKey(const EvtData_Key& state);
-    void onCharInput(const EvtData_CharInput& text);
-    void onMouseButton(const EvtData_MouseButton& mouse_button);
-    void onMouseScroll(const EvtData_MouseScroll& scroll);
+    void onKey(const KeyEvent& state);
+    void onCharInput(const CharInputEvent& text);
+    void onMouseButton(const MouseButtonEvent& mouse_button);
+    void onMouseScroll(const MouseScrollEvent& scroll);
 };
 }  // namespace dw

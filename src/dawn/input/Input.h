@@ -25,36 +25,76 @@ enum Enum {
 
 namespace Key {
 enum Enum {
-    Esc = 0,
-    Return,
+    // Printable keys.
+    Space = 0,
+    Apostrophe, /* ' */
+    Comma,      /* , */
+    Minus,      /* - */
+    Period,     /* . */
+    Slash,      /* / */
+    Key0,
+    Key1,
+    Key2,
+    Key3,
+    Key4,
+    Key5,
+    Key6,
+    Key7,
+    Key8,
+    Key9,
+    Semicolon, /* ; */
+    Equal,     /* = */
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+    I,
+    J,
+    K,
+    L,
+    M,
+    N,
+    O,
+    P,
+    Q,
+    R,
+    S,
+    T,
+    U,
+    V,
+    W,
+    X,
+    Y,
+    Z,
+    LeftBracket,  /* [ */
+    Backslash,    /* \ */
+    RightBracket, /* ] */
+    Backtick,     /* ` */
+
+    // Function keys.
+    Escape,
+    Enter,
     Tab,
-    Space,
     Backspace,
-    Up,
-    Down,
-    Left,
-    Right,
     Insert,
     Delete,
-    Home,
-    End,
+    Right,
+    Left,
+    Down,
+    Up,
     PageUp,
     PageDown,
-    Print,
-    Plus,         /* + */
-    Minus,        /* - */
-    Equals,       /* = */
-    LeftBracket,  /* [ */
-    RightBracket, /* ] */
-    Semicolon,    /* ; */
-    Quote,        /* " */
-    Apostrophe,   /* ' */
-    Comma,        /* , */
-    Period,       /* . */
-    Slash,        /* / */
-    Backslash,    /* \ */
-    Tilde,        /* ~ */
-    Backtick,     /* ` */
+    Home,
+    End,
+    CapsLock,
+    ScrollLock,
+    NumLock,
+    PrintScreen,
+    Pause,
     F1,
     F2,
     F3,
@@ -77,58 +117,21 @@ enum Enum {
     NumPad7,
     NumPad8,
     NumPad9,
-    Key0,
-    Key1,
-    Key2,
-    Key3,
-    Key4,
-    Key5,
-    Key6,
-    Key7,
-    Key8,
-    Key9,
-    KeyA,
-    KeyB,
-    KeyC,
-    KeyD,
-    KeyE,
-    KeyF,
-    KeyG,
-    KeyH,
-    KeyI,
-    KeyJ,
-    KeyK,
-    KeyL,
-    KeyM,
-    KeyN,
-    KeyO,
-    KeyP,
-    KeyQ,
-    KeyR,
-    KeyS,
-    KeyT,
-    KeyU,
-    KeyV,
-    KeyW,
-    KeyX,
-    KeyY,
-    KeyZ,
-
-    GamepadA,
-    GamepadB,
-    GamepadX,
-    GamepadY,
-    GamepadThumbL,
-    GamepadThumbR,
-    GamepadShoulderL,
-    GamepadShoulderR,
-    GamepadUp,
-    GamepadDown,
-    GamepadLeft,
-    GamepadRight,
-    GamepadBack,
-    GamepadStart,
-    GamepadGuide,
+    KeyPadDecimal,
+    KPDivide,
+    KPMultiply,
+    KPSubtract,
+    KPAdd,
+    KPEnter,
+    KPEqual,
+    LeftShift,
+    LeftCtrl,
+    LeftAlt,
+    LeftSuper,
+    RightShift,
+    RightCtrl,
+    RightAlt,
+    RightSuper,
 
     Count
 };
@@ -179,9 +182,9 @@ private:
     Vec2 mouse_scroll_;
 };
 
-DEFINE_EVENT(EvtData_Key, Key::Enum, key, Modifier::Enum, mod, bool, down);
-DEFINE_EVENT(EvtData_CharInput, String, text);  // Text is a single UTF-8 character
-DEFINE_EVENT(EvtData_MouseButton, MouseButton::Enum, button, bool, down);
-DEFINE_EVENT(EvtData_MouseMove, Vec2i, position, Vec2, position_relative, Vec2i, offset);
-DEFINE_EVENT(EvtData_MouseScroll, Vec2, motion);
+DEFINE_EVENT(KeyEvent, Key::Enum, key, Modifier::Enum, mod, bool, down);
+DEFINE_EVENT(CharInputEvent, String, text);  // Text is a single UTF-8 character
+DEFINE_EVENT(MouseButtonEvent, MouseButton::Enum, button, bool, down);
+DEFINE_EVENT(MouseMoveEvent, Vec2i, position, Vec2, position_relative, Vec2i, offset);
+DEFINE_EVENT(MouseScrollEvent, Vec2, motion);
 }  // namespace dw

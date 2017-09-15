@@ -46,7 +46,7 @@ private:
 
     List<btRigidBody*> rigid_body_list_;
 
-    void onKey(const EvtData_Key& data);
+    void onKey(const KeyEvent& data);
 
     static void bulletTickCallback(btDynamicsWorld* world, btScalar timestep);
 

@@ -89,6 +89,6 @@ private:
     Map<StateId, SharedPtr<State>> state_map_;
     Vector<SharedPtr<State>> state_stack_;
 
-    void onKey(const EvtData_Key& data);
+    void onKey(const KeyEvent& data);
 };
 }  // namespace dw

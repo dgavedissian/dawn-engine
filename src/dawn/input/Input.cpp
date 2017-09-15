@@ -8,11 +8,11 @@
 
 namespace dw {
 
-const EventType EvtData_Key::eventType(0x3d00cddc);
-const EventType EvtData_CharInput::eventType(0x4d82f23e);
-const EventType EvtData_MouseButton::eventType(0x2c080377);
-const EventType EvtData_MouseMove::eventType(0xcfcf6020);
-const EventType EvtData_MouseScroll::eventType(0xabc23f35);
+const EventType KeyEvent::eventType(0x3d00cddc);
+const EventType CharInputEvent::eventType(0x4d82f23e);
+const EventType MouseButtonEvent::eventType(0x2c080377);
+const EventType MouseMoveEvent::eventType(0xcfcf6020);
+const EventType MouseScrollEvent::eventType(0xabc23f35);
 
 Input::Input(Context* context)
     : Object(context),
@@ -60,26 +60,26 @@ Vec2 Input::mouseScroll() const {
 void Input::_notifyKey(Key::Enum key, Modifier::Enum modifier, bool state) {
     key_down_[key] = state;
     log().debug("Key %d state: %d - modifier: %d", key, state, modifier);
-    triggerEvent<EvtData_Key>(key, modifier, state);
+    triggerEvent<KeyEvent>(key, modifier, state);
 }
 
 void Input::_notifyCharInput(const String& text) {
-    triggerEvent<EvtData_CharInput>(text);
+    triggerEvent<CharInputEvent>(text);
 }
 
 void Input::_notifyMouseButtonPress(MouseButton::Enum button, bool state) {
     mouse_button_state_[button] = state;
-    triggerEvent<EvtData_MouseButton>(button, state);
+    triggerEvent<MouseButtonEvent>(button, state);
 }
 
 void Input::_notifyMouseMove(const Vec2i& position) {
     mouse_move_ = position - mouse_position_;
     mouse_position_ = position;
-    triggerEvent<EvtData_MouseMove>(mouse_position_, mousePositionRelative(), mouse_move_);
+    triggerEvent<MouseMoveEvent>(mouse_position_, mousePositionRelative(), mouse_move_);
 }
 
 void Input::_notifyScroll(const Vec2& offset) {
     mouse_scroll_ = offset;
-    triggerEvent<EvtData_MouseScroll>(offset);
+    triggerEvent<MouseScrollEvent>(offset);
 }
 }  // namespace dw

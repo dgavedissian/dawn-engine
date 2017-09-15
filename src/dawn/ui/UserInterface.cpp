@@ -49,14 +49,14 @@ UserInterface::UserInterface(Context* ctx)
     imgui_io_.KeyMap[ImGuiKey_End] = Key::End;
     imgui_io_.KeyMap[ImGuiKey_Delete] = Key::Delete;
     imgui_io_.KeyMap[ImGuiKey_Backspace] = Key::Backspace;
-    imgui_io_.KeyMap[ImGuiKey_Enter] = Key::Return;
-    imgui_io_.KeyMap[ImGuiKey_Escape] = Key::Esc;
-    imgui_io_.KeyMap[ImGuiKey_A] = Key::KeyA;
-    imgui_io_.KeyMap[ImGuiKey_C] = Key::KeyC;
-    imgui_io_.KeyMap[ImGuiKey_V] = Key::KeyV;
-    imgui_io_.KeyMap[ImGuiKey_X] = Key::KeyX;
-    imgui_io_.KeyMap[ImGuiKey_Y] = Key::KeyY;
-    imgui_io_.KeyMap[ImGuiKey_Z] = Key::KeyZ;
+    imgui_io_.KeyMap[ImGuiKey_Enter] = Key::Enter;
+    imgui_io_.KeyMap[ImGuiKey_Escape] = Key::Escape;
+    imgui_io_.KeyMap[ImGuiKey_A] = Key::A;
+    imgui_io_.KeyMap[ImGuiKey_C] = Key::C;
+    imgui_io_.KeyMap[ImGuiKey_V] = Key::V;
+    imgui_io_.KeyMap[ImGuiKey_X] = Key::X;
+    imgui_io_.KeyMap[ImGuiKey_Y] = Key::Y;
+    imgui_io_.KeyMap[ImGuiKey_Z] = Key::Z;
 
     // Set up renderer resources.
     vertex_decl_.begin()
@@ -109,44 +109,23 @@ UserInterface::UserInterface(Context* ctx)
     ImGui::NewFrame();
 
     // Register delegates.
-    addEventListener<EvtData_Key>(makeEventDelegate(this, &UserInterface::onKey));
-    addEventListener<EvtData_CharInput>(makeEventDelegate(this, &UserInterface::onCharInput));
-    addEventListener<EvtData_MouseButton>(makeEventDelegate(this, &UserInterface::onMouseButton));
-    addEventListener<EvtData_MouseScroll>(makeEventDelegate(this, &UserInterface::onMouseScroll));
+    addEventListener<KeyEvent>(makeEventDelegate(this, &UserInterface::onKey));
+    addEventListener<CharInputEvent>(makeEventDelegate(this, &UserInterface::onCharInput));
+    addEventListener<MouseButtonEvent>(makeEventDelegate(this, &UserInterface::onMouseButton));
+    addEventListener<MouseScrollEvent>(makeEventDelegate(this, &UserInterface::onMouseScroll));
 }
 
 UserInterface::~UserInterface() {
-    removeEventListener<EvtData_Key>(makeEventDelegate(this, &UserInterface::onKey));
-    removeEventListener<EvtData_CharInput>(makeEventDelegate(this, &UserInterface::onCharInput));
-    removeEventListener<EvtData_MouseButton>(
+    removeEventListener<KeyEvent>(makeEventDelegate(this, &UserInterface::onKey));
+    removeEventListener<CharInputEvent>(makeEventDelegate(this, &UserInterface::onCharInput));
+    removeEventListener<MouseButtonEvent>(
         makeEventDelegate(this, &UserInterface::onMouseButton));
-    removeEventListener<EvtData_MouseScroll>(
+    removeEventListener<MouseScrollEvent>(
         makeEventDelegate(this, &UserInterface::onMouseScroll));
 }
 
 void UserInterface::update(float dt) {
-    // Read input state and pass to imgui.
-    auto input = subsystem<Input>();
-
     imgui_io_.DeltaTime = dt;
-
-    // Mouse position and wheel.
-    const auto& mouse_position = input->mousePosition();
-    imgui_io_.MousePos.x = mouse_position.x;
-    imgui_io_.MousePos.y = mouse_position.y;
-    imgui_io_.MouseWheel = mouse_wheel_;
-    mouse_wheel_ = 0.0f;
-
-    // Pass mouse button state and reset.
-    imgui_io_.MouseDown[0] =
-        mouse_pressed_[MouseButton::Left] || input->isMouseButtonDown(MouseButton::Left);
-    imgui_io_.MouseDown[1] =
-        mouse_pressed_[MouseButton::Right] || input->isMouseButtonDown(MouseButton::Right);
-    imgui_io_.MouseDown[2] =
-        mouse_pressed_[MouseButton::Middle] || input->isMouseButtonDown(MouseButton::Middle);
-    for (bool& state : mouse_pressed_) {
-        state = false;
-    }
 }
 
 void UserInterface::render() {
@@ -215,31 +194,48 @@ void UserInterface::render() {
         }
     }
 
+    // Read input state and pass to imgui.
+    auto input = subsystem<Input>();
+
+    // Mouse position and wheel.
+    const auto& mouse_position = input->mousePosition();
+    imgui_io_.MousePos.x = mouse_position.x;
+    imgui_io_.MousePos.y = mouse_position.y;
+    imgui_io_.MouseWheel = mouse_wheel_;
+    mouse_wheel_ = 0.0f;
+
+    // Pass mouse button state and reset.
+    imgui_io_.MouseDown[0] =
+        mouse_pressed_[MouseButton::Left] || input->isMouseButtonDown(MouseButton::Left);
+    imgui_io_.MouseDown[1] =
+        mouse_pressed_[MouseButton::Right] || input->isMouseButtonDown(MouseButton::Right);
+    imgui_io_.MouseDown[2] =
+        mouse_pressed_[MouseButton::Middle] || input->isMouseButtonDown(MouseButton::Middle);
+    for (bool& state : mouse_pressed_) {
+        state = false;
+    }
+
     // Begin a new frame.
     ImGui::NewFrame();
 }
 
-void UserInterface::onKey(const EvtData_Key& state) {
+void UserInterface::onKey(const KeyEvent& state) {
     imgui_io_.KeysDown[state.key] = state.down;
-    imgui_io_.KeyCtrl =
-        imgui_io_.KeysDown[GLFW_KEY_LEFT_CONTROL] || imgui_io_.KeysDown[GLFW_KEY_RIGHT_CONTROL];
-    imgui_io_.KeyShift =
-        imgui_io_.KeysDown[GLFW_KEY_LEFT_SHIFT] || imgui_io_.KeysDown[GLFW_KEY_RIGHT_SHIFT];
-    imgui_io_.KeyAlt =
-        imgui_io_.KeysDown[GLFW_KEY_LEFT_ALT] || imgui_io_.KeysDown[GLFW_KEY_RIGHT_ALT];
-    imgui_io_.KeySuper =
-        imgui_io_.KeysDown[GLFW_KEY_LEFT_SUPER] || imgui_io_.KeysDown[GLFW_KEY_RIGHT_SUPER];
+    imgui_io_.KeyCtrl = imgui_io_.KeysDown[Key::LeftCtrl] || imgui_io_.KeysDown[Key::RightCtrl];
+    imgui_io_.KeyShift = imgui_io_.KeysDown[Key::LeftShift] || imgui_io_.KeysDown[Key::RightShift];
+    imgui_io_.KeyAlt = imgui_io_.KeysDown[Key::LeftAlt] || imgui_io_.KeysDown[Key::RightAlt];
+    imgui_io_.KeySuper = imgui_io_.KeysDown[Key::LeftSuper] || imgui_io_.KeysDown[Key::RightSuper];
 }
 
-void UserInterface::onCharInput(const EvtData_CharInput& text) {
+void UserInterface::onCharInput(const CharInputEvent& text) {
     imgui_io_.AddInputCharactersUTF8(text.text.c_str());
 }
 
-void UserInterface::onMouseButton(const EvtData_MouseButton& mouse_button) {
+void UserInterface::onMouseButton(const MouseButtonEvent& mouse_button) {
     mouse_pressed_[mouse_button.button] = mouse_button.down;
 }
 
-void UserInterface::onMouseScroll(const EvtData_MouseScroll& scroll) {
+void UserInterface::onMouseScroll(const MouseScrollEvent& scroll) {
     mouse_wheel_ += scroll.motion.y;
 }
 }  // namespace dw
