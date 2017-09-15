@@ -58,6 +58,10 @@ public:
         return internal_handle_;
     }
 
+    bool isValid() const {
+        return internal_handle_ != invalid;
+    }
+
 private:
     base_type internal_handle_;
 };

@@ -9,6 +9,8 @@
 #include <list>
 #include <map>
 #include <unordered_map>
+#include <set>
+#include <unordered_set>
 
 #if DW_PLATFORM == DW_WIN32
 #pragma warning(push)
@@ -47,6 +49,8 @@ template <typename T> using Vector = std::vector<T>;
 template <typename T> using List = std::list<T>;
 template <typename K, typename T> using Map = std::map<K, T>;
 template <typename K, typename T> using HashMap = std::unordered_map<K, T, HashFunction<K>>;
+template <typename K> using Set = std::set<K>;
+template <typename K> using HashSet = std::unordered_set<K, HashFunction<K>>;
 template <typename T1, typename T2> using Pair = std::pair<T1, T2>;
 template <typename... T> using Tuple = std::tuple<T...>;
 template <typename... T> using Variant = mapbox::util::variant<T...>;

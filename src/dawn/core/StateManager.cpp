@@ -9,11 +9,11 @@
 namespace dw {
 
 StateManager::StateManager(Context* context) : Object(context) {
-    ADD_LISTENER(StateManager, EvtData_KeyDown);
+    addEventListener<KeyEvent>(makeEventDelegate(this, &StateManager::onKey));
 }
 
 StateManager::~StateManager() {
-    REMOVE_LISTENER(StateManager, EvtData_KeyDown);
+    removeEventListener<KeyEvent>(makeEventDelegate(this, &StateManager::onKey));
 
     while (!state_stack_.empty()) {
         pop();
@@ -87,19 +87,15 @@ StateId StateManager::top() const {
     return S_NO_STATE;
 }
 
-void StateManager::handleEvent(EventDataPtr eventData) {
-    // Handle state reloading
-    if (eventIs<EvtData_KeyDown>(eventData)) {
-        auto castedEventData = castEvent<EvtData_KeyDown>(eventData);
-        if (castedEventData->key == Key::F8) {
-            reload();
-        }
-    }
-}
-
 SharedPtr<State> StateManager::stateById(StateId id) {
     auto it = state_map_.find(id);
     assert(it != state_map_.end());
     return (*it).second;
+}
+
+void StateManager::onKey(const KeyEvent& data) {
+    if (data.key == Key::F8 && data.down) {
+        reload();
+    }
 }
 }  // namespace dw

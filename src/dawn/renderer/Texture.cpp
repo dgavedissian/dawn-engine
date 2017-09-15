@@ -37,9 +37,11 @@ Texture::Texture(Context* context) : Resource(context) {
 Texture::~Texture() {
 }
 
-bool Texture::beginLoad(const String& asset_name, InputStream& src) {
+bool Texture::beginLoad(const String&, InputStream& src) {
     stbi_io_callbacks callbacks = {
-        &imageCallbackRead, &imageCallbackSkip, &imageCallbackEof,
+        &imageCallbackRead,
+        &imageCallbackSkip,
+        &imageCallbackEof,
     };
     int width, height, bpp;
     byte* data = stbi_load_from_callbacks(&callbacks, reinterpret_cast<void*>(&src), &width,

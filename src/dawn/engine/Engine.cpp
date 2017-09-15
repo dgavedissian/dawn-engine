@@ -87,7 +87,7 @@ void Engine::setup() {
     auto* renderer = context_->addSubsystem<Renderer>();
     renderer->init(context_->config().at("window_width").get<u16>(),
                    context_->config().at("window_height").get<u16>(), window_title, true);
-    // mUI = new UI(mRenderer, mInput, mLuaState);
+    context_->addSubsystem<UserInterface>();
     // mAudio = new Audio;
     // mPhysicsWorld = new PhysicsWorld(mRenderer);
     // mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->getSceneMgr());
@@ -123,8 +123,8 @@ void Engine::setup() {
     initialised_ = true;
     log().info("Engine initialised. Starting %s %s", game_name_, game_version_);
 
-    // Register event delegate
-    ADD_LISTENER(Engine, EvtData_Exit);
+    // Register delegate.
+    addEventListener<ExitEvent>(makeEventDelegate(this, &Engine::onExit));
 }
 
 void Engine::shutdown() {
@@ -139,6 +139,8 @@ void Engine::shutdown() {
 
     // Remove subsystems.
     context_->removeSubsystem<StateManager>();
+    context_->removeSubsystem<UserInterface>();
+    context_->removeSubsystem<ResourceCache>();
     context_->clearSubsystems();
 
     // The engine is no longer initialised.
@@ -174,6 +176,7 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         // Render a frame.
         preRender(main_camera);
         render_callback();
+        postRender();
         context_->subsystem<Renderer>()->frame();
 
         // Calculate frameTime.
@@ -316,6 +319,7 @@ void Engine::update(float dt) {
     context_->subsystem<SceneManager>()->update(dt);
 
     context_->subsystem<SystemManager>()->update();
+    context_->subsystem<UserInterface>()->update(dt);
 }
 
 void Engine::preRender(Camera_OLD* camera) {
@@ -323,8 +327,11 @@ void Engine::preRender(Camera_OLD* camera) {
     context_->subsystem<StateManager>()->preRender();
 }
 
-void Engine::handleEvent(EventDataPtr eventData) {
-    assert(eventIs<EvtData_Exit>(eventData));
+void Engine::postRender() {
+    context_->subsystem<UserInterface>()->render();
+}
+
+void Engine::onExit(const ExitEvent&) {
     running_ = false;
 }
 }  // namespace dw

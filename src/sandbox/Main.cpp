@@ -11,6 +11,7 @@
 #include "scene/Parent.h"
 #include "scene/Transform.h"
 #include "renderer/Mesh.h"
+#include "ui/Imgui.h"
 
 using namespace dw;
 
@@ -67,6 +68,13 @@ public:
 
     void render() override {
         subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+        ImGui::ShowTestWindow();
+
+        // Display FPS information.
+        ImGui::SetNextWindowSize({280, 200});
+        ImGui::Begin("FPS");
+        ImGui::Text("FPS: %f", 1.0 / engine_->frameTime());
+        ImGui::End();
     }
 
     void shutdown() override {

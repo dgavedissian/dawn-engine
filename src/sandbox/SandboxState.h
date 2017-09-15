@@ -4,8 +4,8 @@
  */
 #pragma once
 
-using dw::uint;
 using dw::String;
+using dw::uint;
 
 enum StateID { S_SANDBOX = dw::S_USER_ID_BEGIN };
 

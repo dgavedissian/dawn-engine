@@ -7,7 +7,7 @@
 namespace dw {
 class Exception : public std::runtime_error {
 public:
-    Exception(const String& msg) : std::runtime_error{msg} {
+    explicit Exception(const String& msg) : std::runtime_error{msg} {
     }
 };
 }  // namespace dw

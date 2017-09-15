@@ -7,7 +7,7 @@
 namespace dw {
 
 // Vertex Declaration.
-class VertexDecl {
+class DW_API VertexDecl {
 public:
     enum class Attribute { Position, Normal, Colour, TexCoord0 };
 
@@ -22,18 +22,20 @@ public:
 
     u16 stride() const;
 
+    bool empty() const;
+
 private:
     static u16 encodeAttributes(Attribute attribute, uint count, AttributeType type,
                                 bool normalised);
     static void decodeAttributes(u16 encoded_attribute, Attribute& attribute, uint& count,
                                  AttributeType& type, bool& normalised);
-    static uint attributeTypeSize(AttributeType type);
+    static u16 attributeTypeSize(AttributeType type);
 
     // Attribute: 7
     // Count: 3
     // AttributeType: 5
     // Normalised: 1
-    Vector<Pair<u16, void*>> attributes_;
+    Vector<Pair<u16, byte*>> attributes_;
     u16 stride_;
 
     friend class Renderer;

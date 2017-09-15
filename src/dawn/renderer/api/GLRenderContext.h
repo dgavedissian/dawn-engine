@@ -23,13 +23,16 @@ public:
 
     // Command buffer processing. Executed on the render thread.
     void startRendering() override;
+    void stopRendering() override;
     void processCommandList(Vector<RenderCommand>& command_list) override;
-    bool frame(const Vector<View>& views) override;
+    bool frame(const Frame* frame) override;
 
     // Variant walker methods. Executed on the render thread.
     void operator()(const cmd::CreateVertexBuffer& c);
+    void operator()(const cmd::UpdateVertexBuffer& c);
     void operator()(const cmd::DeleteVertexBuffer& c);
     void operator()(const cmd::CreateIndexBuffer& c);
+    void operator()(const cmd::UpdateIndexBuffer& c);
     void operator()(const cmd::DeleteIndexBuffer& c);
     void operator()(const cmd::CreateShader& c);
     void operator()(const cmd::DeleteShader& c);
@@ -47,16 +50,29 @@ public:
 
 private:
     GLFWwindow* window_;
+    u16 backbuffer_width_;
+    u16 backbuffer_height_;
+
+    GLuint vao_;
+    VertexDecl current_vertex_decl;
 
     // Vertex and index buffers.
+    struct VertexBufferData {
+        GLuint vertex_buffer;
+        VertexDecl decl;
+        GLenum usage;
+        size_t size;
+    };
     struct IndexBufferData {
         GLuint element_buffer;
         GLenum type;
+        GLenum usage;
+        size_t size;
     };
-    HashMap<VertexBufferHandle, GLuint> vertex_buffer_map_;
+    HashMap<VertexBufferHandle, VertexBufferData> vertex_buffer_map_;
     HashMap<IndexBufferHandle, IndexBufferData> index_buffer_map_;
 
-    // Shaders programs.
+    // Shaders and programs.
     struct ProgramData {
         GLuint program;
         HashMap<String, GLint> uniform_location_map;
@@ -71,8 +87,13 @@ private:
     struct FrameBufferData {
         GLuint frame_buffer;
         GLuint depth_render_buffer;
+        u16 width;
+        u16 height;
         Vector<TextureHandle> textures;
     };
     HashMap<FrameBufferHandle, FrameBufferData> frame_buffer_map_;
+
+    // Helper functions.
+    void setupVertexArrayAttributes(const VertexDecl& decl, uint vb_offset);
 };
 }  // namespace dw

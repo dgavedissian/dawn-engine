@@ -7,6 +7,8 @@ set(SOURCE_FILES
     core/Concurrency.h
     core/Context.cpp
     core/Context.h
+    core/Delegate.h
+    core/EventData.h
     core/EventSystem.cpp
     core/EventSystem.h
     core/Exception.h
@@ -14,9 +16,12 @@ set(SOURCE_FILES
 	core/Handle.h
     core/Log.cpp
     core/Log.h
+    core/Memory.cpp
+    core/Memory.h
     core/Object.cpp
     core/Object.h
     core/Option.h
+    core/Preprocessor.h
     core/StateManager.cpp
     core/StateManager.h
     core/StringUtils.cpp
@@ -46,10 +51,12 @@ set(SOURCE_FILES
     io/OutputStream.h
     io/Path.cpp
     io/Path.h
+    io/StringInputStream.cpp
+    io/StringInputStream.h
     math/Colour.h
     math/Colour.cpp
     math/Defs.h
-	math/MathGeoLib.h
+    math/MathGeoLib.h
     math/Noise.cpp
     math/Noise.h
     math/Rect.cpp
@@ -62,7 +69,7 @@ set(SOURCE_FILES
     math/Vec3i.h
     math/Vec4i.cpp
     math/Vec4i.h
-	physics/BulletDynamics.h
+    physics/BulletDynamics.h
     physics/PhysicsWorld.cpp
     physics/PhysicsWorld.h
     platform/Defines.h
@@ -70,10 +77,10 @@ set(SOURCE_FILES
     renderer/api/GL.h
     renderer/api/GLRenderContext.cpp
     renderer/api/GLRenderContext.h
-	renderer/Camera.cpp
-	renderer/Camera.h
-	renderer/CustomMeshRenderable.cpp
-	renderer/CustomMeshRenderable.h
+    renderer/Camera.cpp
+    renderer/Camera.h
+    renderer/CustomMeshRenderable.cpp
+    renderer/CustomMeshRenderable.h
     renderer/EntityRenderer.cpp
     renderer/EntityRenderer.h
     renderer/GLSL.h
@@ -94,7 +101,7 @@ set(SOURCE_FILES
     renderer/Shader.cpp
     renderer/Shader.h
     renderer/SPIRV.h
-	renderer/StbImage.h
+    renderer/StbImage.h
     renderer/Texture.cpp
     renderer/Texture.h
     renderer/TriangleBuffer.cpp
@@ -118,6 +125,9 @@ set(SOURCE_FILES
     script/LuaState.cpp
     script/LuaState.h
     script/Sol.h
+    ui/Imgui.h
+    ui/UserInterface.cpp
+    ui/UserInterface.h
     Common.h
     DawnEngine.h
     Prerequisites.h)

@@ -5,10 +5,12 @@
 #pragma once
 
 #include "core/Context.h"
+#include "core/EventData.h"
 #include "math/StringHash.h"
 
 namespace dw {
 class Logger;
+class EventSystem;
 
 class DW_API TypeInfo {
 public:
@@ -53,13 +55,25 @@ public:
     /// Returns the context that this object is associated with.
     Context* context() const;
 
-    /// A convenient wrapper for context().subsystem<Logger>().withSection(typeName())
+    /// A convenient wrapper for context()->subsystem<Logger>()->withSection(typeName())
     Logger& log() const;
+
+    /// A convenient wrapper for
+    /// context()->subsystem<EventSystem>()->triggerEvent(makeShared<T>(...))
+    template <typename T, typename... Args> bool triggerEvent(Args&&... args) const;
+
+    /// A convenient wrapper for context()->subsystem<EventSystem>()->addListener(delegate,
+    /// E::eventType)
+    template <typename E> bool addEventListener(const EventDelegate& delegate);
+
+    /// A convenient wrapper for context()->subsystem<EventSystem>()->removeListener(delegate,
+    /// E::eventType)
+    template <typename E> bool removeEventListener(const EventDelegate& delegate);
 
     /// A convenient wrapper for context().subsystem<T>().
     /// @tparam T Subsystem type.
     /// @return Subsystem instance.
-    template <class T> T* subsystem() const;
+    template <typename T> T* subsystem() const;
 
     virtual StringHash type() const = 0;
     virtual String typeName() const = 0;
@@ -68,8 +82,25 @@ public:
 protected:
     Context* context_;
 };
+}  // namespace dw
 
-template <class T> T* Object::subsystem() const {
+#include "core/EventSystem.h"
+
+namespace dw {
+template <typename T, typename... Args> bool Object::triggerEvent(Args&&... args) const {
+    return context_->subsystem<EventSystem>()->triggerEvent(
+        makeShared<T>(std::forward<Args>(args)...));
+};
+
+template <typename E> bool Object::addEventListener(const EventDelegate& delegate) {
+    return context_->subsystem<EventSystem>()->addListener(delegate, E::eventType);
+}
+
+template <typename E> bool Object::removeEventListener(const EventDelegate& delegate) {
+    return context_->subsystem<EventSystem>()->removeListener(delegate, E::eventType);
+}
+
+template <typename T> T* Object::subsystem() const {
     return context_->subsystem<T>();
 }
 }  // namespace dw

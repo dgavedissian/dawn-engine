@@ -8,6 +8,8 @@
 
 namespace dw {
 
+class Camera_OLD;
+
 /// Class used to keep track of entities being updated
 class DW_API SceneManager : public Object {
 public:

@@ -26,6 +26,8 @@ using u32 = std::uint32_t;
 using i64 = std::int64_t;
 using u64 = std::uint64_t;
 using byte = u8;
+using intptr = std::intptr_t;
+using uintptr = std::uintptr_t;
 
 // String
 using String = std::string;
@@ -48,9 +50,6 @@ template <class T1, class T2> inline SharedPtr<T1> staticPointerCast(const Share
 template <class T1, class T2> inline SharedPtr<T1> dynamicPointerCast(const SharedPtr<T2>& other) {
     return std::dynamic_pointer_cast<T1, T2>(other);
 }
-
-// Stubs
-class Camera_OLD {};  // TODO(David) stub until ECS is integrated
 }  // namespace dw
 
 // Error macros
@@ -59,6 +58,9 @@ class Camera_OLD {};  // TODO(David) stub until ECS is integrated
         log().error(x);              \
         throw std::runtime_error(x); \
     }
+
+// Preprocessor library.
+#include "core/Preprocessor.h"
 
 // Common includes.
 #include "core/Context.h"

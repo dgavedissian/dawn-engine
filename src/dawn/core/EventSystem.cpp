@@ -8,49 +8,48 @@
 
 namespace dw {
 
-const EventType EvtData_Exit::eventType(0x98aceab8);
-const EventType EvtData_SendMessage::eventType(0x244cec1b);
-const EventType EvtData_Message::eventType(0x8d859562);
+const EventType ExitEvent::eventType(0x98aceab8);
+const EventType SendMessageEvent::eventType(0x244cec1b);
+const EventType MessageEvent::eventType(0x8d859562);
 
 EventSystem::EventSystem(Context* context)
-    : Object(context), mActiveQueue(0), mProcessingEvents(false) {
+    : Object(context), active_queue_(0), processing_events_(false) {
 }
 
 EventSystem::~EventSystem() {
 }
 
-bool EventSystem::addListener(const EventListenerDelegate& eventDelegate, const EventType& type) {
-    if (mProcessingEvents) {
-        mAddedEventListeners[type].push_back(eventDelegate);
+bool EventSystem::addListener(const EventDelegate& event_delegate, const EventType& type) {
+    if (processing_events_) {
+        added_event_listeners_[type].push_back(event_delegate);
     } else {
         // This will find or create the entry
-        auto& eventListenerList = mEventListeners[type];
-        for (auto delegateFunc : eventListenerList) {
-            if (eventDelegate == delegateFunc) {
+        auto& event_listener_list = event_listeners_[type];
+        for (const auto& delegate_function : event_listener_list) {
+            if (event_delegate == delegate_function) {
                 // WARNING: Attempting to double-register a delegate
                 return false;
             }
         }
 
-        eventListenerList.push_back(eventDelegate);
+        event_listener_list.push_back(event_delegate);
     }
 
     return true;
 }
 
-bool EventSystem::removeListener(const EventListenerDelegate& eventDelegate,
-                                 const EventType& type) {
-    if (mProcessingEvents) {
-        mRemovedEventListeners[type].push_back(eventDelegate);
+bool EventSystem::removeListener(const EventDelegate& event_delegate, const EventType& type) {
+    if (processing_events_) {
+        remove_event_listeners_[type].push_back(event_delegate);
         return true;
     }
     bool success = false;
-    auto findIt = mEventListeners.find(type);
-    if (findIt != mEventListeners.end()) {
-        auto& Listeners = findIt->second;
-        for (auto it = Listeners.begin(); it != Listeners.end(); ++it) {
-            if (eventDelegate == (*it)) {
-                Listeners.erase(it);
+    auto find_it = event_listeners_.find(type);
+    if (find_it != event_listeners_.end()) {
+        auto& listeners = find_it->second;
+        for (auto it = listeners.begin(); it != listeners.end(); ++it) {
+            if (event_delegate == (*it)) {
+                listeners.erase(it);
                 success = true;
                 break;
             }
@@ -60,20 +59,20 @@ bool EventSystem::removeListener(const EventListenerDelegate& eventDelegate,
     return success;
 }
 
-void EventSystem::removeAllListeners(const EventListenerDelegate& eventDelegate) {
-    for (auto listenerPair : mEventListeners) {
-        removeListener(eventDelegate, listenerPair.first);
+void EventSystem::removeAllListeners(const EventDelegate& event_delegate) {
+    for (auto listener_pair : event_listeners_) {
+        removeListener(event_delegate, listener_pair.first);
     }
 }
 
-bool EventSystem::triggerEvent(const EventDataPtr& eventData) const {
+bool EventSystem::triggerEvent(const EventDataPtr& event_data) const {
     bool processed = false;
 
-    auto findIt = mEventListeners.find(eventData->getType());
-    if (findIt != mEventListeners.end()) {
-        auto& eventListenerList = findIt->second;
-        for (auto delegateFunction : eventListenerList) {
-            delegateFunction(eventData);  // call the delegate
+    auto find_it = event_listeners_.find(event_data->getType());
+    if (find_it != event_listeners_.end()) {
+        auto& listeners = find_it->second;
+        for (const auto& delegate_function : listeners) {
+            delegate_function(event_data);
             processed = true;
         }
     }
@@ -81,47 +80,46 @@ bool EventSystem::triggerEvent(const EventDataPtr& eventData) const {
     return processed;
 }
 
-bool EventSystem::queueEvent(const EventDataPtr& eventData) {
-    assert(mActiveQueue >= 0);
-    assert(mActiveQueue < EVENTSYSTEM_NUM_QUEUES);
+bool EventSystem::queueEvent(const EventDataPtr& event_data) {
+    assert(active_queue_ >= 0);
+    assert(active_queue_ < EVENTSYSTEM_NUM_QUEUES);
 
     // Make sure the event is valid
-    if (!eventData) {
+    if (!event_data) {
         // ERROR: Invalid event in queueEvent()
         return false;
     }
 
-    auto findIt = mEventListeners.find(eventData->getType());
-    if (findIt != mEventListeners.end()) {
-        mQueues[mActiveQueue].push_back(eventData);
+    auto find_it = event_listeners_.find(event_data->getType());
+    if (find_it != event_listeners_.end()) {
+        queues_[active_queue_].push_back(event_data);
         return true;
     }
     return false;
 }
 
-bool EventSystem::abortEvent(const EventType& type, bool allOfType /*= false*/) {
-    assert(mActiveQueue >= 0);
-    assert(mActiveQueue < EVENTSYSTEM_NUM_QUEUES);
+bool EventSystem::abortEvent(const EventType& type, bool all_of_type /*= false*/) {
+    assert(active_queue_ >= 0);
+    assert(active_queue_ < EVENTSYSTEM_NUM_QUEUES);
 
     bool success = false;
-    auto findIt = mEventListeners.find(type);
+    auto event_listener_it = event_listeners_.find(type);
 
-    if (findIt != mEventListeners.end()) {
-        auto& eventQueue = mQueues[mActiveQueue];
-        auto it = eventQueue.begin();
+    if (event_listener_it != event_listeners_.end()) {
+        auto& event_queue = queues_[active_queue_];
+        auto it = event_queue.begin();
 
-        while (it != eventQueue.end()) {
-            // Removing an item from the queue will invalidate the iterator, so have
-            // it point to the next member. All work inside this loop will be done
-            // using thisIt.
-            auto currentIt = it;
+        while (it != event_queue.end()) {
+            // Removing an item from the queue will invalidate the iterator, so have it point to the
+            // next member. All work inside this loop will be done using thisIt.
+            auto current_it = it;
             ++it;
 
-            if ((*currentIt)->getType() == type) {
-                eventQueue.erase(currentIt);
+            if ((*current_it)->getType() == type) {
+                event_queue.erase(current_it);
                 success = true;
 
-                if (!allOfType) {
+                if (!all_of_type) {
                     break;
                 }
             }
@@ -131,63 +129,65 @@ bool EventSystem::abortEvent(const EventType& type, bool allOfType /*= false*/) 
     return success;
 }
 
-bool EventSystem::update(double maxDuration) {
+bool EventSystem::update(double max_duration) {
     time::TimePoint now = time::beginTiming();
 
     // swap active queues and clear the new queue after the swap
-    int queueToProcess = mActiveQueue;
-    mActiveQueue = (mActiveQueue + 1) % EVENTSYSTEM_NUM_QUEUES;
-    mQueues[mActiveQueue].clear();
+    int queue_to_process = active_queue_;
+    active_queue_ = (active_queue_ + 1) % EVENTSYSTEM_NUM_QUEUES;
+    queues_[active_queue_].clear();
 
     // Process the queue
-    mProcessingEvents = true;
-    while (!mQueues[queueToProcess].empty()) {
+    processing_events_ = true;
+    while (!queues_[queue_to_process].empty()) {
         // Pop the front of the queue
-        EventDataPtr eventData = mQueues[queueToProcess].front();
-        mQueues[queueToProcess].pop_front();
-        const EventType& eventType = eventData->getType();
+        EventDataPtr event_data = queues_[queue_to_process].front();
+        queues_[queue_to_process].pop_front();
+        const EventType& event_type = event_data->getType();
 
         // Find all the delegate functions registered for this event
-        auto findIt = mEventListeners.find(eventType);
-        if (findIt != mEventListeners.end()) {
+        auto find_it = event_listeners_.find(event_type);
+        if (find_it != event_listeners_.end()) {
             // Call each Listener
-            auto& eventListeners = (*findIt).second;
-            for (auto delegateFunction : eventListeners)
-                delegateFunction(eventData);
+            auto& event_listeners = (*find_it).second;
+            for (const auto& delegate_function : event_listeners)
+                delegate_function(event_data);
         }
 
         // Check to see if time ran out
-        if (time::elapsed(now) >= maxDuration)
+        if (time::elapsed(now) >= max_duration)
             break;
     }
 
-    mProcessingEvents = false;
+    processing_events_ = false;
 
     // If we couldn't process all of the events, push the remaining events to the new active queue
     // Note: To preserve sequencing, go back-to-front, inserting them at the head of the active
     // queue
-    bool queueFlushed = mQueues[queueToProcess].empty();
-    if (!queueFlushed) {
-        while (!mQueues[queueToProcess].empty()) {
-            EventDataPtr pEvent = mQueues[queueToProcess].back();
-            mQueues[queueToProcess].pop_back();
-            mQueues[mActiveQueue].push_front(pEvent);
+    bool queue_flushed = queues_[queue_to_process].empty();
+    if (!queue_flushed) {
+        while (!queues_[queue_to_process].empty()) {
+            EventDataPtr pEvent = queues_[queue_to_process].back();
+            queues_[queue_to_process].pop_back();
+            queues_[active_queue_].push_front(pEvent);
         }
     }
 
     // If any Listeners were queued for addition or removal whilst processing events, add them now
-    for (auto Listener : mAddedEventListeners) {
-        for (auto delegateFunc : Listener.second)
-            addListener(delegateFunc, Listener.first);
+    for (auto listener : added_event_listeners_) {
+        for (const auto& delegate_function : listener.second) {
+            addListener(delegate_function, listener.first);
+        }
     }
-    mAddedEventListeners.clear();
+    added_event_listeners_.clear();
 
-    for (auto Listener : mRemovedEventListeners) {
-        for (auto delegateFunc : Listener.second)
-            removeListener(delegateFunc, Listener.first);
+    for (auto listener : remove_event_listeners_) {
+        for (const auto& delegate_function : listener.second) {
+            removeListener(delegate_function, listener.first);
+        }
     }
-    mRemovedEventListeners.clear();
+    remove_event_listeners_.clear();
 
-    return queueFlushed;
+    return queue_flushed;
 }
 }  // namespace dw

@@ -7,6 +7,7 @@
 namespace dw {
 
 class App;
+class Camera_OLD;
 
 typedef std::function<void(float)> EngineTickCallback;
 typedef std::function<void()> EngineRenderCallback;
@@ -50,6 +51,8 @@ private:
     String basePath() const;
     void update(float dt);
     void preRender(Camera_OLD* camera);
-    void handleEvent(EventDataPtr eventData);
+    void postRender();
+
+    void onExit(const ExitEvent& data);
 };
 }  // namespace dw

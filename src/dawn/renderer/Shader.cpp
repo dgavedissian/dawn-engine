@@ -108,7 +108,7 @@ namespace dw {
 Shader::Shader(Context* context, ShaderStage type) : Resource{context}, type_{type} {
 }
 
-bool Shader::beginLoad(const String& asset_name, InputStream& src) {
+bool Shader::beginLoad(const String&, InputStream& src) {
     u32 src_len = static_cast<u32>(src.size());
     assert(src_len != 0);
     char* src_data = new char[src_len + 1];
@@ -116,7 +116,7 @@ bool Shader::beginLoad(const String& asset_name, InputStream& src) {
     src_data[src_len] = '\0';
 
     // Parse GLSL code.
-    EShLanguage stage;
+    EShLanguage stage = EShLangVertex;
     switch (type_) {
         case ShaderStage::Vertex:
             stage = EShLangVertex;
@@ -126,6 +126,9 @@ bool Shader::beginLoad(const String& asset_name, InputStream& src) {
             break;
         case ShaderStage::Fragment:
             stage = EShLangFragment;
+            break;
+        default:
+            assert(false);
             break;
     }
     glslang::TShader shader{stage};

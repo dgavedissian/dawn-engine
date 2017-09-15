@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "input/Input.h"
+
 namespace dw {
 
 // Internal game states
@@ -79,9 +81,6 @@ public:
     // Pre-renders all visible states
     void preRender();
 
-    // Event handler
-    void handleEvent(EventDataPtr e);
-
     // Accessors
     StateId top() const;
     SharedPtr<State> stateById(StateId id);
@@ -89,5 +88,7 @@ public:
 private:
     Map<StateId, SharedPtr<State>> state_map_;
     Vector<SharedPtr<State>> state_stack_;
+
+    void onKey(const KeyEvent& data);
 };
 }  // namespace dw

@@ -5,7 +5,7 @@
 #pragma once
 
 // Determine build type.
-#ifdef _DEBUG
+#ifndef NDEBUG
 #define DW_DEBUG
 #endif
 
