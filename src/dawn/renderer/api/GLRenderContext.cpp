@@ -361,7 +361,11 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
         });
     glfwSetCharCallback(window_, [](GLFWwindow* window, unsigned int c) {
         auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
+#ifdef DW_MSVC
         std::wstring_convert<std::codecvt_utf8<i32>, i32> conv;
+#else
+        std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+#endif
         ctx->subsystem<Input>()->_notifyCharInput(conv.to_bytes(static_cast<char32_t>(c)));
     });
     glfwSetMouseButtonCallback(window_, [](GLFWwindow* window, int button, int action, int mode) {

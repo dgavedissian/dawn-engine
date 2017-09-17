@@ -78,7 +78,7 @@ public:
         }
         fps_history[FPS_HISTORY_COUNT - 1] = current_fps;
         float average_fps = 0.0f;
-        for (int i = 1; i < FPS_HISTORY_COUNT; ++i) {
+        for (int i = 0; i < FPS_HISTORY_COUNT; ++i) {
             average_fps += fps_history[i] / FPS_HISTORY_COUNT;
         }
 
