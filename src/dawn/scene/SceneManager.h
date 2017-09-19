@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "scene/Node.h"
+#include "scene/Transform.h"
 
 namespace dw {
 
@@ -22,12 +22,12 @@ public:
     /// @param dt Time elapsed
     void update(float dt);
 
-    Node* getRootNode() const;
+    Transform* rootNode() const;
 
     /// Calls PreRender on each entity
     void preRender(Camera_OLD* camera);
 
 private:
-    SharedPtr<Node> root_node_;
+    SharedPtr<Transform> root_node_;
 };
 }  // namespace dw

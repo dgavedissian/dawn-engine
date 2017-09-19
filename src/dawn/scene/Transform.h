@@ -9,10 +9,20 @@
 #include "scene/Position.h"
 
 namespace dw {
-struct Transform : public Component {
-    Transform(Position p, Quat o) : position{p}, orientation{o} {
-    }
-    Position position;
-    Quat orientation;
+class Transform : public Component {
+public:
+    DW_OBJECT(Transform);
+
+    Transform(Context* context, const Position& p, const Quat& o);
+
+    Position& position();
+    const Position& position() const;
+    Quat& orientation();
+    const Quat& orientation() const;
+
+private:
+    Position position_;
+    Quat orientation_;
+
 };
 }  // namespace dw

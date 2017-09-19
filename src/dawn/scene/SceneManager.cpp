@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "SceneManager.h"
+#include "scene/SceneManager.h"
 
 namespace dw {
 
@@ -16,7 +16,7 @@ SceneManager::~SceneManager() {
 void SceneManager::update(float dt) {
 }
 
-Node* SceneManager::getRootNode() const {
+Transform*  SceneManager::rootNode() const {
     return root_node_.get();
 }
 

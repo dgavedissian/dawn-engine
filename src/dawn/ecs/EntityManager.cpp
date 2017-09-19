@@ -7,12 +7,12 @@
 
 namespace dw {
 EntityManager::EntityManager(Context* context)
-    : Object{context}, entity_manager_{context->ontology_world_.getEntityManager()} {
+    : Object{context}, id_allocator(1) {
 }
 
 Entity& EntityManager::createEntity() {
-    UniquePtr<Entity> entity =
-        makeUnique<Entity>(context(), entity_manager_, entity_manager_.createEntity("").getID());
+    // TODO: Real ID allocator.
+    UniquePtr<Entity> entity = makeUnique<Entity>(context(), id_allocator++);
     auto entity_ptr = entity.get();
     entity_lookup_table_.emplace(makePair(entity->id(), std::move(entity)));
     return *entity_ptr;
@@ -28,5 +28,11 @@ Entity* EntityManager::findEntity(EntityId id) {
 
 void EntityManager::removeEntity(Entity* entity) {
     entity_lookup_table_.erase(entity->id());
+}
+
+void EntityManager::update(float dt) {
+    for (auto& entity_pair : entity_lookup_table_) {
+        entity_pair.second->update(dt);
+    }
 }
 }  // namespace dw

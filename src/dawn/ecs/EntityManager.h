@@ -7,12 +7,12 @@
 #include "ecs/Entity.h"
 
 namespace dw {
-class EntityManager : public Object {
+class DW_API EntityManager : public Object {
 public:
     DW_OBJECT(EntityManager);
 
     EntityManager(Context* context);
-    virtual ~EntityManager() = default;
+    ~EntityManager() = default;
 
     /// Creates a new empty entity.
     /// @return A newly created entity.
@@ -27,8 +27,12 @@ public:
     /// @param entity Entity to remove.
     void removeEntity(Entity* entity);
 
+    /// Update all entities.
+    /// @param dt Delta time.
+    void update(float dt);
+
 private:
-    Ontology::EntityManager& entity_manager_;
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
+    EntityId id_allocator;
 };
 }  // namespace dw

@@ -29,12 +29,10 @@ set(SOURCE_FILES
     core/Timer.cpp
     core/Timer.h
     ecs/Component.h
+    ecs/Entity.cpp
     ecs/Entity.h
     ecs/EntityManager.cpp
     ecs/EntityManager.h
-    ecs/System.h
-    ecs/SystemManager.cpp
-    ecs/SystemManager.h
     engine/App.cpp
     engine/App.h
     engine/Engine.cpp
@@ -114,13 +112,11 @@ set(SOURCE_FILES
     resource/Resource.h
     resource/ResourceCache.cpp
     resource/ResourceCache.h
-    scene/Node.cpp
-    scene/Node.h
-    scene/Parent.h
     scene/Position.cpp
     scene/Position.h
     scene/SceneManager.cpp
     scene/SceneManager.h
+    scene/Transform.cpp
     scene/Transform.h
     script/LuaState.cpp
     script/LuaState.h
@@ -131,40 +127,6 @@ set(SOURCE_FILES
     Common.h
     DawnEngine.h
     Prerequisites.h)
-
-# TODO: Replace prototype Ontology based ECS with custom implementation.
-add_definitions(-DONTOLOGY_WITH_ASSERT)
-set (SOURCE_FILES
-    ${SOURCE_FILES}
-    ecs/ontology/include/ontology/Config.hpp
-    ecs/ontology/include/ontology/Component.hpp
-    ecs/ontology/include/ontology/Entity.hpp
-    ecs/ontology/include/ontology/Entity.hxx
-    ecs/ontology/include/ontology/EntityManager.hpp
-    ecs/ontology/include/ontology/EntityManagerInterface.hpp
-    ecs/ontology/include/ontology/EntityManagerListener.hpp
-    ecs/ontology/include/ontology/Exception.hpp
-    ecs/ontology/include/ontology/ListenerDispatcher.hpp
-    ecs/ontology/include/ontology/ListenerDispatcher.hxx
-    ecs/ontology/include/ontology/System.hpp
-    ecs/ontology/include/ontology/System.hxx
-    ecs/ontology/include/ontology/SystemManager.hpp
-    ecs/ontology/include/ontology/SystemManager.hxx
-    ecs/ontology/include/ontology/Type.hpp
-    ecs/ontology/include/ontology/Type.hxx
-    ecs/ontology/include/ontology/TypeContainers.hpp
-    ecs/ontology/include/ontology/World.hpp
-    ecs/ontology/include/ontology/Ontology.hpp
-    ecs/ontology/src/Component.cpp
-    ecs/ontology/src/Entity.cpp
-    ecs/ontology/src/EntityManager.cpp
-    ecs/ontology/src/EntityManagerListener.cpp
-    ecs/ontology/src/Exception.cpp
-    ecs/ontology/src/System.cpp
-    ecs/ontology/src/SystemManager.cpp
-    ecs/ontology/src/Type.cpp
-    ecs/ontology/src/World.cpp
-)
 
 # Project
 set(BUILD_SHARED_LIBS OFF)
