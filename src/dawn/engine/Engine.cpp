@@ -88,9 +88,9 @@ void Engine::setup() {
     renderer->init(context_->config().at("window_width").get<u16>(),
                    context_->config().at("window_height").get<u16>(), window_title, true);
     context_->addSubsystem<UserInterface>();
+    context_->addSubsystem<SceneManager>();
     // mAudio = new Audio;
     // mPhysicsWorld = new PhysicsWorld(mRenderer);
-    // mSceneMgr = new SceneManager(mPhysicsWorld, mRenderer->getSceneMgr());
     // mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
     context_->addSubsystem<StateManager>();
     context_->addSubsystem<ResourceCache>();

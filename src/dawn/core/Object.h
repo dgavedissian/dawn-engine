@@ -12,8 +12,6 @@ namespace dw {
 class Logger;
 class EventSystem;
 
-using TypeId = StringHash;
-
 class DW_API TypeInfo {
 public:
     TypeInfo(const std::type_info& t);

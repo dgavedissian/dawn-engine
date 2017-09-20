@@ -4,20 +4,21 @@
  */
 #pragma once
 
+#include "ontology/Entity.hpp"
+
 #include "ecs/Component.h"
-#include "scene/Transform.h"
 
 namespace dw {
 /// Entity identifier.
-using EntityId = u32;
+using EntityId = Ontology::Entity::ID;
 
-/// Entity object.
+/// Entity object. Currently implemented as an Ontology::Entity wrapper.
 class Entity : public Object {
 public:
     DW_OBJECT(Entity);
 
-    // TODO: owning world.
-    Entity(Context* context, EntityId id);
+    explicit Entity(Context* context, Ontology::EntityManager& entity_manager,
+                    Ontology::Entity::ID entity_id);
     virtual ~Entity() = default;
 
     /// Accesses a component contained within this entity.
@@ -35,33 +36,29 @@ public:
     /// @param args Component constructor arguments.
     template <typename T, typename... Args> Entity& addComponent(Args... args);
 
-    /// Updates this entity.
-    /// @param dt Delta time.
-    void update(float dt);
-
     /// Returns the identifier of this entity.
     EntityId id() const;
 
-    /// Get the current transform.
-    Transform* transform();
-
 private:
-    HashMap<TypeId, UniquePtr<Component>> component_data_;
+    Ontology::EntityManager& entity_manager_;
+    Ontology::Entity::ID internal_entity_id_;
 
-    EntityId internal_id_;
-    Transform* transform_;
+    Ontology::Entity& entity() const {
+        return entity_manager_.getEntity(internal_entity_id_);
+    }
 };
 
-template <typename T> T* Entity::component() const {
-    auto data = component_data_.find(T::typeStatic());
-    if (data == component_data_.end()) {
-        return nullptr;
-    }
-    return data->second.get();
+inline Entity::Entity(Context* context, Ontology::EntityManager& entity_manager,
+                      Ontology::Entity::ID entity_id)
+    : Object{context}, entity_manager_{entity_manager}, internal_entity_id_{entity_id} {
 }
 
-template <> Transform* Entity::component<Transform>() const {
-    return transform_;
+inline EntityId Entity::id() const {
+    return internal_entity_id_;
+}
+
+template <typename T> T* Entity::component() const {
+    return entity().hasComponent<T>() ? entity().getComponentPtr<T>() : nullptr;
 }
 
 template <typename T> bool Entity::hasComponent() const {
@@ -69,13 +66,7 @@ template <typename T> bool Entity::hasComponent() const {
 }
 
 template <typename T, typename... Args> Entity& Entity::addComponent(Args... args) {
-    component_data_.emplace({T::typeStatic(), makeUnique<Args>(std::forward<Args>(args)...)});
-    return *this;
-}
-
-template <typename... Args> Entity& Entity::addComponent<Transform>(Args... args) {
-    addComponent<Transform, Args>(std::forward<Args>(args)...);
-    transform_ = component<Transform>();
+    entity().addComponent<T, Args...>(std::forward<Args>(args)...);
     return *this;
 }
 }  // namespace dw

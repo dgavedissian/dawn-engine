@@ -8,7 +8,7 @@
 #include "renderer/Program.h"
 #include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
-#include "scene/Parent.h"
+#include "scene/SceneManager.h"
 #include "scene/Transform.h"
 #include "renderer/Mesh.h"
 #include "ui/Imgui.h"
@@ -42,28 +42,26 @@ public:
         // Create entities.Wor
         auto em = subsystem<EntityManager>();
         object = &em->createEntity()
-                      .addComponent<Transform>(Position{-10.0f, 0.0f, 0.0f}, Quat::identity)
-                      .addComponent<RenderableComponent>(renderable);
+            .addComponent<Transform>(Position{-10.0f, 0.0f, 0.0f}, Quat::identity, subsystem<SceneManager>()->rootNode())
+            .addComponent<RenderableComponent>(renderable);
         em->createEntity()
-            .addComponent<Transform>(Position{8.0f, 0.0f, 0.0f}, Quat::identity)
-            .addComponent<Parent>(object->id())
+            .addComponent<Transform>(Position{8.0f, 0.0f, 0.0f}, Quat::identity, *object)
             .addComponent<RenderableComponent>(sphere);
         em->createEntity()
-            .addComponent<Transform>(Position{-8.0f, 0.0f, 0.0f}, Quat::identity)
-            .addComponent<Parent>(object->id())
+            .addComponent<Transform>(Position{-8.0f, 0.0f, 0.0f}, Quat::identity, *object)
             .addComponent<RenderableComponent>(sphere);
 
         // Create a camera.
         camera = &em->createEntity()
-                      .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
-                      .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+            .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity, subsystem<SceneManager>()->rootNode())
+            .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
     }
 
     void update(float dt) override {
         static float angle = 0.0f;
         angle += dt;
         // camera->component<Transform>()->position.x = sin(angle) * 30.0f;
-        object->component<Transform>()->orientation = Quat::RotateY(angle);
+        object->component<Transform>()->orientation() = Quat::RotateY(angle);
     }
 
     void render() override {

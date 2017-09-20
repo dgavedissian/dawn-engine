@@ -8,37 +8,27 @@
 #include "ecs/EntityManager.h"
 #include "ecs/SystemManager.h"
 #include "scene/Transform.h"
-#include "scene/Parent.h"
 
 namespace dw {
 namespace {
 Mat4 ConvertTransform(Transform& t) {
-    return Mat4::Translate(t.position.x, t.position.y, t.position.z).ToFloat4x4() *
-           Mat4::FromQuat(t.orientation);
+    return Mat4::Translate(t.position().getRelativeTo(Position::origin)).ToFloat4x4() *  Mat4::FromQuat(t.orientation());
 }
 
-// Assumptions: Transform component exists, Parent component optional.
-Mat4 DeriveTransform(EntityManager& entity_manager, Entity& entity,
-                     HashMap<EntityId, Mat4>& transform_cache) {
-    auto transform = entity.component<Transform>();
-    auto parent = entity.component<Parent>();
-
+Mat4 DeriveTransform(Transform* transform, HashMap<Transform*, Mat4>& transform_cache) {
     // If this world transform hasn't been cached yet.
-    auto cached_transform = transform_cache.find(entity.id());
+    auto cached_transform = transform_cache.find(transform);
     if (cached_transform == transform_cache.end()) {
         // Calculate transform relative to parent.
         Mat4 model = ConvertTransform(*transform);
 
         // Derive world transform recursively.
-        if (parent) {
-            auto parent_entity = entity_manager.findEntity(parent->parent);
-            if (parent_entity) {
-                model = DeriveTransform(entity_manager, *parent_entity, transform_cache) * model;
-            }
+        if (transform->parent()) {
+            model = DeriveTransform(transform->parent(), transform_cache) * model;
         }
 
         // Save to cache.
-        transform_cache.insert({entity.id(), model});
+        transform_cache.insert({transform, model});
         return model;
     }
     return cached_transform->second;
@@ -56,7 +46,7 @@ void EntityRenderer::beginProcessing() {
 
 void EntityRenderer::processEntity(Entity& entity) {
     auto renderable = entity.component<RenderableComponent>();
-    Mat4 model = DeriveTransform(*subsystem<EntityManager>(), entity, world_transform_cache_);
+    Mat4 model = DeriveTransform(entity.component<Transform>(), world_transform_cache_);
     for (auto camera : camera_entity_system_->cameras) {
         renderable->renderable->draw(subsystem<Renderer>(), camera.view, model,
                                      camera.view_projection_matrix);

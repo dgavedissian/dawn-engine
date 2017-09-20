@@ -4,18 +4,8 @@
  */
 #pragma once
 
+#include "ontology/Component.hpp"
+
 namespace dw {
-using ComponentId = dw::StringHash::HashType;
-
-class DW_API Component : public Object {
-public:
-    DW_OBJECT(Component);
-
-    Component(Context* context) = default;
-
-    virtual void update(float dt) {}
-
-    ComponentId id() const { return type().value(); }
-
-};
+using Component = Ontology::Component;
 }

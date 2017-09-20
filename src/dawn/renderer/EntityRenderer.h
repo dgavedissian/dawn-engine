@@ -7,6 +7,7 @@
 #include "renderer/Camera.h"
 #include "renderer/Renderer.h"
 #include "ecs/System.h"
+#include "scene/Transform.h"
 
 namespace dw {
 class DW_API EntityRenderer : public System {
@@ -37,6 +38,6 @@ private:
         Vector<CameraState> cameras;
     };
     CameraEntitySystem* camera_entity_system_;
-    HashMap<EntityId, Mat4> world_transform_cache_;
+    HashMap<Transform*, Mat4> world_transform_cache_;
 };
 }  // namespace dw

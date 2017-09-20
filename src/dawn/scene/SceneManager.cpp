@@ -8,18 +8,19 @@
 namespace dw {
 
 SceneManager::SceneManager(Context* context) : Object(context) {
+    root_node_ = makeShared<Transform>(Vec3::zero, Quat::identity, nullptr);
 }
 
 SceneManager::~SceneManager() {
 }
 
-void SceneManager::update(float dt) {
+void SceneManager::update(float) {
 }
 
 Transform*  SceneManager::rootNode() const {
     return root_node_.get();
 }
 
-void SceneManager::preRender(Camera_OLD* camera) {
+void SceneManager::preRender(Camera_OLD*) {
 }
 }  // namespace dw

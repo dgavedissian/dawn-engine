@@ -11,18 +11,22 @@
 namespace dw {
 class Transform : public Component {
 public:
-    DW_OBJECT(Transform);
-
-    Transform(Context* context, const Position& p, const Quat& o);
+    Transform(const Position& p, const Quat& o, Entity& entity);
+    Transform(const Position& p, const Quat& o, Transform* parent);
 
     Position& position();
     const Position& position() const;
     Quat& orientation();
     const Quat& orientation() const;
 
+    Transform* parent();
+
+    void attachTo(Transform* new_parent);
+
 private:
     Position position_;
     Quat orientation_;
-
+    Transform* parent_;
+    Vector<Transform*> children_;
 };
 }  // namespace dw
