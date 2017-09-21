@@ -60,7 +60,7 @@ public:
                       .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity,
                                                subsystem<SceneManager>()->rootNode())
                       .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
-        camera_controller = makeShared<CameraController>(context(), 100.0f, 100.0f);
+        camera_controller = makeShared<CameraController>(context(), 300.0f);
         camera_controller->possess(camera);
     }
 
@@ -74,7 +74,7 @@ public:
     }
 
     void render() override {
-        subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+        subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
 
         // Calculate average FPS.
         float current_fps = 1.0 / engine_->frameTime();

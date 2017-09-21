@@ -6,13 +6,11 @@
 #include "scene/CameraController.h"
 
 namespace dw {
-CameraController::CameraController(Context* context, float acceleration, float max_speed)
-    : Object{context}, acceleration_{acceleration}, max_speed_{max_speed} {
+CameraController::CameraController(Context* context, float acceleration)
+    : Object{context},
+      velocity_{0.0f, 0.0f, 0.0f},
+      acceleration_{acceleration} {
     addEventListener<MouseMoveEvent>(makeEventDelegate(this, &CameraController::onMouseMove));
-
-    for (float& i : speed_) {
-        i = 0.0f;
-    }
 }
 
 CameraController::~CameraController() {
@@ -29,28 +27,22 @@ void CameraController::update(float dt) {
         return;
     }
 
-    // Change speed depending on key state.
     auto input = subsystem<Input>();
-    auto direction_handler = [this, input, dt](Key::Enum k, Direction d) {
-        if (input->isKeyDown(k)) {
-            speed_[int(d)] = min(speed_[int(d)] + acceleration_ * dt, max_speed_);
-        } else {
-            // Dampen speed by 99% every second.
-            speed_[int(d)] = damp(speed_[int(d)], 0.0f, 0.99f, dt);
-        }
-    };
-    direction_handler(Key::W, Direction::Front);
-    direction_handler(Key::S, Direction::Back);
-    direction_handler(Key::A, Direction::Left);
-    direction_handler(Key::D, Direction::Right);
-
-    // Update position.
-    Vec3 velocity{speed_[int(Direction::Right)] - speed_[int(Direction::Left)], 0.0f,
-                  speed_[int(Direction::Back)] - speed_[int(Direction::Front)]};
+    float forward_acceleration = acceleration_ * (static_cast<float>(input->isKeyDown(Key::S)) -
+                                                  static_cast<float>(input->isKeyDown(Key::W)));
+    float right_acceleration = acceleration_ * (static_cast<float>(input->isKeyDown(Key::D)) -
+                                                static_cast<float>(input->isKeyDown(Key::A)));
     if (input->isKeyDown(Key::LeftShift) || input->isKeyDown(Key::RightShift)) {
-        velocity *= 2.0f;
+        forward_acceleration *= 10.0f;
+        right_acceleration *= 10.0f;
     }
-    possessed_->transform()->position() += possessed_->transform()->orientation() * (velocity * dt);
+
+    velocity_.x = damp(velocity_.x, 0.0f, 0.99f, dt);
+    velocity_.y = damp(velocity_.y, 0.0f, 0.99f, dt);
+    velocity_.z = damp(velocity_.z, 0.0f, 0.99f, dt);
+    velocity_ += possessed_->transform()->orientation() *
+                 Vec3{right_acceleration, 0.0f, forward_acceleration} * dt;
+    possessed_->transform()->position() += velocity_ * dt;
 }
 
 void CameraController::onMouseMove(const MouseMoveEvent& m) {
@@ -59,11 +51,11 @@ void CameraController::onMouseMove(const MouseMoveEvent& m) {
     }
 
     if (subsystem<Input>()->isMouseButtonDown(MouseButton::Left)) {
-        float mouse_move_to_delta_angle = 0.005f;
-        Quat delta = Quat::RotateX(-m.offset.y * mouse_move_to_delta_angle) *
-                     Quat::RotateY(-m.offset.x * mouse_move_to_delta_angle);
-        possessed_->transform()->orientation() =
-            (possessed_->transform()->orientation() * delta).Normalized();
+        float units_to_radians = -0.003f;
+        auto& orientation = possessed_->transform()->orientation();
+        orientation = orientation * Quat::RotateX(m.offset.y * units_to_radians) *
+                      Quat::RotateY(m.offset.x * units_to_radians);
+        orientation.Normalize();
     }
 }
 }  // namespace dw

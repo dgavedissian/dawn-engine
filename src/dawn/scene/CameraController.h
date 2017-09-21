@@ -12,7 +12,7 @@ class DW_API CameraController : public Object {
 public:
     DW_OBJECT(CameraController);
 
-    CameraController(Context* context, float acceleration, float max_speed);
+    CameraController(Context* context, float acceleration);
     ~CameraController();
 
     void possess(Entity* entity);
@@ -22,10 +22,8 @@ public:
 private:
     Entity* possessed_;
 
-    enum class Direction { Front = 0, Back, Left, Right };
-    float speed_[4];
+    Vec3 velocity_;
     float acceleration_;
-    float max_speed_;
 
     void onMouseMove(const MouseMoveEvent& m);
 };
