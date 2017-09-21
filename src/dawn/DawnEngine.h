@@ -25,6 +25,6 @@
 #include "renderer/EntityRenderer.h"
 #include "renderer/Renderer.h"
 #include "resource/ResourceCache.h"
-#include "scene/SceneManager.h"
+#include "scene/Universe.h"
 #include "script/LuaState.h"
 #include "ui/UserInterface.h"

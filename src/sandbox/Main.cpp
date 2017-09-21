@@ -4,13 +4,11 @@
  */
 #include "DawnEngine.h"
 #include "ecs/EntityManager.h"
-#include "ecs/SystemManager.h"
 #include "renderer/Program.h"
-#include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
 #include "scene/CameraController.h"
-#include "scene/SceneManager.h"
 #include "scene/Transform.h"
+#include "scene/Universe.h"
 #include "renderer/Mesh.h"
 #include "ui/Imgui.h"
 
@@ -46,7 +44,7 @@ public:
         auto em = subsystem<EntityManager>();
         object = &em->createEntity()
                       .addComponent<Transform>(Position{-10.0f, 0.0f, 0.0f}, Quat::identity,
-                                               subsystem<SceneManager>()->rootNode())
+                                               subsystem<Universe>()->rootNode())
                       .addComponent<RenderableComponent>(renderable);
         em->createEntity()
             .addComponent<Transform>(Position{8.0f, 0.0f, 0.0f}, Quat::identity, *object)
@@ -58,7 +56,7 @@ public:
         // Create a camera.
         camera = &em->createEntity()
                       .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity,
-                                               subsystem<SceneManager>()->rootNode())
+                                               subsystem<Universe>()->rootNode())
                       .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);
         camera_controller->possess(camera);

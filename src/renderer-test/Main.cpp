@@ -619,7 +619,7 @@ TEST_CLASS(MovingSphereHighLevel) {
 
         auto sm = subsystem<SystemManager>();
         auto em = subsystem<EntityManager>();
-        auto scene = subsystem<SceneManager>();
+        auto scene = subsystem<Universe>();
         object = &em->createEntity()
                       .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity,
                                                scene->rootNode())

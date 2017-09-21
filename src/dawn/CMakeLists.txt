@@ -119,10 +119,10 @@ set(SOURCE_FILES
     scene/CameraController.h
     scene/Position.cpp
     scene/Position.h
-    scene/SceneManager.cpp
-    scene/SceneManager.h
     scene/Transform.cpp
     scene/Transform.h
+    scene/Universe.cpp
+    scene/Universe.h
     script/LuaState.cpp
     script/LuaState.h
     script/Sol.h

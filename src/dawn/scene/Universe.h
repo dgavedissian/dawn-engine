@@ -8,24 +8,20 @@
 
 namespace dw {
 
-class Camera_OLD;
-
-/// Class used to keep track of entities being updated
-class DW_API SceneManager : public Object {
+/// Used to keep track of the current universe, which contains all entities.
+class DW_API Universe : public Object {
 public:
-    DW_OBJECT(SceneManager);
+    DW_OBJECT(Universe);
 
-    SceneManager(Context* context);
-    ~SceneManager();
+    Universe(Context* context);
+    ~Universe();
 
     /// Calls update on each entity
     /// @param dt Time elapsed
     void update(float dt);
 
+    /// Returns the root node in the scene graph.
     Transform* rootNode() const;
-
-    /// Calls PreRender on each entity
-    void preRender(Camera_OLD* camera);
 
 private:
     SharedPtr<Transform> root_node_;
