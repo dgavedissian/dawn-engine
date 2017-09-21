@@ -29,6 +29,7 @@ set(SOURCE_FILES
     core/Timer.cpp
     core/Timer.h
     ecs/Component.h
+    ecs/Entity.cpp
     ecs/Entity.h
     ecs/EntityManager.cpp
     ecs/EntityManager.h
@@ -114,6 +115,8 @@ set(SOURCE_FILES
     resource/Resource.h
     resource/ResourceCache.cpp
     resource/ResourceCache.h
+    scene/CameraController.cpp
+    scene/CameraController.h
     scene/Position.cpp
     scene/Position.h
     scene/SceneManager.cpp

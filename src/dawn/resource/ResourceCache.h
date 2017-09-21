@@ -21,8 +21,8 @@ public:
         String name(String(filename.c_str()));
 
         // If the resource already exists, return it.
-        auto it = mResourceCache.find(name);
-        if (it != mResourceCache.end()) {
+        auto it = resource_cache_.find(name);
+        if (it != resource_cache_.end()) {
             return staticPointerCast<T>((*it).second);
         }
 
@@ -33,7 +33,7 @@ public:
             return nullptr;
         }
         SharedPtr<T> resource = makeShared<T>(context());
-        mResourceCache.emplace(name, resource);
+        resource_cache_.emplace(name, resource);
         log().info("Loading Asset '%s'", filename);
         resource->load(filename, *file.get());
         return resource;
@@ -42,7 +42,7 @@ public:
 private:
     SharedPtr<File> getFile(const Path& filename);
 
-    Vector<Path> mResourcePaths;
-    HashMap<String, SharedPtr<Resource>> mResourceCache;
+    Vector<Path> resource_paths_;
+    HashMap<String, SharedPtr<Resource>> resource_cache_;
 };
 }  // namespace dw

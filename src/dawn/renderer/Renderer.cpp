@@ -45,6 +45,15 @@ void RenderItem::clear() {
     blend_dest_rgb = blend_dest_a = BlendFunc::Zero;
 }
 
+View::View() : clear_colour{0.0f, 0.0f, 0.0f, 1.0f}, frame_buffer{FrameBufferHandle::invalid} {
+}
+
+void View::clear() {
+    clear_colour = {0.0f, 0.0f, 0.0f, 1.0f};
+    frame_buffer = FrameBufferHandle::invalid;
+    render_items.clear();
+}
+
 Frame::Frame() {
     current_item.clear();
     transient_vb_storage.data = new byte[MAX_TRANSIENT_VERTEX_BUFFER_SIZE];
@@ -53,6 +62,9 @@ Frame::Frame() {
     transient_ib_storage.size = 0;
     next_transient_vertex_buffer_handle_ = TransientVertexBufferHandle{0};
     next_transient_index_buffer_handle_ = TransientIndexBufferHandle{0};
+
+    // By default, view 0 will point to the backbuffer.
+    view(0).frame_buffer = FrameBufferHandle{0};
 }
 
 Frame::~Frame() {
@@ -544,8 +556,9 @@ bool Renderer::renderFrame(Frame* frame) {
     // Clear the frame state.
     frame->current_item.clear();
     for (auto& view : frame->views) {
-        view.render_items.clear();
+        view.clear();
     }
+    frame->view(0).frame_buffer = FrameBufferHandle{0};
     frame->commands_pre.clear();
     frame->commands_post.clear();
     frame->transient_vb_storage.size = 0;
@@ -560,5 +573,13 @@ bool Renderer::renderFrame(Frame* frame) {
 #endif
 
     return true;
+}
+
+uint Renderer::getBackbufferView() const {
+    for (uint view_index = 0; view_index < submit_->views.size(); ++view_index) {
+        if (submit_->views[view_index].frame_buffer.internal() == 0) {
+            return view_index;
+        }
+    }
 }
 }  // namespace dw

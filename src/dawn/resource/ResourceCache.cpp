@@ -16,11 +16,11 @@ ResourceCache::~ResourceCache() {
 }
 
 void ResourceCache::addResourceLocation(const Path& path) {
-    mResourcePaths.push_back(path);
+    resource_paths_.push_back(path);
 }
 
 SharedPtr<File> ResourceCache::getFile(const Path& filename) {
-    for (const Path& resPath : mResourcePaths) {
+    for (const Path& resPath : resource_paths_) {
         Path fullPath = resPath + "/" + filename;
         if (subsystem<FileSystem>()->fileExists(fullPath)) {
             return makeShared<File>(context(), fullPath, FileMode::Read);

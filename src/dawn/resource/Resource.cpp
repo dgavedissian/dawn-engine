@@ -8,7 +8,7 @@
 
 namespace dw {
 
-Resource::Resource(Context* context) : Object(context), mLoaded(false) {
+Resource::Resource(Context* context) : Object(context), loaded_(false) {
 }
 
 bool Resource::load(const String& asset_name, InputStream& src) {
@@ -16,7 +16,7 @@ bool Resource::load(const String& asset_name, InputStream& src) {
         return false;
     }
     endLoad();
-    mLoaded = true;
+    loaded_ = true;
     return true;
 }
 
@@ -28,6 +28,6 @@ void Resource::save(OutputStream&) {
 }
 
 bool Resource::hasLoaded() const {
-    return mLoaded;
+    return loaded_;
 }
 }  // namespace dw

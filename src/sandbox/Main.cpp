@@ -8,6 +8,7 @@
 #include "renderer/Program.h"
 #include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
+#include "scene/CameraController.h"
 #include "scene/SceneManager.h"
 #include "scene/Transform.h"
 #include "renderer/Mesh.h"
@@ -20,7 +21,9 @@ public:
     DW_OBJECT(Sandbox);
 
     Entity* object;
+
     Entity* camera;
+    SharedPtr<CameraController> camera_controller;
 
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
@@ -42,8 +45,9 @@ public:
         // Create entities.Wor
         auto em = subsystem<EntityManager>();
         object = &em->createEntity()
-            .addComponent<Transform>(Position{-10.0f, 0.0f, 0.0f}, Quat::identity, subsystem<SceneManager>()->rootNode())
-            .addComponent<RenderableComponent>(renderable);
+                      .addComponent<Transform>(Position{-10.0f, 0.0f, 0.0f}, Quat::identity,
+                                               subsystem<SceneManager>()->rootNode())
+                      .addComponent<RenderableComponent>(renderable);
         em->createEntity()
             .addComponent<Transform>(Position{8.0f, 0.0f, 0.0f}, Quat::identity, *object)
             .addComponent<RenderableComponent>(sphere);
@@ -53,8 +57,11 @@ public:
 
         // Create a camera.
         camera = &em->createEntity()
-            .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity, subsystem<SceneManager>()->rootNode())
-            .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+                      .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity,
+                                               subsystem<SceneManager>()->rootNode())
+                      .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+        camera_controller = makeShared<CameraController>(context(), 100.0f, 100.0f);
+        camera_controller->possess(camera);
     }
 
     void update(float dt) override {
@@ -62,6 +69,8 @@ public:
         angle += dt;
         // camera->component<Transform>()->position.x = sin(angle) * 30.0f;
         object->component<Transform>()->orientation() = Quat::RotateY(angle);
+
+        camera_controller->update(dt);
     }
 
     void render() override {
@@ -84,8 +93,7 @@ public:
         static double accumulated_time = 0.0;
         static float displayed_fps = 60.0f;
         accumulated_time += engine_->frameTime();
-        if (accumulated_time > 1.0f / 30.0f)
-        {
+        if (accumulated_time > 1.0f / 30.0f) {
             accumulated_time = 0;
             displayed_fps = average_fps;
         }
@@ -93,8 +101,9 @@ public:
         // Display FPS information.
         ImGui::SetNextWindowPos({10, 10});
         ImGui::SetNextWindowSize({140, 40});
-        if (!ImGui::Begin("FPS", nullptr, {0, 0}, 0.5f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
-        {
+        if (!ImGui::Begin("FPS", nullptr, {0, 0}, 0.5f,
+                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                              ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
             ImGui::End();
             return;
         }

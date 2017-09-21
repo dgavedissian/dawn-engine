@@ -67,7 +67,7 @@ private:
 #define TEST_CLASS_NAME(test_name) test_name##Test
 #define TEST_CLASS(test_name) class TEST_CLASS_NAME(test_name) : public Object
 #define TEST_BODY(test_name)                                                    \
-    \
+                                                                                \
 public:                                                                         \
     DW_OBJECT(TEST_CLASS_NAME(test_name));                                      \
     TEST_CLASS_NAME(test_name)                                                  \
@@ -619,20 +619,23 @@ TEST_CLASS(MovingSphereHighLevel) {
 
         auto sm = subsystem<SystemManager>();
         auto em = subsystem<EntityManager>();
+        auto scene = subsystem<SceneManager>();
         object = &em->createEntity()
-                      .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
+                      .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity,
+                                               scene->rootNode())
                       .addComponent<RenderableComponent>(renderable);
 
         // Create a camera.
         camera = &em->createEntity()
-                      .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
+                      .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity,
+                                               scene->rootNode())
                       .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
     }
 
     void render() {
         static float angle = 0.0f;
         angle += engine_->frameTime();
-        camera->component<Transform>()->position.x = sin(angle) * 30.0f;
+        camera->transform()->position().x = sin(angle) * 30.0f;
         subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
     }
 

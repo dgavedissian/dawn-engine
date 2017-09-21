@@ -57,24 +57,26 @@ inline float fastSqrt(float value) {
 }
 
 /// Linear interpolation between two float values.
-inline float lerp(float lhs, float rhs, float t) {
-    return lhs * (1.0f - t) + rhs * t;
+inline float lerp(float a, float b, float t) {
+    return a * (1.0f - t) + b * t;
 }
 
 /// Linear interpolation between two double values.
-inline double lerp(double lhs, double rhs, float t) {
-    return lhs * (1.0f - t) + rhs * t;
+inline double lerp(double a, double b, float t) {
+    return a * (1.0f - t) + b * t;
 }
 
-/// Linear interpolation between two float values taking into account the rate of time.
-/// NOTE: in 1 second, value will be t% between the lhs and rhs.
-inline float lerp(float lhs, float rhs, float t, float dt) {
-    return lerp(lhs, rhs, 1.0f - pow(1.0f - t, dt));
+/// Linear interpolation between two float values taking into account the rate of time. The
+/// smoothing parameter dictates the percentage of 'a' remaining after 1 second. Source:
+/// http://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/
+inline float damp(float a, float b, float smoothing, float dt) {
+    return lerp(a, b, 1.0f - pow(1.0f - smoothing, dt));
 }
 
-/// Linear interpolation between two quaternion values taking into account the rate of time.
-inline Quat lerp(const Quat& a, const Quat& b, float t, float dt) {
-    return Quat::Slerp(a, b, 1.0f - pow(1.0f - t, dt));
+/// Linear interpolation between two quaternion values taking into account the rate of time. The
+/// smoothing parameter dictates the percentage of 'a' remaining after 1 second.
+inline Quat damp(const Quat& a, const Quat& b, float smoothing, float dt) {
+    return Quat::Slerp(a, b, 1.0f - pow(1.0f - smoothing, dt));
 }
 
 /// Returns the greatest integer which is less than the input value
@@ -200,6 +202,16 @@ inline unsigned sdbmHash(unsigned hash, unsigned char c) {
 }
 
 //// Templated functions
+
+/// Returns the minimum of two values.
+template <typename T> T min(const T& a, const T& b) {
+    return a < b ? a : b;
+}
+
+/// Returns the maximum of two values.
+template <typename T> T max(const T& a, const T& b) {
+    return a > b ? a : b;
+}
 
 /// Limits a value to a certain range by wrapping it past the constraints.
 template <class T> T wrap(const T& value, const T& min, const T& max) {

@@ -302,8 +302,9 @@ struct RenderItem {
 
 // View.
 struct View {
-    View() : clear_colour{0.0f, 0.0f, 0.0f, 1.0f}, frame_buffer{0} {
-    }
+    View();
+    void clear();
+
     Colour clear_colour;
     FrameBufferHandle frame_buffer;
     Vector<RenderItem> render_items;
@@ -480,6 +481,9 @@ public:
 
     /// Get the current backbuffer size.
     Vec2i getBackbufferSize() const;
+
+    /// Get the view which corresponds to the backbuffer.
+    uint getBackbufferView() const;
 
 private:
     u16 width_, height_;

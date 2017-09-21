@@ -17,7 +17,7 @@ SceneManager::~SceneManager() {
 void SceneManager::update(float) {
 }
 
-Transform*  SceneManager::rootNode() const {
+Transform* SceneManager::rootNode() const {
     return root_node_.get();
 }
 

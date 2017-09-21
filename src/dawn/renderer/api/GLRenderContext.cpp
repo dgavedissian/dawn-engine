@@ -462,12 +462,11 @@ bool GLRenderContext::frame(const Frame* frame) {
 
     // Process views.
     for (auto& v : frame->views) {
-        if (v.render_items.empty()) {
+        if (v.render_items.empty() || !v.frame_buffer.isValid()) {
             continue;
         }
 
         // Set up framebuffer.
-        assert(v.frame_buffer.isValid());
         u16 fb_width, fb_height;
         if (v.frame_buffer.internal() > 0) {
             FrameBufferData& fb_data = frame_buffer_map_.at(v.frame_buffer);
