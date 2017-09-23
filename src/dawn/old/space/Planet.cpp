@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "core/Utils.h"
 #include "renderer/Renderer.h"
-#include "physics/PhysicsWorld.h"
+#include "physics/PhysicsSystem.h"
 #include "StarSystem.h"
 #include "Planet.h"
 #include "Star.h"

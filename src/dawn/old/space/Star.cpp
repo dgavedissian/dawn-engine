@@ -4,7 +4,7 @@
  */
 #include "Common.h"
 #include "renderer/Renderer.h"
-#include "physics/PhysicsWorld.h"
+#include "physics/PhysicsSystem.h"
 #include "scene/Camera.h"
 #include "StarSystem.h"
 #include "Star.h"

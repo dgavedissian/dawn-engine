@@ -10,6 +10,7 @@ namespace dw {
 Transform::Transform(const Position& p, const Quat& o, Entity& entity)
     : Transform{p, o, entity.component<Transform>()} {
 }
+
 Transform::Transform(const Position& p, const Quat& o, Transform* parent)
     : position_{p}, orientation_{o}, parent_{nullptr} {
     attachTo(parent);

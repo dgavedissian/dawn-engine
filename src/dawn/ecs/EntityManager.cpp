@@ -3,6 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
+#include "scene/Universe.h"
 #include "ecs/EntityManager.h"
 
 namespace dw {
@@ -16,6 +17,22 @@ Entity& EntityManager::createEntity() {
     auto entity_ptr = entity.get();
     entity_lookup_table_.emplace(makePair(entity->id(), std::move(entity)));
     return *entity_ptr;
+}
+
+Entity& EntityManager::createEntity(const Position &p, const Quat &o, Entity *parent) {
+    Entity& e = createEntity();
+    if (parent) {
+        e.addComponent<Transform>(p, o, *parent);
+    } else {
+        e.addComponent<Transform>(p, o, nullptr);
+    }
+    return e;
+}
+
+Entity& EntityManager::createEntity(const Position &p, const Quat &o) {
+    Entity& e = createEntity();
+    e.addComponent<Transform>(p, o, subsystem<Universe>()->rootNode());
+    return e;
 }
 
 Entity* EntityManager::findEntity(EntityId id) {

@@ -64,6 +64,7 @@ template <typename T> bool Entity::hasComponent() const {
 
 template <typename T, typename... Args> Entity& Entity::addComponent(Args... args) {
     entity().addComponent<T, Args...>(std::forward<Args>(args)...);
+    entity().template getComponentPtr<T>()->onAddToEntity(this);
     return *this;
 }
 }  // namespace dw

@@ -82,6 +82,11 @@ void Engine::setup() {
     context_->addSubsystem<LuaState>();
     // TODO(David): bind engine services to lua?
 
+    // Set up the ECS architecture.
+    auto& em = *context_->addSubsystem<EntityManager>();
+    auto& sm = *context_->addSubsystem<SystemManager>();
+    sm.addSystem<EntityRenderer>();
+
     // Create the engine subsystems.
     context_->addSubsystem<Input>();
     auto* renderer = context_->addSubsystem<Renderer>();
@@ -90,15 +95,10 @@ void Engine::setup() {
     context_->addSubsystem<UserInterface>();
     context_->addSubsystem<Universe>();
     // mAudio = new Audio;
-    // mPhysicsWorld = new PhysicsWorld(mRenderer);
+    context_->addSubsystem<PhysicsSystem>();
     // mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
     context_->addSubsystem<StateManager>();
     context_->addSubsystem<ResourceCache>();
-
-    // Set up the ECS architecture.
-    auto& em = *context_->addSubsystem<EntityManager>();
-    auto& sm = *context_->addSubsystem<SystemManager>();
-    sm.addSystem<EntityRenderer>();
 
     // Set input viewport size
     /*
@@ -141,6 +141,9 @@ void Engine::shutdown() {
     context_->removeSubsystem<StateManager>();
     context_->removeSubsystem<UserInterface>();
     context_->removeSubsystem<ResourceCache>();
+    context_->removeSubsystem<SystemManager>();
+    context_->removeSubsystem<EntityManager>();
+    context_->removeSubsystem<Universe>();
     context_->clearSubsystems();
 
     // The engine is no longer initialised.
@@ -317,12 +320,13 @@ void Engine::update(float dt) {
     context_->subsystem<EventSystem>()->update(0.02f);
     context_->subsystem<StateManager>()->update(dt);
     context_->subsystem<Universe>()->update(dt);
+    context_->subsystem<PhysicsSystem>()->update(dt, nullptr);
 
     context_->subsystem<SystemManager>()->update();
     context_->subsystem<UserInterface>()->update(dt);
 }
 
-void Engine::preRender(Camera_OLD* camera) {
+void Engine::preRender(Camera_OLD*) {
     context_->subsystem<StateManager>()->preRender();
 }
 

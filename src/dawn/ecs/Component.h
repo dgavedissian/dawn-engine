@@ -7,5 +7,12 @@
 #include "ontology/Component.hpp"
 
 namespace dw {
-using Component = Ontology::Component;
+class Entity;
+
+class DW_API Component : public Ontology::Component {
+public:
+    virtual ~Component() = default;
+
+    virtual void onAddToEntity(Entity* parent);
+};
 }

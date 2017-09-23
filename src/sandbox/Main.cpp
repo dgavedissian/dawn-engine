@@ -40,34 +40,25 @@ public:
         auto sphere = rc->get<Mesh>("models/side-wing.mesh.xml");
         sphere->setMaterial(material);
 
-        // Create entities.Wor
+        // Create entities.
         auto em = subsystem<EntityManager>();
-        object = &em->createEntity()
-                      .addComponent<Transform>(Position{-10.0f, 0.0f, 0.0f}, Quat::identity,
-                                               subsystem<Universe>()->rootNode())
-                      .addComponent<RenderableComponent>(renderable);
-        em->createEntity()
-            .addComponent<Transform>(Position{8.0f, 0.0f, 0.0f}, Quat::identity, *object)
+        object = &em->createEntity(Position{-10.0f, 0.0f, 0.0f}, Quat::identity)
+                      .addComponent<RenderableComponent>(renderable)
+                      .addComponent<RigidBody>(subsystem<PhysicsSystem>(), 10.0f, makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}));
+        object->component<RigidBody>()->_rigidBody()->applyCentralImpulse(btVector3{5.0f, 0.0f, 0.0f});
+        em->createEntity(Position{8.0f, 0.0f, 0.0f}, Quat::identity, object)
             .addComponent<RenderableComponent>(sphere);
-        em->createEntity()
-            .addComponent<Transform>(Position{-8.0f, 0.0f, 0.0f}, Quat::identity, *object)
+        em->createEntity(Position{-8.0f, 0.0f, 0.0f}, Quat::identity, object)
             .addComponent<RenderableComponent>(sphere);
 
         // Create a camera.
-        camera = &em->createEntity()
-                      .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity,
-                                               subsystem<Universe>()->rootNode())
+        camera = &em->createEntity(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
                       .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);
         camera_controller->possess(camera);
     }
 
     void update(float dt) override {
-        static float angle = 0.0f;
-        angle += dt;
-        // camera->component<Transform>()->position.x = sin(angle) * 30.0f;
-        object->component<Transform>()->orientation() = Quat::RotateY(angle);
-
         camera_controller->update(dt);
     }
 

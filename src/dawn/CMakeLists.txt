@@ -28,6 +28,7 @@ set(SOURCE_FILES
     core/StringUtils.h
     core/Timer.cpp
     core/Timer.h
+    ecs/Component.cpp
     ecs/Component.h
     ecs/Entity.cpp
     ecs/Entity.h
@@ -71,8 +72,8 @@ set(SOURCE_FILES
     math/Vec4i.cpp
     math/Vec4i.h
     physics/BulletDynamics.h
-    physics/PhysicsWorld.cpp
-    physics/PhysicsWorld.h
+    physics/PhysicsSystem.cpp
+    physics/PhysicsSystem.h
     platform/Defines.h
     platform/Windows.h
     renderer/api/GL.h
