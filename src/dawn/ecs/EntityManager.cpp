@@ -19,7 +19,7 @@ Entity& EntityManager::createEntity() {
     return *entity_ptr;
 }
 
-Entity& EntityManager::createEntity(const Position &p, const Quat &o, Entity *parent) {
+Entity& EntityManager::createEntity(const Position& p, const Quat& o, Entity* parent) {
     Entity& e = createEntity();
     if (parent) {
         e.addComponent<Transform>(p, o, *parent);
@@ -29,7 +29,7 @@ Entity& EntityManager::createEntity(const Position &p, const Quat &o, Entity *pa
     return e;
 }
 
-Entity& EntityManager::createEntity(const Position &p, const Quat &o) {
+Entity& EntityManager::createEntity(const Position& p, const Quat& o) {
     Entity& e = createEntity();
     e.addComponent<Transform>(p, o, subsystem<Universe>()->rootNode());
     return e;

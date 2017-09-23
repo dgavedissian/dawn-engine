@@ -59,7 +59,6 @@ Vec2 Input::mouseScroll() const {
 
 void Input::_notifyKey(Key::Enum key, Modifier::Enum modifier, bool state) {
     key_down_[key] = state;
-    log().debug("Key %d state: %d - modifier: %d", key, state, modifier);
     triggerEvent<KeyEvent>(key, modifier, state);
 }
 

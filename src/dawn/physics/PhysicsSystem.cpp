@@ -11,14 +11,19 @@
 namespace dw {
 namespace {
 btTransform toBulletTransform(Transform& xform) {
-    btQuaternion quat{xform.orientation().x, xform.orientation().y, xform.orientation().z, xform.orientation().w};
-    return btTransform(quat, {static_cast<btScalar>(xform.position().x), static_cast<btScalar>(xform.position().y), static_cast<btScalar>(xform.position().z)});
+    btQuaternion quat{xform.orientation().x, xform.orientation().y, xform.orientation().z,
+                      xform.orientation().w};
+    return btTransform(
+        quat,
+        {static_cast<btScalar>(xform.position().x), static_cast<btScalar>(xform.position().y),
+         static_cast<btScalar>(xform.position().z)});
 }
 
 void fromBulletTransform(const btTransform& source, Transform& dest) {
     btQuaternion rotation;
     source.getBasis().getRotation(rotation);
-    dest.position() = Position{source.getOrigin().x(), source.getOrigin().y(), source.getOrigin().z()};
+    dest.position() =
+        Position{source.getOrigin().x(), source.getOrigin().y(), source.getOrigin().z()};
     dest.orientation() = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
 }
 }
@@ -44,22 +49,15 @@ PhysicsSystem::PhysicsSystem(Context* context) : Object(context) {
 
 PhysicsSystem::~PhysicsSystem() {
     removeEventListener<KeyEvent>(makeEventDelegate(this, &PhysicsSystem::onKey));
-
-    log().info("Bullet cleaned up");
 }
 
 void PhysicsSystem::update(float dt, Camera_OLD*) {
-    // Call PreSimulationStep on each rigid body
-    // for (auto body : rigid_body_list_)
-    //   static_cast<RigidEntity*>(body->getUserPointer())->PreSimulationStep(camera);
-
-    // Step the simulation
-    world_->stepSimulation(dt, 0);
+    world_->stepSimulation(dt, 5);
     // mDebugDrawer->step();
 }
 
 bool PhysicsSystem::rayQuery(const Position& start, const Position& end, Camera_OLD* camera,
-                            PhysicsRaycastResult& result) {
+                             PhysicsRaycastResult& result) {
     // Make sure this is done in camera-space
     btVector3 start_cs = start.toCameraSpace(camera);
     btVector3 end_cs = end.toCameraSpace(camera);
@@ -98,28 +96,29 @@ void PhysicsSystem::onKey(const KeyEvent& data) {
     }
 }
 
-void PhysicsSystem::onPhysicsTick(btDynamicsWorld * /*world*/, btScalar /*timestep*/) {
+void PhysicsSystem::onPhysicsTick(btDynamicsWorld* /*world*/, btScalar /*timestep*/) {
 }
 
-void PhysicsSystem::addRigidBody(btRigidBody *rigid_body) {
+void PhysicsSystem::addRigidBody(btRigidBody* rigid_body) {
     world_->addRigidBody(rigid_body);
 }
 
-void PhysicsSystem::removeRigidBody(btRigidBody *rigid_body) {
+void PhysicsSystem::removeRigidBody(btRigidBody* rigid_body) {
     world_->removeRigidBody(rigid_body);
 }
 
-PhysicsSystem::PhysicsComponentSystem::PhysicsComponentSystem(Context *context) : System(context) {
+PhysicsSystem::PhysicsComponentSystem::PhysicsComponentSystem(Context* context) : System(context) {
     supportsComponents<Transform, RigidBody>();
 }
 
-void PhysicsSystem::PhysicsComponentSystem::processEntity(Entity &entity) {
+void PhysicsSystem::PhysicsComponentSystem::processEntity(Entity& entity) {
     auto t = entity.component<Transform>();
     auto rb = entity.component<RigidBody>()->rigid_body_.get();
     fromBulletTransform(rb->getWorldTransform(), *t);
 }
 
-RigidBody::RigidBody(PhysicsSystem* world, float mass, SharedPtr<btCollisionShape> collision_shape) : world_{world}, collision_shape_{std::move(collision_shape)}, mass_{mass} {
+RigidBody::RigidBody(PhysicsSystem* world, float mass, SharedPtr<btCollisionShape> collision_shape)
+    : world_{world}, collision_shape_{std::move(collision_shape)}, mass_{mass} {
 }
 
 RigidBody::~RigidBody() {
@@ -130,7 +129,7 @@ RigidBody::~RigidBody() {
     }
 }
 
-void RigidBody::onAddToEntity(Entity *parent) {
+void RigidBody::onAddToEntity(Entity* parent) {
     // Get initial transform.
     assert(parent->transform());
     btTransform initial_transform = toBulletTransform(*parent->transform());
@@ -138,8 +137,10 @@ void RigidBody::onAddToEntity(Entity *parent) {
     // Set up rigid body.
     btVector3 inertia;
     collision_shape_->calculateLocalInertia(mass_, inertia);
-    btRigidBody::btRigidBodyConstructionInfo rigid_body_ci(mass_, new btDefaultMotionState(initial_transform), collision_shape_.get(), inertia);
+    btRigidBody::btRigidBodyConstructionInfo rigid_body_ci(
+        mass_, new btDefaultMotionState(initial_transform), collision_shape_.get(), inertia);
     rigid_body_ = makeUnique<btRigidBody>(rigid_body_ci);
+    rigid_body_->setDamping(0.0f, 0.0f);
     world_->addRigidBody(rigid_body_.get());
 }
 

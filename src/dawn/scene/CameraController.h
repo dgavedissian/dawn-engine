@@ -23,6 +23,7 @@ private:
     Entity* possessed_;
 
     Vec3 velocity_;
+    float roll_velocity_;
     float acceleration_;
 
     void onMouseMove(const MouseMoveEvent& m);

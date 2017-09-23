@@ -9,6 +9,7 @@ namespace dw {
 CameraController::CameraController(Context* context, float acceleration)
     : Object{context},
       velocity_{0.0f, 0.0f, 0.0f},
+      roll_velocity_{0.0f},
       acceleration_{acceleration} {
     addEventListener<MouseMoveEvent>(makeEventDelegate(this, &CameraController::onMouseMove));
 }
@@ -32,6 +33,8 @@ void CameraController::update(float dt) {
                                                   static_cast<float>(input->isKeyDown(Key::W)));
     float right_acceleration = acceleration_ * (static_cast<float>(input->isKeyDown(Key::D)) -
                                                 static_cast<float>(input->isKeyDown(Key::A)));
+    float roll_acceleration = 10.0f * (static_cast<float>(input->isKeyDown(Key::Q)) -
+                                       static_cast<float>(input->isKeyDown(Key::E)));
     if (input->isKeyDown(Key::LeftShift) || input->isKeyDown(Key::RightShift)) {
         forward_acceleration *= 10.0f;
         right_acceleration *= 10.0f;
@@ -40,8 +43,13 @@ void CameraController::update(float dt) {
     velocity_.x = damp(velocity_.x, 0.0f, 0.99f, dt);
     velocity_.y = damp(velocity_.y, 0.0f, 0.99f, dt);
     velocity_.z = damp(velocity_.z, 0.0f, 0.99f, dt);
+    roll_velocity_ = damp(roll_velocity_, 0.0f, 0.99f, dt);
     velocity_ += possessed_->transform()->orientation() *
                  Vec3{right_acceleration, 0.0f, forward_acceleration} * dt;
+    roll_velocity_ += roll_acceleration * dt;
+
+    possessed_->transform()->orientation() =
+        possessed_->transform()->orientation() * Quat::RotateZ(roll_velocity_ * dt);
     possessed_->transform()->position() += velocity_ * dt;
 }
 

@@ -51,7 +51,7 @@ private:
     void addRigidBody(btRigidBody* rigid_body);
     void removeRigidBody(btRigidBody* rigid_body);
 
-    static void onPhysicsTick(btDynamicsWorld *world, btScalar timestep);
+    static void onPhysicsTick(btDynamicsWorld* world, btScalar timestep);
 
     // System for updating RigidBody components.
     class PhysicsComponentSystem : public System {
@@ -76,7 +76,9 @@ public:
 
     // Set orientation.
 
-    btRigidBody* _rigidBody() { return rigid_body_.get(); }
+    btRigidBody* _rigidBody() {
+        return rigid_body_.get();
+    }
 
 private:
     PhysicsSystem* world_;

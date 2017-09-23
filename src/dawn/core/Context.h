@@ -101,9 +101,7 @@ private:
 };
 
 template <typename T> T* Context::subsystem() const {
-    auto ss = static_cast<T*>(subsystem(T::typeStatic()));
-    assert(ss);
-    return ss;
+    return static_cast<T*>(subsystem(T::typeStatic()));
 }
 
 template <typename T, typename... Args> T* Context::addSubsystem(Args... args) {
