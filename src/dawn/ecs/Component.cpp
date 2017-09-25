@@ -8,4 +8,4 @@
 namespace dw {
 void Component::onAddToEntity(Entity*) {
 }
-}
+}  // namespace dw

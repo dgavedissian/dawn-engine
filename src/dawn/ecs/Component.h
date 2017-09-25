@@ -15,4 +15,4 @@ public:
 
     virtual void onAddToEntity(Entity* parent);
 };
-}
+}  // namespace dw

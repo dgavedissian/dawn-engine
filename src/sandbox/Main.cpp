@@ -51,44 +51,59 @@ public:
 
         // Engines.
         engines_ = {
-            {1, {0.0f, 10.0f, 0.0f}, {-30.0f, 0.0f, 0.0f}},   // clockwise
-            {2, {0.0f, -10.0f, 0.0f}, {-30.0f, 0.0f, 0.0f}},  // anticlockwise
-            {3, {0.0f, 10.0f, 0.0f}, {30.0f, 0.0f, 0.0f}},    // anticlockwise
-            {4, {0.0f, -10.0f, 0.0f}, {30.0f, 0.0f, 0.0f}},   // clockwise
+            {1, {0.0f, 10.0f, 0.0f}, {-40.0f, 0.0f, 0.0f}},
+            {2, {0.0f, -10.0f, 0.0f}, {-40.0f, 0.0f, 0.0f}},
+            {3, {0.0f, 10.0f, 0.0f}, {40.0f, 0.0f, 0.0f}},
+            {4, {0.0f, -10.0f, 0.0f}, {40.0f, 0.0f, 0.0f}},
+
+            {5, {10.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 40.0f}},
+            {6, {-10.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 40.0f}},
+            {7, {10.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -40.0f}},
+            {8, {-10.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -40.0f}},
+
+            {9, {0.0f, 0.0f, 10.0f}, {0.0f, 40.0f, 0.0f}},
+            {10, {0.0f, 0.0f, -10.0f}, {0.0f, 40.0f, 0.0f}},
+            {11, {0.0f, 0.0f, 10.0f}, {0.0f, -40.0f, 0.0f}},
+            {12, {0.0f, 0.0f, -10.0f}, {0.0f, -40.0f, 0.0f}},
         };
 
         // Get engine information projected onto each rotation axis.
         Vector<Pair<String, Vec3>> rotation_axes = {
             {"yz plane (pitch - x rotation)", Vec3{1.0f, 0.0f, 0.0f}},
-            {"xz plane (yaw - y rotation)", Vec3{0.0f, 1.0f, 0.0f}},
-            {"xy plane (roll - z rotation)", Vec3{0.0f, 0.0f, 1.0f}}};
+            {"xz plane (yaw - y rotation)", Vec3{0.0f, -1.0f, 0.0f}},
+            {"xy plane (roll - z rotation)", Vec3{0.0f, 0.0f, -1.0f}}};
         for (int i = 0; i < navigation_engines_.size(); ++i) {
             log().info("For %s", rotation_axes[i].first);
             Plane rotation_plane{rotation_axes[i].second, 0.0f};
             for (auto& engine : engines_) {
-                Vec3 proj_direction = rotation_plane.Project(engine.direction);
+                Vec3 proj_force = rotation_plane.Project(engine.force);
                 Vec3 proj_position = rotation_plane.Project(engine.position);
-                float dot = proj_direction.Dot(proj_position);
-                Vec3 cross = proj_direction.Cross(proj_position);
+                Vec3 cross = proj_force.Cross(proj_position);
 
                 // If the cross product is above the plane, then the direction is clockwise,
                 // otherwise anticlockwise.
                 float signed_distance = rotation_plane.SignedDistance(cross);
                 bool clockwise = signed_distance > 0.0f;
 
-                log().info("Engine %s %s - Projected %s %s - Dot: %.0f - Direction: %s (%.0f)",
-                           engine.direction.ToString(), engine.position.ToString(),
-                           proj_direction.ToString(), proj_position.ToString(), dot,
-                           clockwise ? "clockwise" : "anticlockwise", signed_distance);
-
                 if (abs(signed_distance) > 0.01f) {
+                    log().info("Engine %s %s - Projected %s %s - Direction: %s (%.0f)",
+                               engine.force.ToString(), engine.position.ToString(),
+                               proj_force.ToString(), proj_position.ToString(),
+                               clockwise ? "clockwise" : "anticlockwise", signed_distance);
+
                     navigation_engines_[i].emplace_back(
-                        NavigationEngine{engine,
+                        NavigationEngine{{engine.id, proj_force, proj_position},
                                          clockwise ? NavigationEngineDirection::Clockwise
                                                    : NavigationEngineDirection::Anticlockwise});
                 }
             }
         }
+
+        Vec3 clockwise;
+        Vec3 anticlockwise;
+        calculateMaxAngularAcceleration(clockwise, anticlockwise);
+        log().info("Max clockwise: %s - anticlockwise: %s", clockwise.ToString(),
+                   anticlockwise.ToString());
     }
 
     ~Ship() {
@@ -97,41 +112,94 @@ public:
     void update(float dt) {
         auto input = subsystem<Input>();
 
-        Vec3 angular_acc{ 0.0f, 0.0f, 0.0f };
+        // Control rotational thrusters.
+        float pitch_direction = static_cast<float>(input->isKeyDown(Key::Up)) -
+                                static_cast<float>(input->isKeyDown(Key::Down));
+        float yaw_direction = static_cast<float>(input->isKeyDown(Key::Right)) -
+                              static_cast<float>(input->isKeyDown(Key::Left));
+        float roll_direction = static_cast<float>(input->isKeyDown(Key::P)) -
+                               static_cast<float>(input->isKeyDown(Key::O));
+        fireRotationalThrusters(pitch_direction, yaw_direction, roll_direction);
 
-        int roll_direction = static_cast<int>(input->isKeyDown(Key::Right)) -
-                             static_cast<int>(input->isKeyDown(Key::Left));
-        if (roll_direction != 0) {
-            Vec3 total_torque{ 0.0f, 0.0f, 0.0f };
-            NavigationEngineDirection direction = roll_direction == 1
-                                                      ? NavigationEngineDirection::Clockwise
-                                                      : NavigationEngineDirection::Anticlockwise;
-            for (auto& engine : navigation_engines_[RotationAxis_Z]) {
-                if (engine.direction == direction) {
-                    // Applying a moment of force (torque) is T = r x F (r is the position, F is
-                    // the force vector).
-                    total_torque += engine.engine.position.Cross(engine.engine.direction);
-                }
-            }
-            rb_->activate();
-            rb_->applyTorque(total_torque);
+        // Calculate angular acceleration.
+        Vec3 angular_acc =
+            calculateAngularAcceleration(pitch_direction, yaw_direction, roll_direction);
 
-            angular_acc = rb_->getInvInertiaTensorWorld() * total_torque;
-        }
+        // Get angular velocity relative to the ship.
 
         // Display stats.
-        ImGui::SetNextWindowPos({ 10, 50 });
-        ImGui::SetNextWindowSize({ 300, 40 });
-        if (!ImGui::Begin("Ship", nullptr, { 0, 0 }, 0.5f,
-            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
+        ImGui::SetNextWindowPos({10, 50});
+        ImGui::SetNextWindowSize({300, 60});
+        if (!ImGui::Begin("Ship", nullptr, {0, 0}, 0.5f,
+                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                              ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
             ImGui::End();
             return;
         }
-        auto angular_vel = Vec3{ rb_->getAngularVelocity() };
-        ImGui::Text("Angular Velocity: %.2f %.2f %.2f", angular_vel.x, angular_vel.y, angular_vel.z);
-        ImGui::Text("Angular Acceleration: %.2f %.2f %.2f", angular_acc.x, angular_acc.y, angular_acc.z);
+        Vec3 angular_vel = angularVelocity();
+        ImGui::Text("Angular Velocity: %.2f %.2f %.2f", angular_vel.x, angular_vel.y,
+                    angular_vel.z);
+        ImGui::Text("Angular Acceleration: %.2f %.2f %.2f", angular_acc.x, angular_acc.y,
+                    angular_acc.z);
         ImGui::End();
+    }
+
+    void calculateMaxAngularAcceleration(Vec3& clockwise, Vec3& anticlockwise) const {
+        // Pitch - X axis.
+        // Yaw - Y axis.
+        // Roll - Z axis.
+        Vec3 clockwise_torque{0.0f, 0.0f, 0.0f};
+        Vec3 anticlockwise_torque{0.0f, 0.0f, 0.0f};
+        for (int i = 0; i < navigation_engines_.size(); ++i) {
+            for (auto& engine : navigation_engines_[i]) {
+                if (engine.direction == NavigationEngineDirection::Clockwise) {
+                    clockwise_torque += engine.engine.torque();
+                } else {
+                    anticlockwise_torque += engine.engine.torque();
+                }
+            }
+        }
+        clockwise = rb_->getInvInertiaTensorWorld() * clockwise_torque;
+        anticlockwise = rb_->getInvInertiaTensorWorld() * anticlockwise_torque;
+    }
+
+    Vec3 calculateAngularAcceleration(float pitch, float yaw, float roll) const {
+        Vec3 power{pitch, yaw, roll};
+        Vec3 total_torque{0.0f, 0.0f, 0.0f};
+        for (int i = 0; i < navigation_engines_.size(); ++i) {
+            NavigationEngineDirection direction = power[i] > 0
+                                                      ? NavigationEngineDirection::Clockwise
+                                                      : NavigationEngineDirection::Anticlockwise;
+            for (auto& engine : navigation_engines_[i]) {
+                if (engine.direction == direction) {
+                    total_torque += engine.engine.torque() * abs(power[i]);
+                }
+            }
+        }
+        return rb_->getInvInertiaTensorWorld() * total_torque;
+    }
+
+    void fireRotationalThrusters(float pitch, float yaw, float roll) {
+        Vec3 power{pitch, yaw, roll};
+        Vec3 total_torque{0.0f, 0.0f, 0.0f};
+        for (int i = 0; i < navigation_engines_.size(); ++i) {
+            NavigationEngineDirection direction = power[i] > 0
+                                                      ? NavigationEngineDirection::Clockwise
+                                                      : NavigationEngineDirection::Anticlockwise;
+            for (auto& engine : navigation_engines_[i]) {
+                if (engine.direction == direction) {
+                    total_torque += engine.engine.torque() * abs(power[i]);
+                }
+            }
+        }
+        rb_->activate();
+        rb_->applyTorque(core_->transform()->orientation() * total_torque);
+    }
+
+    Vec3 angularVelocity() const {
+        Quat inv_rotation = core_->transform()->orientation();
+        inv_rotation.InverseAndNormalize();
+        return inv_rotation * Vec3{rb_->getAngularVelocity()};
     }
 
 private:
@@ -141,8 +209,18 @@ private:
 
     struct Engine {
         int id;
-        Vec3 direction;
+        Vec3 force;
         Vec3 position;
+
+        Vec3 fire() {
+            return torque();
+        }
+
+        Vec3 torque() const {
+            // Applying a moment of force (torque) is T = r x F (r is the position, F is the force
+            // vector).
+            return force.Cross(position);
+        }
     };
     Vector<Engine> engines_;
 
