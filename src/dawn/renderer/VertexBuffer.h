@@ -12,8 +12,10 @@ public:
     DW_OBJECT(VertexBuffer);
 
     VertexBuffer(Context* context, const void* data, uint size, uint vertex_count,
-                 const VertexDecl& decl);
+                 const VertexDecl& decl, BufferUsage usage = BufferUsage::Static);
     ~VertexBuffer();
+
+    void update(const void* data, uint size, uint offset);
 
     VertexBufferHandle internalHandle() const;
     u32 vertexCount() const;

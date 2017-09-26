@@ -33,6 +33,7 @@ private:
 
         struct CameraState {
             uint view;
+            Transform* transform_component;
             Mat4 view_projection_matrix;
         };
         Vector<CameraState> cameras;

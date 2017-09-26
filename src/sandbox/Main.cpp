@@ -9,79 +9,11 @@
 #include "scene/CameraController.h"
 #include "scene/Transform.h"
 #include "scene/Universe.h"
-#include "io/StringInputStream.h"
+#include "renderer/BillboardSet.h"
 #include "renderer/Mesh.h"
 #include "ui/Imgui.h"
 
 using namespace dw;
-
-class ParticleSystem : public Object
-{
-public:
-    DW_OBJECT(ParticleSystem);
-
-    ParticleSystem(int particle_count, float particle_size) : particle_size_{particle_size}
-    {
-        resize(particle_count);
-
-        // Shaders.
-        StringInputStream vs{""};
-        StringInputStream fs{""};
-    }
-
-    void resize(int particle_count)
-    {
-        positions_.resize(particle_count);
-        for (int i = 0; i < particle_count; ++i)
-        {
-            positions_[i] = Vec3(0.0f, 0.0f, 0.0f);
-        }
-
-        // Allocate vertex data.
-        vertex_data_.resize(particle_count * 4);
-
-        // Build index data.
-        index_data_.resize(particle_count * 6);
-        for (int i = 0; i < particle_count; ++i)
-        {
-            // 0 1
-            // 2 3
-            int start_vertex = i * 4;
-            index_data_[i * 6 + 0] = start_vertex;
-            index_data_[i * 6 + 1] = start_vertex + 3;
-            index_data_[i * 6 + 2] = start_vertex + 1;
-            index_data_[i * 6 + 3] = start_vertex;
-            index_data_[i * 6 + 4] = start_vertex + 2;
-            index_data_[i * 6 + 5] = start_vertex + 3;
-        }
-    }
-
-    void setParticlePosition(int particle_id, const Vec3& position)
-    {
-        assert(particle_id < positions_.size());
-    }
-
-    void update(Camera* camera)
-    {
-        
-    }
-
-private:
-    float particle_size_;
-
-    Vector<Vec3> positions_;
-    struct ParticleVertex
-    {
-        Vec3 position;
-    };
-    Vector<ParticleVertex> vertex_data_;
-    Vector<u32> index_data_;
-
-    SharedPtr<VertexBuffer> vb_;
-    SharedPtr<IndexBuffer> ib_;
-
-    SharedPtr<Program> ps_program_;
-};
 
 class Ship : public Object {
 public:
@@ -310,6 +242,8 @@ public:
 
     SharedPtr<CameraController> camera_controller;
 
+    SharedPtr<BillboardSet> particles;
+
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
@@ -317,6 +251,15 @@ public:
         rc->addResourceLocation("../media/sandbox");
 
         ship = makeShared<Ship>(context());
+
+        // Particles.
+        particles = makeShared<BillboardSet>(context(), 2, 10.0f);
+        subsystem<EntityManager>()
+            ->createEntity(Position::origin, Quat::identity)
+            .addComponent<RenderableComponent>(particles);
+        particles->material()->setTextureUnit(rc->get<Texture>("textures/scene-star-glow.png"), 0);
+        particles->setParticlePosition(0, {0.0f, 10.0f, 0.0f});
+        particles->setParticlePosition(1, {30.0f, -10.0f, 0.0f});
 
         // Create a camera.
         auto& camera = subsystem<EntityManager>()

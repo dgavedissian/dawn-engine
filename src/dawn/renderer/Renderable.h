@@ -6,6 +6,7 @@
 
 #include "renderer/Material.h"
 #include "ecs/Component.h"
+#include "scene/Transform.h"
 
 namespace dw {
 class DW_API Renderable {
@@ -22,7 +23,7 @@ public:
     void setMaterial(SharedPtr<Material> material);
 
     /// Draws this renderable to the specified view.
-    virtual void draw(Renderer* renderer, uint view, const Mat4& model_matrix,
+    virtual void draw(Renderer* renderer, uint view, Transform* camera, const Mat4& model_matrix,
                       const Mat4& view_projection_matrix) = 0;
 
 protected:

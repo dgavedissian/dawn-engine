@@ -27,7 +27,7 @@ void Program::endLoad() {
 }
 
 void Program::setTextureUnit(SharedPtr<Texture> texture, uint unit) {
-    texture_units_[unit] = std::move(texture);
+    texture_units_[unit] = texture;
 }
 
 ProgramHandle Program::internalHandle() const {

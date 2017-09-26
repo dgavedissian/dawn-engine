@@ -79,6 +79,8 @@ set(SOURCE_FILES
     renderer/api/GL.h
     renderer/api/GLRenderContext.cpp
     renderer/api/GLRenderContext.h
+    renderer/BillboardSet.cpp
+    renderer/BillboardSet.h
     renderer/Camera.cpp
     renderer/Camera.h
     renderer/CustomMeshRenderable.cpp

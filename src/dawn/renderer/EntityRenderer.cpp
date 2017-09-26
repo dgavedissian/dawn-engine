@@ -49,8 +49,8 @@ void EntityRenderer::processEntity(Entity& entity) {
     auto renderable = entity.component<RenderableComponent>();
     Mat4 model = deriveTransform(entity.transform(), world_transform_cache_);
     for (auto camera : camera_entity_system_->cameras) {
-        renderable->renderable->draw(subsystem<Renderer>(), camera.view, model,
-                                     camera.view_projection_matrix);
+        renderable->renderable->draw(subsystem<Renderer>(), camera.view, camera.transform_component,
+                                     model, camera.view_projection_matrix);
     }
 }
 
@@ -67,6 +67,6 @@ void EntityRenderer::CameraEntitySystem::processEntity(Entity& entity) {
     auto camera = entity.component<Camera>();
     auto transform = entity.component<Transform>();
     Mat4 view = convertTransform(transform).Inverted();
-    cameras.emplace_back(CameraState{0, camera->projection_matrix * view});
+    cameras.emplace_back(CameraState{0, transform, camera->projection_matrix * view});
 }
 }  // namespace dw

@@ -7,13 +7,17 @@
 
 namespace dw {
 VertexBuffer::VertexBuffer(Context* context, const void* data, uint size, uint vertex_count,
-                           const VertexDecl& decl)
+                           const VertexDecl& decl, BufferUsage usage)
     : Object{context}, vertex_count_{vertex_count} {
-    handle_ = context->subsystem<Renderer>()->createVertexBuffer(data, size, decl);
+    handle_ = context->subsystem<Renderer>()->createVertexBuffer(data, size, decl, usage);
 }
 
 VertexBuffer::~VertexBuffer() {
     context_->subsystem<Renderer>()->deleteVertexBuffer(handle_);
+}
+
+void VertexBuffer::update(const void* data, uint size, uint offset) {
+    context_->subsystem<Renderer>()->updateVertexBuffer(handle_, data, size, offset);
 }
 
 VertexBufferHandle VertexBuffer::internalHandle() const {
