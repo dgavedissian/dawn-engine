@@ -11,17 +11,12 @@
 
 namespace dw {
 namespace {
-Mat4 convertTransform(Transform* t) {
-    return Mat4::Translate(t->position().getRelativeTo(Position::origin)).ToFloat4x4() *
-           Mat4::FromQuat(t->orientation());
-}
-
 Mat4 deriveTransform(Transform* transform, HashMap<Transform*, Mat4>& transform_cache) {
     // If this world transform hasn't been cached yet.
     auto cached_transform = transform_cache.find(transform);
     if (cached_transform == transform_cache.end()) {
         // Calculate transform relative to parent.
-        Mat4 model = convertTransform(transform);
+        Mat4 model = transform->modelMatrix();
 
         // Derive world transform recursively.
         if (transform->parent()) {
@@ -66,7 +61,7 @@ void EntityRenderer::CameraEntitySystem::beginProcessing() {
 void EntityRenderer::CameraEntitySystem::processEntity(Entity& entity) {
     auto camera = entity.component<Camera>();
     auto transform = entity.component<Transform>();
-    Mat4 view = convertTransform(transform).Inverted();
+    Mat4 view = transform->modelMatrix().Inverted();
     cameras.emplace_back(CameraState{0, transform, camera->projection_matrix * view});
 }
 }  // namespace dw

@@ -692,9 +692,8 @@ void GLRenderContext::operator()(const cmd::CreateIndexBuffer& c) {
 
     index_buffer_map_.insert(
         {c.handle,
-         IndexBufferData{ebo,
-                         static_cast<GLenum>(c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT
-                                                                            : GL_UNSIGNED_INT),
+         IndexBufferData{ebo, static_cast<GLenum>(c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT
+                                                                                 : GL_UNSIGNED_INT),
                          usage, c.size}});
 }
 

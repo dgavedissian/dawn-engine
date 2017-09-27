@@ -18,6 +18,7 @@ public:
     const Position& position() const;
     Quat& orientation();
     const Quat& orientation() const;
+    Mat4 modelMatrix() const;
 
     Transform* parent();
 

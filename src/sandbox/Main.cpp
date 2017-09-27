@@ -52,20 +52,20 @@ public:
 
         // Engines.
         engines_ = {
-            {1, {0.0f, 10.0f, 0.0f}, {-40.0f, 0.0f, 0.0f}},
-            {2, {0.0f, -10.0f, 0.0f}, {-40.0f, 0.0f, 0.0f}},
-            {3, {0.0f, 10.0f, 0.0f}, {40.0f, 0.0f, 0.0f}},
-            {4, {0.0f, -10.0f, 0.0f}, {40.0f, 0.0f, 0.0f}},
+            {1, 0.0f, {0.0f, 20.0f, 0.0f}, {-20.0f, 0.0f, 0.0f}},
+            {2, 0.0f, {0.0f, -20.0f, 0.0f}, {-20.0f, 0.0f, 0.0f}},
+            {3, 0.0f, {0.0f, 20.0f, 0.0f}, {20.0f, 0.0f, 0.0f}},
+            {4, 0.0f, {0.0f, -20.0f, 0.0f}, {20.0f, 0.0f, 0.0f}},
 
-            {5, {10.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 40.0f}},
-            {6, {-10.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 40.0f}},
-            {7, {10.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -40.0f}},
-            {8, {-10.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -40.0f}},
+            {5, 0.0f, {20.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 20.0f}},
+            {6, 0.0f, {-20.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 20.0f}},
+            {7, 0.0f, {20.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -20.0f}},
+            {8, 0.0f, {-20.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -20.0f}},
 
-            {9, {0.0f, 0.0f, 10.0f}, {0.0f, 40.0f, 0.0f}},
-            {10, {0.0f, 0.0f, -10.0f}, {0.0f, 40.0f, 0.0f}},
-            {11, {0.0f, 0.0f, 10.0f}, {0.0f, -40.0f, 0.0f}},
-            {12, {0.0f, 0.0f, -10.0f}, {0.0f, -40.0f, 0.0f}},
+            {9, 0.0f, {0.0f, 0.0f, 20.0f}, {0.0f, 20.0f, 0.0f}},
+            {10, 0.0f, {0.0f, 0.0f, -20.0f}, {0.0f, 20.0f, 0.0f}},
+            {11, 0.0f, {0.0f, 0.0f, 20.0f}, {0.0f, -20.0f, 0.0f}},
+            {12, 0.0f, {0.0f, 0.0f, -20.0f}, {0.0f, -20.0f, 0.0f}},
         };
 
         // Get engine information projected onto each rotation axis.
@@ -93,7 +93,8 @@ public:
                                clockwise ? "clockwise" : "anticlockwise", signed_distance);
 
                     navigation_engines_[i].emplace_back(
-                        NavigationEngine{{engine.id, proj_force, proj_position},
+                        NavigationEngine{{engine.id, 0.0f, proj_force, proj_position},
+                                         &engine,
                                          clockwise ? NavigationEngineDirection::Clockwise
                                                    : NavigationEngineDirection::Anticlockwise});
                 }
@@ -105,6 +106,15 @@ public:
         calculateMaxAngularAcceleration(clockwise, anticlockwise);
         log().info("Max clockwise: %s - anticlockwise: %s", clockwise.ToString(),
                    anticlockwise.ToString());
+
+        // Engine particles.
+        particles_ = makeShared<BillboardSet>(context(), engines_.size(), 10.0f);
+        subsystem<EntityManager>()
+            ->createEntity(Position::origin, Quat::identity, core_)
+            .addComponent<RenderableComponent>(particles_);
+        particles_->material()->setTextureUnit(rc->get<Texture>("textures/scene-star-glow.png"), 0);
+        for (int i = 0; i < engines_.size(); i++) {
+        }
     }
 
     ~Ship() {
@@ -112,6 +122,11 @@ public:
 
     void update(float dt) {
         auto input = subsystem<Input>();
+
+        // Attenuate engine glows.
+        for (auto& e : engines_) {
+            e.update(dt);
+        }
 
         // Control rotational thrusters.
         float pitch_direction = static_cast<float>(input->isKeyDown(Key::Up)) -
@@ -127,6 +142,14 @@ public:
             calculateAngularAcceleration(pitch_direction, yaw_direction, roll_direction);
 
         // Get angular velocity relative to the ship.
+
+        // Update engine particles.
+        for (int i = 0; i < engines_.size(); i++) {
+            float engine_glow_size = 3.0f * engines_[i].visibility;
+            particles_->setParticlePosition(
+                i, Vec3{core_->transform()->modelMatrix() * Vec4{engines_[i].position, 1.0f}});
+            particles_->setParticleSize(i, {engine_glow_size, engine_glow_size});
+        }
 
         // Display stats.
         ImGui::SetNextWindowPos({10, 50});
@@ -189,7 +212,11 @@ public:
                                                       : NavigationEngineDirection::Anticlockwise;
             for (auto& engine : navigation_engines_[i]) {
                 if (engine.direction == direction) {
-                    total_torque += engine.engine.torque() * abs(power[i]);
+                    Vec3 engine_torque = engine.engine.torque() * abs(power[i]);
+                    total_torque += engine_torque;
+                    if (engine_torque.Length() > 0.01f) {
+                        engine.actual_engine->fire();
+                    }
                 }
             }
         }
@@ -208,13 +235,20 @@ private:
     btRigidBody* rb_;
     SharedPtr<Material> material_;
 
-    struct Engine {
+    SharedPtr<BillboardSet> particles_;
+
+    struct EngineData {
         int id;
+        float visibility;
         Vec3 force;
         Vec3 position;
 
-        Vec3 fire() {
-            return torque();
+        void fire() {
+            visibility = 1.0f;
+        }
+
+        void update(float dt) {
+            visibility *= 0.99f;  // damp(visibility, 0.0f, 0.99f, dt);
         }
 
         Vec3 torque() const {
@@ -223,11 +257,13 @@ private:
             return force.Cross(position);
         }
     };
-    Vector<Engine> engines_;
+    Vector<EngineData> engines_;
 
     enum class NavigationEngineDirection { Clockwise, Anticlockwise };
     struct NavigationEngine {
-        Engine engine;
+        EngineData engine;  // TODO: Don't use EngineData here but create a separate structure with
+                            // torque()..
+        EngineData* actual_engine;
         NavigationEngineDirection direction;
     };
     enum RotationAxis { RotationAxis_X, RotationAxis_Y, RotationAxis_Z };
@@ -242,8 +278,6 @@ public:
 
     SharedPtr<CameraController> camera_controller;
 
-    SharedPtr<BillboardSet> particles;
-
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
@@ -251,15 +285,6 @@ public:
         rc->addResourceLocation("../media/sandbox");
 
         ship = makeShared<Ship>(context());
-
-        // Particles.
-        particles = makeShared<BillboardSet>(context(), 2, 10.0f);
-        subsystem<EntityManager>()
-            ->createEntity(Position::origin, Quat::identity)
-            .addComponent<RenderableComponent>(particles);
-        particles->material()->setTextureUnit(rc->get<Texture>("textures/scene-star-glow.png"), 0);
-        particles->setParticlePosition(0, {0.0f, 10.0f, 0.0f});
-        particles->setParticlePosition(1, {30.0f, -10.0f, 0.0f});
 
         // Create a camera.
         auto& camera = subsystem<EntityManager>()

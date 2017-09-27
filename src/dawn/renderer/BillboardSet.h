@@ -18,6 +18,7 @@ public:
     void resize(u32 particle_count);
 
     void setParticlePosition(int particle_id, const Vec3& position);
+    void setParticleSize(int particle_id, const Vec2& size);
 
     void draw(Renderer* renderer, uint view, Transform* camera, const Mat4&,
               const Mat4& view_projection_matrix) override;
@@ -25,7 +26,11 @@ public:
 private:
     float particle_size_;
 
-    Vector<Vec3> positions_;
+    struct ParticleData {
+        Vec3 position;
+        Vec2 size;
+    };
+    Vector<ParticleData> particles_;
     struct ParticleVertex {
         Vec3 position;
         Vec2 uv;

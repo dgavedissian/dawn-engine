@@ -32,6 +32,11 @@ const Quat& Transform::orientation() const {
     return orientation_;
 }
 
+Mat4 Transform::modelMatrix() const {
+    return Mat4::Translate(position().getRelativeTo(Position::origin)).ToFloat4x4() *
+           Mat4::FromQuat(orientation());
+}
+
 Transform* Transform::parent() {
     return parent_;
 }

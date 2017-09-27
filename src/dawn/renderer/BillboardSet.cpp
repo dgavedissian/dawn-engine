@@ -18,14 +18,14 @@ BillboardSet::BillboardSet(Context* ctx, u32 particle_count, float particle_size
             layout(location = 0) in vec3 position;
             layout(location = 1) in vec2 texcoord;
 
-            uniform mat4 view_projection_matrix;
+            uniform mat4 mvp_matrix;
 
             out vec2 frag_texcoord;
 
             void main()
             {
                 frag_texcoord = texcoord;
-                gl_Position = view_projection_matrix * vec4(position, 1.0);
+                gl_Position = mvp_matrix * vec4(position, 1.0);
             }
         )"};
     StringInputStream fs_source{R"(
@@ -67,9 +67,10 @@ BillboardSet::BillboardSet(Context* ctx, u32 particle_count, float particle_size
 }
 
 void BillboardSet::resize(u32 particle_count) {
-    positions_.resize(particle_count);
+    particles_.resize(particle_count);
     for (int i = 0; i < particle_count; ++i) {
-        positions_[i] = Vec3(0.0f, 0.0f, 0.0f);
+        particles_[i].position = Vec3(0.0f, 0.0f, 0.0f);
+        particles_[i].size = Vec2(particle_size_, particle_size_);
     }
 
     // Allocate vertex data.
@@ -92,8 +93,13 @@ void BillboardSet::resize(u32 particle_count) {
 }
 
 void BillboardSet::setParticlePosition(int particle_id, const Vec3& position) {
-    assert(particle_id < positions_.size());
-    positions_[particle_id] = position;
+    assert(particle_id < particles_.size());
+    particles_[particle_id].position = position;
+}
+
+void BillboardSet::setParticleSize(int particle_id, const Vec2& size) {
+    assert(particle_id < particles_.size());
+    particles_[particle_id].size = size;
 }
 
 void BillboardSet::draw(Renderer* renderer, uint view, Transform* camera, const Mat4&,
@@ -105,27 +111,27 @@ void BillboardSet::draw(Renderer* renderer, uint view, Transform* camera, const 
     renderer->setStateEnable(RenderState::Blending);
     renderer->setStateBlendEquation(BlendEquation::Add, BlendFunc::SrcAlpha,
                                     BlendFunc::OneMinusSrcAlpha);
-    material_->setUniform("view_projection_matrix", view_projection_matrix);
+    material_->setUniform("mvp_matrix", view_projection_matrix);
     material_->program()->prepareForRendering();
-    renderer->submit(view, material_->program()->internalHandle(), positions_.size() * 6);
+    renderer->submit(view, material_->program()->internalHandle(), particles_.size() * 6);
 }
 
 void BillboardSet::update(Transform* camera_transform) {
     // Sort positions by reverse depth - O(nlogn).
-    Vector<Vec3> sorted_positions{positions_};
+    Vector<ParticleData> sorted_particles{particles_};
     Position camera_position = camera_transform->position();
-    std::sort(sorted_positions.begin(), sorted_positions.end(),
-              [camera_position](const Vec3& a, const Vec3& b) {
+    std::sort(sorted_particles.begin(), sorted_particles.end(),
+              [camera_position](const ParticleData& a, const ParticleData& b) {
                   // We want to order from furthest to nearest, so return true if distance of a is
                   // greater.
-                  return camera_position.getRelativeTo(a).LengthSq() >
-                         camera_position.getRelativeTo(b).LengthSq();
+                  return camera_position.getRelativeTo(a.position).LengthSq() >
+                         camera_position.getRelativeTo(b.position).LengthSq();
               });
 
     // Generate vertex data.
-    for (auto& p : sorted_positions) {
+    for (auto& p : sorted_particles) {
         Vec3 axis_x, axis_y;
-        calculateAxes(camera_transform, p, axis_x, axis_y);
+        calculateAxes(camera_transform, p.position, axis_x, axis_y);
 
         // x y u v
         // 0 1
@@ -136,7 +142,7 @@ void BillboardSet::update(Transform* camera_transform) {
                        {1.0f, -1.0f, 1.0f, 0.0f}};
         for (int i = 0; i < 4; ++i) {
             Vec3 vertex_position =
-                p + axis_x * particle_size_ * quad[i].x + axis_y * particle_size_ * quad[i].y;
+                p.position + axis_x * p.size.x * quad[i].x + axis_y * p.size.y * quad[i].y;
             vertex_data_.emplace_back(ParticleVertex{vertex_position, {quad[i].z, quad[i].w}});
         }
     }
