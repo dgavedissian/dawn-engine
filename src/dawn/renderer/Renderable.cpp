@@ -20,6 +20,9 @@ Material* Renderable::material() const {
     return material_.get();
 }
 
+RenderableNode::RenderableNode() : RenderableNode(nullptr) {
+}
+
 RenderableNode::RenderableNode(SharedPtr<Renderable> renderable)
     : renderable_{renderable}, local_offset_{Mat4::identity}, parent_{nullptr} {
 }
@@ -63,7 +66,9 @@ void RenderableNode::addChild(SharedPtr<RenderableNode> child) {
 void RenderableNode::drawSceneGraph(Renderer* renderer, uint view, Transform* camera,
                                     const Mat4& model_matrix, const Mat4& view_projection_matrix) {
     Mat4 world_model_matrix = model_matrix * local_offset_;
-    renderable_->draw(renderer, view, camera, world_model_matrix, view_projection_matrix);
+    if (renderable_) {
+        renderable_->draw(renderer, view, camera, world_model_matrix, view_projection_matrix);
+    }
     for (auto& c : children_) {
         c->drawSceneGraph(renderer, view, camera, world_model_matrix, view_projection_matrix);
     }

@@ -32,6 +32,7 @@ protected:
 
 class DW_API RenderableNode {
 public:
+    RenderableNode();
     RenderableNode(SharedPtr<Renderable> renderable);
     RenderableNode(SharedPtr<Renderable> renderable, const Vec3& position, const Quat& orientation);
     ~RenderableNode();

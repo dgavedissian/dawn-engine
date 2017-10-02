@@ -12,8 +12,12 @@ Transform::Transform(const Position& p, const Quat& o, Entity& entity)
 }
 
 Transform::Transform(const Position& p, const Quat& o, Transform* parent)
-    : position_{p}, orientation_{o}, parent_{nullptr} {
+    : position_{p}, orientation_{o}, relative_to_camera_{false}, parent_{nullptr} {
     attachTo(parent);
+}
+
+void Transform::setRelativeToCamera(bool relative_to_camera) {
+    relative_to_camera_ = relative_to_camera;
 }
 
 Position& Transform::position() {
@@ -32,8 +36,9 @@ const Quat& Transform::orientation() const {
     return orientation_;
 }
 
-Mat4 Transform::modelMatrix() const {
-    return Mat4::Translate(position().getRelativeTo(Position::origin)).ToFloat4x4() *
+Mat4 Transform::modelMatrix(const Position& camera_position) const {
+    Position origin = relative_to_camera_ ? -camera_position : Position::origin;
+    return Mat4::Translate(position().getRelativeTo(origin)).ToFloat4x4() *
            Mat4::FromQuat(orientation());
 }
 

@@ -14,11 +14,15 @@ public:
     Transform(const Position& p, const Quat& o, Entity& entity);
     Transform(const Position& p, const Quat& o, Transform* parent);
 
+    void setRelativeToCamera(bool relative_to_camera);
+
     Position& position();
     const Position& position() const;
     Quat& orientation();
     const Quat& orientation() const;
-    Mat4 modelMatrix() const;
+
+    /// Model matrices only make sense if they're relative to a position.
+    Mat4 modelMatrix(const Position& camera_position) const;
 
     Transform* parent();
 
@@ -27,6 +31,7 @@ public:
 private:
     Position position_;
     Quat orientation_;
+    bool relative_to_camera_;
     Transform* parent_;
     Vector<Transform*> children_;
 };

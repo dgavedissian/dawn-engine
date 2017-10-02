@@ -34,7 +34,7 @@ public:
         }
         SharedPtr<T> resource = makeShared<T>(context());
         resource_cache_.emplace(name, resource);
-        log().info("Loading Asset '%s'", filename);
+        log().info("Loading asset '%s'", filename);
         resource->load(filename, *file.get());
         return resource;
     }

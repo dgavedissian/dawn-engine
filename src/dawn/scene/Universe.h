@@ -5,6 +5,7 @@
 #pragma once
 
 #include "scene/Transform.h"
+#include "renderer/Renderable.h"
 
 namespace dw {
 
@@ -16,6 +17,9 @@ public:
     Universe(Context* context);
     ~Universe();
 
+    /// Set up star system.
+    void createStarSystem();
+
     /// Calls update on each entity
     /// @param dt Time elapsed
     void update(float dt);
@@ -25,5 +29,8 @@ public:
 
 private:
     SharedPtr<Transform> root_node_;
+
+    SharedPtr<RenderableNode> background_renderable_root_;
+    Entity* background_entity_;
 };
 }  // namespace dw

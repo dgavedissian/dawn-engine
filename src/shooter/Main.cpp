@@ -142,13 +142,13 @@ public:
                 float engine_glow_size = 2.0f * engines[i].activity();
                 ship_engines.glow_billboards_->setParticlePosition(
                     i,
-                    Vec3{ transform.modelMatrix() * Vec4 { engines[i].offset(), 1.0f } });
+                    Vec3{ transform.modelMatrix(Position::origin) * Vec4 { engines[i].offset(), 1.0f } });
                 ship_engines.glow_billboards_->setParticleSize(i, { engine_glow_size, engine_glow_size });
                 ship_engines.trail_billboards_->setParticlePosition(
                     i,
-                    Vec3{ transform.modelMatrix() * Vec4 { engines[i].offset(), 1.0f } });
+                    Vec3{ transform.modelMatrix(Position::origin) * Vec4 { engines[i].offset(), 1.0f } });
                 ship_engines.trail_billboards_->setParticleSize(i, { engine_glow_size * 0.25f, engine_glow_size * 3.0f });
-                ship_engines.trail_billboards_->setParticleDirection(i, Vec3{ transform.modelMatrix() * Vec4 { engines[i].force().Normalized(), 0.0f } });
+                ship_engines.trail_billboards_->setParticleDirection(i, Vec3{ transform.modelMatrix(Position::origin) * Vec4 { engines[i].force().Normalized(), 0.0f } });
             }
         }
 
@@ -401,10 +401,12 @@ public:
 
         ship = makeShared<Ship>(context());
 
+        subsystem<Universe>()->createStarSystem();
+
         // Create a camera.
         auto& camera = subsystem<EntityManager>()
                            ->createEntity(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
-                           .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+                           .addComponent<Camera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);
         camera_controller->possess(&camera);
     }
