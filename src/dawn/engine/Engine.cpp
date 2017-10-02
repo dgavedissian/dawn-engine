@@ -322,7 +322,7 @@ void Engine::update(float dt) {
     context_->subsystem<Universe>()->update(dt);
     context_->subsystem<PhysicsSystem>()->update(dt, nullptr);
 
-    context_->subsystem<SystemManager>()->update();
+    context_->subsystem<SystemManager>()->update(dt);
     context_->subsystem<UserInterface>()->update(dt);
 }
 

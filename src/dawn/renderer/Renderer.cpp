@@ -43,6 +43,8 @@ void RenderItem::clear() {
     blend_equation_rgb = blend_equation_a = BlendEquation::Add;
     blend_src_rgb = blend_src_a = BlendFunc::One;
     blend_dest_rgb = blend_dest_a = BlendFunc::Zero;
+    colour_write = true;
+    depth_write = true;
 }
 
 View::View() : clear_colour{0.0f, 0.0f, 0.0f, 1.0f}, frame_buffer{FrameBufferHandle::invalid} {
@@ -426,6 +428,14 @@ void Renderer::setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_r
     submit_->current_item.blend_equation_a = equation_a;
     submit_->current_item.blend_src_a = src_a;
     submit_->current_item.blend_dest_a = dest_a;
+}
+
+void Renderer::setColourWrite(bool write_enabled) {
+    submit_->current_item.colour_write = write_enabled;
+}
+
+void Renderer::setDepthWrite(bool write_enabled) {
+    submit_->current_item.depth_write = write_enabled;
 }
 
 void Renderer::setScissor(u16 x, u16 y, u16 width, u16 height) {

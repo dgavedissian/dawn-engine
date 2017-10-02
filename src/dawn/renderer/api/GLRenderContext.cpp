@@ -532,6 +532,13 @@ bool GLRenderContext::frame(const Frame* frame) {
                                     s_blend_func_map.at(current->blend_dest_a));
                 GL_CHECK();
             }
+            if (!previous || previous->colour_write != current->colour_write) {
+                GLboolean colour_enabled = current->colour_write ? GL_TRUE : GL_FALSE;
+                glColorMask(colour_enabled, colour_enabled, colour_enabled, colour_enabled);
+            }
+            if (!previous || previous->depth_write != current->depth_write) {
+                glDepthMask(current->depth_write ? GL_TRUE : GL_FALSE);
+            }
 
             // Scissor.
             if (!previous || previous->scissor_enabled != current->scissor_enabled) {

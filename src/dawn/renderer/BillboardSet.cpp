@@ -9,8 +9,8 @@
 #include "renderer/Shader.h"
 
 namespace dw {
-BillboardSet::BillboardSet(Context* ctx, u32 particle_count, float particle_size)
-    : Object{ctx}, particle_size_{particle_size} {
+BillboardSet::BillboardSet(Context* ctx, u32 particle_count, const Vec2& particle_size)
+    : Object{ctx}, particle_size_{particle_size}, type_{BillboardType::Point} {
     // Shaders.
     StringInputStream vs_source{R"(
             #version 330 core
@@ -70,7 +70,8 @@ void BillboardSet::resize(u32 particle_count) {
     particles_.resize(particle_count);
     for (int i = 0; i < particle_count; ++i) {
         particles_[i].position = Vec3(0.0f, 0.0f, 0.0f);
-        particles_[i].size = Vec2(particle_size_, particle_size_);
+        particles_[i].size = particle_size_;
+        particles_[i].direction = Vec3::unitY;
     }
 
     // Allocate vertex data.
@@ -92,6 +93,10 @@ void BillboardSet::resize(u32 particle_count) {
     ib_->update(index_data_.data(), index_data_.size() * sizeof(u32), 0);
 }
 
+void BillboardSet::setBillboardType(BillboardType type) {
+    type_ = type;
+}
+
 void BillboardSet::setParticlePosition(int particle_id, const Vec3& position) {
     assert(particle_id < particles_.size());
     particles_[particle_id].position = position;
@@ -100,6 +105,11 @@ void BillboardSet::setParticlePosition(int particle_id, const Vec3& position) {
 void BillboardSet::setParticleSize(int particle_id, const Vec2& size) {
     assert(particle_id < particles_.size());
     particles_[particle_id].size = size;
+}
+
+void BillboardSet::setParticleDirection(int particle_id, const Vec3& direction) {
+    assert(particle_id < particles_.size());
+    particles_[particle_id].direction = direction.Normalized();
 }
 
 void BillboardSet::draw(Renderer* renderer, uint view, Transform* camera, const Mat4&,
@@ -111,27 +121,17 @@ void BillboardSet::draw(Renderer* renderer, uint view, Transform* camera, const 
     renderer->setStateEnable(RenderState::Blending);
     renderer->setStateBlendEquation(BlendEquation::Add, BlendFunc::SrcAlpha,
                                     BlendFunc::OneMinusSrcAlpha);
+    renderer->setDepthWrite(false);
     material_->setUniform("mvp_matrix", view_projection_matrix);
     material_->program()->prepareForRendering();
     renderer->submit(view, material_->program()->internalHandle(), particles_.size() * 6);
 }
 
 void BillboardSet::update(Transform* camera_transform) {
-    // Sort positions by reverse depth - O(nlogn).
-    Vector<ParticleData> sorted_particles{particles_};
-    Position camera_position = camera_transform->position();
-    std::sort(sorted_particles.begin(), sorted_particles.end(),
-              [camera_position](const ParticleData& a, const ParticleData& b) {
-                  // We want to order from furthest to nearest, so return true if distance of a is
-                  // greater.
-                  return camera_position.getRelativeTo(a.position).LengthSq() >
-                         camera_position.getRelativeTo(b.position).LengthSq();
-              });
-
     // Generate vertex data.
-    for (auto& p : sorted_particles) {
+    for (auto& p : particles_) {
         Vec3 axis_x, axis_y;
-        calculateAxes(camera_transform, p.position, axis_x, axis_y);
+        calculateAxes(camera_transform, p, axis_x, axis_y);
 
         // x y u v
         // 0 1
@@ -152,12 +152,21 @@ void BillboardSet::update(Transform* camera_transform) {
     vertex_data_.clear();
 }
 
-void BillboardSet::calculateAxes(Transform* camera_transform, const Vec3& position, Vec3& axis_x,
-                                 Vec3& axis_y) {
-    Vec3 to_eye = camera_transform->position().getRelativeTo(position).Normalized();
+void BillboardSet::calculateAxes(Transform* camera_transform, const ParticleData& data,
+                                 Vec3& axis_x, Vec3& axis_y) {
+    Vec3 to_eye = camera_transform->position().getRelativeTo(data.position).Normalized();
 
     // Point.
-    axis_x = to_eye.Cross(camera_transform->orientation() * Vec3::unitY);
-    axis_y = to_eye.Cross(axis_x);
+    switch (type_) {
+        case BillboardType::Point:
+            axis_x = to_eye.Cross(camera_transform->orientation() * Vec3::unitY);
+            axis_y = to_eye.Cross(axis_x);
+            break;
+
+        case BillboardType::Directional:
+            axis_y = data.direction;
+            axis_x = axis_y.Cross(to_eye);
+            break;
+    }
 }
 }  // namespace dw

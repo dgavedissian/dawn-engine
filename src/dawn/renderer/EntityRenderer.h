@@ -18,7 +18,7 @@ public:
     ~EntityRenderer() = default;
 
     void beginProcessing() override;
-    void processEntity(Entity& entity) override;
+    void processEntity(Entity& entity, float dt) override;
 
 private:
     class DW_API CameraEntitySystem : public System {
@@ -29,7 +29,7 @@ private:
         ~CameraEntitySystem() = default;
 
         void beginProcessing() override;
-        void processEntity(Entity& entity) override;
+        void processEntity(Entity& entity, float dt) override;
 
         struct CameraState {
             uint view;

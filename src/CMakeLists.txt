@@ -13,3 +13,6 @@ add_subdirectory(renderer-test)
 message("========== SANDBOX ==========")
 add_subdirectory(sandbox)
 
+message("========== SHOOTER ==========")
+add_subdirectory(shooter)
+

@@ -14,8 +14,9 @@ btTransform toBulletTransform(Transform& xform) {
     btQuaternion quat{xform.orientation().x, xform.orientation().y, xform.orientation().z,
                       xform.orientation().w};
     return btTransform(
-        quat, {static_cast<btScalar>(xform.position().x), static_cast<btScalar>(xform.position().y),
-               static_cast<btScalar>(xform.position().z)});
+        quat,
+        {static_cast<btScalar>(xform.position().x), static_cast<btScalar>(xform.position().y),
+         static_cast<btScalar>(xform.position().z)});
 }
 
 void fromBulletTransform(const btTransform& source, Transform& dest) {
@@ -110,7 +111,7 @@ PhysicsSystem::PhysicsComponentSystem::PhysicsComponentSystem(Context* context) 
     supportsComponents<Transform, RigidBody>();
 }
 
-void PhysicsSystem::PhysicsComponentSystem::processEntity(Entity& entity) {
+void PhysicsSystem::PhysicsComponentSystem::processEntity(Entity& entity, float) {
     auto t = entity.component<Transform>();
     auto rb = entity.component<RigidBody>()->rigid_body_.get();
     fromBulletTransform(rb->getWorldTransform(), *t);

@@ -40,12 +40,13 @@ void EntityRenderer::beginProcessing() {
     world_transform_cache_.clear();
 }
 
-void EntityRenderer::processEntity(Entity& entity) {
+void EntityRenderer::processEntity(Entity& entity, float) {
     auto renderable = entity.component<RenderableComponent>();
     Mat4 model = deriveTransform(entity.transform(), world_transform_cache_);
     for (auto camera : camera_entity_system_->cameras) {
-        renderable->renderable->draw(subsystem<Renderer>(), camera.view, camera.transform_component,
-                                     model, camera.view_projection_matrix);
+        renderable->node->drawSceneGraph(subsystem<Renderer>(), camera.view,
+                                         camera.transform_component, model,
+                                         camera.view_projection_matrix);
     }
 }
 
@@ -58,7 +59,7 @@ void EntityRenderer::CameraEntitySystem::beginProcessing() {
     cameras.clear();
 }
 
-void EntityRenderer::CameraEntitySystem::processEntity(Entity& entity) {
+void EntityRenderer::CameraEntitySystem::processEntity(Entity& entity, float) {
     auto camera = entity.component<Camera>();
     auto transform = entity.component<Transform>();
     Mat4 view = transform->modelMatrix().Inverted();

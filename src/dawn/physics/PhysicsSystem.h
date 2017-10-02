@@ -59,7 +59,7 @@ private:
         DW_OBJECT(PhysicsComponentSystem);
 
         PhysicsComponentSystem(Context* context);
-        void processEntity(Entity& entity) override;
+        void processEntity(Entity& entity, float dt) override;
     };
 
     friend class RigidBody;

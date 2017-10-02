@@ -1,0 +1,84 @@
+material CapitalShip_3ds#0
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture HullR.bmp gamma
+			}
+		}
+	}
+}
+
+material CapitalShip_3ds#1
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture HullL.bmp gamma
+			}
+		}
+	}
+}
+
+material CapitalShip_3ds#2
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture Hull.bmp gamma
+			}
+		}
+	}
+}
+
+material CapitalShip_3ds#3
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture Hullf.bmp gamma
+			}
+		}
+	}
+}
+
+material CapitalShip_3ds#4
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture Hullw.bmp gamma
+			}
+		}
+	}
+}
+
+material CapitalShip_3ds#5
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture booster.bmp gamma
+			}
+		}
+	}
+}
+

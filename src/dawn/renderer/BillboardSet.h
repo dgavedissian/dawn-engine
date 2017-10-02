@@ -9,26 +9,33 @@
 #include "renderer/IndexBuffer.h"
 
 namespace dw {
+enum class BillboardType { Point, Directional };
+
 class BillboardSet : public Renderable, public Object {
 public:
     DW_OBJECT(BillboardSet);
 
-    BillboardSet(Context* ctx, u32 particle_count, float particle_size);
+    BillboardSet(Context* ctx, u32 particle_count, const Vec2& particle_size);
 
     void resize(u32 particle_count);
 
+    void setBillboardType(BillboardType type);
+
     void setParticlePosition(int particle_id, const Vec3& position);
     void setParticleSize(int particle_id, const Vec2& size);
+    void setParticleDirection(int particle_id, const Vec3& direction);
 
     void draw(Renderer* renderer, uint view, Transform* camera, const Mat4&,
               const Mat4& view_projection_matrix) override;
 
 private:
-    float particle_size_;
+    Vec2 particle_size_;
+    BillboardType type_;
 
     struct ParticleData {
         Vec3 position;
         Vec2 size;
+        Vec3 direction;
     };
     Vector<ParticleData> particles_;
     struct ParticleVertex {
@@ -42,7 +49,7 @@ private:
     SharedPtr<IndexBuffer> ib_;
 
     void update(Transform* camera_transform);
-    void calculateAxes(Transform* camera_transform, const Vec3& position, Vec3& axis_x,
+    void calculateAxes(Transform* camera_transform, const ParticleData& data, Vec3& axis_x,
                        Vec3& axis_y);
 };
 }  // namespace dw

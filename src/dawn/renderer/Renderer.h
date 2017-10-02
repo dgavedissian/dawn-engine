@@ -298,6 +298,9 @@ struct RenderItem {
     BlendEquation blend_equation_a;
     BlendFunc blend_src_a;
     BlendFunc blend_dest_a;
+    bool colour_write;  // TODO: make component-wise
+    bool depth_write;
+    // TODO: Stencil write.
 };
 
 // View.
@@ -460,6 +463,8 @@ public:
     void setStateBlendEquation(BlendEquation equation, BlendFunc src, BlendFunc dest);
     void setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_rgb, BlendFunc dest_rgb,
                                BlendEquation equation_a, BlendFunc src_a, BlendFunc dest_a);
+    void setColourWrite(bool write_enabled);
+    void setDepthWrite(bool write_enabled);
 
     /// Scissor.
     void setScissor(u16 x, u16 y, u16 width, u16 height);
