@@ -4,6 +4,8 @@
  */
 #include "DawnEngine.h"
 #include "ecs/EntityManager.h"
+#include "ecs/Component.h"
+#include "ecs/System.h"
 #include "renderer/Program.h"
 #include "resource/ResourceCache.h"
 #include "scene/CameraController.h"
@@ -14,6 +16,208 @@
 #include "ui/Imgui.h"
 
 using namespace dw;
+
+class ShipEngineData {
+public:
+    ShipEngineData(const Vec3& force, const Vec3& offset);
+
+    void fire();
+    void update(float dt);
+
+    float activity() const;
+    Vec3 force() const;
+    Vec3 offset() const;
+
+private:
+    float activity_;
+    Vec3 force_;
+    Vec3 offset_;
+};
+
+ShipEngineData::ShipEngineData(const Vec3 &force, const Vec3 &offset) : activity_(0.0f), force_(force), offset_(offset) {
+}
+
+void ShipEngineData::fire() {
+    activity_ = 1.0f;
+}
+
+void ShipEngineData::update(float dt) {
+    activity_ = damp(activity_, 0.0f, 0.99f, dt);
+}
+
+float ShipEngineData::activity() const {
+    return activity_;
+}
+
+Vec3 ShipEngineData::force() const {
+    return force_;
+}
+
+Vec3 ShipEngineData::offset() const {
+    return offset_;
+}
+
+class ShipEngineInstance {
+public:
+    ShipEngineInstance(ShipEngineData* parent, const Vec3& force, const Vec3& offset);
+
+    Vec3 torque() const;
+    ShipEngineData* parent() const;
+
+private:
+    Vec3 force_;
+    Vec3 offset_;
+    ShipEngineData* parent_;
+
+};
+
+ShipEngineInstance::ShipEngineInstance(ShipEngineData *parent, const Vec3 &force,
+                                       const Vec3 &offset) : force_(force), offset_(offset), parent_(parent) {
+}
+
+Vec3 ShipEngineInstance::torque() const {
+    // Applying a moment of force (torque) is T = r x F (r is the position, F is the force
+    // vector).
+    return force_.Cross(offset_);
+}
+
+ShipEngineData *ShipEngineInstance::parent() const {
+    return parent_;
+}
+
+class ShipEngines : public Component, public Object {
+public:
+    DW_OBJECT(ShipEngines);
+
+    ShipEngines(Context* ctx, const Vector<ShipEngineData>& engine_data);
+
+    void calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticlockwise) const {
+        // Pitch - X axis.
+        // Yaw - Y axis.
+        // Roll - Z axis.
+        Vec3 clockwise_torque{0.0f, 0.0f, 0.0f};
+        Vec3 anticlockwise_torque{0.0f, 0.0f, 0.0f};
+        for (int i = 0; i < navigation_engines_.size(); ++i) {
+            for (auto& nav_engine : navigation_engines_[i]) {
+                if (nav_engine.direction == NavigationEngineDirection::Clockwise) {
+                    clockwise_torque += nav_engine.engine.torque();
+                } else {
+                    anticlockwise_torque += nav_engine.engine.torque();
+                }
+            }
+        }
+        clockwise = clockwise_torque;
+        anticlockwise = anticlockwise_torque;
+    }
+
+    Vec3 calculateRotationalTorque(float pitch, float yaw, float roll) const {
+        Vec3 power{pitch, yaw, roll};
+        Vec3 total_torque{0.0f, 0.0f, 0.0f};
+        for (int i = 0; i < navigation_engines_.size(); ++i) {
+            NavigationEngineDirection direction = power[i] > 0
+                                                  ? NavigationEngineDirection::Clockwise
+                                                  : NavigationEngineDirection::Anticlockwise;
+            for (auto& nav_engine : navigation_engines_[i]) {
+                if (nav_engine.direction == direction) {
+                    total_torque += nav_engine.engine.torque() * abs(power[i]);
+                }
+            }
+        }
+        return total_torque;
+    }
+
+    Vec3 fireRotationalEngines(float pitch, float yaw, float roll) {
+        Vec3 power{pitch, yaw, roll};
+        Vec3 total_torque{0.0f, 0.0f, 0.0f};
+        for (int i = 0; i < navigation_engines_.size(); ++i) {
+            NavigationEngineDirection direction = power[i] > 0
+                                                  ? NavigationEngineDirection::Clockwise
+                                                  : NavigationEngineDirection::Anticlockwise;
+            for (auto& nav_engine : navigation_engines_[i]) {
+                if (nav_engine.direction == direction) {
+                    Vec3 engine_torque = nav_engine.engine.torque() * abs(power[i]);
+                    total_torque += engine_torque;
+                    if (engine_torque.Length() > 0.01f) {
+                        nav_engine.engine.parent()->fire();
+                    }
+                }
+            }
+        }
+        return total_torque;
+    }
+
+private:
+    Vector<ShipEngineData> engine_data_;
+    SharedPtr<BillboardSet> particles_;
+
+    // Navigational engines.
+
+    // Rotational engines.
+    enum class NavigationEngineDirection { Clockwise, Anticlockwise };
+    enum RotationAxis { RotationAxis_X, RotationAxis_Y, RotationAxis_Z };
+    struct NavigationEngine {
+        ShipEngineInstance engine;
+        NavigationEngineDirection direction;
+    };
+    Array<Vector<NavigationEngine>, 3> navigation_engines_;
+
+    friend class ShipEngineSystem;
+};
+
+class ShipEngineSystem : public System {
+public:
+    DW_OBJECT(ShipEngineSystem);
+
+    explicit ShipEngineSystem(Context* ctx) : System(ctx) {
+        supportsComponents<Renderable, RigidBody, ShipEngines>();
+    }
+
+    void processEntity(Entity& entity) override {
+        auto renderable = *entity.component<Renderable>();
+        auto rigid_body = *entity.component<RigidBody>();
+        auto ship_engines = *entity.component<ShipEngines>();
+
+
+    }
+};
+
+ShipEngines::ShipEngines(Context* ctx, const Vector<ShipEngineData> &engine_data) : Object(ctx), engine_data_(engine_data) {
+    // Generate navigation engines by projecting onto each rotation axis.
+    Vector<Pair<String, Vec3>> rotation_axes = {
+            {"yz plane (pitch - x rotation)", Vec3{1.0f, 0.0f, 0.0f}},
+            {"xz plane (yaw - y rotation)", Vec3{0.0f, -1.0f, 0.0f}},
+            {"xy plane (roll - z rotation)", Vec3{0.0f, 0.0f, -1.0f}}};
+    for (int i = 0; i < navigation_engines_.size(); ++i) {
+        log().info("For %s", rotation_axes[i].first);
+        Plane rotation_plane{rotation_axes[i].second, 0.0f};
+        for (auto& engine : engine_data_) {
+            Vec3 proj_force = rotation_plane.Project(engine.force());
+            Vec3 proj_position = rotation_plane.Project(engine.offset());
+            Vec3 cross = proj_force.Cross(proj_position);
+
+            // If the cross product is above the plane, then the direction is clockwise,
+            // otherwise anticlockwise.
+            float signed_distance = rotation_plane.SignedDistance(cross);
+            bool clockwise = signed_distance > 0.0f;
+
+            if (abs(signed_distance) > 0.01f) {
+                log().info("Engine %s %s - Projected %s %s - Direction: %s (%.0f)",
+                           engine.force().ToString(), engine.offset().ToString(),
+                           proj_force.ToString(), proj_position.ToString(),
+                           clockwise ? "clockwise" : "anticlockwise", signed_distance);
+
+                navigation_engines_[i].emplace_back(
+                        NavigationEngine{ShipEngineInstance{&engine, proj_force, proj_position},
+                                         clockwise ? NavigationEngineDirection::Clockwise
+                                                   : NavigationEngineDirection::Anticlockwise});
+            }
+        }
+    }
+
+    // Engine particles.
+    particles_ = makeShared<BillboardSet>(context(), engine_data_.size(), 10.0f);
+    particles_->material()->setTextureUnit(subsystem<ResourceCache>()->get<Texture>("textures/scene-star-glow.png"), 0);
+}
 
 class Ship : public Object {
 public:
@@ -52,69 +256,34 @@ public:
 
         // Engines.
         engines_ = {
-            {1, 0.0f, {0.0f, 20.0f, 0.0f}, {-20.0f, 0.0f, 0.0f}},
-            {2, 0.0f, {0.0f, -20.0f, 0.0f}, {-20.0f, 0.0f, 0.0f}},
-            {3, 0.0f, {0.0f, 20.0f, 0.0f}, {20.0f, 0.0f, 0.0f}},
-            {4, 0.0f, {0.0f, -20.0f, 0.0f}, {20.0f, 0.0f, 0.0f}},
+                // 4 on right, 4 on left
+                {{40.0f, 0.0f, 0.0f}, {5.0f, 2.0f, 10.0f}},
+                {{40.0f, 0.0f, 0.0f}, {5.0f, -2.0f, 10.0f}},
+                {{40.0f, 0.0f, 0.0f}, {5.0f, 2.0f, -10.0f}},
+                {{40.0f, 0.0f, 0.0f}, {5.0f, -2.0f, -10.0f}},
+                {{-40.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, 10.0f}},
+                {{-40.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, 10.0f}},
+                {{-40.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, -10.0f}},
+                {{-40.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, -10.0f}},
 
-            {5, 0.0f, {20.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 20.0f}},
-            {6, 0.0f, {-20.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 20.0f}},
-            {7, 0.0f, {20.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -20.0f}},
-            {8, 0.0f, {-20.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -20.0f}},
-
-            {9, 0.0f, {0.0f, 0.0f, 20.0f}, {0.0f, 20.0f, 0.0f}},
-            {10, 0.0f, {0.0f, 0.0f, -20.0f}, {0.0f, 20.0f, 0.0f}},
-            {11, 0.0f, {0.0f, 0.0f, 20.0f}, {0.0f, -20.0f, 0.0f}},
-            {12, 0.0f, {0.0f, 0.0f, -20.0f}, {0.0f, -20.0f, 0.0f}},
+                // 4 on top, 4 on bottom.
+                {{0.0f, 40.0f, 0.0f}, {2.0f, 5.0f, 10.0f}},
+                {{0.0f, 40.0f, 0.0f}, {-2.0f, 5.0f, 10.0f}},
+                {{0.0f, 40.0f, 0.0f}, {2.0f, 5.0f, -10.0f}},
+                {{0.0f, 40.0f, 0.0f}, {-2.0f, 5.0f, -10.0f}},
+                {{0.0f, -40.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
+                {{0.0f, -40.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
+                {{0.0f, -40.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
+                {{0.0f, -40.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}
         };
-
-        // Get engine information projected onto each rotation axis.
-        Vector<Pair<String, Vec3>> rotation_axes = {
-            {"yz plane (pitch - x rotation)", Vec3{1.0f, 0.0f, 0.0f}},
-            {"xz plane (yaw - y rotation)", Vec3{0.0f, -1.0f, 0.0f}},
-            {"xy plane (roll - z rotation)", Vec3{0.0f, 0.0f, -1.0f}}};
-        for (int i = 0; i < navigation_engines_.size(); ++i) {
-            log().info("For %s", rotation_axes[i].first);
-            Plane rotation_plane{rotation_axes[i].second, 0.0f};
-            for (auto& engine : engines_) {
-                Vec3 proj_force = rotation_plane.Project(engine.force);
-                Vec3 proj_position = rotation_plane.Project(engine.position);
-                Vec3 cross = proj_force.Cross(proj_position);
-
-                // If the cross product is above the plane, then the direction is clockwise,
-                // otherwise anticlockwise.
-                float signed_distance = rotation_plane.SignedDistance(cross);
-                bool clockwise = signed_distance > 0.0f;
-
-                if (abs(signed_distance) > 0.01f) {
-                    log().info("Engine %s %s - Projected %s %s - Direction: %s (%.0f)",
-                               engine.force.ToString(), engine.position.ToString(),
-                               proj_force.ToString(), proj_position.ToString(),
-                               clockwise ? "clockwise" : "anticlockwise", signed_distance);
-
-                    navigation_engines_[i].emplace_back(
-                        NavigationEngine{{engine.id, 0.0f, proj_force, proj_position},
-                                         &engine,
-                                         clockwise ? NavigationEngineDirection::Clockwise
-                                                   : NavigationEngineDirection::Anticlockwise});
-                }
-            }
-        }
 
         Vec3 clockwise;
         Vec3 anticlockwise;
-        calculateMaxAngularAcceleration(clockwise, anticlockwise);
+        core_->component<ShipEngines>()->calculateMaxRotationalTorque(clockwise, anticlockwise);
+        clockwise = core_->component<RigidBody>()->_rigidBody()->getInvInertiaTensorWorld() * clockwise;
+        anticlockwise = core_->component<RigidBody>()->_rigidBody()->getInvInertiaTensorWorld() * anticlockwise;
         log().info("Max clockwise: %s - anticlockwise: %s", clockwise.ToString(),
                    anticlockwise.ToString());
-
-        // Engine particles.
-        particles_ = makeShared<BillboardSet>(context(), engines_.size(), 10.0f);
-        subsystem<EntityManager>()
-            ->createEntity(Position::origin, Quat::identity, core_)
-            .addComponent<RenderableComponent>(particles_);
-        particles_->material()->setTextureUnit(rc->get<Texture>("textures/scene-star-glow.png"), 0);
-        for (int i = 0; i < engines_.size(); i++) {
-        }
     }
 
     ~Ship() {
@@ -123,10 +292,15 @@ public:
     void update(float dt) {
         auto input = subsystem<Input>();
 
+        auto engines = *core_->component<ShipEngines>();
+        auto rb = *core_->component<RigidBody>();
+
         // Attenuate engine glows.
+        /*
         for (auto& e : engines_) {
             e.update(dt);
         }
+         */
 
         // Control rotational thrusters.
         float pitch_direction = static_cast<float>(input->isKeyDown(Key::Up)) -
@@ -138,18 +312,21 @@ public:
         fireRotationalThrusters(pitch_direction, yaw_direction, roll_direction);
 
         // Calculate angular acceleration.
-        Vec3 angular_acc =
-            calculateAngularAcceleration(pitch_direction, yaw_direction, roll_direction);
+        Vec3 angular_acc = rb._rigidBody()->getInvInertiaTensorWorld() *
+                engines.calculateRotationalTorque(pitch_direction, yaw_direction, roll_direction);
 
         // Get angular velocity relative to the ship.
 
         // Update engine particles.
+        /*
         for (int i = 0; i < engines_.size(); i++) {
-            float engine_glow_size = 3.0f * engines_[i].visibility;
+            float engine_glow_size = 3.0f * engines_[i].activity();
             particles_->setParticlePosition(
-                i, Vec3{core_->transform()->modelMatrix() * Vec4{engines_[i].position, 1.0f}});
+                        i,
+                        Vec3{core_->transform()->modelMatrix() * Vec4{engines_[i].offset(), 1.0f}});
             particles_->setParticleSize(i, {engine_glow_size, engine_glow_size});
         }
+         */
 
         // Display stats.
         ImGui::SetNextWindowPos({10, 50});
@@ -168,58 +345,7 @@ public:
         ImGui::End();
     }
 
-    void calculateMaxAngularAcceleration(Vec3& clockwise, Vec3& anticlockwise) const {
-        // Pitch - X axis.
-        // Yaw - Y axis.
-        // Roll - Z axis.
-        Vec3 clockwise_torque{0.0f, 0.0f, 0.0f};
-        Vec3 anticlockwise_torque{0.0f, 0.0f, 0.0f};
-        for (int i = 0; i < navigation_engines_.size(); ++i) {
-            for (auto& engine : navigation_engines_[i]) {
-                if (engine.direction == NavigationEngineDirection::Clockwise) {
-                    clockwise_torque += engine.engine.torque();
-                } else {
-                    anticlockwise_torque += engine.engine.torque();
-                }
-            }
-        }
-        clockwise = rb_->getInvInertiaTensorWorld() * clockwise_torque;
-        anticlockwise = rb_->getInvInertiaTensorWorld() * anticlockwise_torque;
-    }
-
-    Vec3 calculateAngularAcceleration(float pitch, float yaw, float roll) const {
-        Vec3 power{pitch, yaw, roll};
-        Vec3 total_torque{0.0f, 0.0f, 0.0f};
-        for (int i = 0; i < navigation_engines_.size(); ++i) {
-            NavigationEngineDirection direction = power[i] > 0
-                                                      ? NavigationEngineDirection::Clockwise
-                                                      : NavigationEngineDirection::Anticlockwise;
-            for (auto& engine : navigation_engines_[i]) {
-                if (engine.direction == direction) {
-                    total_torque += engine.engine.torque() * abs(power[i]);
-                }
-            }
-        }
-        return rb_->getInvInertiaTensorWorld() * total_torque;
-    }
-
     void fireRotationalThrusters(float pitch, float yaw, float roll) {
-        Vec3 power{pitch, yaw, roll};
-        Vec3 total_torque{0.0f, 0.0f, 0.0f};
-        for (int i = 0; i < navigation_engines_.size(); ++i) {
-            NavigationEngineDirection direction = power[i] > 0
-                                                      ? NavigationEngineDirection::Clockwise
-                                                      : NavigationEngineDirection::Anticlockwise;
-            for (auto& engine : navigation_engines_[i]) {
-                if (engine.direction == direction) {
-                    Vec3 engine_torque = engine.engine.torque() * abs(power[i]);
-                    total_torque += engine_torque;
-                    if (engine_torque.Length() > 0.01f) {
-                        engine.actual_engine->fire();
-                    }
-                }
-            }
-        }
         rb_->activate();
         rb_->applyTorque(core_->transform()->orientation() * total_torque);
     }
@@ -234,40 +360,6 @@ private:
     Entity* core_;
     btRigidBody* rb_;
     SharedPtr<Material> material_;
-
-    SharedPtr<BillboardSet> particles_;
-
-    struct EngineData {
-        int id;
-        float visibility;
-        Vec3 force;
-        Vec3 position;
-
-        void fire() {
-            visibility = 1.0f;
-        }
-
-        void update(float dt) {
-            visibility *= 0.99f;  // damp(visibility, 0.0f, 0.99f, dt);
-        }
-
-        Vec3 torque() const {
-            // Applying a moment of force (torque) is T = r x F (r is the position, F is the force
-            // vector).
-            return force.Cross(position);
-        }
-    };
-    Vector<EngineData> engines_;
-
-    enum class NavigationEngineDirection { Clockwise, Anticlockwise };
-    struct NavigationEngine {
-        EngineData engine;  // TODO: Don't use EngineData here but create a separate structure with
-                            // torque()..
-        EngineData* actual_engine;
-        NavigationEngineDirection direction;
-    };
-    enum RotationAxis { RotationAxis_X, RotationAxis_Y, RotationAxis_Z };
-    Array<Vector<NavigationEngine>, 3> navigation_engines_;
 };
 
 class Sandbox : public App {
