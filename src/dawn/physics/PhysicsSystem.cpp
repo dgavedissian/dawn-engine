@@ -143,5 +143,4 @@ void RigidBody::onAddToEntity(Entity* parent) {
     rigid_body_->setDamping(0.0f, 0.0f);
     world_->addRigidBody(rigid_body_.get());
 }
-
 }  // namespace dw
