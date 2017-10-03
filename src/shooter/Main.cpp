@@ -8,6 +8,7 @@
 #include "ecs/Component.h"
 #include "ecs/System.h"
 #include "renderer/Program.h"
+#include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
 #include "scene/CameraController.h"
 #include "scene/Transform.h"
@@ -17,6 +18,52 @@
 #include "ui/Imgui.h"
 
 using namespace dw;
+
+class ShipCameraController : public Object {
+public:
+    DW_OBJECT(ShipCameraController);
+
+    explicit ShipCameraController(Context* ctx, const Vec3& offset);
+    ~ShipCameraController() = default;
+
+    void follow(Entity* ship);
+    void possess(Entity* camera);
+
+    void update(float dt);
+
+private:
+    Entity* possessed_;
+    Entity* followed_;
+
+    Vec3 offset_;
+};
+
+ShipCameraController::ShipCameraController(Context* ctx, const Vec3& offset)
+    : Object{ctx}, possessed_{nullptr}, followed_{nullptr}, offset_{offset} {
+}
+
+void ShipCameraController::follow(Entity* ship) {
+    followed_ = ship;
+}
+
+void ShipCameraController::possess(Entity* camera) {
+    possessed_ = camera;
+}
+
+void ShipCameraController::update(float dt) {
+    if (!possessed_ || !followed_) {
+        return;
+    }
+    Transform* possessed_transform = possessed_->transform();
+    Transform* followed_transform = followed_->transform();
+    if (!possessed_transform || !followed_transform) {
+        return;
+    }
+
+    possessed_transform->orientation() = followed_transform->orientation();
+    possessed_transform->position() =
+        followed_transform->position() + followed_transform->orientation() * offset_;
+}
 
 class ShipEngineData {
 public:
@@ -35,7 +82,8 @@ private:
     Vec3 offset_;
 };
 
-ShipEngineData::ShipEngineData(const Vec3 &force, const Vec3 &offset) : activity_(0.0f), force_(force), offset_(offset) {
+ShipEngineData::ShipEngineData(const Vec3& force, const Vec3& offset)
+    : activity_(0.0f), force_(force), offset_(offset) {
 }
 
 void ShipEngineData::fire() {
@@ -60,20 +108,33 @@ Vec3 ShipEngineData::offset() const {
 
 class ShipEngineInstance {
 public:
-    ShipEngineInstance(ShipEngineData* parent, const Vec3& force, const Vec3& offset);
+    ShipEngineInstance(ShipEngineData* parent, const Vec3& force, const Vec3& offset,
+                       bool forwards);
 
+    Vec3 force() const;
+    Vec3 offset() const;
     Vec3 torque() const;
     ShipEngineData* parent() const;
+    bool isForwards() const;
 
 private:
     Vec3 force_;
     Vec3 offset_;
     ShipEngineData* parent_;
-
+    bool forwards_;
 };
 
-ShipEngineInstance::ShipEngineInstance(ShipEngineData *parent, const Vec3 &force,
-                                       const Vec3 &offset) : force_(force), offset_(offset), parent_(parent) {
+ShipEngineInstance::ShipEngineInstance(ShipEngineData* parent, const Vec3& force,
+                                       const Vec3& offset, bool forwards)
+    : force_(force), offset_(offset), parent_(parent), forwards_(forwards) {
+}
+
+Vec3 ShipEngineInstance::force() const {
+    return force_;
+}
+
+Vec3 ShipEngineInstance::offset() const {
+    return offset_;
 }
 
 Vec3 ShipEngineInstance::torque() const {
@@ -82,19 +143,25 @@ Vec3 ShipEngineInstance::torque() const {
     return force_.Cross(offset_);
 }
 
-ShipEngineData *ShipEngineInstance::parent() const {
+ShipEngineData* ShipEngineInstance::parent() const {
     return parent_;
+}
+
+bool ShipEngineInstance::isForwards() const {
+    return forwards_;
 }
 
 class ShipEngines : public Component, public Object {
 public:
     DW_OBJECT(ShipEngines);
 
-    ShipEngines(Context* ctx, const Vector<ShipEngineData>& engine_data);
+    ShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_engines,
+                const Vector<ShipEngineData>& nav_engines);
 
     void onAddToEntity(Entity* parent) override;
 
     // Movement engines.
+    Vec3 fireMovementEngines(const Vec3& direction);
 
     // Rotational engines.
     void calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticlockwise) const;
@@ -103,20 +170,15 @@ public:
 
 private:
     Vector<ShipEngineData> engine_data_;
+    Vector<ShipEngineData> nav_engine_data_;
     SharedPtr<BillboardSet> glow_billboards_;
     SharedPtr<BillboardSet> trail_billboards_;
 
-    // Navigational engines.
+    // Navigational engines. [0] == x, [1] == y, [2] == z
+    Array<Vector<ShipEngineInstance>, 3> movement_engines_;
 
     // Rotational engines.
-    enum class NavigationEngineDirection { Clockwise, Anticlockwise };
-    enum RotationAxis { RotationAxis_X, RotationAxis_Y, RotationAxis_Z };
-    struct NavigationEngine {
-        NavigationEngine(const ShipEngineInstance& engine, NavigationEngineDirection direction) : engine{engine}, direction{direction} {}
-        ShipEngineInstance engine;
-        NavigationEngineDirection direction;
-    };
-    Array<Vector<NavigationEngine>, 3> navigation_engines_;
+    Array<Vector<ShipEngineInstance>, 3> navigation_engines_;
 
     friend class ShipEngineSystem;
 };
@@ -135,20 +197,43 @@ public:
         auto& ship_engines = *entity.component<ShipEngines>();
 
         auto& engines = ship_engines.engine_data_;
+        auto& nav_engines = ship_engines.nav_engine_data_;
 
         // Update particles.
         if (ship_engines.glow_billboards_) {
             for (int i = 0; i < engines.size(); i++) {
-                float engine_glow_size = 2.0f * engines[i].activity();
+                int particle = i;
+                float engine_glow_size = 4.0f * engines[i].activity();
                 ship_engines.glow_billboards_->setParticlePosition(
-                    i,
-                    Vec3{ transform.modelMatrix(Position::origin) * Vec4 { engines[i].offset(), 1.0f } });
-                ship_engines.glow_billboards_->setParticleSize(i, { engine_glow_size, engine_glow_size });
+                    particle, Vec3{transform.modelMatrix(Position::origin) *
+                                   Vec4{engines[i].offset(), 1.0f}});
+                ship_engines.glow_billboards_->setParticleSize(
+                    particle, {engine_glow_size, engine_glow_size});
                 ship_engines.trail_billboards_->setParticlePosition(
-                    i,
-                    Vec3{ transform.modelMatrix(Position::origin) * Vec4 { engines[i].offset(), 1.0f } });
-                ship_engines.trail_billboards_->setParticleSize(i, { engine_glow_size * 0.25f, engine_glow_size * 3.0f });
-                ship_engines.trail_billboards_->setParticleDirection(i, Vec3{ transform.modelMatrix(Position::origin) * Vec4 { engines[i].force().Normalized(), 0.0f } });
+                    particle, Vec3{transform.modelMatrix(Position::origin) *
+                                   Vec4{engines[i].offset(), 1.0f}});
+                ship_engines.trail_billboards_->setParticleSize(
+                    particle, {engine_glow_size * 0.5f, engine_glow_size * 6.0f});
+                ship_engines.trail_billboards_->setParticleDirection(
+                    particle, Vec3{transform.modelMatrix(Position::origin) *
+                                   Vec4{-engines[i].force().Normalized(), 0.0f}});
+            }
+            for (int i = 0; i < nav_engines.size(); i++) {
+                int particle = i + engines.size();
+                float engine_glow_size = 2.0f * nav_engines[i].activity();
+                ship_engines.glow_billboards_->setParticlePosition(
+                    particle, Vec3{transform.modelMatrix(Position::origin) *
+                                   Vec4{nav_engines[i].offset(), 1.0f}});
+                ship_engines.glow_billboards_->setParticleSize(
+                    particle, {engine_glow_size, engine_glow_size});
+                ship_engines.trail_billboards_->setParticlePosition(
+                    particle, Vec3{transform.modelMatrix(Position::origin) *
+                                   Vec4{nav_engines[i].offset(), 1.0f}});
+                ship_engines.trail_billboards_->setParticleSize(
+                    particle, {engine_glow_size * 0.25f, engine_glow_size * 3.0f});
+                ship_engines.trail_billboards_->setParticleDirection(
+                    particle, Vec3{transform.modelMatrix(Position::origin) *
+                                   Vec4{nav_engines[i].force().Normalized(), 0.0f}});
             }
         }
 
@@ -156,19 +241,39 @@ public:
         for (auto& e : engines) {
             e.update(dt);
         }
+        for (auto& e : nav_engines) {
+            e.update(dt);
+        }
     }
 };
 
-ShipEngines::ShipEngines(Context* ctx, const Vector<ShipEngineData> &engine_data) : Object(ctx), engine_data_(engine_data) {
+ShipEngines::ShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_engines,
+                         const Vector<ShipEngineData>& nav_engines)
+    : Object(ctx), engine_data_(movement_engines), nav_engine_data_(nav_engines) {
+    // Generate movement engines.
+    Vector<Vec3> movement_axes = {
+        {1.0f, 0.0f, 0.0f},  // right.
+        {0.0f, 1.0f, 0.0f},  // up.
+        {0.0f, 0.0f, -1.0f}  // forward.
+    };
+    for (uint i = 0; i < movement_engines_.size(); ++i) {
+        for (auto& engine : engine_data_) {
+            Vec3 proj_force = engine.force().ProjectToNorm(movement_axes[i]);
+            bool forwards = proj_force.AngleBetween(movement_axes[i]) < math::pi * 0.5f;
+            movement_engines_[i].emplace_back(
+                ShipEngineInstance(&engine, proj_force, Vec3::zero, forwards));
+        }
+    }
+
     // Generate navigation engines by projecting onto each rotation axis.
     Vector<Pair<String, Vec3>> rotation_axes = {
-            {"yz plane (pitch - x rotation)", Vec3{1.0f, 0.0f, 0.0f}},
-            {"xz plane (yaw - y rotation)", Vec3{0.0f, -1.0f, 0.0f}},
-            {"xy plane (roll - z rotation)", Vec3{0.0f, 0.0f, -1.0f}}};
-    for (int i = 0; i < navigation_engines_.size(); ++i) {
+        {"yz plane (pitch - x rotation)", Vec3{1.0f, 0.0f, 0.0f}},
+        {"xz plane (yaw - y rotation)", Vec3{0.0f, -1.0f, 0.0f}},
+        {"xy plane (roll - z rotation)", Vec3{0.0f, 0.0f, -1.0f}}};
+    for (uint i = 0; i < navigation_engines_.size(); ++i) {
         log().info("For %s", rotation_axes[i].first);
         Plane rotation_plane{rotation_axes[i].second, 0.0f};
-        for (auto& engine : engine_data_) {
+        for (auto& engine : nav_engine_data_) {
             Vec3 proj_force = rotation_plane.Project(engine.force());
             Vec3 proj_position = rotation_plane.Project(engine.offset());
             Vec3 cross = proj_force.Cross(proj_position);
@@ -185,9 +290,7 @@ ShipEngines::ShipEngines(Context* ctx, const Vector<ShipEngineData> &engine_data
                            clockwise ? "clockwise" : "anticlockwise", signed_distance);
 
                 navigation_engines_[i].emplace_back(
-                        NavigationEngine{ShipEngineInstance{&engine, proj_force, proj_position},
-                                         clockwise ? NavigationEngineDirection::Clockwise
-                                                   : NavigationEngineDirection::Anticlockwise});
+                    ShipEngineInstance{&engine, proj_force, proj_position, clockwise});
             }
         }
     }
@@ -197,15 +300,36 @@ void ShipEngines::onAddToEntity(Entity* parent) {
     // Initialise engine particles.
     auto* renderable_component = parent->component<RenderableComponent>();
     if (renderable_component) {
-        glow_billboards_ = makeShared<BillboardSet>(context(), engine_data_.size(), Vec2{ 10.0f, 10.0f });
-        glow_billboards_->material()->setTextureUnit(subsystem<ResourceCache>()->get<Texture>("engine/glow.png"), 0);
+        size_t total_engines = engine_data_.size() + nav_engine_data_.size();
+
+        glow_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
+        glow_billboards_->material()->setTextureUnit(
+            subsystem<ResourceCache>()->get<Texture>("engine/glow.png"), 0);
         renderable_component->node->addChild(glow_billboards_);
 
-        trail_billboards_ = makeShared<BillboardSet>(context(), engine_data_.size(), Vec2{ 10.0f, 10.0f });
-        trail_billboards_->material()->setTextureUnit(subsystem<ResourceCache>()->get<Texture>("engine/trail.png"), 0);
+        trail_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
+        trail_billboards_->material()->setTextureUnit(
+            subsystem<ResourceCache>()->get<Texture>("engine/trail.png"), 0);
         trail_billboards_->setBillboardType(BillboardType::Directional);
         renderable_component->node->addChild(trail_billboards_);
     }
+}
+
+Vec3 ShipEngines::fireMovementEngines(const Vec3& direction) {
+    Vec3 total_force{0.0f, 0.0f, 0.0f};
+    for (int i = 0; i < movement_engines_.size(); ++i) {
+        bool forwards = direction[i] > 0.0f;
+        for (auto& engine : movement_engines_[i]) {
+            if (engine.isForwards() == forwards) {
+                Vec3 engine_force = engine.force() * abs(direction[i]);
+                total_force += engine_force;
+                if (engine_force.Length() > 0.01f) {
+                    engine.parent()->fire();
+                }
+            }
+        }
+    }
+    return total_force;
 }
 
 void ShipEngines::calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticlockwise) const {
@@ -216,10 +340,10 @@ void ShipEngines::calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticlockw
     Vec3 anticlockwise_torque{0.0f, 0.0f, 0.0f};
     for (int i = 0; i < navigation_engines_.size(); ++i) {
         for (auto& nav_engine : navigation_engines_[i]) {
-            if (nav_engine.direction == NavigationEngineDirection::Clockwise) {
-                clockwise_torque += nav_engine.engine.torque();
+            if (nav_engine.isForwards()) {
+                clockwise_torque += nav_engine.torque();
             } else {
-                anticlockwise_torque += nav_engine.engine.torque();
+                anticlockwise_torque += nav_engine.torque();
             }
         }
     }
@@ -231,12 +355,10 @@ Vec3 ShipEngines::calculateRotationalTorque(float pitch, float yaw, float roll) 
     Vec3 power{pitch, yaw, roll};
     Vec3 total_torque{0.0f, 0.0f, 0.0f};
     for (int i = 0; i < navigation_engines_.size(); ++i) {
-        NavigationEngineDirection direction = power[i] > 0
-                                                  ? NavigationEngineDirection::Clockwise
-                                                  : NavigationEngineDirection::Anticlockwise;
+        bool forwards = power[i] > 0;
         for (auto& nav_engine : navigation_engines_[i]) {
-            if (nav_engine.direction == direction) {
-                total_torque += nav_engine.engine.torque() * abs(power[i]);
+            if (nav_engine.isForwards() == forwards) {
+                total_torque += nav_engine.torque() * abs(power[i]);
             }
         }
     }
@@ -247,15 +369,13 @@ Vec3 ShipEngines::fireRotationalEngines(float pitch, float yaw, float roll) {
     Vec3 power{pitch, yaw, roll};
     Vec3 total_torque{0.0f, 0.0f, 0.0f};
     for (int i = 0; i < navigation_engines_.size(); ++i) {
-        NavigationEngineDirection direction = power[i] > 0
-                                                  ? NavigationEngineDirection::Clockwise
-                                                  : NavigationEngineDirection::Anticlockwise;
+        bool forwards = power[i] > 0;
         for (auto& nav_engine : navigation_engines_[i]) {
-            if (nav_engine.direction == direction) {
-                Vec3 engine_torque = nav_engine.engine.torque() * abs(power[i]);
+            if (nav_engine.isForwards() == forwards) {
+                Vec3 engine_torque = nav_engine.torque() * abs(power[i]);
                 total_torque += engine_torque;
                 if (engine_torque.Length() > 0.01f) {
-                    nav_engine.engine.parent()->fire();
+                    nav_engine.parent()->fire();
                 }
             }
         }
@@ -288,27 +408,37 @@ public:
                  .addComponent<RenderableComponent>(renderable)
                  .addComponent<RigidBody>(subsystem<PhysicsSystem>(), 10.0f,
                                           makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}))
-                 .addComponent<ShipEngines>(context(), Vector<ShipEngineData>{
-            // 4 on right, 4 on left
-                     { { 40.0f, 0.0f, 0.0f },{ 5.0f, 2.0f, 10.0f } },
-                     { { 40.0f, 0.0f, 0.0f },{ 5.0f, -2.0f, 10.0f } },
-                     { { 40.0f, 0.0f, 0.0f },{ 5.0f, 2.0f, -10.0f } },
-                     { { 40.0f, 0.0f, 0.0f },{ 5.0f, -2.0f, -10.0f } },
-                     { { -40.0f, 0.0f, 0.0f },{ -5.0f, 2.0f, 10.0f } },
-                     { { -40.0f, 0.0f, 0.0f },{ -5.0f, -2.0f, 10.0f } },
-                     { { -40.0f, 0.0f, 0.0f },{ -5.0f, 2.0f, -10.0f } },
-                     { { -40.0f, 0.0f, 0.0f },{ -5.0f, -2.0f, -10.0f } },
+                 .addComponent<ShipEngines>(
+                     context(),
+                     Vector<ShipEngineData>{
+                         // 4 on back.
+                         {{0.0f, 0.0f, -150.0f}, {5.0f, 0.0f, 15.0f}},
+                         {{0.0f, 0.0f, -150.0f}, {3.0f, 0.0f, 15.0f}},
+                         {{0.0f, 0.0f, -150.0f}, {-3.0f, 0.0f, 15.0f}},
+                         {{0.0f, 0.0f, -150.0f}, {-5.0f, 0.0f, 15.0f}},
+                         // 2 on front.
+                         {{0.0f, 0.0f, 150.0f}, {5.0f, 0.0f, -12.0f}},
+                         {{0.0f, 0.0f, 150.0f}, {-5.0f, 0.0f, -12.0f}},
+                     },
+                     Vector<ShipEngineData>{// 4 on right, 4 on left
+                                            {{30.0f, 0.0f, 0.0f}, {5.0f, 2.0f, 10.0f}},
+                                            {{30.0f, 0.0f, 0.0f}, {5.0f, -2.0f, 10.0f}},
+                                            {{30.0f, 0.0f, 0.0f}, {5.0f, 2.0f, -10.0f}},
+                                            {{30.0f, 0.0f, 0.0f}, {5.0f, -2.0f, -10.0f}},
+                                            {{-30.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, 10.0f}},
+                                            {{-30.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, 10.0f}},
+                                            {{-30.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, -10.0f}},
+                                            {{-30.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, -10.0f}},
 
-                     // 4 on top, 4 on bottom.
-                     { { 0.0f, 40.0f, 0.0f },{ 2.0f, 5.0f, 10.0f } },
-                     { { 0.0f, 40.0f, 0.0f },{ -2.0f, 5.0f, 10.0f } },
-                     { { 0.0f, 40.0f, 0.0f },{ 2.0f, 5.0f, -10.0f } },
-                     { { 0.0f, 40.0f, 0.0f },{ -2.0f, 5.0f, -10.0f } },
-                     { { 0.0f, -40.0f, 0.0f },{ 2.0f, -5.0f, 10.0f } },
-                     { { 0.0f, -40.0f, 0.0f },{ -2.0f, -5.0f, 10.0f } },
-                     { { 0.0f, -40.0f, 0.0f },{ 2.0f, -5.0f, -10.0f } },
-                     { { 0.0f, -40.0f, 0.0f },{ -2.0f, -5.0f, -10.0f } }
-        });
+                                            // 4 on top, 4 on bottom.
+                                            {{0.0f, 30.0f, 0.0f}, {2.0f, 5.0f, 10.0f}},
+                                            {{0.0f, 30.0f, 0.0f}, {-2.0f, 5.0f, 10.0f}},
+                                            {{0.0f, 30.0f, 0.0f}, {2.0f, 5.0f, -10.0f}},
+                                            {{0.0f, 30.0f, 0.0f}, {-2.0f, 5.0f, -10.0f}},
+                                            {{0.0f, -30.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
+                                            {{0.0f, -30.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
+                                            {{0.0f, -30.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
+                                            {{0.0f, -30.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
         auto node = core_->component<RenderableComponent>()->node;
         node->addChild(makeShared<RenderableNode>(sphere, Vec3{8.0f, 0.0f, 0.0f}, Quat::identity));
         node->addChild(makeShared<RenderableNode>(sphere, Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity));
@@ -320,8 +450,10 @@ public:
         Vec3 clockwise;
         Vec3 anticlockwise;
         core_->component<ShipEngines>()->calculateMaxRotationalTorque(clockwise, anticlockwise);
-        clockwise = core_->component<RigidBody>()->_rigidBody()->getInvInertiaTensorWorld() * clockwise;
-        anticlockwise = core_->component<RigidBody>()->_rigidBody()->getInvInertiaTensorWorld() * anticlockwise;
+        clockwise =
+            core_->component<RigidBody>()->_rigidBody()->getInvInertiaTensorWorld() * clockwise;
+        anticlockwise =
+            core_->component<RigidBody>()->_rigidBody()->getInvInertiaTensorWorld() * anticlockwise;
         log().info("Max clockwise: %s - anticlockwise: %s", clockwise.ToString(),
                    anticlockwise.ToString());
     }
@@ -335,18 +467,24 @@ public:
         auto& engines = *core_->component<ShipEngines>();
         auto& rb = *core_->component<RigidBody>();
 
+        // Control movement thrusters.
+        float movement_direction = static_cast<float>(input->isKeyDown(Key::W)) -
+                                   static_cast<float>(input->isKeyDown(Key::S));
+        fireMovementThrusters({0.0f, 0.0f, movement_direction});
+
         // Control rotational thrusters.
         float pitch_direction = static_cast<float>(input->isKeyDown(Key::Up)) -
                                 static_cast<float>(input->isKeyDown(Key::Down));
         float yaw_direction = static_cast<float>(input->isKeyDown(Key::Right)) -
                               static_cast<float>(input->isKeyDown(Key::Left));
-        float roll_direction = static_cast<float>(input->isKeyDown(Key::P)) -
-                               static_cast<float>(input->isKeyDown(Key::O));
+        float roll_direction = static_cast<float>(input->isKeyDown(Key::E)) -
+                               static_cast<float>(input->isKeyDown(Key::Q));
         fireRotationalThrusters(pitch_direction, yaw_direction, roll_direction);
 
         // Calculate angular acceleration.
-        Vec3 angular_acc = rb._rigidBody()->getInvInertiaTensorWorld() *
-                engines.calculateRotationalTorque(pitch_direction, yaw_direction, roll_direction);
+        Vec3 angular_acc =
+            rb._rigidBody()->getInvInertiaTensorWorld() *
+            engines.calculateRotationalTorque(pitch_direction, yaw_direction, roll_direction);
 
         // Display stats.
         ImGui::SetNextWindowPos({10, 50});
@@ -365,8 +503,15 @@ public:
         ImGui::End();
     }
 
+    void fireMovementThrusters(const Vec3& direction) {
+        Vec3 total_force = core_->component<ShipEngines>()->fireMovementEngines(direction);
+        rb_->activate();
+        rb_->applyCentralForce(core_->transform()->orientation() * total_force);
+    }
+
     void fireRotationalThrusters(float pitch, float yaw, float roll) {
-        Vec3 total_torque = core_->component<ShipEngines>()->fireRotationalEngines(pitch, yaw, roll);
+        Vec3 total_torque =
+            core_->component<ShipEngines>()->fireRotationalEngines(pitch, yaw, roll);
         rb_->activate();
         rb_->applyTorque(core_->transform()->orientation() * total_torque);
     }
@@ -375,6 +520,10 @@ public:
         Quat inv_rotation = core_->transform()->orientation();
         inv_rotation.InverseAndNormalize();
         return inv_rotation * Vec3{rb_->getAngularVelocity()};
+    }
+
+    Entity* entity() const {
+        return core_;
     }
 
 private:
@@ -389,7 +538,7 @@ public:
 
     SharedPtr<Ship> ship;
 
-    SharedPtr<CameraController> camera_controller;
+    SharedPtr<ShipCameraController> camera_controller;
 
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
@@ -403,12 +552,25 @@ public:
 
         subsystem<Universe>()->createStarSystem();
 
+        // Random thing.
+        auto material = makeShared<Material>(
+            context(),
+            makeShared<Program>(context(), rc->get<VertexShader>("shaders/cube_solid.vs"),
+                                rc->get<FragmentShader>("shaders/cube_solid.fs")));
+        auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
+        renderable->setMaterial(material);
+        material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
+        subsystem<EntityManager>()
+            ->createEntity(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
+            .addComponent<RenderableComponent>(renderable);
+
         // Create a camera.
         auto& camera = subsystem<EntityManager>()
                            ->createEntity(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
                            .addComponent<Camera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
-        camera_controller = makeShared<CameraController>(context(), 300.0f);
+        camera_controller = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
         camera_controller->possess(&camera);
+        camera_controller->follow(ship->entity());
     }
 
     void update(float dt) override {

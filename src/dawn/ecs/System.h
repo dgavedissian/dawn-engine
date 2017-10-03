@@ -8,6 +8,7 @@
 #include "ecs/Entity.h"
 
 namespace dw {
+class SystemManager;
 
 template <typename T> class OntologySystemAdapter : public Ontology::System {
 public:

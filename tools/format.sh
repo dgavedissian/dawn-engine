@@ -5,5 +5,13 @@ else
     CLANG_FORMAT=clang-format
 fi
 
-find src/dawn src/sandbox src/renderer-test -name "*.h" -exec $CLANG_FORMAT -i {} \;
-find src/dawn src/sandbox src/renderer-test -name "*.cpp" -exec $CLANG_FORMAT -i {} \;
+PATHS=(
+    src/dawn
+    src/mesh-viewer
+    src/renderer-test
+    src/sandbox
+    src/shooter
+)
+
+find "${PATHS[@]}" -name "*.h" -exec $CLANG_FORMAT -i {} \;
+find "${PATHS[@]}" -name "*.cpp" -exec $CLANG_FORMAT -i {} \;

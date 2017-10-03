@@ -8,5 +8,5 @@ uniform sampler2D starfield_sampler;
 
 void main()
 {
-    out_colour = texture(starfield_sampler, out_texcoord0 * 2);
+    out_colour = texture(starfield_sampler, out_texcoord0);
 }
