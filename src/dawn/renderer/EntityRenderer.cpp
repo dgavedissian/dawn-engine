@@ -63,6 +63,7 @@ void EntityRenderer::CameraEntitySystem::beginProcessing() {
 }
 
 void EntityRenderer::CameraEntitySystem::processEntity(Entity& entity, float) {
-    cameras.emplace_back(CameraState{0, entity.transform(), entity.component<Camera>()->projection_matrix});
+    cameras.emplace_back(
+        CameraState{0, entity.transform(), entity.component<Camera>()->projection_matrix});
 }
 }  // namespace dw
