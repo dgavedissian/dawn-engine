@@ -7,6 +7,7 @@
 #include "ecs/Component.h"
 #include "ecs/System.h"
 #include "renderer/Program.h"
+#include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
 #include "scene/CameraController.h"
 #include "scene/Transform.h"
@@ -17,11 +18,48 @@
 
 using namespace dw;
 
+class Planet : public Object {
+public:
+    DW_OBJECT(Planet)
+
+    Planet(Context* ctx, float radius) : Object{ctx}, planet_{nullptr}, radius_{radius} {
+        auto em = subsystem<EntityManager>();
+        auto rc = subsystem<ResourceCache>();
+
+        // Set up material.
+        auto material = makeShared<Material>(
+                context(),
+                makeShared<Program>(context(), rc->get<VertexShader>("space/planet.vs"),
+                                    rc->get<FragmentShader>("space/planet.fs")));
+        material->setTextureUnit(rc->get<Texture>("space/planet.jpg"));
+        material->setUniform("light_direction", Vec3{1.0f, 0.0f, 0.0f});
+        material->setUniform("surface_sampler", 0);
+        auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(radius);
+        renderable->setMaterial(material);
+
+        planet_ = &em->createEntity(Position::origin, Quat::identity)
+                .addComponent<RenderableComponent>(renderable);
+    }
+
+    Position& position() const {
+        return planet_->transform()->position();
+    }
+
+    float radius() const {
+        return radius_;
+    }
+
+private:
+    Entity* planet_;
+    float radius_;
+};
+
 class Sandbox : public App {
 public:
     DW_OBJECT(Sandbox);
 
     SharedPtr<CameraController> camera_controller;
+    SharedPtr<Planet> planet_;
 
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
@@ -29,15 +67,24 @@ public:
         rc->addResourceLocation("../media/base");
         rc->addResourceLocation("../media/sandbox");
 
+        const float radius = 1000.0f;
+        planet_ = makeShared<Planet>(context(), radius);
+
         // Create a camera.
         auto& camera = subsystem<EntityManager>()
-                           ->createEntity(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
-                           .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+                           ->createEntity(Position{0.0f, 0.0f, radius * 2}, Quat::identity)
+                           .addComponent<Camera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);
         camera_controller->possess(&camera);
     }
 
     void update(float dt) override {
+        // Calculate distance to planet and adjust acceleration accordingly.
+        auto& a = camera_controller->possessed()->transform()->position();
+        auto& b = planet_->position();
+        float altitude = a.getRelativeTo(b).Length() - planet_->radius();
+        camera_controller->setAcceleration(altitude);
+
         camera_controller->update(dt);
     }
 

@@ -33,13 +33,15 @@ public:
         // Random thing.
         auto material = makeShared<Material>(
             context(),
-            makeShared<Program>(context(), rc->get<VertexShader>("shaders/cube_solid.vs"),
-                                rc->get<FragmentShader>("shaders/cube_solid.fs")));
-        auto renderable = MeshBuilder(context()).normals(true).createSphere(100.0f);
+            makeShared<Program>(context(), rc->get<VertexShader>("space/planet.vs"),
+                                rc->get<FragmentShader>("space/planet.fs")));
+        material->setTextureUnit(rc->get<Texture>("space/planet.jpg"));
+        material->setUniform("light_direction", Vec3{0.0f, 0.0f, 1.0f});
+        material->setUniform("surface_sampler", 0);
+        auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(1000.0f);
         renderable->setMaterial(material);
-        material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
         subsystem<EntityManager>()
-            ->createEntity(Position{400.0f, 0.0f, 0.0f}, Quat::identity)
+            ->createEntity(Position{4000.0f, 0.0f, 0.0f}, Quat::identity)
             .addComponent<RenderableComponent>(renderable);
 
         // Create a camera.

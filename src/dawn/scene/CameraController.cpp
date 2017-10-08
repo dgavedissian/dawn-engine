@@ -18,9 +18,17 @@ CameraController::~CameraController() {
     removeEventListener<MouseMoveEvent>(makeEventDelegate(this, &CameraController::onMouseMove));
 }
 
+void CameraController::setAcceleration(float acceleration) {
+    acceleration_ = acceleration;
+}
+
 void CameraController::possess(Entity* entity) {
     assert(entity->transform());
     possessed_ = entity;
+}
+
+Entity *CameraController::possessed() const {
+    return possessed_;
 }
 
 void CameraController::update(float dt) {

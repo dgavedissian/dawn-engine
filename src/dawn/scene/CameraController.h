@@ -15,7 +15,10 @@ public:
     CameraController(Context* context, float acceleration);
     ~CameraController();
 
+    void setAcceleration(float acceleration);
+
     void possess(Entity* entity);
+    Entity* possessed() const;
 
     void update(float dt);
 
