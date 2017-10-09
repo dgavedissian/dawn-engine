@@ -18,11 +18,129 @@
 
 using namespace dw;
 
+class Planet;
+
+/*
+ * Terrain patch:
+ *
+ *       0
+ *   0-------1
+ *   |       |
+ * 3 |       | 1
+ *   |       |
+ *   3-------2
+ *       2
+ */
+class PlanetTerrainPatch {
+public:
+    PlanetTerrainPatch(Planet* planet, PlanetTerrainPatch* parent, const Array<Vec3, 4>& corners, int level) : planet_{planet}, parent_{parent}, corners_(corners), level_{level} {
+        // Compute centre position.
+        for (auto& c : corners_) {
+            centre_ += c;
+        }
+        centre_ *= 0.25f;
+    }
+
+    void setupAdjacentPatches(const Array<PlanetTerrainPatch*, 4>& adjacent) {
+        adjacent_ = adjacent;
+    }
+
+    void updatePatch(const Vec3& offset) {
+        float split_threshold = planet_->patch_split_distance_ / (level_ + 1);
+        split_threshold *= split_threshold;
+        float combine_threshold = planet_->patch_split_distance_ / level_;
+        combine_threshold *= combine_threshold;
+
+        if (offset.DistanceSq(centre_) <= split_threshold) {
+            split();
+            for (auto& child : children_) {
+                child->updatePatch(offset);
+            }
+            return;
+        }
+
+        if (offset.DistanceSq(centre_) >= combine_threshold) {
+            combine();
+            for (auto& child : children_) {
+                child->updatePatch(offset);
+            }
+            return;
+        }
+    }
+
+    void split() {
+    }
+
+    void combine() {
+    }
+
+    bool hasChildren() const {
+        return children_[0] != nullptr;
+    }
+
+    void generateGeometry(u32& current_vertex, float* vertex_data, u32& current_index, u32* index_data) {
+        if (hasChildren()) {
+            for (auto& child : children_) {
+                child->generateGeometry(current_vertex, vertex_data, current_index, index_data);
+            }
+            return;
+        }
+
+        /*
+         * Terrain patch geometry:
+         *
+         *       0
+         *   0-------1
+         *   |       |
+         * 3 |       | 1
+         *   |       |
+         *   3-------2
+         *       2
+         */
+        u32 vertex_start = current_vertex;
+        for (auto& corner : corners_) {
+            // Position.
+            vertex_data[current_vertex * 8] = corner.x;
+            vertex_data[current_vertex * 8 + 1] = corner.y;
+            vertex_data[current_vertex * 8 + 2] = corner.z;
+            // Normal.
+            Vec3 normal = corner.Normalized();
+            vertex_data[current_vertex * 8 + 3] = normal.x;
+            vertex_data[current_vertex * 8 + 4] = normal.y;
+            vertex_data[current_vertex * 8 + 5] = normal.z;
+            // Texcoord.
+            vertex_data[current_vertex * 8 + 6] = 0.0f;
+            vertex_data[current_vertex * 8 + 7] = 0.0f;
+            // Advance to next vertex.
+            current_vertex++;
+        }
+
+        // Generate indices.
+        index_data[current_index] = vertex_start;
+        index_data[current_index + 1] = vertex_start + 3;
+        index_data[current_index + 2] = vertex_start + 1;
+        index_data[current_index + 3] = vertex_start + 1;
+        index_data[current_index + 4] = vertex_start + 3;
+        index_data[current_index + 5] = vertex_start + 2;
+        current_index += 6;
+    }
+
+private:
+    Planet* planet_;
+    PlanetTerrainPatch* parent_;
+    Array<PlanetTerrainPatch*, 4> children_;
+    Array<PlanetTerrainPatch*, 4> adjacent_;
+    Array<Vec3, 4> corners_;
+    Vec3 centre_;
+
+    int level_;
+};
+
 class Planet : public Object {
 public:
     DW_OBJECT(Planet)
 
-    Planet(Context* ctx, float radius) : Object{ctx}, planet_{nullptr}, radius_{radius} {
+    Planet(Context* ctx, float radius) : Object{ctx}, planet_{nullptr}, radius_{radius}, patch_split_distance_{radius} {
         auto em = subsystem<EntityManager>();
         auto rc = subsystem<ResourceCache>();
 
@@ -52,6 +170,22 @@ public:
 private:
     Entity* planet_;
     float radius_;
+
+    float patch_split_distance_;
+
+    template <typename... Args>
+    PlanetTerrainPatch* allocatePatch(Args&&... args) {
+        return new PlanetTerrainPatch(std::forward(args)...);
+    }
+
+    void freePatch(PlanetTerrainPatch* patch) {
+        delete patch;
+    }
+
+    // Patches: +z, +x, -z, -x, +y, -y
+    Array<PlanetTerrainPatch*, 6> terrain_patches_;
+
+    friend class PlanetTerrainPatch;
 };
 
 class Sandbox : public App {
