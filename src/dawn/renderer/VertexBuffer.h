@@ -15,7 +15,8 @@ public:
                  const VertexDecl& decl, BufferUsage usage = BufferUsage::Static);
     ~VertexBuffer();
 
-    void update(const void* data, uint size, uint offset);
+    // Will resize.
+    void update(const void* data, uint size, uint vertex_count, uint offset);
 
     VertexBufferHandle internalHandle() const;
     u32 vertexCount() const;

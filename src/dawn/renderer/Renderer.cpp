@@ -38,6 +38,7 @@ void RenderItem::clear() {
     // Default render state.
     cull_face_enabled = true;
     cull_front_face = CullFrontFace::CCW;
+    polygon_mode = PolygonMode::Fill;
     depth_enabled = true;
     blend_enabled = false;
     blend_equation_rgb = blend_equation_a = BlendEquation::Add;
@@ -413,6 +414,10 @@ void Renderer::setStateDisable(RenderState state) {
 
 void Renderer::setStateCullFrontFace(CullFrontFace front_face) {
     submit_->current_item.cull_front_face = front_face;
+}
+
+void Renderer::setStatePolygonMode(PolygonMode polygon_mode) {
+    submit_->current_item.polygon_mode = polygon_mode;
 }
 
 void Renderer::setStateBlendEquation(BlendEquation equation, BlendFunc src, BlendFunc dest) {

@@ -125,6 +125,7 @@ enum class TextureFormat {
 // Render states.
 enum class RenderState { CullFace, Depth, Blending };
 enum class CullFrontFace { CCW, CW };
+enum class PolygonMode { Fill, Wireframe };
 enum class BlendFunc {
     Zero,
     One,
@@ -291,6 +292,7 @@ struct RenderItem {
     bool depth_enabled;
     bool cull_face_enabled;
     CullFrontFace cull_front_face;
+    PolygonMode polygon_mode;
     bool blend_enabled;
     BlendEquation blend_equation_rgb;
     BlendFunc blend_src_rgb;
@@ -460,6 +462,7 @@ public:
     void setStateEnable(RenderState state);
     void setStateDisable(RenderState state);
     void setStateCullFrontFace(CullFrontFace front_face);
+    void setStatePolygonMode(PolygonMode polygon_mode);
     void setStateBlendEquation(BlendEquation equation, BlendFunc src, BlendFunc dest);
     void setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_rgb, BlendFunc dest_rgb,
                                BlendEquation equation_a, BlendFunc src_a, BlendFunc dest_a);

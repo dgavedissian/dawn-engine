@@ -20,8 +20,8 @@ public:
     void draw(Renderer* renderer, uint view, Transform* camera, const Mat4& model_matrix,
               const Mat4& view_projection_matrix) override;
 
-    const VertexBuffer* vertexBuffer() const;
-    const IndexBuffer* indexBuffer() const;
+    VertexBuffer* vertexBuffer() const;
+    IndexBuffer* indexBuffer() const;
 
 private:
     SharedPtr<VertexBuffer> vertex_buffer_;

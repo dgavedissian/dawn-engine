@@ -148,7 +148,8 @@ void BillboardSet::update(Transform* camera_transform) {
     }
 
     // Update vertex buffer.
-    vb_->update(vertex_data_.data(), vertex_data_.size() * sizeof(ParticleVertex), 0);
+    vb_->update(vertex_data_.data(), vertex_data_.size() * sizeof(ParticleVertex),
+                vertex_data_.size(), 0);
     vertex_data_.clear();
 }
 

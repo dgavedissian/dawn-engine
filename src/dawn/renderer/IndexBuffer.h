@@ -15,6 +15,7 @@ public:
                 BufferUsage usage = BufferUsage::Static);
     ~IndexBuffer();
 
+    // Will resize.
     void update(const void* data, uint size, uint offset);
 
     IndexBufferHandle internalHandle() const;
@@ -22,6 +23,7 @@ public:
 
 private:
     IndexBufferHandle handle_;
+    IndexBufferType type_;
     u32 index_count_;
 };
 }  // namespace dw

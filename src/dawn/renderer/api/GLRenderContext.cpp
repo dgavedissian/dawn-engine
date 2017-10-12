@@ -502,6 +502,10 @@ bool GLRenderContext::frame(const Frame* frame) {
             if (!previous || previous->cull_front_face != current->cull_front_face) {
                 glFrontFace(current->cull_front_face == CullFrontFace::CCW ? GL_CCW : GL_CW);
             }
+            if (!previous || previous->polygon_mode != current->polygon_mode) {
+                glPolygonMode(GL_FRONT_AND_BACK,
+                              current->polygon_mode == PolygonMode::Fill ? GL_FILL : GL_LINE);
+            }
             if (!previous || previous->depth_enabled != current->depth_enabled) {
                 if (current->depth_enabled) {
                     glEnable(GL_DEPTH_TEST);
@@ -699,8 +703,9 @@ void GLRenderContext::operator()(const cmd::CreateIndexBuffer& c) {
 
     index_buffer_map_.insert(
         {c.handle,
-         IndexBufferData{ebo, static_cast<GLenum>(c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT
-                                                                                 : GL_UNSIGNED_INT),
+         IndexBufferData{ebo,
+                         static_cast<GLenum>(c.type == IndexBufferType::U16 ? GL_UNSIGNED_SHORT
+                                                                            : GL_UNSIGNED_INT),
                          usage, c.size}});
 }
 

@@ -27,7 +27,7 @@ void CameraController::possess(Entity* entity) {
     possessed_ = entity;
 }
 
-Entity *CameraController::possessed() const {
+Entity* CameraController::possessed() const {
     return possessed_;
 }
 

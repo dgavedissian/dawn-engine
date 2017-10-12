@@ -29,14 +29,15 @@ void CustomMeshRenderable::draw(Renderer* renderer, uint view, Transform* camera
     program->setUniform("model_matrix", model_matrix);
     program->setUniform("mvp_matrix", view_projection_matrix * model_matrix);
     program->prepareForRendering();
+    renderer->setStatePolygonMode(PolygonMode::Wireframe);
     renderer->submit(view, program->internalHandle(), vertex_count);
 }
 
-const VertexBuffer* CustomMeshRenderable::vertexBuffer() const {
+VertexBuffer* CustomMeshRenderable::vertexBuffer() const {
     return vertex_buffer_.get();
 }
 
-const IndexBuffer* CustomMeshRenderable::indexBuffer() const {
+IndexBuffer* CustomMeshRenderable::indexBuffer() const {
     return index_buffer_.get();
 }
 }  // namespace dw

@@ -16,7 +16,8 @@ VertexBuffer::~VertexBuffer() {
     context_->subsystem<Renderer>()->deleteVertexBuffer(handle_);
 }
 
-void VertexBuffer::update(const void* data, uint size, uint offset) {
+void VertexBuffer::update(const void* data, uint size, uint vertex_count, uint offset) {
+    vertex_count_ = vertex_count;
     context_->subsystem<Renderer>()->updateVertexBuffer(handle_, data, size, offset);
 }
 
