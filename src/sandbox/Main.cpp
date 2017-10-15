@@ -39,11 +39,11 @@ public:
         Vec2 tc;
         static VertexDecl createDecl() {
             return VertexDecl{}
-                    .begin()
-                    .add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float)
-                    .add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float)
-                    .add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float)
-                    .end();
+                .begin()
+                .add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float)
+                .add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float)
+                .add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float)
+                .end();
         }
     };
 
@@ -70,29 +70,29 @@ private:
     void split();
     void combine();
 
-    int sharedEdgeWith(PlanetTerrainPatch* patch);
+    int sharedEdgeWith(PlanetTerrainPatch* patch, int hint = 0);
 };
 
 class Planet : public Object {
 public:
     DW_OBJECT(Planet);
 
-    Planet(Context* ctx, float radius, Entity* camera)
-            : Object{ctx},
-              camera_{camera},
-              planet_{nullptr},
-              radius_{radius},
-              patch_split_distance_{radius * 10.0f},
-              terrain_dirty_{false},
-              noise_{16, 1.0f, 200.0f, 1234},
-              terrain_patches_{} {
+    Planet(Context* ctx, float radius, float terrain_max_height, Entity* camera)
+        : Object{ctx},
+          camera_{camera},
+          planet_{nullptr},
+          radius_{radius},
+          patch_split_distance_{radius * 12.0f},
+          terrain_dirty_{false},
+          noise_{0xdeadbeef, 8, 0.005f, terrain_max_height, 2.0f, 0.5f},
+          terrain_patches_{} {
         auto em = subsystem<EntityManager>();
         auto rc = subsystem<ResourceCache>();
 
         // Set up material.
         auto material = makeShared<Material>(
-                context(), makeShared<Program>(context(), rc->get<VertexShader>("space/planet.vs"),
-                                               rc->get<FragmentShader>("space/planet.fs")));
+            context(), makeShared<Program>(context(), rc->get<VertexShader>("space/planet.vs"),
+                                           rc->get<FragmentShader>("space/planet.fs")));
         material->setTextureUnit(rc->get<Texture>("space/planet.jpg"));
         material->setUniform("light_direction", Vec3{1.0f, 0.0f, 0.0f});
         material->setUniform("surface_sampler", 0);
@@ -102,7 +102,7 @@ public:
         custom_mesh_renderable_->setMaterial(material);
 
         planet_ = &em->createEntity(Position::origin, Quat::identity)
-                .addComponent<RenderableComponent>(custom_mesh_renderable_);
+                       .addComponent<RenderableComponent>(custom_mesh_renderable_);
     }
 
     Position& position() const {
@@ -140,7 +140,7 @@ private:
 
     float patch_split_distance_;
     bool terrain_dirty_;
-    PerlinNoise noise_;
+    fBmNoise noise_;
 
     PlanetTerrainPatch* allocatePatch(PlanetTerrainPatch* parent, const Array<Vec3, 4>& corners,
                                       int level) {
@@ -152,10 +152,8 @@ private:
     }
 
     Vec3 recalculateHeight(const Vec3& position) {
-        Vec2 uv(position.ToSphericalCoordinatesNormalized());
-        uv /= 2.0f * math::pi;
-        uv.y += 0.5f;
-        return position.Normalized() * radius_;//(radius_ + noise_.noise(uv.x, uv.y) );
+        return position.Normalized() *
+               (radius_ + noise_.noise(position.x, position.y, 0.0f));
     }
 
     void setupTerrainRenderable() {
@@ -164,39 +162,40 @@ private:
         int default_vertex_count = 36;
         int default_index_count = 20;
         custom_mesh_renderable_ = makeShared<CustomMeshRenderable>(
-                context(),
-                makeShared<VertexBuffer>(context(), nullptr,
-                                         default_vertex_count * vertex_decl.stride(),
-                                         default_vertex_count, vertex_decl, BufferUsage::Dynamic),
-                makeShared<IndexBuffer>(context(), nullptr, default_index_count * sizeof(u32),
-                                        IndexBufferType::U32, BufferUsage::Dynamic));
+            context(),
+            makeShared<VertexBuffer>(context(), nullptr,
+                                     default_vertex_count * vertex_decl.stride(),
+                                     default_vertex_count, vertex_decl, BufferUsage::Dynamic),
+            makeShared<IndexBuffer>(context(), nullptr, default_index_count * sizeof(u32),
+                                    IndexBufferType::U32, BufferUsage::Dynamic));
 
         // Setup patches.
         float offset = math::Sqrt((radius_ * radius_) / 3.0f);
         Array<Vec3, 8> corners = {
-                Vec3{-offset, offset, offset},
-                Vec3{offset, offset, offset},
-                Vec3{offset, -offset, offset},
-                Vec3{-offset, -offset, offset},
-                Vec3{-offset, offset, -offset},
-                Vec3{offset, offset, -offset},
-                Vec3{offset, -offset, -offset},
-                Vec3{-offset, -offset, -offset},
+            Vec3{-offset, offset, offset},  Vec3{offset, offset, offset},
+            Vec3{offset, -offset, offset},  Vec3{-offset, -offset, offset},
+            Vec3{-offset, offset, -offset}, Vec3{offset, offset, -offset},
+            Vec3{offset, -offset, -offset}, Vec3{-offset, -offset, -offset},
         };
         terrain_patches_ = {
-                allocatePatch(nullptr, {corners[0], corners[1], corners[2], corners[3]}, 0),
-                allocatePatch(nullptr, {corners[1], corners[5], corners[6], corners[2]}, 0),
-                allocatePatch(nullptr, {corners[5], corners[4], corners[7], corners[6]}, 0),
-                allocatePatch(nullptr, {corners[4], corners[0], corners[3], corners[7]}, 0),
-                nullptr,//allocatePatch(nullptr, {corners[4], corners[5], corners[0], corners[1]}, 0),
-                nullptr//allocatePatch(nullptr, {corners[3], corners[2], corners[6], corners[7]}, 0)
+            allocatePatch(nullptr, {corners[0], corners[1], corners[2], corners[3]}, 0),
+            allocatePatch(nullptr, {corners[1], corners[5], corners[6], corners[2]}, 0),
+            allocatePatch(nullptr, {corners[5], corners[4], corners[7], corners[6]}, 0),
+            allocatePatch(nullptr, {corners[4], corners[0], corners[3], corners[7]}, 0),
+            nullptr,  // allocatePatch(nullptr, {corners[4], corners[5], corners[0], corners[1]},
+                      // 0),
+            nullptr   // allocatePatch(nullptr, {corners[3], corners[2], corners[6], corners[7]}, 0)
         };
-        terrain_patches_[0]->setupAdjacentPatches({terrain_patches_[4],terrain_patches_[1],terrain_patches_[5],terrain_patches_[3]});
-        terrain_patches_[1]->setupAdjacentPatches({terrain_patches_[4],terrain_patches_[2],terrain_patches_[5],terrain_patches_[0]});
-        terrain_patches_[2]->setupAdjacentPatches({terrain_patches_[4],terrain_patches_[3],terrain_patches_[5],terrain_patches_[1]});
-        terrain_patches_[3]->setupAdjacentPatches({terrain_patches_[4],terrain_patches_[0],terrain_patches_[5],terrain_patches_[2]});
-        //terrain_patches_[4]->setupAdjacentPatches({terrain_patches_[2],terrain_patches_[1],terrain_patches_[0],terrain_patches_[3]});
-        //terrain_patches_[5]->setupAdjacentPatches({terrain_patches_[0],terrain_patches_[1],terrain_patches_[2],terrain_patches_[3]});
+        terrain_patches_[0]->setupAdjacentPatches(
+            {terrain_patches_[4], terrain_patches_[1], terrain_patches_[5], terrain_patches_[3]});
+        terrain_patches_[1]->setupAdjacentPatches(
+            {terrain_patches_[4], terrain_patches_[2], terrain_patches_[5], terrain_patches_[0]});
+        terrain_patches_[2]->setupAdjacentPatches(
+            {terrain_patches_[4], terrain_patches_[3], terrain_patches_[5], terrain_patches_[1]});
+        terrain_patches_[3]->setupAdjacentPatches(
+            {terrain_patches_[4], terrain_patches_[0], terrain_patches_[5], terrain_patches_[2]});
+        // terrain_patches_[4]->setupAdjacentPatches({terrain_patches_[2],terrain_patches_[1],terrain_patches_[0],terrain_patches_[3]});
+        // terrain_patches_[5]->setupAdjacentPatches({terrain_patches_[0],terrain_patches_[1],terrain_patches_[2],terrain_patches_[3]});
         regenerateTerrain();
     }
 
@@ -211,8 +210,8 @@ private:
 
         // Upload to GPU.
         custom_mesh_renderable_->vertexBuffer()->update(
-                vertices.data(), sizeof(PlanetTerrainPatch::Vertex) * vertices.size(), vertices.size(),
-                0);
+            vertices.data(), sizeof(PlanetTerrainPatch::Vertex) * vertices.size(), vertices.size(),
+            0);
         custom_mesh_renderable_->indexBuffer()->update(indices.data(), sizeof(u32) * indices.size(),
                                                        0);
     }
@@ -227,13 +226,13 @@ private:
 // empty initializer ({}).
 PlanetTerrainPatch::PlanetTerrainPatch(Planet* planet, PlanetTerrainPatch* parent,
                                        const Array<Vec3, 4>& corners, int level)
-        : planet_{planet}, parent_{parent}, children_{}, edge_{}, corners_(corners), level_{level} {
+    : planet_{planet}, parent_{parent}, children_{}, edge_{}, corners_(corners), level_{level} {
     // Compute centre position.
     centre_ = Vec3::zero;
     for (auto& c : corners_) {
-        centre_ += c;
+        centre_ += c * 0.25f;
     }
-    centre_ *= 0.25f;
+    centre_ = planet_->recalculateHeight(centre_);
 }
 
 void PlanetTerrainPatch::setupAdjacentPatches(const Array<PlanetTerrainPatch*, 4>& adjacent) {
@@ -289,13 +288,13 @@ void PlanetTerrainPatch::generateGeometry(Vector<PlanetTerrainPatch::Vertex>& ve
      * --3-------2---x---x
      *   |   2   |
      */
-    size_t vertex_start = vertex_data.size();
+    auto vertex_start = static_cast<u32>(vertex_data.size());
     for (auto& corner : corners_) {
         Vertex v;
         v.p = corner;
         v.n = v.p.Normalized();
         v.tc = {0.0f, 0.0f};
-        vertex_data.emplace_back(v); // TODO: Move Vertex data into the nodes.
+        vertex_data.emplace_back(v);  // TODO: Move Vertex data into the nodes.
     }
     Vertex c;
     c.p = centre_;
@@ -304,13 +303,29 @@ void PlanetTerrainPatch::generateGeometry(Vector<PlanetTerrainPatch::Vertex>& ve
     vertex_data.emplace_back(c);
 
     // Generate triangles.
-    auto create_triangle = [&index_data, vertex_start] (u32 v1, u32 v2, u32 v3) {
+    auto create_triangle = [&index_data, vertex_start](u32 v1, u32 v2, u32 v3) {
         index_data.emplace_back(vertex_start + v1);
         index_data.emplace_back(vertex_start + v2);
         index_data.emplace_back(vertex_start + v3);
     };
+    u32 midpoint_counter = 4;
     for (u32 i = 0; i < 4; ++i) {
-        create_triangle(i, 4, (i + 1) % 4);
+        if (edge_[i] && edge_[i]->hasChildren()) {
+            // Get midpoint vertex and add to vertex data.
+            Vertex m;
+            int shared_edge = edge_[i]->sharedEdgeWith(this, (i + 2) % 4);
+            m.p = edge_[i]->children_[shared_edge]->corners_[(shared_edge + 1) % 4];
+            m.n = m.p.Normalized();
+            m.tc = {0.0f, 0.0f};
+            vertex_data.emplace_back(m);
+            midpoint_counter++;
+
+            // Construct two triangles.
+            create_triangle(i, 4, midpoint_counter);
+            create_triangle(4, (i + 1) % 4, midpoint_counter);
+        } else {
+            create_triangle(i, 4, (i + 1) % 4);
+        }
     }
 }
 
@@ -335,16 +350,16 @@ void PlanetTerrainPatch::split() {
         child->edge_[(i + 1) % 4] = children_[(i + 1) % 4];
         child->edge_[(i + 2) % 4] = children_[(i + 3) % 4];
         // External.
-        /*
         if (edge_[i]) {
-            int edge_shared = i;// edge_[i]->sharedEdgeWith(this);
-            child->edge_[i] = edge_[i]->children_[(edge_shared + 2) % 4];
+            // Edge pointer back to us is usually offset by 2: (i + 2) mod 4.
+            int edge_shared = edge_[i]->sharedEdgeWith(this, (i + 2) % 4);
+            child->edge_[i] = edge_[i]->children_[(edge_shared + 1) % 4];
         }
         if (edge_[(i + 3) % 4]) {
-            int edge_shared = (i + 3) % 4;//edge_[(i + 3) % 4]->sharedEdgeWith(this);
-            child->edge_[(i + 3) % 4] = edge_[(i + 3) % 4]->children_[(edge_shared + 2) % 4];
+            // Edge pointer back to us is usually offset by 2: (i + 3) + 2 mod 4 = (i + 1) mod 4.
+            int edge_shared = edge_[(i + 3) % 4]->sharedEdgeWith(this, (i + 1) % 4);
+            child->edge_[(i + 3) % 4] = edge_[(i + 3) % 4]->children_[edge_shared];
         }
-         */
     }
 
     // Recalculate height for middle points.
@@ -359,34 +374,60 @@ void PlanetTerrainPatch::split() {
     }
 
     // Update adjacent child adjacent patches.
-    /*
     for (int i = 0; i < 4; ++i) {
         for (int c = 0; c < 2; ++c) {
             // TODO HACK
             if (!edge_[i])
                 continue;
             // TODO END HACK
-            auto child = edge_[i]->children_[(i + 2 + c) % 4];
-            if (child) {
-                int child_edge = child->sharedEdgeWith(this);
-                child->edge_[child_edge] = children_[(i + 1 - c) % 4];
-                // TODO: Notify child that it can displace height for this edge.
+            if (edge_[i]->hasChildren()) {
+                int edge_with_this = edge_[i]->sharedEdgeWith(this, (i + 2) % 4);
+                auto child = edge_[i]->children_[(edge_with_this + c) % 4];
+                child->edge_[edge_with_this] = children_[(i + 1 - c) % 4];
             }
         }
     }
-     */
 }
 
 void PlanetTerrainPatch::combine() {
-}
+    planet_->terrain_dirty_ = true;
 
-int PlanetTerrainPatch::sharedEdgeWith(PlanetTerrainPatch *patch) {
+    // For each child, clear its external edges references to the child.
     for (int i = 0; i < 4; ++i) {
-        if (edge_[i] == patch) {
-            return i;
+        auto child = children_[i];
+        if (child->edge_[i]) {
+            // Edge pointer back to us is usually offset by 2: (i + 2) mod 4.
+            int shared_edge = child->edge_[i]->sharedEdgeWith(child, (i + 2) % 4);
+            child->edge_[i]->edge_[shared_edge] = nullptr;
+        }
+        if (child->edge_[(i + 3) % 4]) {
+            // Edge pointer back to us is usually offset by 2: (i + 3) + 2 mod 4 = (i + 1) mod 4.
+            int shared_edge = child->edge_[(i + 3) % 4]->sharedEdgeWith(child, (i + 1) % 4);
+            child->edge_[(i + 3) % 4]->edge_[shared_edge] = nullptr;
         }
     }
-    return -1;
+
+    // Delete children.
+    for (int i = 0; i < 4; ++i) {
+        planet_->freePatch(children_[i]);
+        children_[i] = nullptr;
+    }
+}
+
+int PlanetTerrainPatch::sharedEdgeWith(PlanetTerrainPatch* patch, int hint) {
+    // In some cases, it's possible for the caller to guess correctly which edge will be == patch.
+    // 'hint' allows the caller to specify which index to start checking from, to try and avoid
+    // iterating as much as possible.
+    for (int i = 0; i < 4; ++i) {
+        int index = (i + hint) % 4;
+        if (edge_[index] == patch) {
+            return index;
+        }
+    }
+
+    // TODO: Should never happen. This means the algorithm is faulty.
+    assert(false);
+    return 0;
 }
 
 class Sandbox : public App {
@@ -406,13 +447,13 @@ public:
 
         // Create a camera.
         auto& camera = subsystem<EntityManager>()
-                ->createEntity(Position{0.0f, 0.0f, radius * 2}, Quat::identity)
-                .addComponent<Camera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
+                           ->createEntity(Position{0.0f, 0.0f, radius * 2}, Quat::identity)
+                           .addComponent<Camera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);
         camera_controller->possess(&camera);
 
         // Create a planet.
-        planet_ = makeShared<Planet>(context(), radius, &camera);
+        planet_ = makeShared<Planet>(context(), radius, 40.0f, &camera);
     }
 
     void update(float dt) override {
@@ -456,7 +497,7 @@ public:
         ImGui::SetNextWindowSize({140, 40});
         if (!ImGui::Begin("FPS", nullptr, {0, 0}, 0.5f,
                           ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-                          ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
+                              ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
             ImGui::End();
             return;
         }
