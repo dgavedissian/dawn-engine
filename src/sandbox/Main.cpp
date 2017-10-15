@@ -151,9 +151,32 @@ private:
         delete patch;
     }
 
-    Vec3 recalculateHeight(const Vec3& position) {
-        return position.Normalized() *
-               (radius_ + noise_.noise(position.x, position.y, 0.0f));
+    Vec3 calculateHeight(const Vec3 &position) {
+        auto sample_position = position.Normalized() * radius_;
+        double height_sample = noise_.noise(sample_position.x, sample_position.y, sample_position.z);
+        return sample_position * (1.0f + height_sample / radius_);
+    }
+
+    Vec3 calculateNormal(const Vec3& position) {
+        auto centre_sample_location = position.Normalized() * radius_;
+        float offset = 1.0f; // 1 metre.
+        float offset_radians = offset / radius_;
+
+        // Generate 4 samples around point.
+        Vec3 samples[4];
+        Vec3 result_normal = Vec3::zero;
+        for (int i = 0; i < 4; ++i) {
+            float angle = math::pi * 0.5f * i;
+            Vec3 sample_location = Vec3::FromSphericalCoordinates(centre_sample_location.ToSphericalCoordinates() + Vec3{sin(angle), cos(angle), 0.0f} * offset_radians);
+            double height_sample = noise_.noise(sample_location.x, sample_location.y, sample_location.z);
+            samples[i] = sample_location * (1.0f + height_sample / radius_);
+        }
+
+        // Compute normals.
+        for (int i = 0; i < 4; ++i) {
+            result_normal += (samples[i] - position).Cross(samples[(i + 1) % 4] - position).Normalized();
+        }
+        return result_normal.Normalized();
     }
 
     void setupTerrainRenderable() {
@@ -232,7 +255,7 @@ PlanetTerrainPatch::PlanetTerrainPatch(Planet* planet, PlanetTerrainPatch* paren
     for (auto& c : corners_) {
         centre_ += c * 0.25f;
     }
-    centre_ = planet_->recalculateHeight(centre_);
+    centre_ = planet_->calculateHeight(centre_);
 }
 
 void PlanetTerrainPatch::setupAdjacentPatches(const Array<PlanetTerrainPatch*, 4>& adjacent) {
@@ -292,13 +315,13 @@ void PlanetTerrainPatch::generateGeometry(Vector<PlanetTerrainPatch::Vertex>& ve
     for (auto& corner : corners_) {
         Vertex v;
         v.p = corner;
-        v.n = v.p.Normalized();
+        v.n = planet_->calculateNormal(v.p);
         v.tc = {0.0f, 0.0f};
         vertex_data.emplace_back(v);  // TODO: Move Vertex data into the nodes.
     }
     Vertex c;
     c.p = centre_;
-    c.n = c.p.Normalized();
+    c.n = planet_->calculateNormal(c.p);
     c.tc = {0.0f, 0.0f};
     vertex_data.emplace_back(c);
 
@@ -315,7 +338,7 @@ void PlanetTerrainPatch::generateGeometry(Vector<PlanetTerrainPatch::Vertex>& ve
             Vertex m;
             int shared_edge = edge_[i]->sharedEdgeWith(this, (i + 2) % 4);
             m.p = edge_[i]->children_[shared_edge]->corners_[(shared_edge + 1) % 4];
-            m.n = m.p.Normalized();
+            m.n = planet_->calculateNormal(m.p);
             m.tc = {0.0f, 0.0f};
             vertex_data.emplace_back(m);
             midpoint_counter++;
@@ -363,14 +386,12 @@ void PlanetTerrainPatch::split() {
     }
 
     // Recalculate height for middle points.
-    Vec3 recalculated_centre = planet_->recalculateHeight(centre_);
+    Vec3 recalculated_centre = planet_->calculateHeight(centre_);
     for (int i = 0; i < 4; ++i) {
         auto child = children_[i];
-        // TODO: Don't displace child->c[(i+1)%4] if edge[i] is nullptr
-        child->corners_[(i + 1) % 4] = planet_->recalculateHeight(child->corners_[(i + 1) % 4]);
+        child->corners_[(i + 1) % 4] = planet_->calculateHeight(child->corners_[(i + 1) % 4]);
         child->corners_[(i + 2) % 4] = recalculated_centre;
-        // TODO: Don't displace child->c[(i+3)%4] if edge[(i+3)%4] is nullptr
-        child->corners_[(i + 3) % 4] = planet_->recalculateHeight(child->corners_[(i + 3) % 4]);
+        child->corners_[(i + 3) % 4] = planet_->calculateHeight(child->corners_[(i + 3) % 4]);
     }
 
     // Update adjacent child adjacent patches.
