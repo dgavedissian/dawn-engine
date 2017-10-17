@@ -85,7 +85,9 @@ public:
           patch_split_distance_{radius * 12.0f},
           terrain_dirty_{false},
           noise_{0xdeadbeef, 8, 0.005f, terrain_max_height, 2.0f, 0.5f},
-          terrain_patches_{} {
+          run_update_thread_{true},
+          terrain_patches_{},
+          terrain_generated_{false} {
         auto em = subsystem<EntityManager>();
         auto rc = subsystem<ResourceCache>();
 
@@ -103,6 +105,37 @@ public:
 
         planet_ = &em->createEntity(Position::origin, Quat::identity)
                        .addComponent<RenderableComponent>(custom_mesh_renderable_);
+
+        // Kick off terrain update thread.
+        terrain_update_thread_ = Thread([this]()
+        {
+           while (run_update_thread_.load())
+           {
+               // Calculate offset and update patches.
+               camera_position_mutex_.lock();
+               Position camera_position = camera_position_;
+               Position planet_position = planet_position_;
+               camera_position_mutex_.unlock();
+               updateTerrain(camera_position.getRelativeTo(planet_position));
+
+               // If we detected a change in geometry, regenerate.
+               if (terrain_dirty_) {
+                   terrain_dirty_ = false;
+
+                   LockGuard<Mutex> terrain_data_lock{generated_terrain_lock_};
+                   generated_terrain_vertices_.clear();
+                   generated_terrain_indices_.clear();
+                   generateTerrainData(generated_terrain_vertices_, generated_terrain_indices_);
+                   terrain_generated_ = true;
+               }
+           }
+        });
+    }
+
+    ~Planet()
+    {
+        run_update_thread_ = false;
+        terrain_update_thread_.join();
     }
 
     Position& position() const {
@@ -114,18 +147,19 @@ public:
     }
 
     void update(float dt) {
-        const Position& camera_position = camera_->transform()->position();
-        Vec3 offset = camera_position.getRelativeTo(planet_->transform()->position());
-        for (auto& patch : terrain_patches_) {
-            if (patch) {  // TODO: remove once patches are initialised properly.
-                patch->updatePatch(offset);
-            }
+        // Update camera position data.
+        {
+            LockGuard<Mutex> camera_position_lock{camera_position_mutex_};
+            camera_position_ = camera_->transform()->position();
+            planet_position_ = planet_->transform()->position();
         }
 
-        // If we detected a change in geometry, regenerate.
-        if (terrain_dirty_) {
-            terrain_dirty_ = false;
-            regenerateTerrain();
+        // If we have any new terrain data ready, upload to GPU.
+        if (terrain_generated_)
+        {
+            LockGuard<Mutex> terrain_data_lock{generated_terrain_lock_};
+            uploadTerrainDataToGpu(generated_terrain_vertices_, generated_terrain_indices_);
+            terrain_generated_ = false;
         }
     }
 
@@ -139,8 +173,21 @@ private:
     SharedPtr<CustomMeshRenderable> custom_mesh_renderable_;
 
     float patch_split_distance_;
-    bool terrain_dirty_;
+    bool terrain_dirty_; // only used on update thread.
     fBmNoise noise_;
+
+    // Patches: +z, +x, -z, -x, +y, -y
+    Atomic<bool> run_update_thread_;
+    Array<PlanetTerrainPatch*, 6> terrain_patches_;
+    Position camera_position_;
+    Position planet_position_;
+    Mutex camera_position_mutex_;
+    Vector<PlanetTerrainPatch::Vertex> generated_terrain_vertices_;
+    Vector<u32> generated_terrain_indices_;
+    Mutex generated_terrain_lock_;
+    bool terrain_generated_;
+
+    Thread terrain_update_thread_;
 
     PlanetTerrainPatch* allocatePatch(PlanetTerrainPatch* parent, const Array<Vec3, 4>& corners,
                                       int level) {
@@ -219,18 +266,33 @@ private:
             {terrain_patches_[4], terrain_patches_[0], terrain_patches_[5], terrain_patches_[2]});
         // terrain_patches_[4]->setupAdjacentPatches({terrain_patches_[2],terrain_patches_[1],terrain_patches_[0],terrain_patches_[3]});
         // terrain_patches_[5]->setupAdjacentPatches({terrain_patches_[0],terrain_patches_[1],terrain_patches_[2],terrain_patches_[3]});
-        regenerateTerrain();
+
+        // Setup initial mesh.
+        Vector<PlanetTerrainPatch::Vertex> vertex_data;
+        Vector<u32> index_data;
+        generateTerrainData(vertex_data, index_data);
+        uploadTerrainDataToGpu(vertex_data, index_data);
     }
 
-    void regenerateTerrain() {
-        Vector<PlanetTerrainPatch::Vertex> vertices;
-        Vector<u32> indices;
+    void updateTerrain(const Vec3& offset)
+    {
+        for (auto& patch : terrain_patches_) {
+            if (patch) {  // TODO: remove once patches are initialised properly.
+                patch->updatePatch(offset);
+            }
+        }
+    }
+
+    void generateTerrainData(Vector<PlanetTerrainPatch::Vertex>& vertices, Vector<u32>& indices)
+    {
         for (auto patch : terrain_patches_) {
             if (patch) {  // TODO: remove once patches are initialised properly.
                 patch->generateGeometry(vertices, indices);
             }
         }
+    }
 
+    void uploadTerrainDataToGpu(const Vector<PlanetTerrainPatch::Vertex>& vertices, const Vector<u32>& indices) {
         // Upload to GPU.
         custom_mesh_renderable_->vertexBuffer()->update(
             vertices.data(), sizeof(PlanetTerrainPatch::Vertex) * vertices.size(), vertices.size(),
@@ -238,9 +300,6 @@ private:
         custom_mesh_renderable_->indexBuffer()->update(indices.data(), sizeof(u32) * indices.size(),
                                                        0);
     }
-
-    // Patches: +z, +x, -z, -x, +y, -y
-    Array<PlanetTerrainPatch*, 6> terrain_patches_;
 
     friend class PlanetTerrainPatch;
 };
@@ -286,7 +345,6 @@ void PlanetTerrainPatch::updatePatch(const Vec3& offset) {
             for (auto& child : children_) {
                 child->updatePatch(offset);
             }
-            return;
         }
     }
 }

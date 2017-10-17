@@ -29,6 +29,7 @@ void CustomMeshRenderable::draw(Renderer* renderer, uint view, Transform* camera
     program->setUniform("model_matrix", model_matrix);
     program->setUniform("mvp_matrix", view_projection_matrix * model_matrix);
     program->prepareForRendering();
+    renderer->setStatePolygonMode(PolygonMode::Wireframe);
     renderer->submit(view, program->internalHandle(), vertex_count);
 }
 
