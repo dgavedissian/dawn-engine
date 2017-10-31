@@ -8,6 +8,14 @@
 #include "resource/Resource.h"
 
 namespace dw {
+using ResourcePath = String;
+
+class DW_API ResourcePackage : public Object
+{
+public:
+    DW_OBJECT(ResourcePackage);
+};
+
 class DW_API ResourceCache : public Object {
 public:
     DW_OBJECT(ResourceCache);
@@ -15,7 +23,8 @@ public:
     ResourceCache(Context* context);
     ~ResourceCache();
 
-    void addResourceLocation(const Path& path);
+    void addPath(const ResourcePath& binding, const Path& path);
+    void addPackage(const ResourcePath& binding, SharedPtr<ResourcePackage> package);
 
     template <typename T> SharedPtr<T> get(const Path& filename) {
         String name(String(filename.c_str()));
@@ -42,7 +51,9 @@ public:
 private:
     SharedPtr<File> getFile(const Path& filename);
 
-    Vector<Path> resource_paths_;
+    using ResourcePackageBinding = Variant<Path, SharedPtr<ResourcePackage>>;
+
+    Map<ResourcePath, ResourcePackageBinding> resource_location_bindings_;
     HashMap<String, SharedPtr<Resource>> resource_cache_;
 };
 }  // namespace dw

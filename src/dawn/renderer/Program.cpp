@@ -34,7 +34,7 @@ ProgramHandle Program::internalHandle() const {
     return handle_;
 }
 
-void Program::prepareForRendering() {
+void Program::applyRendererState() {
     // Set textures.
     for (size_t i = 0; i < texture_units_.size(); i++) {
         if (!texture_units_[i]) {

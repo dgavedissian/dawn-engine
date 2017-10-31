@@ -147,12 +147,12 @@ void ShipEngines::onAddToEntity(Entity* parent) {
 
         glow_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
         glow_billboards_->material()->setTextureUnit(
-            subsystem<ResourceCache>()->get<Texture>("engine/glow.png"), 0);
+            subsystem<ResourceCache>()->get<Texture>("/shooter/engine/glow.png"), 0);
         renderable_component->node->addChild(glow_billboards_);
 
         trail_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
         trail_billboards_->material()->setTextureUnit(
-            subsystem<ResourceCache>()->get<Texture>("engine/trail.png"), 0);
+            subsystem<ResourceCache>()->get<Texture>("/shooter/engine/trail.png"), 0);
         trail_billboards_->setBillboardType(BillboardType::Directional);
         renderable_component->node->addChild(trail_billboards_);
     }
@@ -289,21 +289,22 @@ void ShipFlightComputer::setTargetAngularVelocity(const Vec3& target_angular_vel
 }
 
 void ShipFlightComputer::update(float dt) {
-    // Define reducer methods.
-    auto reducer = [](float source, float target, float max_pos_speed,
-                      float max_neg_speed) -> float {
-        float diff = target - source;
-        if (diff > 0.0f) {
-            // Motion is positive, capped at max_pos_speed.
-            return min(diff, max_pos_speed);
-        } else if (diff < 0.0f) {
-            // Motion is negative, capped at max_neg_speed.
-            return -min(-diff, -max_neg_speed);
-        }
-        return 0.0f;
-    };
-    auto vec_reducer = [reducer](const Vec3& source, const Vec3& target, const Vec3& max_pos_speed,
+    // Define reducer method.
+    auto vec_reducer = [](const Vec3& source, const Vec3& target, const Vec3& max_pos_speed,
                                  const Vec3& max_neg_speed) -> Vec3 {
+        auto reducer = [](float source, float target, float max_pos_speed,
+            float max_neg_speed) -> float {
+            float diff = target - source;
+            if (diff > 0.0f) {
+                // Motion is positive, capped at max_pos_speed.
+                return min(diff, max_pos_speed);
+            }
+            else if (diff < 0.0f) {
+                // Motion is negative, capped at max_neg_speed.
+                return -min(-diff, -max_neg_speed);
+            }
+            return 0.0f;
+        };
         return Vec3{reducer(source.x, target.x, max_pos_speed.x, max_neg_speed.x),
                     reducer(source.y, target.y, max_pos_speed.y, max_neg_speed.y),
                     reducer(source.z, target.z, max_pos_speed.z, max_neg_speed.z)};
@@ -362,13 +363,13 @@ Ship::Ship(Context* ctx) : Object(ctx) {
     assert(rc);
 
     material_ = makeShared<Material>(
-        context(), makeShared<Program>(context(), rc->get<VertexShader>("ship.vs"),
-                                       rc->get<FragmentShader>("ship.fs")));
+        context(), makeShared<Program>(context(), rc->get<VertexShader>("/shooter/ship.vs"),
+                                       rc->get<FragmentShader>("/shooter/ship.fs")));
     material_->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
-    auto renderable = rc->get<Mesh>("models/core-large.mesh.xml");
+    auto renderable = rc->get<Mesh>("/shooter/models/core-large.mesh.xml");
     renderable->setMaterial(material_);
-    auto sphere = rc->get<Mesh>("models/side-wing.mesh.xml");
+    auto sphere = rc->get<Mesh>("/shooter/models/side-wing.mesh.xml");
     sphere->setMaterial(material_);
 
     // Create entities.

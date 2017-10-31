@@ -27,7 +27,7 @@ public:
         uniforms_[name] = value;
     }
 
-    void prepareForRendering();
+    void applyRendererState();
 
     ProgramHandle internalHandle() const;
 

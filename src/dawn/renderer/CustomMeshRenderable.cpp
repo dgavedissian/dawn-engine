@@ -22,15 +22,10 @@ void CustomMeshRenderable::draw(Renderer* renderer, uint view, Transform* camera
     if (index_buffer_) {
         renderer->setIndexBuffer(index_buffer_->internalHandle());
     }
-    // TODO: Do this in the material class via a "bind" method.
-    // TODO: Move this common "render vertex/index buffer + material" code somewhere.
+    // TODO: Move this common "render vertex/index buffer + material" code somewhere to avoid duplication with Mesh.
     // TODO: Support unset material.
-    auto program = material_->program();
-    program->setUniform("model_matrix", model_matrix);
-    program->setUniform("mvp_matrix", view_projection_matrix * model_matrix);
-    program->prepareForRendering();
-    renderer->setStatePolygonMode(PolygonMode::Wireframe);
-    renderer->submit(view, program->internalHandle(), vertex_count);
+    material_->applyRendererState(model_matrix, view_projection_matrix);
+    renderer->submit(view, material_->program()->internalHandle(), vertex_count);
 }
 
 VertexBuffer* CustomMeshRenderable::vertexBuffer() const {

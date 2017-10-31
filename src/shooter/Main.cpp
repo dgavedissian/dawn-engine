@@ -21,8 +21,8 @@ public:
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
-        rc->addResourceLocation("../media/base");
-        rc->addResourceLocation("../media/shooter");
+        rc->addPath("/base", "../media/base");
+        rc->addPath("/shooter", "../media/shooter");
 
         subsystem<SystemManager>()->addSystem<ShipEngineSystem>();
 
@@ -32,9 +32,9 @@ public:
 
         // Random thing.
         auto material = makeShared<Material>(
-            context(), makeShared<Program>(context(), rc->get<VertexShader>("space/planet.vs"),
-                                           rc->get<FragmentShader>("space/planet.fs")));
-        material->setTextureUnit(rc->get<Texture>("space/planet.jpg"));
+            context(), makeShared<Program>(context(), rc->get<VertexShader>("/base/space/planet.vs"),
+                                           rc->get<FragmentShader>("/base/space/planet.fs")));
+        material->setTextureUnit(rc->get<Texture>("/base/space/planet.jpg"));
         material->setUniform("light_direction", Vec3{0.0f, 0.0f, 1.0f});
         material->setUniform("surface_sampler", 0);
         auto renderable =

@@ -185,7 +185,7 @@ void UserInterface::render() {
                 renderer_->setIndexBuffer(tib);
 
                 // Draw.
-                program_->prepareForRendering();
+                program_->applyRendererState();
                 renderer_->submit(renderer_->getBackbufferView(), program_->internalHandle(),
                                   cmd->ElemCount, offset);
             }

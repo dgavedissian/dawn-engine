@@ -605,8 +605,8 @@ TEST_CLASS(MovingSphereHighLevel) {
     void start() {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
-        rc->addResourceLocation("../media/base");
-        rc->addResourceLocation("../media/renderer-test");
+        rc->addPath("../media/base");
+        rc->addPath("../media/renderer-test");
 
         // Create an object.
         auto material = makeShared<Material>(

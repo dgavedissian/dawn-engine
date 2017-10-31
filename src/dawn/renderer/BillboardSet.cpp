@@ -123,7 +123,7 @@ void BillboardSet::draw(Renderer* renderer, uint view, Transform* camera, const 
                                     BlendFunc::OneMinusSrcAlpha);
     renderer->setDepthWrite(false);
     material_->setUniform("mvp_matrix", view_projection_matrix);
-    material_->program()->prepareForRendering();
+    material_->program()->applyRendererState();
     renderer->submit(view, material_->program()->internalHandle(), particles_.size() * 6);
 }
 
