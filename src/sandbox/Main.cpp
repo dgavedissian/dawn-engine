@@ -84,10 +84,10 @@ public:
           radius_{radius},
           patch_split_distance_{radius * 12.0f},
           terrain_dirty_{false},
-          noise_{0xdeadbeef, 8, 0.005f, terrain_max_height, 2.0f, 0.5f},
+          noise_{0xdeadbeef, 12, 0.005f, terrain_max_height, 2.0f, 0.5f},
           run_update_thread_{true},
           terrain_patches_{},
-          terrain_generated_{false} {
+          t_output_ready_{false} {
         auto em = subsystem<EntityManager>();
         auto rc = subsystem<ResourceCache>();
 
@@ -98,6 +98,7 @@ public:
         material->setTextureUnit(rc->get<Texture>("space/planet.jpg"));
         material->setUniform("light_direction", Vec3{1.0f, 0.0f, 0.0f});
         material->setUniform("surface_sampler", 0);
+        material->setPolygonMode(PolygonMode::Wireframe);
 
         // Set up renderable.
         setupTerrainRenderable();
@@ -112,21 +113,21 @@ public:
            while (run_update_thread_.load())
            {
                // Calculate offset and update patches.
-               camera_position_mutex_.lock();
-               Position camera_position = camera_position_;
-               Position planet_position = planet_position_;
-               camera_position_mutex_.unlock();
+               t_input_lock_.lock();
+               Position camera_position = t_camera_position_;
+               Position planet_position = t_planet_position_;
+               t_input_lock_.unlock();
                updateTerrain(camera_position.getRelativeTo(planet_position));
 
                // If we detected a change in geometry, regenerate.
                if (terrain_dirty_) {
                    terrain_dirty_ = false;
 
-                   LockGuard<Mutex> terrain_data_lock{generated_terrain_lock_};
-                   generated_terrain_vertices_.clear();
-                   generated_terrain_indices_.clear();
-                   generateTerrainData(generated_terrain_vertices_, generated_terrain_indices_);
-                   terrain_generated_ = true;
+                   LockGuard<Mutex> terrain_data_lock{t_output_lock_};
+                   t_output_vertices_.clear();
+                   t_output_indices_.clear();
+                   generateTerrainData(t_output_vertices_, t_output_indices_);
+                   t_output_ready_ = true;
                }
            }
         });
@@ -149,17 +150,17 @@ public:
     void update(float dt) {
         // Update camera position data.
         {
-            LockGuard<Mutex> camera_position_lock{camera_position_mutex_};
-            camera_position_ = camera_->transform()->position();
-            planet_position_ = planet_->transform()->position();
+            LockGuard<Mutex> camera_position_lock{t_input_lock_};
+            t_camera_position_ = camera_->transform()->position();
+            t_planet_position_ = planet_->transform()->position();
         }
 
         // If we have any new terrain data ready, upload to GPU.
-        if (terrain_generated_)
+        if (t_output_ready_)
         {
-            LockGuard<Mutex> terrain_data_lock{generated_terrain_lock_};
-            uploadTerrainDataToGpu(generated_terrain_vertices_, generated_terrain_indices_);
-            terrain_generated_ = false;
+            LockGuard<Mutex> terrain_data_lock{t_output_lock_};
+            uploadTerrainDataToGpu(t_output_vertices_, t_output_indices_);
+            t_output_ready_ = false;
         }
     }
 
@@ -169,25 +170,30 @@ private:
     Entity* planet_;
     float radius_;
 
-    // TERRAIN.
+    // Terrain mesh.
     SharedPtr<CustomMeshRenderable> custom_mesh_renderable_;
 
+    // Bool which controls whether the update task thread is running.
+    Atomic<bool> run_update_thread_;
+    Thread terrain_update_thread_;
+
+    // Update thread data.
+    // INPUTS
+    Position t_camera_position_;
+    Position t_planet_position_;
+    Mutex t_input_lock_;
+    // OUTPUTS
+    Vector<PlanetTerrainPatch::Vertex> t_output_vertices_;
+    Vector<u32> t_output_indices_;
+    Mutex t_output_lock_;
+    // OUTPUT READY
+    bool t_output_ready_;
+
+    // Terrain structure data.
+    Array<PlanetTerrainPatch*, 6> terrain_patches_; // Patches: +z, +x, -z, -x, +y, -y
     float patch_split_distance_;
     bool terrain_dirty_; // only used on update thread.
     fBmNoise noise_;
-
-    // Patches: +z, +x, -z, -x, +y, -y
-    Atomic<bool> run_update_thread_;
-    Array<PlanetTerrainPatch*, 6> terrain_patches_;
-    Position camera_position_;
-    Position planet_position_;
-    Mutex camera_position_mutex_;
-    Vector<PlanetTerrainPatch::Vertex> generated_terrain_vertices_;
-    Vector<u32> generated_terrain_indices_;
-    Mutex generated_terrain_lock_;
-    bool terrain_generated_;
-
-    Thread terrain_update_thread_;
 
     PlanetTerrainPatch* allocatePatch(PlanetTerrainPatch* parent, const Array<Vec3, 4>& corners,
                                       int level) {
@@ -504,7 +510,7 @@ int PlanetTerrainPatch::sharedEdgeWith(PlanetTerrainPatch* patch, int hint) {
         }
     }
 
-    // TODO: Should never happen. This means the algorithm is faulty.
+    // Should never happen. This means the algorithm is faulty.
     assert(false);
     return 0;
 }
@@ -519,8 +525,8 @@ public:
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
-        rc->addResourceLocation("../media/base");
-        rc->addResourceLocation("../media/sandbox");
+        rc->addPath("../media/base");
+        rc->addPath("../media/sandbox");
 
         const float radius = 1000.0f;
 
