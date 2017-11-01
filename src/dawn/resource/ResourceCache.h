@@ -10,10 +10,32 @@
 namespace dw {
 using ResourcePath = String;
 
-class DW_API ResourcePackage : public Object
+class DW_API ResourceLocation {
+public:
+    virtual ~ResourceLocation() = default;
+    virtual SharedPtr<InputStream> getFile(const ResourcePath& path_within_location) = 0;
+};
+
+class DW_API ResourcePackage : public Object, public ResourceLocation
 {
 public:
     DW_OBJECT(ResourcePackage);
+
+    ResourcePackage(Context* ctx, const Path& package);
+
+    SharedPtr<InputStream> getFile(const ResourcePath& path_within_location) override;
+};
+
+class DW_API ResourceFilesystemPath : public Object, public ResourceLocation {
+public:
+    DW_OBJECT(ResourceFilesystemPath);
+
+    ResourceFilesystemPath(Context* ctx, const Path& path);
+
+    SharedPtr<InputStream> getFile(const ResourcePath& path_within_location) override;
+
+private:
+    Path path_;
 };
 
 class DW_API ResourceCache : public Object {
@@ -24,7 +46,7 @@ public:
     ~ResourceCache();
 
     void addPath(const ResourcePath& binding, const Path& path);
-    void addPackage(const ResourcePath& binding, SharedPtr<ResourcePackage> package);
+    void addPackage(const ResourcePath& binding, UniquePtr<ResourcePackage>&& package);
 
     template <typename T> SharedPtr<T> get(const Path& filename) {
         String name(String(filename.c_str()));
@@ -36,24 +58,22 @@ public:
         }
 
         // Load the file which contains this resource data.
-        SharedPtr<File> file = getFile(filename);
-        if (!file) {
-            log().error("Cannot find file %s", filename);
+        SharedPtr<InputStream> resource_data = getResourceData(filename);
+        if (!resource_data) {
+            log().error("Cannot find resource %s", filename);
             return nullptr;
         }
         SharedPtr<T> resource = makeShared<T>(context());
         resource_cache_.emplace(name, resource);
         log().info("Loading asset '%s'", filename);
-        resource->load(filename, *file.get());
+        resource->load(filename, *resource_data.get());
         return resource;
     }
 
 private:
-    SharedPtr<File> getFile(const Path& filename);
+    SharedPtr<InputStream> getResourceData(const Path& filename);
 
-    using ResourcePackageBinding = Variant<Path, SharedPtr<ResourcePackage>>;
-
-    Map<ResourcePath, ResourcePackageBinding> resource_location_bindings_;
+    Map<ResourcePath, UniquePtr<ResourceLocation>> resource_location_bindings_;
     HashMap<String, SharedPtr<Resource>> resource_cache_;
 };
 }  // namespace dw
