@@ -128,7 +128,8 @@ void Mesh::draw(Renderer* renderer, uint view, Transform* camera, const Mat4& mo
     u32 vertex_count = index_buffer_->indexCount();
     renderer->setVertexBuffer(vertex_buffer_->internalHandle());
     renderer->setIndexBuffer(index_buffer_->internalHandle());
-    // TODO: Move this common "render vertex/index buffer + material" code somewhere to avoid duplication with CustomMeshRenderable.
+    // TODO: Move this common "render vertex/index buffer + material" code somewhere to avoid
+    // duplication with CustomMeshRenderable.
     // TODO: Support unset material.
     material_->applyRendererState(model_matrix, view_projection_matrix);
     renderer->submit(view, material_->program()->internalHandle(), vertex_count);

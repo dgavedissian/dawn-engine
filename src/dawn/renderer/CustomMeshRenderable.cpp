@@ -22,7 +22,8 @@ void CustomMeshRenderable::draw(Renderer* renderer, uint view, Transform* camera
     if (index_buffer_) {
         renderer->setIndexBuffer(index_buffer_->internalHandle());
     }
-    // TODO: Move this common "render vertex/index buffer + material" code somewhere to avoid duplication with Mesh.
+    // TODO: Move this common "render vertex/index buffer + material" code somewhere to avoid
+    // duplication with Mesh.
     // TODO: Support unset material.
     material_->applyRendererState(model_matrix, view_projection_matrix);
     renderer->submit(view, material_->program()->internalHandle(), vertex_count);

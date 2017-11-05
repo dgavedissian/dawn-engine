@@ -18,8 +18,7 @@ public:
     virtual SharedPtr<InputStream> getFile(const ResourcePath& path_within_location) = 0;
 };
 
-class DW_API ResourcePackage : public Object, public ResourceLocation
-{
+class DW_API ResourcePackage : public Object, public ResourceLocation {
 public:
     DW_OBJECT(ResourcePackage);
 

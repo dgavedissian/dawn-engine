@@ -108,33 +108,30 @@ public:
                        .addComponent<RenderableComponent>(custom_mesh_renderable_);
 
         // Kick off terrain update thread.
-        terrain_update_thread_ = Thread([this]()
-        {
-           while (run_update_thread_.load())
-           {
-               // Calculate offset and update patches.
-               t_input_lock_.lock();
-               Position camera_position = t_camera_position_;
-               Position planet_position = t_planet_position_;
-               t_input_lock_.unlock();
-               updateTerrain(camera_position.getRelativeTo(planet_position));
+        terrain_update_thread_ = Thread([this]() {
+            while (run_update_thread_.load()) {
+                // Calculate offset and update patches.
+                t_input_lock_.lock();
+                Position camera_position = t_camera_position_;
+                Position planet_position = t_planet_position_;
+                t_input_lock_.unlock();
+                updateTerrain(camera_position.getRelativeTo(planet_position));
 
-               // If we detected a change in geometry, regenerate.
-               if (terrain_dirty_) {
-                   terrain_dirty_ = false;
+                // If we detected a change in geometry, regenerate.
+                if (terrain_dirty_) {
+                    terrain_dirty_ = false;
 
-                   LockGuard<Mutex> terrain_data_lock{t_output_lock_};
-                   t_output_vertices_.clear();
-                   t_output_indices_.clear();
-                   generateTerrainData(t_output_vertices_, t_output_indices_);
-                   t_output_ready_ = true;
-               }
-           }
+                    LockGuard<Mutex> terrain_data_lock{t_output_lock_};
+                    t_output_vertices_.clear();
+                    t_output_indices_.clear();
+                    generateTerrainData(t_output_vertices_, t_output_indices_);
+                    t_output_ready_ = true;
+                }
+            }
         });
     }
 
-    ~Planet()
-    {
+    ~Planet() {
         run_update_thread_ = false;
         terrain_update_thread_.join();
     }
@@ -156,8 +153,7 @@ public:
         }
 
         // If we have any new terrain data ready, upload to GPU.
-        if (t_output_ready_)
-        {
+        if (t_output_ready_) {
             LockGuard<Mutex> terrain_data_lock{t_output_lock_};
             uploadTerrainDataToGpu(t_output_vertices_, t_output_indices_);
             t_output_ready_ = false;
@@ -190,9 +186,9 @@ private:
     bool t_output_ready_;
 
     // Terrain structure data.
-    Array<PlanetTerrainPatch*, 6> terrain_patches_; // Patches: +z, +x, -z, -x, +y, -y
+    Array<PlanetTerrainPatch*, 6> terrain_patches_;  // Patches: +z, +x, -z, -x, +y, -y
     float patch_split_distance_;
-    bool terrain_dirty_; // only used on update thread.
+    bool terrain_dirty_;  // only used on update thread.
     fBmNoise noise_;
 
     PlanetTerrainPatch* allocatePatch(PlanetTerrainPatch* parent, const Array<Vec3, 4>& corners,
@@ -204,15 +200,16 @@ private:
         delete patch;
     }
 
-    Vec3 calculateHeight(const Vec3 &position) {
+    Vec3 calculateHeight(const Vec3& position) {
         auto sample_position = position.Normalized() * radius_;
-        double height_sample = noise_.noise(sample_position.x, sample_position.y, sample_position.z);
+        double height_sample =
+            noise_.noise(sample_position.x, sample_position.y, sample_position.z);
         return sample_position * (1.0f + height_sample / radius_);
     }
 
     Vec3 calculateNormal(const Vec3& position) {
         auto centre_sample_location = position.Normalized() * radius_;
-        float offset = 1.0f; // 1 metre.
+        float offset = 1.0f;  // 1 metre.
         float offset_radians = offset / radius_;
 
         // Generate 4 samples around point.
@@ -220,14 +217,18 @@ private:
         Vec3 result_normal = Vec3::zero;
         for (int i = 0; i < 4; ++i) {
             float angle = math::pi * 0.5f * i;
-            Vec3 sample_location = Vec3::FromSphericalCoordinates(centre_sample_location.ToSphericalCoordinates() + Vec3{sin(angle), cos(angle), 0.0f} * offset_radians);
-            double height_sample = noise_.noise(sample_location.x, sample_location.y, sample_location.z);
+            Vec3 sample_location =
+                Vec3::FromSphericalCoordinates(centre_sample_location.ToSphericalCoordinates() +
+                                               Vec3{sin(angle), cos(angle), 0.0f} * offset_radians);
+            double height_sample =
+                noise_.noise(sample_location.x, sample_location.y, sample_location.z);
             samples[i] = sample_location * (1.0f + height_sample / radius_);
         }
 
         // Compute normals.
         for (int i = 0; i < 4; ++i) {
-            result_normal += (samples[i] - position).Cross(samples[(i + 1) % 4] - position).Normalized();
+            result_normal +=
+                (samples[i] - position).Cross(samples[(i + 1) % 4] - position).Normalized();
         }
         return result_normal.Normalized();
     }
@@ -280,8 +281,7 @@ private:
         uploadTerrainDataToGpu(vertex_data, index_data);
     }
 
-    void updateTerrain(const Vec3& offset)
-    {
+    void updateTerrain(const Vec3& offset) {
         for (auto& patch : terrain_patches_) {
             if (patch) {  // TODO: remove once patches are initialised properly.
                 patch->updatePatch(offset);
@@ -289,8 +289,7 @@ private:
         }
     }
 
-    void generateTerrainData(Vector<PlanetTerrainPatch::Vertex>& vertices, Vector<u32>& indices)
-    {
+    void generateTerrainData(Vector<PlanetTerrainPatch::Vertex>& vertices, Vector<u32>& indices) {
         for (auto patch : terrain_patches_) {
             if (patch) {  // TODO: remove once patches are initialised properly.
                 patch->generateGeometry(vertices, indices);
@@ -298,7 +297,8 @@ private:
         }
     }
 
-    void uploadTerrainDataToGpu(const Vector<PlanetTerrainPatch::Vertex>& vertices, const Vector<u32>& indices) {
+    void uploadTerrainDataToGpu(const Vector<PlanetTerrainPatch::Vertex>& vertices,
+                                const Vector<u32>& indices) {
         // Upload to GPU.
         custom_mesh_renderable_->vertexBuffer()->update(
             vertices.data(), sizeof(PlanetTerrainPatch::Vertex) * vertices.size(), vertices.size(),

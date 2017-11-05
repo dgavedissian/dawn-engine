@@ -147,12 +147,12 @@ void ShipEngines::onAddToEntity(Entity* parent) {
 
         glow_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
         glow_billboards_->material()->setTexture(
-                subsystem<ResourceCache>()->get<Texture>("shooter:engine/glow.png"), 0);
+            subsystem<ResourceCache>()->get<Texture>("shooter:engine/glow.png"), 0);
         renderable_component->node->addChild(glow_billboards_);
 
         trail_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
         trail_billboards_->material()->setTexture(
-                subsystem<ResourceCache>()->get<Texture>("shooter:engine/trail.png"), 0);
+            subsystem<ResourceCache>()->get<Texture>("shooter:engine/trail.png"), 0);
         trail_billboards_->setBillboardType(BillboardType::Directional);
         renderable_component->node->addChild(trail_billboards_);
     }
@@ -291,15 +291,14 @@ void ShipFlightComputer::setTargetAngularVelocity(const Vec3& target_angular_vel
 void ShipFlightComputer::update(float dt) {
     // Define reducer method.
     auto vec_reducer = [](const Vec3& source, const Vec3& target, const Vec3& max_pos_speed,
-                                 const Vec3& max_neg_speed) -> Vec3 {
+                          const Vec3& max_neg_speed) -> Vec3 {
         auto reducer = [](float source, float target, float max_pos_speed,
-            float max_neg_speed) -> float {
+                          float max_neg_speed) -> float {
             float diff = target - source;
             if (diff > 0.0f) {
                 // Motion is positive, capped at max_pos_speed.
                 return min(diff, max_pos_speed);
-            }
-            else if (diff < 0.0f) {
+            } else if (diff < 0.0f) {
                 // Motion is negative, capped at max_neg_speed.
                 return -min(-diff, -max_neg_speed);
             }

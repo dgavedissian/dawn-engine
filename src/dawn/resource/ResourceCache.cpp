@@ -24,8 +24,8 @@ SharedPtr<InputStream> ResourcePackage::getFile(const ResourcePath& path_within_
     return nullptr;
 }
 
-ResourceFilesystemPath::ResourceFilesystemPath(Context* ctx, const Path& path) : Object(ctx), path_{path} {
-    
+ResourceFilesystemPath::ResourceFilesystemPath(Context* ctx, const Path& path)
+    : Object(ctx), path_{path} {
 }
 
 SharedPtr<InputStream> ResourceFilesystemPath::getFile(const ResourcePath& path_within_location) {
@@ -44,13 +44,12 @@ ResourceCache::ResourceCache(Context* context) : Object(context) {
 ResourceCache::~ResourceCache() {
 }
 
-void ResourceCache::addPath(const String& package, const Path& path)
-{
-    resource_packages_.emplace(makePair(package, makeUnique<ResourceFilesystemPath>(context(), path)));
+void ResourceCache::addPath(const String& package, const Path& path) {
+    resource_packages_.emplace(
+        makePair(package, makeUnique<ResourceFilesystemPath>(context(), path)));
 }
 
-void ResourceCache::addPackage(const String& package, UniquePtr<ResourcePackage> file)
-{
+void ResourceCache::addPackage(const String& package, UniquePtr<ResourcePackage> file) {
     resource_packages_.emplace(makePair(package, std::move(file)));
 }
 
@@ -63,7 +62,8 @@ SharedPtr<InputStream> ResourceCache::getResourceData(const ResourcePath& resour
     auto package_it = resource_packages_.find(package);
     if (package_it == resource_packages_.end()) {
         // Unknown package.
-        log().error("Attempting to load from unknown package: %s - Full path: %s", package, resource_path);
+        log().error("Attempting to load from unknown package: %s - Full path: %s", package,
+                    resource_path);
         return nullptr;
     }
     return package_it->second->getFile(simplifyAbsolutePath(path.second));

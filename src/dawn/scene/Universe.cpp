@@ -29,7 +29,7 @@ void Universe::createStarSystem() {
     auto background_material =
         makeShared<Material>(context(), makeShared<Program>(context(), vs, fs));
     background_material->setTexture(
-            subsystem<ResourceCache>()->get<Texture>("/base/space/starfield.jpg"));
+        subsystem<ResourceCache>()->get<Texture>("/base/space/starfield.jpg"));
     background_material->setUniform<int>("starfield_sampler", 0);
     auto skybox = MeshBuilder{context()}.normals(false).texcoords(true).createBox(-10000.0f);
     skybox->setMaterial(background_material);

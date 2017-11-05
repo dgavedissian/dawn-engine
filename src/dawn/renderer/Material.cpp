@@ -14,8 +14,7 @@ Material::Material(Context* context, SharedPtr<Program> program)
 Material::~Material() {
 }
 
-void Material::setPolygonMode(PolygonMode polygon_mode)
-{
+void Material::setPolygonMode(PolygonMode polygon_mode) {
     polygon_mode_ = polygon_mode;
 }
 
@@ -23,8 +22,7 @@ void Material::setTexture(SharedPtr<Texture> texture, uint unit) {
     program_->setTextureUnit(texture, unit);
 }
 
-void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_projection_matrix)
-{
+void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_projection_matrix) {
     Renderer* renderer = subsystem<Renderer>();
 
     // Bind render state.
