@@ -93,9 +93,9 @@ public:
 
         // Set up material.
         auto material = makeShared<Material>(
-            context(), makeShared<Program>(context(), rc->get<VertexShader>("space/planet.vs"),
-                                           rc->get<FragmentShader>("space/planet.fs")));
-        material->setTextureUnit(rc->get<Texture>("space/planet.jpg"));
+            context(), makeShared<Program>(context(), rc->get<VertexShader>("base:space/planet.vs"),
+                                           rc->get<FragmentShader>("base:space/planet.fs")));
+        material->setTexture(rc->get<Texture>("base:space/planet.jpg"));
         material->setUniform("light_direction", Vec3{1.0f, 0.0f, 0.0f});
         material->setUniform("surface_sampler", 0);
         material->setPolygonMode(PolygonMode::Wireframe);
@@ -525,8 +525,8 @@ public:
     void init(int argc, char** argv) override {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
-        rc->addPath("../media/base");
-        rc->addPath("../media/sandbox");
+        rc->addPath("base", "../media/base");
+        rc->addPath("sandbox", "../media/sandbox");
 
         const float radius = 1000.0f;
 

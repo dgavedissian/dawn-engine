@@ -146,13 +146,13 @@ void ShipEngines::onAddToEntity(Entity* parent) {
         size_t total_engines = engine_data_.size() + nav_engine_data_.size();
 
         glow_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
-        glow_billboards_->material()->setTextureUnit(
-            subsystem<ResourceCache>()->get<Texture>("/shooter/engine/glow.png"), 0);
+        glow_billboards_->material()->setTexture(
+                subsystem<ResourceCache>()->get<Texture>("shooter:engine/glow.png"), 0);
         renderable_component->node->addChild(glow_billboards_);
 
         trail_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
-        trail_billboards_->material()->setTextureUnit(
-            subsystem<ResourceCache>()->get<Texture>("/shooter/engine/trail.png"), 0);
+        trail_billboards_->material()->setTexture(
+                subsystem<ResourceCache>()->get<Texture>("shooter:engine/trail.png"), 0);
         trail_billboards_->setBillboardType(BillboardType::Directional);
         renderable_component->node->addChild(trail_billboards_);
     }
@@ -363,13 +363,13 @@ Ship::Ship(Context* ctx) : Object(ctx) {
     assert(rc);
 
     material_ = makeShared<Material>(
-        context(), makeShared<Program>(context(), rc->get<VertexShader>("/shooter/ship.vs"),
-                                       rc->get<FragmentShader>("/shooter/ship.fs")));
+        context(), makeShared<Program>(context(), rc->get<VertexShader>("shooter:ship.vs"),
+                                       rc->get<FragmentShader>("shooter:ship.fs")));
     material_->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
-    auto renderable = rc->get<Mesh>("/shooter/models/core-large.mesh.xml");
+    auto renderable = rc->get<Mesh>("shooter:models/core-large.mesh.xml");
     renderable->setMaterial(material_);
-    auto sphere = rc->get<Mesh>("/shooter/models/side-wing.mesh.xml");
+    auto sphere = rc->get<Mesh>("shooter:models/side-wing.mesh.xml");
     sphere->setMaterial(material_);
 
     // Create entities.

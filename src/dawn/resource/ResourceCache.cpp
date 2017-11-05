@@ -8,6 +8,13 @@
 #include "resource/ResourceCache.h"
 
 namespace dw {
+Pair<String, Path> parseResourcePath(const ResourcePath& resource_path) {
+    auto split_point = resource_path.find(':');
+    if (split_point == String::npos) {
+        return {"unknown_package", ""};
+    }
+    return {resource_path.substr(0, split_point), "/" + resource_path.substr(split_point + 1)};
+};
 
 ResourcePackage::ResourcePackage(Context* ctx, const Path& package) : Object(ctx) {
 }
@@ -22,7 +29,6 @@ ResourceFilesystemPath::ResourceFilesystemPath(Context* ctx, const Path& path) :
 }
 
 SharedPtr<InputStream> ResourceFilesystemPath::getFile(const ResourcePath& path_within_location) {
-    //Path full_path = binding.second.get<Path>() + 
     Path full_path = path_ + path_within_location;
     log().info("Loading resource from filesystem at " + full_path);
     if (subsystem<FileSystem>()->fileExists(full_path)) {
@@ -38,27 +44,28 @@ ResourceCache::ResourceCache(Context* context) : Object(context) {
 ResourceCache::~ResourceCache() {
 }
 
-void ResourceCache::addPath(const ResourcePath& binding, const Path& path)
+void ResourceCache::addPath(const String& package, const Path& path)
 {
-    resource_location_bindings_.emplace(makePair(binding, std::move(makeUnique<ResourceFilesystemPath>(context(), path))));
+    resource_packages_.emplace(makePair(package, makeUnique<ResourceFilesystemPath>(context(), path)));
 }
 
-void ResourceCache::addPackage(const ResourcePath& binding, UniquePtr<ResourcePackage>&& package)
+void ResourceCache::addPackage(const String& package, UniquePtr<ResourcePackage> file)
 {
-    resource_location_bindings_.emplace(makePair(binding, package));
+    resource_packages_.emplace(makePair(package, std::move(file)));
 }
 
 SharedPtr<InputStream> ResourceCache::getResourceData(const ResourcePath& resource_path) {
-    ResourcePath simplified_path = simplifyAbsolutePath(resource_path);
-    for (auto& binding : resource_location_bindings_)
-    {
-        const ResourcePath& bind_location = binding.first;
-        // If prefix is in a resource location binding, load from that resource location.
-        if (simplified_path.substr(0, bind_location.size()) == binding.first)
-        {
-            return binding.second->getFile(simplified_path.substr(bind_location.size()));
-        }
+    // Parse resource path.
+    auto path = parseResourcePath(resource_path);
+    String package = path.first;
+
+    // Look up package and get the file within that package.
+    auto package_it = resource_packages_.find(package);
+    if (package_it == resource_packages_.end()) {
+        // Unknown package.
+        log().error("Attempting to load from unknown package: %s - Full path: %s", package, resource_path);
+        return nullptr;
     }
-    return nullptr;
+    return package_it->second->getFile(simplifyAbsolutePath(path.second));
 }
 }  // namespace dw

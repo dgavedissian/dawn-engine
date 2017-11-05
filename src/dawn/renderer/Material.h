@@ -19,7 +19,7 @@ public:
 
     void setPolygonMode(PolygonMode polygon_mode);
 
-    void setTextureUnit(SharedPtr<Texture> texture, uint unit = 0);
+    void setTexture(SharedPtr<Texture> texture, uint unit = 0);
 
     template <typename T> void setUniform(const String& name, const T& value) {
         program_->setUniform(name, value);

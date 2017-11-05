@@ -19,7 +19,7 @@ void Material::setPolygonMode(PolygonMode polygon_mode)
     polygon_mode_ = polygon_mode;
 }
 
-void Material::setTextureUnit(SharedPtr<Texture> texture, uint unit) {
+void Material::setTexture(SharedPtr<Texture> texture, uint unit) {
     program_->setTextureUnit(texture, unit);
 }
 

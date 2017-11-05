@@ -10,6 +10,8 @@
 namespace dw {
 using ResourcePath = String;
 
+Pair<String, Path> parseResourcePath(const ResourcePath& resource_path);
+
 class DW_API ResourceLocation {
 public:
     virtual ~ResourceLocation() = default;
@@ -45,11 +47,11 @@ public:
     ResourceCache(Context* context);
     ~ResourceCache();
 
-    void addPath(const ResourcePath& binding, const Path& path);
-    void addPackage(const ResourcePath& binding, UniquePtr<ResourcePackage>&& package);
+    void addPath(const String& package, const Path& path);
+    void addPackage(const String& package, UniquePtr<ResourcePackage> file);
 
-    template <typename T> SharedPtr<T> get(const Path& filename) {
-        String name(String(filename.c_str()));
+    template <typename T> SharedPtr<T> get(const ResourcePath& resource_path) {
+        String name(resource_path);
 
         // If the resource already exists, return it.
         auto it = resource_cache_.find(name);
@@ -58,22 +60,22 @@ public:
         }
 
         // Load the file which contains this resource data.
-        SharedPtr<InputStream> resource_data = getResourceData(filename);
+        SharedPtr<InputStream> resource_data = getResourceData(resource_path);
         if (!resource_data) {
-            log().error("Cannot find resource %s", filename);
+            log().error("Cannot find resource %s", resource_path);
             return nullptr;
         }
         SharedPtr<T> resource = makeShared<T>(context());
         resource_cache_.emplace(name, resource);
-        log().info("Loading asset '%s'", filename);
-        resource->load(filename, *resource_data.get());
+        log().info("Loading asset '%s'", resource_path);
+        resource->load(resource_path, *resource_data.get());
         return resource;
     }
 
 private:
     SharedPtr<InputStream> getResourceData(const Path& filename);
 
-    Map<ResourcePath, UniquePtr<ResourceLocation>> resource_location_bindings_;
+    Map<String, UniquePtr<ResourceLocation>> resource_packages_;
     HashMap<String, SharedPtr<Resource>> resource_cache_;
 };
 }  // namespace dw
