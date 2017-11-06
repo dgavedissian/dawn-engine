@@ -605,14 +605,14 @@ TEST_CLASS(MovingSphereHighLevel) {
     void start() {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
-        rc->addPath("../media/base");
-        rc->addPath("../media/renderer-test");
+        rc->addPath("base", "../media/base");
+        rc->addPath("renderer-test", "../media/renderer-test");
 
         // Create an object.
         auto material = makeShared<Material>(
-            context(),
-            makeShared<Program>(context(), rc->get<VertexShader>("shaders/cube_solid.vs"),
-                                rc->get<FragmentShader>("shaders/cube_solid.fs")));
+            context(), makeShared<Program>(
+                           context(), rc->get<VertexShader>("renderer-test:shaders/cube_solid.vs"),
+                           rc->get<FragmentShader>("renderer-test:shaders/cube_solid.fs")));
         auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
         renderable->setMaterial(material);
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
