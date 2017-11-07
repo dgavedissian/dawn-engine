@@ -118,10 +118,8 @@ UserInterface::UserInterface(Context* ctx)
 UserInterface::~UserInterface() {
     removeEventListener<KeyEvent>(makeEventDelegate(this, &UserInterface::onKey));
     removeEventListener<CharInputEvent>(makeEventDelegate(this, &UserInterface::onCharInput));
-    removeEventListener<MouseButtonEvent>(
-        makeEventDelegate(this, &UserInterface::onMouseButton));
-    removeEventListener<MouseScrollEvent>(
-        makeEventDelegate(this, &UserInterface::onMouseScroll));
+    removeEventListener<MouseButtonEvent>(makeEventDelegate(this, &UserInterface::onMouseButton));
+    removeEventListener<MouseScrollEvent>(makeEventDelegate(this, &UserInterface::onMouseScroll));
 }
 
 void UserInterface::update(float dt) {
@@ -187,8 +185,9 @@ void UserInterface::render() {
                 renderer_->setIndexBuffer(tib);
 
                 // Draw.
-                program_->prepareForRendering();
-                renderer_->submit(0, program_->internalHandle(), cmd->ElemCount, offset);
+                program_->applyRendererState();
+                renderer_->submit(renderer_->getBackbufferView(), program_->internalHandle(),
+                                  cmd->ElemCount, offset);
             }
             offset += cmd->ElemCount;
         }

@@ -28,7 +28,9 @@ set(SOURCE_FILES
     core/StringUtils.h
     core/Timer.cpp
     core/Timer.h
+    ecs/Component.cpp
     ecs/Component.h
+    ecs/Entity.cpp
     ecs/Entity.h
     ecs/EntityManager.cpp
     ecs/EntityManager.h
@@ -70,13 +72,15 @@ set(SOURCE_FILES
     math/Vec4i.cpp
     math/Vec4i.h
     physics/BulletDynamics.h
-    physics/PhysicsWorld.cpp
-    physics/PhysicsWorld.h
+    physics/PhysicsSystem.cpp
+    physics/PhysicsSystem.h
     platform/Defines.h
     platform/Windows.h
     renderer/api/GL.h
     renderer/api/GLRenderContext.cpp
     renderer/api/GLRenderContext.h
+    renderer/BillboardSet.cpp
+    renderer/BillboardSet.h
     renderer/Camera.cpp
     renderer/Camera.h
     renderer/CustomMeshRenderable.cpp
@@ -114,14 +118,14 @@ set(SOURCE_FILES
     resource/Resource.h
     resource/ResourceCache.cpp
     resource/ResourceCache.h
-    scene/Node.cpp
-    scene/Node.h
-    scene/Parent.h
+    scene/CameraController.cpp
+    scene/CameraController.h
     scene/Position.cpp
     scene/Position.h
-    scene/SceneManager.cpp
-    scene/SceneManager.h
+    scene/Transform.cpp
     scene/Transform.h
+    scene/Universe.cpp
+    scene/Universe.h
     script/LuaState.cpp
     script/LuaState.h
     script/Sol.h

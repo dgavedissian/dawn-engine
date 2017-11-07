@@ -93,11 +93,17 @@ template <typename T, typename... Args> bool Object::triggerEvent(Args&&... args
 };
 
 template <typename E> bool Object::addEventListener(const EventDelegate& delegate) {
-    return context_->subsystem<EventSystem>()->addListener(delegate, E::eventType);
+    if (context_->subsystem<EventSystem>()) {
+        return context_->subsystem<EventSystem>()->addListener(delegate, E::eventType);
+    }
+    return false;
 }
 
 template <typename E> bool Object::removeEventListener(const EventDelegate& delegate) {
-    return context_->subsystem<EventSystem>()->removeListener(delegate, E::eventType);
+    if (context_->subsystem<EventSystem>()) {
+        return context_->subsystem<EventSystem>()->removeListener(delegate, E::eventType);
+    }
+    return false;
 }
 
 template <typename T> T* Object::subsystem() const {

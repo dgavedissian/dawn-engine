@@ -8,7 +8,6 @@
 #include "io/OutputStream.h"
 
 namespace dw {
-
 class DW_API Resource : public Object {
 public:
     DW_OBJECT(Resource);
@@ -24,6 +23,6 @@ public:
     bool hasLoaded() const;
 
 protected:
-    bool mLoaded;
+    bool loaded_;
 };
 }  // namespace dw

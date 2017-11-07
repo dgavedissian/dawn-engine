@@ -17,15 +17,21 @@ public:
     Material(Context* context, SharedPtr<Program> program);
     ~Material();
 
-    void setTextureUnit(SharedPtr<Texture> texture, uint unit = 0);
+    void setPolygonMode(PolygonMode polygon_mode);
+
+    void setTexture(SharedPtr<Texture> texture, uint unit = 0);
 
     template <typename T> void setUniform(const String& name, const T& value) {
         program_->setUniform(name, value);
     }
 
+    void applyRendererState(const Mat4& model_matrix, const Mat4& view_projection_matrix);
+
     Program* program();
 
 private:
     SharedPtr<Program> program_;
+
+    PolygonMode polygon_mode_;
 };
 }  // namespace dw

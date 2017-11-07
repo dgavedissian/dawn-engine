@@ -7,285 +7,125 @@
 #include "math/Noise.h"
 #include "math/MathGeoLib.h"
 
-#define B SAMPLE_SIZE
-#define BM (SAMPLE_SIZE - 1)
-
-#define N 0x1000
-#define NP 12 /* 2^N */
-#define NM 0xfff
-
-#define s_curve(t) (t * t * (3.0f - 2.0f * t))
-#define setup(i, b0, b1, r0, r1) \
-    t = vec[i] + N;              \
-    b0 = ((int)t) & BM;          \
-    b1 = (b0 + 1) & BM;          \
-    r0 = t - (int)t;             \
-    r1 = r0 - 1.0f;
-
 namespace dw {
-
-PerlinNoise::PerlinNoise(int octaves, float freq, float amp, int seed) {
-    mOctaves = octaves;
-    mFrequency = freq;
-    mAmplitude = amp;
-    mSeed = seed;
-    mStart = true;
+fBmNoise::fBmNoise(uint octaves, float frequency, float amplitude, float lacunarity,
+                   float persistence)
+    : octaves_{octaves},
+      frequency_{frequency},
+      amplitude_{amplitude},
+      lacunarity_{lacunarity},
+      persistence_{persistence},
+      noise_function_{} {
 }
 
-float PerlinNoise::noise(float x) {
-    return perlin1(x);
+fBmNoise::fBmNoise(uint seed, uint octaves, float frequency, float amplitude, float lacunarity,
+                   float persistence)
+    : octaves_{octaves},
+      frequency_{frequency},
+      amplitude_{amplitude},
+      lacunarity_{lacunarity},
+      persistence_{persistence},
+      noise_function_{seed} {
 }
 
-float PerlinNoise::noise(float x, float y) {
-    float vec[2];
-    vec[0] = x;
-    vec[1] = y;
-    return perlin2(vec);
-}
-
-float PerlinNoise::noise(float x, float y, float z) {
-    float vec[3];
-    vec[0] = x;
-    vec[1] = y;
-    vec[2] = z;
-    return perlin3(vec);
-}
-
-void PerlinNoise::init() {
-    int i, j, k;
-
-    for (i = 0; i < B; i++) {
-        p[i] = i;
-        g1[i] = (float)((rand() % (B + B)) - B) / B;
-
-        for (j = 0; j < 2; j++) {
-            g2[i][j] = (float)((rand() % (B + B)) - B) / B;
-        }
-
-        normalise2(g2[i]);
-
-        for (j = 0; j < 3; j++) {
-            g3[i][j] = (float)((rand() % (B + B)) - B) / B;
-        }
-
-        normalise3(g3[i]);
+double fBmNoise::noise(double x, double y, double z) {
+    double frequency = frequency_;
+    double amplitude = amplitude_;
+    double noise_value = 0.0f;
+    for (int octave = 0; octave < octaves_; ++octave) {
+        noise_value +=
+            amplitude * noise_function_.noise(x * frequency, y * frequency, z * frequency);
+        frequency *= lacunarity_;
+        amplitude *= persistence_;
     }
-
-    while (--i) {
-        k = p[i];
-        p[i] = p[j = rand() % B];
-        p[j] = k;
-    }
-
-    for (i = 0; i < B + 2; i++) {
-        p[B + i] = p[i];
-        g1[B + i] = g1[i];
-
-        for (j = 0; j < 2; j++) {
-            g2[B + i][j] = g2[i][j];
-        }
-
-        for (j = 0; j < 3; j++) {
-            g3[B + i][j] = g3[i][j];
-        }
-    }
+    return noise_value;
 }
 
-float PerlinNoise::perlin1(float arg) {
-    int terms = mOctaves;
-    float result = 0.0f;
-    float amp = mAmplitude;
+PerlinNoise::PerlinNoise() {
+    // Initialize the permutation vector with the reference values.
+    p = {151, 160, 137, 91,  90,  15,  131, 13,  201, 95,  96,  53,  194, 233, 7,   225, 140, 36,
+         103, 30,  69,  142, 8,   99,  37,  240, 21,  10,  23,  190, 6,   148, 247, 120, 234, 75,
+         0,   26,  197, 62,  94,  252, 219, 203, 117, 35,  11,  32,  57,  177, 33,  88,  237, 149,
+         56,  87,  174, 20,  125, 136, 171, 168, 68,  175, 74,  165, 71,  134, 139, 48,  27,  166,
+         77,  146, 158, 231, 83,  111, 229, 122, 60,  211, 133, 230, 220, 105, 92,  41,  55,  46,
+         245, 40,  244, 102, 143, 54,  65,  25,  63,  161, 1,   216, 80,  73,  209, 76,  132, 187,
+         208, 89,  18,  169, 200, 196, 135, 130, 116, 188, 159, 86,  164, 100, 109, 198, 173, 186,
+         3,   64,  52,  217, 226, 250, 124, 123, 5,   202, 38,  147, 118, 126, 255, 82,  85,  212,
+         207, 206, 59,  227, 47,  16,  58,  17,  182, 189, 28,  42,  223, 183, 170, 213, 119, 248,
+         152, 2,   44,  154, 163, 70,  221, 153, 101, 155, 167, 43,  172, 9,   129, 22,  39,  253,
+         19,  98,  108, 110, 79,  113, 224, 232, 178, 185, 112, 104, 218, 246, 97,  228, 251, 34,
+         242, 193, 238, 210, 144, 12,  191, 179, 162, 241, 81,  51,  145, 235, 249, 14,  239, 107,
+         49,  192, 214, 31,  181, 199, 106, 157, 184, 84,  204, 176, 115, 121, 50,  45,  127, 4,
+         150, 254, 138, 236, 205, 93,  222, 114, 67,  29,  24,  72,  243, 141, 128, 195, 78,  66,
+         215, 61,  156, 180};
 
-    arg *= mFrequency;
-
-    for (int i = 0; i < terms; i++) {
-        result += noise1(arg) * amp;
-        arg *= 2.0f;
-        amp *= 0.5f;
-    }
-
-    return result;
+    // Duplicate the permutation vector.
+    p.insert(p.end(), p.begin(), p.end());
 }
 
-float PerlinNoise::perlin2(float vec[2]) {
-    int terms = mOctaves;
-    float result = 0.0f;
-    float amp = mAmplitude;
+PerlinNoise::PerlinNoise(uint seed) {
+    p.resize(256);
 
-    vec[0] *= mFrequency;
-    vec[1] *= mFrequency;
+    // Fill p with values from 0 to 255.
+    std::iota(p.begin(), p.end(), 0);
 
-    for (int i = 0; i < terms; i++) {
-        result += noise2(vec) * amp;
-        vec[0] *= 2.0f;
-        vec[1] *= 2.0f;
-        amp *= 0.5f;
-    }
+    // Initialize a random engine with seed.
+    std::default_random_engine engine(seed);
 
-    return result;
+    // Suffle  using the above random engine.
+    std::shuffle(p.begin(), p.end(), engine);
+
+    // Duplicate the permutation vector.
+    p.insert(p.end(), p.begin(), p.end());
 }
 
-float PerlinNoise::perlin3(float vec[3]) {
-    int terms = mOctaves;
-    float result = 0.0f;
-    float amp = mAmplitude;
+double PerlinNoise::noise(double x, double y, double z) {
+    // Find the unit cube that contains the point.
+    int X = (int)floor(x) & 255;
+    int Y = (int)floor(y) & 255;
+    int Z = (int)floor(z) & 255;
 
-    vec[0] *= mFrequency;
-    vec[1] *= mFrequency;
-    vec[2] *= mFrequency;
+    // Find relative x, y, z of point in cube.
+    x -= floor(x);
+    y -= floor(y);
+    z -= floor(z);
 
-    for (int i = 0; i < terms; i++) {
-        result += noise3(vec) * amp;
-        vec[0] *= 2.0f;
-        vec[1] *= 2.0f;
-        vec[2] *= 2.0f;
-        amp *= 0.5f;
-    }
+    // Compute fade curves for each of x, y, z.
+    double u = fade(x);
+    double v = fade(y);
+    double w = fade(z);
 
-    return result;
+    // Hash coordinates of the 8 cube corners.
+    int A = p[X] + Y;
+    int AA = p[A] + Z;
+    int AB = p[A + 1] + Z;
+    int B = p[X + 1] + Y;
+    int BA = p[B] + Z;
+    int BB = p[B + 1] + Z;
+
+    // Add blended results from 8 corners of cube.
+    double res =
+        lerp(w,
+             lerp(v, lerp(u, grad(p[AA], x, y, z), grad(p[BA], x - 1, y, z)),
+                  lerp(u, grad(p[AB], x, y - 1, z), grad(p[BB], x - 1, y - 1, z))),
+             lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1), grad(p[BA + 1], x - 1, y, z - 1)),
+                  lerp(u, grad(p[AB + 1], x, y - 1, z - 1), grad(p[BB + 1], x - 1, y - 1, z - 1))));
+    return (res + 1.0) / 2.0;
 }
 
-float PerlinNoise::noise1(float arg) {
-    int bx0, bx1;
-    float rx0, rx1, sx, t, u, v, vec[1];
-
-    vec[0] = arg;
-
-    if (mStart) {
-        srand(mSeed);
-        mStart = false;
-        init();
-    }
-
-    setup(0, bx0, bx1, rx0, rx1);
-
-    sx = s_curve(rx0);
-
-    u = rx0 * g1[p[bx0]];
-    v = rx1 * g1[p[bx1]];
-
-    return math::Lerp(sx, u, v);
+double PerlinNoise::fade(double t) {
+    return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
-float PerlinNoise::noise2(float vec[2]) {
-    int bx0, bx1, by0, by1, b00, b10, b01, b11;
-    float rx0, rx1, ry0, ry1, *q, sx, sy, a, b, t, u, v;
-    int i, j;
-
-    if (mStart) {
-        srand(mSeed);
-        mStart = false;
-        init();
-    }
-
-    setup(0, bx0, bx1, rx0, rx1);
-    setup(1, by0, by1, ry0, ry1);
-
-    i = p[bx0];
-    j = p[bx1];
-
-    b00 = p[i + by0];
-    b10 = p[j + by0];
-    b01 = p[i + by1];
-    b11 = p[j + by1];
-
-    sx = s_curve(rx0);
-    sy = s_curve(ry0);
-
-#define at2(rx, ry) (rx * q[0] + ry * q[1])
-
-    q = g2[b00];
-    u = at2(rx0, ry0);
-    q = g2[b10];
-    v = at2(rx1, ry0);
-    a = math::Lerp(sx, u, v);
-
-    q = g2[b01];
-    u = at2(rx0, ry1);
-    q = g2[b11];
-    v = at2(rx1, ry1);
-    b = math::Lerp(sx, u, v);
-
-    return math::Lerp(sy, a, b);
+double PerlinNoise::lerp(double t, double a, double b) {
+    return a + t * (b - a);
 }
 
-float PerlinNoise::noise3(float vec[3]) {
-    int bx0, bx1, by0, by1, bz0, bz1, b00, b10, b01, b11;
-    float rx0, rx1, ry0, ry1, rz0, rz1, *q, sy, sz, a, b, c, d, t, u, v;
-    int i, j;
+double PerlinNoise::grad(int hash, double x, double y, double z) {
+    int h = hash & 15;
 
-    if (mStart) {
-        srand(mSeed);
-        mStart = false;
-        init();
-    }
-
-    setup(0, bx0, bx1, rx0, rx1);
-    setup(1, by0, by1, ry0, ry1);
-    setup(2, bz0, bz1, rz0, rz1);
-
-    i = p[bx0];
-    j = p[bx1];
-
-    b00 = p[i + by0];
-    b10 = p[j + by0];
-    b01 = p[i + by1];
-    b11 = p[j + by1];
-
-    t = s_curve(rx0);
-    sy = s_curve(ry0);
-    sz = s_curve(rz0);
-
-#define at3(rx, ry, rz) (rx * q[0] + ry * q[1] + rz * q[2])
-
-    q = g3[b00 + bz0];
-    u = at3(rx0, ry0, rz0);
-    q = g3[b10 + bz0];
-    v = at3(rx1, ry0, rz0);
-    a = math::Lerp(t, u, v);
-
-    q = g3[b01 + bz0];
-    u = at3(rx0, ry1, rz0);
-    q = g3[b11 + bz0];
-    v = at3(rx1, ry1, rz0);
-    b = math::Lerp(t, u, v);
-
-    c = math::Lerp(sy, a, b);
-
-    q = g3[b00 + bz1];
-    u = at3(rx0, ry0, rz1);
-    q = g3[b10 + bz1];
-    v = at3(rx1, ry0, rz1);
-    a = math::Lerp(t, u, v);
-
-    q = g3[b01 + bz1];
-    u = at3(rx0, ry1, rz1);
-    q = g3[b11 + bz1];
-    v = at3(rx1, ry1, rz1);
-    b = math::Lerp(t, u, v);
-
-    d = math::Lerp(sy, a, b);
-
-    return math::Lerp(sz, c, d);
-}
-
-void PerlinNoise::normalise2(float v[2]) {
-    float s;
-
-    s = (float)sqrt(v[0] * v[0] + v[1] * v[1]);
-    s = 1.0f / s;
-    v[0] = v[0] * s;
-    v[1] = v[1] * s;
-}
-
-void PerlinNoise::normalise3(float v[3]) {
-    float s;
-
-    s = (float)sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    s = 1.0f / s;
-
-    v[0] = v[0] * s;
-    v[1] = v[1] * s;
-    v[2] = v[2] * s;
+    // Convert lower 4 bits of hash into 12 gradient directions.
+    double u = h < 8 ? x : y, v = h < 4 ? y : h == 12 || h == 14 ? x : z;
+    return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
 }
 }  // namespace dw

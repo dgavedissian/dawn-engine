@@ -162,7 +162,7 @@ SharedPtr<CustomMeshRenderable> MeshBuilder::createSphere(float radius, uint num
             // Add one vertex to the strip which makes up the sphere.
             buffer.position({x0, y0, z0});
             if (with_normals_) {
-                buffer.normal({x0, y0, z0});
+                buffer.normal(Vec3{x0, y0, z0}.Normalized());
             }
             if (with_texcoords_) {
                 buffer.texcoord({static_cast<float>(seg) / static_cast<float>(num_segments),

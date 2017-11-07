@@ -198,19 +198,25 @@ if(UNIX) # TODO: If is Clang or GCC
     add_definitions(-fPIC)
 endif()
 
-# gl3w
-add_library(gl3w EXCLUDE_FROM_ALL gl3w/gl3w.c gl3w/GL/gl3w.h gl3w/GL/glcorearb.h)
-target_include_directories(gl3w PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gl3w)
-set(LIBS ${LIBS} gl3w)
+# any-lite
+add_library(any-lite INTERFACE)
+target_include_directories(any-lite INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/any-lite/include)
+set(LIBS ${LIBS} any-lite)
 
-# enet
-add_subdirectory(enet EXCLUDE_FROM_ALL)
-set(LIBS ${LIBS} enet)
+# expected-lite
+add_library(expected-lite INTERFACE)
+target_include_directories(expected-lite INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/expected-lite/include)
+set(LIBS ${LIBS} expected-lite)
 
 # FastDelegate
 add_library(FastDelegate INTERFACE)
 target_include_directories(FastDelegate INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/FastDelegate)
 set(LIBS ${LIBS} FastDelegate)
+
+# gl3w
+add_library(gl3w EXCLUDE_FROM_ALL gl3w/gl3w.c gl3w/GL/gl3w.h gl3w/GL/glcorearb.h)
+target_include_directories(gl3w PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gl3w)
+set(LIBS ${LIBS} gl3w)
 
 # glfw
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -228,9 +234,9 @@ add_subdirectory(glslang EXCLUDE_FROM_ALL)
 target_include_directories(glslang PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glslang/glslang/Public ${CMAKE_CURRENT_SOURCE_DIR}/glslang/SPIRV)
 set(LIBS ${LIBS} glslang SPIRV)
 
-# gtest
+# googletest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-add_subdirectory(gtest EXCLUDE_FROM_ALL)
+add_subdirectory(googletest EXCLUDE_FROM_ALL)
 
 # imgui
 add_library(imgui EXCLUDE_FROM_ALL
@@ -242,12 +248,17 @@ set(LIBS ${LIBS} imgui)
 
 # json
 add_library(json INTERFACE)
-target_include_directories(json INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/json)
+target_include_directories(json INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/json/src)
 set(LIBS ${LIBS} json)
 
-# sol
+# optional-lite
+add_library(optional-lite INTERFACE)
+target_include_directories(optional-lite INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/optional-lite/include)
+set(LIBS ${LIBS} optional-lite)
+
+# sol2
 add_library(sol INTERFACE)
-target_include_directories(sol INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/sol)
+target_include_directories(sol INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/sol2/single/sol)
 set(LIBS ${LIBS} sol)
 
 # SPIRV-Cross
@@ -255,17 +266,17 @@ add_subdirectory(SPIRV-Cross EXCLUDE_FROM_ALL)
 #target_include_directories(glfw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
 set(LIBS ${LIBS} spirv-cross-glsl spirv-cross-hlsl spirv-cross-msl)
 
-# stb_image
-add_library(stb_image INTERFACE)
-target_include_directories(stb_image INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb_image)
-set(LIBS ${LIBS} stb_image)
+# stb
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+set(LIBS ${LIBS} stb)
 
 # tinyformat
 add_library(tinyformat INTERFACE)
 target_include_directories(tinyformat INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tinyformat)
 set(LIBS ${LIBS} tinyformat)
 
-# variant
+# variant-lite
 add_library(variant INTERFACE)
 target_include_directories(variant INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/variant/include)
 set(LIBS ${LIBS} variant)

@@ -14,7 +14,12 @@ void SystemManager::beginMainLoop() {
     system_manager_.initialise();
 }
 
-void SystemManager::update() {
+void SystemManager::update(float dt) {
+    last_dt_ = dt;
     context_->ontology_world_.update();
+}
+
+float SystemManager::_lastDt() const {
+    return last_dt_;
 }
 }  // namespace dw

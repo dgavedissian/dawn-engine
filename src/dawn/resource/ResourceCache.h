@@ -8,6 +8,37 @@
 #include "resource/Resource.h"
 
 namespace dw {
+using ResourcePath = String;
+
+Pair<String, Path> parseResourcePath(const ResourcePath& resource_path);
+
+class DW_API ResourceLocation {
+public:
+    virtual ~ResourceLocation() = default;
+    virtual SharedPtr<InputStream> getFile(const ResourcePath& path_within_location) = 0;
+};
+
+class DW_API ResourcePackage : public Object, public ResourceLocation {
+public:
+    DW_OBJECT(ResourcePackage);
+
+    ResourcePackage(Context* ctx, const Path& package);
+
+    SharedPtr<InputStream> getFile(const ResourcePath& path_within_location) override;
+};
+
+class DW_API ResourceFilesystemPath : public Object, public ResourceLocation {
+public:
+    DW_OBJECT(ResourceFilesystemPath);
+
+    ResourceFilesystemPath(Context* ctx, const Path& path);
+
+    SharedPtr<InputStream> getFile(const ResourcePath& path_within_location) override;
+
+private:
+    Path path_;
+};
+
 class DW_API ResourceCache : public Object {
 public:
     DW_OBJECT(ResourceCache);
@@ -15,34 +46,35 @@ public:
     ResourceCache(Context* context);
     ~ResourceCache();
 
-    void addResourceLocation(const Path& path);
+    void addPath(const String& package, const Path& path);
+    void addPackage(const String& package, UniquePtr<ResourcePackage> file);
 
-    template <typename T> SharedPtr<T> get(const Path& filename) {
-        String name(String(filename.c_str()));
+    template <typename T> SharedPtr<T> get(const ResourcePath& resource_path) {
+        String name(resource_path);
 
         // If the resource already exists, return it.
-        auto it = mResourceCache.find(name);
-        if (it != mResourceCache.end()) {
+        auto it = resource_cache_.find(name);
+        if (it != resource_cache_.end()) {
             return staticPointerCast<T>((*it).second);
         }
 
         // Load the file which contains this resource data.
-        SharedPtr<File> file = getFile(filename);
-        if (!file) {
-            log().error("Cannot find file %s", filename);
+        SharedPtr<InputStream> resource_data = getResourceData(resource_path);
+        if (!resource_data) {
+            log().error("Cannot find resource %s", resource_path);
             return nullptr;
         }
         SharedPtr<T> resource = makeShared<T>(context());
-        mResourceCache.emplace(name, resource);
-        log().info("Loading Asset '%s'", filename);
-        resource->load(filename, *file.get());
+        resource_cache_.emplace(name, resource);
+        log().info("Loading asset '%s'", resource_path);
+        resource->load(resource_path, *resource_data.get());
         return resource;
     }
 
 private:
-    SharedPtr<File> getFile(const Path& filename);
+    SharedPtr<InputStream> getResourceData(const Path& filename);
 
-    Vector<Path> mResourcePaths;
-    HashMap<String, SharedPtr<Resource>> mResourceCache;
+    Map<String, UniquePtr<ResourceLocation>> resource_packages_;
+    HashMap<String, SharedPtr<Resource>> resource_cache_;
 };
 }  // namespace dw

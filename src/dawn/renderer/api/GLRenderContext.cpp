@@ -462,12 +462,11 @@ bool GLRenderContext::frame(const Frame* frame) {
 
     // Process views.
     for (auto& v : frame->views) {
-        if (v.render_items.empty()) {
+        if (v.render_items.empty() || !v.frame_buffer.isValid()) {
             continue;
         }
 
         // Set up framebuffer.
-        assert(v.frame_buffer.isValid());
         u16 fb_width, fb_height;
         if (v.frame_buffer.internal() > 0) {
             FrameBufferData& fb_data = frame_buffer_map_.at(v.frame_buffer);
@@ -503,6 +502,10 @@ bool GLRenderContext::frame(const Frame* frame) {
             if (!previous || previous->cull_front_face != current->cull_front_face) {
                 glFrontFace(current->cull_front_face == CullFrontFace::CCW ? GL_CCW : GL_CW);
             }
+            if (!previous || previous->polygon_mode != current->polygon_mode) {
+                glPolygonMode(GL_FRONT_AND_BACK,
+                              current->polygon_mode == PolygonMode::Fill ? GL_FILL : GL_LINE);
+            }
             if (!previous || previous->depth_enabled != current->depth_enabled) {
                 if (current->depth_enabled) {
                     glEnable(GL_DEPTH_TEST);
@@ -532,6 +535,13 @@ bool GLRenderContext::frame(const Frame* frame) {
                                     s_blend_func_map.at(current->blend_src_a),
                                     s_blend_func_map.at(current->blend_dest_a));
                 GL_CHECK();
+            }
+            if (!previous || previous->colour_write != current->colour_write) {
+                GLboolean colour_enabled = current->colour_write ? GL_TRUE : GL_FALSE;
+                glColorMask(colour_enabled, colour_enabled, colour_enabled, colour_enabled);
+            }
+            if (!previous || previous->depth_write != current->depth_write) {
+                glDepthMask(current->depth_write ? GL_TRUE : GL_FALSE);
             }
 
             // Scissor.

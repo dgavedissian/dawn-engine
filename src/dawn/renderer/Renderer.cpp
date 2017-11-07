@@ -38,11 +38,23 @@ void RenderItem::clear() {
     // Default render state.
     cull_face_enabled = true;
     cull_front_face = CullFrontFace::CCW;
+    polygon_mode = PolygonMode::Fill;
     depth_enabled = true;
     blend_enabled = false;
     blend_equation_rgb = blend_equation_a = BlendEquation::Add;
     blend_src_rgb = blend_src_a = BlendFunc::One;
     blend_dest_rgb = blend_dest_a = BlendFunc::Zero;
+    colour_write = true;
+    depth_write = true;
+}
+
+View::View() : clear_colour{0.0f, 0.0f, 0.0f, 1.0f}, frame_buffer{FrameBufferHandle::invalid} {
+}
+
+void View::clear() {
+    clear_colour = {0.0f, 0.0f, 0.0f, 1.0f};
+    frame_buffer = FrameBufferHandle::invalid;
+    render_items.clear();
 }
 
 Frame::Frame() {
@@ -53,6 +65,9 @@ Frame::Frame() {
     transient_ib_storage.size = 0;
     next_transient_vertex_buffer_handle_ = TransientVertexBufferHandle{0};
     next_transient_index_buffer_handle_ = TransientIndexBufferHandle{0};
+
+    // By default, view 0 will point to the backbuffer.
+    view(0).frame_buffer = FrameBufferHandle{0};
 }
 
 Frame::~Frame() {
@@ -401,6 +416,10 @@ void Renderer::setStateCullFrontFace(CullFrontFace front_face) {
     submit_->current_item.cull_front_face = front_face;
 }
 
+void Renderer::setStatePolygonMode(PolygonMode polygon_mode) {
+    submit_->current_item.polygon_mode = polygon_mode;
+}
+
 void Renderer::setStateBlendEquation(BlendEquation equation, BlendFunc src, BlendFunc dest) {
     setStateBlendEquation(equation, src, dest, equation, src, dest);
 }
@@ -414,6 +433,14 @@ void Renderer::setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_r
     submit_->current_item.blend_equation_a = equation_a;
     submit_->current_item.blend_src_a = src_a;
     submit_->current_item.blend_dest_a = dest_a;
+}
+
+void Renderer::setColourWrite(bool write_enabled) {
+    submit_->current_item.colour_write = write_enabled;
+}
+
+void Renderer::setDepthWrite(bool write_enabled) {
+    submit_->current_item.depth_write = write_enabled;
 }
 
 void Renderer::setScissor(u16 x, u16 y, u16 width, u16 height) {
@@ -544,8 +571,9 @@ bool Renderer::renderFrame(Frame* frame) {
     // Clear the frame state.
     frame->current_item.clear();
     for (auto& view : frame->views) {
-        view.render_items.clear();
+        view.clear();
     }
+    frame->view(0).frame_buffer = FrameBufferHandle{0};
     frame->commands_pre.clear();
     frame->commands_post.clear();
     frame->transient_vb_storage.size = 0;
@@ -560,5 +588,13 @@ bool Renderer::renderFrame(Frame* frame) {
 #endif
 
     return true;
+}
+
+uint Renderer::getBackbufferView() const {
+    for (uint view_index = 0; view_index < submit_->views.size(); ++view_index) {
+        if (submit_->views[view_index].frame_buffer.internal() == 0) {
+            return view_index;
+        }
+    }
 }
 }  // namespace dw

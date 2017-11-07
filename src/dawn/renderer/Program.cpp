@@ -18,7 +18,7 @@ Program::Program(Context* context, SharedPtr<VertexShader> vs, SharedPtr<Fragmen
 Program::~Program() {
 }
 
-bool Program::beginLoad(const String& asset_name, InputStream&) {
+bool Program::beginLoad(const String&, InputStream&) {
     log().error("Program loading unimplemented");
     return false;
 }
@@ -27,14 +27,14 @@ void Program::endLoad() {
 }
 
 void Program::setTextureUnit(SharedPtr<Texture> texture, uint unit) {
-    texture_units_[unit] = std::move(texture);
+    texture_units_[unit] = texture;
 }
 
 ProgramHandle Program::internalHandle() const {
     return handle_;
 }
 
-void Program::prepareForRendering() {
+void Program::applyRendererState() {
     // Set textures.
     for (size_t i = 0; i < texture_units_.size(); i++) {
         if (!texture_units_[i]) {

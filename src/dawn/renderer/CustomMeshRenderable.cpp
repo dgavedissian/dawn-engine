@@ -15,28 +15,25 @@ CustomMeshRenderable::CustomMeshRenderable(Context* context, SharedPtr<VertexBuf
 CustomMeshRenderable::~CustomMeshRenderable() {
 }
 
-void CustomMeshRenderable::draw(Renderer* renderer, uint view, const Mat4& model_matrix,
-                                const Mat4& view_projection_matrix) {
+void CustomMeshRenderable::draw(Renderer* renderer, uint view, Transform* camera,
+                                const Mat4& model_matrix, const Mat4& view_projection_matrix) {
     u32 vertex_count = index_buffer_ ? index_buffer_->indexCount() : vertex_buffer_->vertexCount();
     renderer->setVertexBuffer(vertex_buffer_->internalHandle());
     if (index_buffer_) {
         renderer->setIndexBuffer(index_buffer_->internalHandle());
     }
-    // TODO: Do this in the material class via a "bind" method.
-    // TODO: Move this common "render vertex/index buffer + material" code somewhere.
+    // TODO: Move this common "render vertex/index buffer + material" code somewhere to avoid
+    // duplication with Mesh.
     // TODO: Support unset material.
-    auto program = material_->program();
-    program->setUniform("model_matrix", model_matrix);
-    program->setUniform("mvp_matrix", view_projection_matrix * model_matrix);
-    program->prepareForRendering();
-    renderer->submit(view, program->internalHandle(), vertex_count);
+    material_->applyRendererState(model_matrix, view_projection_matrix);
+    renderer->submit(view, material_->program()->internalHandle(), vertex_count);
 }
 
-const VertexBuffer* CustomMeshRenderable::vertexBuffer() const {
+VertexBuffer* CustomMeshRenderable::vertexBuffer() const {
     return vertex_buffer_.get();
 }
 
-const IndexBuffer* CustomMeshRenderable::indexBuffer() const {
+IndexBuffer* CustomMeshRenderable::indexBuffer() const {
     return index_buffer_.get();
 }
 }  // namespace dw

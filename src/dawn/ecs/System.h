@@ -8,11 +8,12 @@
 #include "ecs/Entity.h"
 
 namespace dw {
+class SystemManager;
 
 template <typename T> class OntologySystemAdapter : public Ontology::System {
 public:
     OntologySystemAdapter(UniquePtr<T>&& wrapped_system)
-        : wrapped_system_{std::move(wrapped_system)} {
+        : dt_{0.0f}, wrapped_system_{std::move(wrapped_system)} {
         wrapped_system_->internalSetOntologyAdapter(this);
     }
 
@@ -22,11 +23,13 @@ public:
     void processEntity(Ontology::Entity& entity) override {
         if (!first_iteration) {
             wrapped_system_->beginProcessing();
+            // Hack.
+            dt_ = wrapped_system_->template subsystem<SystemManager>()->_lastDt();
             first_iteration = true;
         }
         Entity wrapped_entity{wrapped_system_->context(), world->getEntityManager(),
                               entity.getID()};
-        wrapped_system_->processEntity(wrapped_entity);
+        wrapped_system_->processEntity(wrapped_entity, dt_);
     }
 
     void configureEntity(Ontology::Entity&, std::string) override {
@@ -37,6 +40,7 @@ public:
     }
 
 private:
+    float dt_;
     UniquePtr<T> wrapped_system_;
 };
 
@@ -76,7 +80,7 @@ public:
 
     /// Processes a single entity which matches the constraints set up by SupportsComponents.
     /// @param entity Entity to process.
-    virtual void processEntity(Entity& entity) = 0;
+    virtual void processEntity(Entity& entity, float dt) = 0;
 
     /// Internal.
     void internalSetOntologyAdapter(Ontology::System* system) {

@@ -35,9 +35,12 @@ public:
     void beginMainLoop();
 
     /// Update the world.
-    void update();
+    void update(float dt);
+
+    float _lastDt() const;
 
 private:
+    float last_dt_;
     Ontology::SystemManager& system_manager_;
 };
 

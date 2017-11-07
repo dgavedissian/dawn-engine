@@ -7,6 +7,7 @@
 #include "renderer/Camera.h"
 #include "renderer/Renderer.h"
 #include "ecs/System.h"
+#include "scene/Transform.h"
 
 namespace dw {
 class DW_API EntityRenderer : public System {
@@ -17,7 +18,7 @@ public:
     ~EntityRenderer() = default;
 
     void beginProcessing() override;
-    void processEntity(Entity& entity) override;
+    void processEntity(Entity& entity, float dt) override;
 
 private:
     class DW_API CameraEntitySystem : public System {
@@ -28,15 +29,16 @@ private:
         ~CameraEntitySystem() = default;
 
         void beginProcessing() override;
-        void processEntity(Entity& entity) override;
+        void processEntity(Entity& entity, float dt) override;
 
         struct CameraState {
             uint view;
-            Mat4 view_projection_matrix;
+            Transform* transform_component;
+            Mat4 projection_matrix;
         };
         Vector<CameraState> cameras;
     };
     CameraEntitySystem* camera_entity_system_;
-    HashMap<EntityId, Mat4> world_transform_cache_;
+    HashMap<Transform*, Mat4> world_transform_cache_;
 };
 }  // namespace dw

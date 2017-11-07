@@ -67,7 +67,7 @@ private:
 #define TEST_CLASS_NAME(test_name) test_name##Test
 #define TEST_CLASS(test_name) class TEST_CLASS_NAME(test_name) : public Object
 #define TEST_BODY(test_name)                                                    \
-    \
+                                                                                \
 public:                                                                         \
     DW_OBJECT(TEST_CLASS_NAME(test_name));                                      \
     TEST_CLASS_NAME(test_name)                                                  \
@@ -605,34 +605,37 @@ TEST_CLASS(MovingSphereHighLevel) {
     void start() {
         auto rc = subsystem<ResourceCache>();
         assert(rc);
-        rc->addResourceLocation("../media/base");
-        rc->addResourceLocation("../media/renderer-test");
+        rc->addPath("base", "../media/base");
+        rc->addPath("renderer-test", "../media/renderer-test");
 
         // Create an object.
         auto material = makeShared<Material>(
-            context(),
-            makeShared<Program>(context(), rc->get<VertexShader>("shaders/cube_solid.vs"),
-                                rc->get<FragmentShader>("shaders/cube_solid.fs")));
+            context(), makeShared<Program>(
+                           context(), rc->get<VertexShader>("renderer-test:shaders/cube_solid.vs"),
+                           rc->get<FragmentShader>("renderer-test:shaders/cube_solid.fs")));
         auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
         renderable->setMaterial(material);
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
         auto sm = subsystem<SystemManager>();
         auto em = subsystem<EntityManager>();
+        auto scene = subsystem<Universe>();
         object = &em->createEntity()
-                      .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
+                      .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity,
+                                               scene->rootNode())
                       .addComponent<RenderableComponent>(renderable);
 
         // Create a camera.
         camera = &em->createEntity()
-                      .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
+                      .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity,
+                                               scene->rootNode())
                       .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
     }
 
     void render() {
         static float angle = 0.0f;
         angle += engine_->frameTime();
-        camera->component<Transform>()->position.x = sin(angle) * 30.0f;
+        camera->transform()->position().x = sin(angle) * 30.0f;
         subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
     }
 

@@ -18,6 +18,19 @@ public:
     /// @return A newly created entity.
     Entity& createEntity();
 
+    /// Creates a new empty with a transform component.
+    /// @param p Initial position.
+    /// @param o Initial orientation.
+    /// @param parent Parent entity.
+    /// @return A newly created entity.
+    Entity& createEntity(const Position& p, const Quat& o, Entity* parent);
+
+    /// Creates a new empty with a transform component.
+    /// @param p Initial position.
+    /// @param o Initial orientation.
+    /// @return A newly created entity.
+    Entity& createEntity(const Position& p, const Quat& o);
+
     /// Looks up an entity by its ID.
     /// @param id Entity ID.
     /// @return The entity which corresponds to this entity ID.
