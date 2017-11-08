@@ -71,6 +71,8 @@ set(SOURCE_FILES
     math/Vec3i.h
     math/Vec4i.cpp
     math/Vec4i.h
+    net/NetSystem.cpp
+    net/NetSystem.h
     physics/BulletDynamics.h
     physics/PhysicsSystem.cpp
     physics/PhysicsSystem.h

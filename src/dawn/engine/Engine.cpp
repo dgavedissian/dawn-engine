@@ -35,8 +35,28 @@ Engine::~Engine() {
     shutdown();
 }
 
-void Engine::setup() {
+void Engine::setup(int argc, char** argv) {
     assert(!initialised_);
+
+    // Process command line arguments.
+    Set<String> flags;
+    Map<String, String> arguments;
+    for (int i = 0; i < argc; i++) {
+        if (argv[i][0] == '-') {
+            // Look ahead to next arg. If flag then add this arg as flag, otherwise add argument
+            // pair
+            if (i < argc - 1) {
+                if (argv[i + 1][0] == '-') {
+                    flags.insert(String{argv[i]});
+                } else {
+                    arguments[String{argv[i]}] = String{argv[i + 1]};
+                    i++;  // skip argument value
+                }
+            } else {
+                flags.insert(String{argv[i]});
+            }
+        }
+    }
 
     // Create context.
     context_ = new Context(basePath(), "");
@@ -57,6 +77,18 @@ void Engine::setup() {
     // Print info.
     log().info("Initialising engine");
     printSystemInfo();
+    if (flags.size() > 0) {
+        log().info("Flags:");
+        for (auto& flag : flags) {
+            log().info("\t%s", flag);
+        }
+    }
+    if (arguments.size() > 0) {
+        log().info("Arguments:");
+        for (auto& arg : arguments) {
+            log().info("\t%s %s", arg.first, arg.second);
+        }
+    }
 
     // Build window title.
     String window_title{game_name_};
@@ -89,9 +121,20 @@ void Engine::setup() {
 
     // Create the engine subsystems.
     context_->addSubsystem<Input>();
+
+    auto* net = context_->addSubsystem<NetSystem>();
+    if (arguments.find("-host") != arguments.end()) {
+        net->listen(std::stoi(arguments["-host"]), 32);
+    } else if (arguments.find("-join") != arguments.end()) {
+        String ip = arguments["-join"];
+        u16 port = std::stoi(arguments["-p"]);
+        net->connect(ip, port);
+    }
+
     auto* renderer = context_->addSubsystem<Renderer>();
     renderer->init(context_->config().at("window_width").get<u16>(),
                    context_->config().at("window_height").get<u16>(), window_title, true);
+
     context_->addSubsystem<UserInterface>();
     context_->addSubsystem<Universe>();
     // mAudio = new Audio;
@@ -316,6 +359,7 @@ String Engine::basePath() const {
 
 void Engine::update(float dt) {
     // log().debug("Frame Time: %f", dt);
+    context_->subsystem<NetSystem>()->update(dt);
 
     context_->subsystem<EventSystem>()->update(0.02f);
     context_->subsystem<StateManager>()->update(dt);

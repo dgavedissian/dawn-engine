@@ -37,3 +37,12 @@
 [submodule "src/external/variant"]
 	path = src/external/variant
 	url = https://github.com/mapbox/variant.git
+[submodule "src/external/yojimbo"]
+	path = src/external/yojimbo
+	url = https://github.com/networkprotocol/yojimbo.git
+[submodule "src/external/yojimbo_mbedtls"]
+	path = src/external/yojimbo_mbedtls
+	url = https://github.com/ARMmbed/mbedtls.git
+[submodule "src/external/yojimbo_sodium"]
+	path = src/external/yojimbo_sodium
+	url = https://github.com/jedisct1/libsodium.git

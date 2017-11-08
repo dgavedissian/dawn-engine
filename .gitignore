@@ -4,6 +4,9 @@
 # Bin
 bin
 
+# Logs
+*.log
+
 # CMake Output Directories
 build*/
 

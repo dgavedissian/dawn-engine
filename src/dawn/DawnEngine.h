@@ -19,6 +19,7 @@
 #include "math/Vec2i.h"
 #include "math/Vec3i.h"
 #include "math/Vec4i.h"
+#include "net/NetSystem.h"
 #include "input/Input.h"
 #include "physics/PhysicsSystem.h"
 #include "renderer/CustomMeshRenderable.h"

@@ -281,6 +281,87 @@ add_library(variant INTERFACE)
 target_include_directories(variant INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/variant/include)
 set(LIBS ${LIBS} variant)
 
+# yojimbo_mbedtls
+ExternalProject_Add(yojimbo_mbedtls_build
+    PREFIX ${EXTERNAL_PREFIX}
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo_mbedtls
+    DOWNLOAD_COMMAND ""
+    BUILD_COMMAND ""
+    UPDATE_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config ${CMAKE_BUILD_TYPE}
+    CMAKE_ARGS ${EXTERNAL_ARGS}
+    )
+set_target_properties(yojimbo_mbedtls_build PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(yojimbo_mbedtls STATIC IMPORTED GLOBAL)
+add_dependencies(yojimbo_mbedtls yojimbo_mbedtls_build)
+file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/mbedtls)
+set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include/mbedtls)
+if(WIN32)
+    #set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
+    #    $<$<CONFIG:Debug>:${EXTERNAL_INSTALL}/lib/BulletCollision_Debug.lib>
+    #    $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_INSTALL}/lib/BulletCollision.lib>
+    #    $<$<CONFIG:Release>:${EXTERNAL_INSTALL}/lib/BulletCollision.lib>
+    #    $<$<CONFIG:Debug>:${EXTERNAL_INSTALL}/lib/LinearMath_Debug.lib>
+    #    $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_INSTALL}/lib/LinearMath.lib>
+    #    $<$<CONFIG:Release>:${EXTERNAL_INSTALL}/lib/LinearMath.lib>)
+    #set_property(TARGET yojimbo_mbedtls PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/BulletDynamics_Debug.lib)
+    #set_property(TARGET yojimbo_mbedtls PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/BulletDynamics.lib)
+else()
+    set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/libmbedcrypto.a
+        ${EXTERNAL_INSTALL}/lib/libmbedtls.a
+        ${EXTERNAL_INSTALL}/lib/libmbedx509.a)
+    set_property(TARGET yojimbo_mbedtls PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a)
+endif()
+
+# yojimbo_sodium
+if (MSVC)
+    #ExternalProject_Add(Luajit_Build
+    #    PREFIX ${EXTERNAL_PREFIX}
+    #    URL http://luajit.org/download/LuaJIT-2.1.0-beta2.zip
+    #    URL_MD5 b5d943c0174ca217736e2ddc2d9721c3
+    #    BINARY_DIR ${EXTERNAL_PREFIX}/src/Luajit_Build/src
+    #    CONFIGURE_COMMAND ""
+    #    BUILD_COMMAND msvcbuild.bat static
+    #    INSTALL_COMMAND ""
+    #    UPDATE_COMMAND ""
+    #    )
+else()
+    ExternalProject_Add(yojimbo_sodium_build
+        PREFIX ${EXTERNAL_PREFIX}
+        URL ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo_sodium
+        BUILD_IN_SOURCE 1
+        CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL}
+        BUILD_COMMAND make
+        INSTALL_COMMAND make install
+        UPDATE_COMMAND ""
+        )
+endif()
+set_target_properties(yojimbo_sodium_build PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(yojimbo_sodium STATIC IMPORTED GLOBAL)
+add_dependencies(yojimbo_sodium yojimbo_sodium_build)
+file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
+set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
+if(WIN32)
+    #set_property(TARGET yojimbo_sodium PROPERTY IMPORTED_LOCATION ${EXTERNAL_PREFIX}/src/Luajit_Build/src/lua51.lib)
+else()
+    set_property(TARGET yojimbo_sodium PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libsodium.a)
+endif()
+
+# yojimbo
+add_library(yojimbo EXCLUDE_FROM_ALL
+    yojimbo/yojimbo.cpp
+    yojimbo/tlsf/tlsf.c
+    yojimbo/netcode.io/netcode.c
+    yojimbo/reliable.io/reliable.c)
+target_include_directories(yojimbo PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo)
+target_include_directories(yojimbo PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo/netcode.io
+    ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo/reliable.io)
+target_link_libraries(yojimbo yojimbo_mbedtls yojimbo_sodium)
+set(LIBS ${LIBS} yojimbo)
 
 ##############################################################
 # Push dependencies to the parent scope

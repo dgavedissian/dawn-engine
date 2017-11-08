@@ -12,7 +12,7 @@ int runApp(UniquePtr<App> app, int argc, char** argv) {
     // TODO(David) Load config.
 
     dw::Engine engine{app->gameName(), app->gameVersion()};
-    engine.setup();
+    engine.setup(argc, argv);
 
     // App lifecycle.
     app->context_ = engine.context();
