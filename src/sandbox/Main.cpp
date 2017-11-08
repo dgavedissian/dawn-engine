@@ -219,7 +219,7 @@ private:
             float angle = math::pi * 0.5f * i;
             Vec3 sample_location =
                 Vec3::FromSphericalCoordinates(centre_sample_location.ToSphericalCoordinates() +
-                                               Vec3{sin(angle), cos(angle), 0.0f} * offset_radians);
+                                               Vec3(sin(angle), cos(angle), 0.0f) * offset_radians);
             double height_sample =
                 noise_.noise(sample_location.x, sample_location.y, sample_location.z);
             samples[i] = sample_location * (1.0f + height_sample / radius_);

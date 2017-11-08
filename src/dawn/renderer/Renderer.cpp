@@ -596,5 +596,7 @@ uint Renderer::getBackbufferView() const {
             return view_index;
         }
     }
+    log().error("getBackbufferView() returned -1.");
+    return -1;
 }
 }  // namespace dw
