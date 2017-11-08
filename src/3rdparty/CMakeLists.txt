@@ -34,6 +34,7 @@ set(EXTERNAL_INSTALL ${EXTERNAL_PREFIX}/install)
 
 # Arguments to be passed to all calls to CMake
 set(EXTERNAL_ARGS
+    -DBUILD_SHARED_LIBS=0
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} # CMake doesn't seem to do this automatically?
     -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL})
 if(APPLE)
@@ -54,7 +55,8 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS} ${EXTERNAL_INSTALL}/include)
 ExternalProject_Add(Bullet
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
+    URL https://github.com/bulletphysics/bullet3/archive/2.86.zip
+    URL_MD5 8b57278946186e9792824069637bbc97
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_EXTRAS=0
@@ -93,10 +95,11 @@ endif()
 ExternalProject_Add(OgreDeps
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    HG_REPOSITORY https://bitbucket.org/cabalistic/ogredeps
+    URL https://bitbucket.org/cabalistic/ogredeps/get/ad74081d00dda03769385a5d01a2bd6157431879.zip
     PATCH_COMMAND ${OGREDEPS_PATCH_COMMAND}
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
+        -DOGREDEPS_INSTALL_DEV=1
         -DOGREDEPS_BUILD_CG=0
         -DOGREDEPS_BUILD_AMD_QBS=0
         -DOGREDEPS_BUILD_NVIDIA_NVAPI=0
@@ -108,8 +111,7 @@ ExternalProject_Add(Ogre
     DEPENDS OgreDeps
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    HG_REPOSITORY https://bitbucket.org/sinbad/ogre
-    HG_TAG 374723e
+    URL https://bitbucket.org/sinbad/ogre/get/v1-10-9.zip
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DOIS_INCLUDE_DIR=${EXTERNAL_PREFIX}/install # dummy directory to shut CMake up
@@ -154,17 +156,24 @@ if(WIN32)
         optimized ${EXTERNAL_INSTALL}/lib/Release/zlib.lib
         debug ${EXTERNAL_INSTALL}/lib/Debug/zziplib_d.lib
         optimized ${EXTERNAL_INSTALL}/lib/Release/zziplib.lib
-        debug ${EXTERNAL_INSTALL}/lib/Debug/OgreMainStatic_d.lib
-        optimized ${EXTERNAL_INSTALL}/lib/Release/OgreMainStatic.lib
-        debug ${EXTERNAL_INSTALL}/lib/Debug/opt/RenderSystem_GL3PlusStatic_d.lib
-        optimized ${EXTERNAL_INSTALL}/lib/Release/opt/RenderSystem_GL3PlusStatic.lib)
+        debug ${EXTERNAL_INSTALL}/lib/OgreMainStatic_d.lib
+        optimized ${EXTERNAL_INSTALL}/lib/OgreMainStatic.lib
+        debug ${EXTERNAL_INSTALL}/lib/OgreGLSupportStatic_d.lib
+        optimized ${EXTERNAL_INSTALL}/lib/OgreGLSupportStatic.lib
+        debug ${EXTERNAL_INSTALL}/lib/OGRE/RenderSystem_GL3PlusStatic_d.lib
+        optimized ${EXTERNAL_INSTALL}/lib/OGRE/RenderSystem_GL3PlusStatic.lib)
 elseif(APPLE)
     set(OGRE_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/libFreeImage.a
-        ${EXTERNAL_INSTALL}/lib/libfreetype.a
-        ${EXTERNAL_INSTALL}/lib/libzlib.a
-        ${EXTERNAL_INSTALL}/lib/libzziplib.a
+        debug ${EXTERNAL_INSTALL}/lib/Debug/libFreeImage.a
+        optimized ${EXTERNAL_INSTALL}/lib/Release/libFreeImage.a
+        debug ${EXTERNAL_INSTALL}/lib/Debug/libfreetype.a
+        optimized ${EXTERNAL_INSTALL}/lib/Release/libfreetype.a
+        debug ${EXTERNAL_INSTALL}/lib/Debug/libzlib.a
+        optimized ${EXTERNAL_INSTALL}/lib/Release/libzlib.a
+        debug${EXTERNAL_INSTALL}/lib/Debug/libzziplib.a
+        optimized ${EXTERNAL_INSTALL}/lib/Release/libzziplib.a
         ${EXTERNAL_INSTALL}/lib/libOgreMainStatic.a
+        ${EXTERNAL_INSTALL}/lib/libOgreGLSupportStatic.a
         ${EXTERNAL_INSTALL}/lib/libRenderSystem_GL3PlusStatic.a)
 else()
     set(OGRE_LIBRARIES
@@ -178,6 +187,8 @@ else()
         optimized ${EXTERNAL_INSTALL}/lib/libzziplib.a
         debug ${EXTERNAL_INSTALL}/lib/libOgreMainStatic_d.a
         optimized ${EXTERNAL_INSTALL}/lib/libOgreMainStatic.a
+        debug ${EXTERNAL_INSTALL}/lib/libOgreGLSupportStatic_d.a
+        optimized ${EXTERNAL_INSTALL}/lib/libOgreGLSupportStatic.a
         debug ${EXTERNAL_INSTALL}/lib/OGRE/libRenderSystem_GL3PlusStatic_d.a
         optimized ${EXTERNAL_INSTALL}/lib/OGRE/libRenderSystem_GL3PlusStatic.a)
 endif()
@@ -197,7 +208,8 @@ set(LIBS ${LIBS} ${OPENGL_LIBRARY})
 ExternalProject_Add(MathGeoLib
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    GIT_REPOSITORY https://github.com/davedissian/dawnengine-MathGeoLib.git
+    URL https://github.com/davedissian/dawnengine-MathGeoLib/archive/master.zip
+    URL_MD5 d1fd2ed6aa2284049234f377c6a6f1e9
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0)
@@ -218,7 +230,7 @@ endif()
 ExternalProject_Add(Luajit
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    GIT_REPOSITORY https://github.com/davedissian/dawnengine-luajit.git
+    URL https://github.com/LuaDist/luajit/archive/2.0.3.zip
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0
@@ -237,11 +249,12 @@ ExternalProject_Add(LibRocket
     DEPENDS OgreDeps
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    GIT_REPOSITORY https://github.com/davedissian/dawnengine-libRocket.git
+    URL https://github.com/libRocket/libRocket/archive/master.zip
+    SOURCE_SUBDIR ../LibRocket/Build
     UPDATE_COMMAND ""
-    CONFIGURE_COMMAND ${CMAKE_COMMAND} ../LibRocket/Build
-        ${EXTERNAL_ARGS}
+    CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0
+        -DCMAKE_DEBUG_POSTFIX=_d
         -DFREETYPE_INCLUDE_DIR_ft2build=${EXTERNAL_INSTALL}/include
         -DFREETYPE_INCLUDE_DIR_freetype2=${EXTERNAL_INSTALL}/include/freetype
         -DFREETYPE_LIBRARY=${EXTERNAL_INSTALL}/lib/${FREETYPE_LIB})
@@ -268,7 +281,7 @@ endif()
 ExternalProject_Add(RakNet
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    GIT_REPOSITORY https://github.com/davedissian/dawnengine-RakNet.git
+    URL https://github.com/davedissian/dawnengine-RakNet/archive/master.zip
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DRAKNET_ENABLE_DLL=0
