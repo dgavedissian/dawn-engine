@@ -26,13 +26,23 @@ public:
 
     void update(float dt);
 
+    // Returns true if connected to a server as a client.
+    bool isClient() const;
+
+    // Returns true if running as a server.
     bool isServer() const;
+
+    // Returns true if networking is active.
     bool isConnected() const;
+
+    void replicateEntity(const Entity& entity);
 
 private:
     bool is_server_;
     double time_;
     UniquePtr<yojimbo::Client> client_;
     UniquePtr<yojimbo::Server> server_;
+
+    HashSet<EntityId> replicated_entities_;
 };
 }  // namespace dw

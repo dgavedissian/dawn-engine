@@ -44,7 +44,7 @@ set(SOURCE_FILES
     input/Input.cpp
     input/Input.h
     io/File.cpp
-    io/File.h
+    io/BitStream.h
     io/FileSystem.cpp
     io/FileSystem.h
     io/InputStream.cpp
@@ -71,6 +71,8 @@ set(SOURCE_FILES
     math/Vec3i.h
     math/Vec4i.cpp
     math/Vec4i.h
+    net/NetData.cpp
+    net/NetData.h
     net/NetSystem.cpp
     net/NetSystem.h
     physics/BulletDynamics.h

@@ -43,5 +43,8 @@ public:
 private:
     Ontology::EntityManager& entity_manager_;
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
+    EntityId entity_id_allocator_;
+
+    Entity& createEntity(EntityId reserved_entity_id);
 };
 }  // namespace dw

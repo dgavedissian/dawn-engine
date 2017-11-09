@@ -18,8 +18,7 @@ class Entity : public Object {
 public:
     DW_OBJECT(Entity);
 
-    explicit Entity(Context* context, Ontology::EntityManager& entity_manager,
-                    Ontology::Entity::ID entity_id);
+    explicit Entity(Context* context, Ontology::EntityManager& entity_manager, EntityId id);
     virtual ~Entity() = default;
 
     /// Accesses a component contained within this entity.
@@ -46,6 +45,7 @@ public:
 private:
     Ontology::EntityManager& entity_manager_;
     Ontology::Entity::ID internal_entity_id_;
+    EntityId id_;
 
     Ontology::Entity& entity() const {
         return entity_manager_.getEntity(internal_entity_id_);

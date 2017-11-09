@@ -8,15 +8,11 @@
 
 namespace dw {
 EntityManager::EntityManager(Context* context)
-    : Object{context}, entity_manager_{context->ontology_world_.getEntityManager()} {
+    : Object{context}, entity_manager_{context->ontology_world_.getEntityManager()}, entity_id_allocator_{1} {
 }
 
 Entity& EntityManager::createEntity() {
-    UniquePtr<Entity> entity =
-        makeUnique<Entity>(context(), entity_manager_, entity_manager_.createEntity("").getID());
-    auto entity_ptr = entity.get();
-    entity_lookup_table_.emplace(makePair(entity->id(), std::move(entity)));
-    return *entity_ptr;
+    return createEntity(entity_id_allocator_++);
 }
 
 Entity& EntityManager::createEntity(const Position& p, const Quat& o, Entity* parent) {
@@ -45,5 +41,12 @@ Entity* EntityManager::findEntity(EntityId id) {
 
 void EntityManager::removeEntity(Entity* entity) {
     entity_lookup_table_.erase(entity->id());
+}
+
+Entity &EntityManager::createEntity(EntityId reserved_entity_id) {
+    UniquePtr<Entity> entity = makeUnique<Entity>(context(), entity_manager_, reserved_entity_id);
+    auto entity_ptr = entity.get();
+    entity_lookup_table_.emplace(makePair(entity->id(), std::move(entity)));
+    return *entity_ptr;
 }
 }  // namespace dw

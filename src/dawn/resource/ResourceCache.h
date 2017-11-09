@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "io/File.h"
+#include "io/BitStream.h"
 #include "resource/Resource.h"
 
 namespace dw {

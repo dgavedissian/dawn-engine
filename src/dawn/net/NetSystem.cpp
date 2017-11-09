@@ -5,6 +5,9 @@
 #include "Common.h"
 #include "net/NetSystem.h"
 
+#include "ecs/EntityManager.h"
+#include "net/NetData.h"
+
 namespace dw {
 namespace {
 Logger* yojimbo_logger = nullptr;
@@ -24,52 +27,80 @@ int yojimbo_printf_function(const char* format, ...) {
 }
 
 // Test message.
-inline int GetNumBitsForMessage(uint16_t sequence) {
-    static int messageBitsArray[] = {1,  320, 120, 4, 256, 45,  11, 13, 101, 100, 84,
-                                     95, 203, 2,   3, 8,   512, 5,  3,  7,   50};
-    const int modulus = sizeof(messageBitsArray) / sizeof(int);
-    const int index = sequence % modulus;
-    return messageBitsArray[index];
-}
+//inline int GetNumBitsForMessage(uint16_t sequence) {
+//    static int messageBitsArray[] = {1,  320, 120, 4, 256, 45,  11, 13, 101, 100, 84,
+//                                     95, 203, 2,   3, 8,   512, 5,  3,  7,   50};
+//    const int modulus = sizeof(messageBitsArray) / sizeof(int);
+//    const int index = sequence % modulus;
+//    return messageBitsArray[index];
+//}
+//
+//struct TestMessage : public yojimbo::Message {
+//    uint16_t sequence;
+//
+//    TestMessage() {
+//        sequence = 0;
+//    }
+//
+//    template <typename Stream> bool Serialize(Stream& stream) {
+//        serialize_bits(stream, sequence, 16);
+//
+//        int numBits = GetNumBitsForMessage(sequence);
+//        int numWords = numBits / 32;
+//        uint32_t dummy = 0;
+//        for (int i = 0; i < numWords; ++i)
+//            serialize_bits(stream, dummy, 32);
+//        int numRemainderBits = numBits - numWords * 32;
+//        if (numRemainderBits > 0)
+//            serialize_bits(stream, dummy, numRemainderBits);
+//
+//        return true;
+//    }
+//
+//    YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
+//};
+struct ServerCreateEntityMessage : public yojimbo::Message {
+    EntityId entity_id;
 
-struct TestMessage : public yojimbo::Message {
-    uint16_t sequence;
-
-    TestMessage() {
-        sequence = 0;
+    ServerCreateEntityMessage() {
+        entity_id = 0;
     }
 
     template <typename Stream> bool Serialize(Stream& stream) {
-        serialize_bits(stream, sequence, 16);
+        serialize_uint32(stream, entity_id);
+    }
 
-        int numBits = GetNumBitsForMessage(sequence);
-        int numWords = numBits / 32;
-        uint32_t dummy = 0;
-        for (int i = 0; i < numWords; ++i)
-            serialize_bits(stream, dummy, 32);
-        int numRemainderBits = numBits - numWords * 32;
-        if (numRemainderBits > 0)
-            serialize_bits(stream, dummy, numRemainderBits);
+    YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
+};
+struct ServerDestroyEntityMessage : public yojimbo::Message {
+    EntityId entity_id;
 
-        return true;
+    ServerDestroyEntityMessage() {
+        entity_id = 0;
+    }
+
+    template <typename Stream> bool Serialize(Stream& stream) {
+        serialize_uint32(stream, entity_id);
     }
 
     YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
 };
 
-enum TestMessageType { TEST_MESSAGE, NUM_TEST_MESSAGE_TYPES };
+// Naming convention: <Src><Msg> e.g. ServerCreateEntity - Server sending CreateEntity to clients.
+enum MessageType { MT_ServerCreateEntity, MT_ServerDestroyEntity, MT_Count };
 
-YOJIMBO_MESSAGE_FACTORY_START(TestMessageFactory, NUM_TEST_MESSAGE_TYPES);
-YOJIMBO_DECLARE_MESSAGE_TYPE(TEST_MESSAGE, TestMessage);
+YOJIMBO_MESSAGE_FACTORY_START(NetMessageFactory, MT_Count);
+YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerCreateEntity, ServerCreateEntityMessage);
+YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerDestroyEntity, ServerDestroyEntityMessage);
 YOJIMBO_MESSAGE_FACTORY_FINISH();
 
-class YojimboAdapter : public yojimbo::Adapter {
+class NetAdapter : public yojimbo::Adapter {
 public:
-    yojimbo::MessageFactory* CreateMessageFactory(yojimbo::Allocator& allocator) {
-        return YOJIMBO_NEW(allocator, TestMessageFactory, allocator);
+    yojimbo::MessageFactory* CreateMessageFactory(yojimbo::Allocator& allocator) override {
+        return YOJIMBO_NEW(allocator, NetMessageFactory, allocator);
     }
 };
-YojimboAdapter g_adapter;
+NetAdapter g_adapter;
 }  // namespace
 
 NetSystem::NetSystem(Context* context)
@@ -128,7 +159,7 @@ void NetSystem::disconnect() {
     if (isServer()) {
         server_->Stop();
         server_.reset();
-    } else {
+    } else if (isClient()) {
         client_->Disconnect();
         client_.reset();
     }
@@ -151,11 +182,33 @@ void NetSystem::update(float dt) {
     }
 }
 
+bool NetSystem::isClient() const {
+    return client_ && client_->IsConnected();
+}
+
 bool NetSystem::isServer() const {
-    return is_server_;
+    return server_ && server_->IsRunning();
 }
 
 bool NetSystem::isConnected() const {
-    return isServer() ? server_ != nullptr : client_ != nullptr;
+    return isClient() || isServer();
+}
+
+void NetSystem::replicateEntity(const Entity &entity) {
+    assert(isServer());
+    assert(entity.hasComponent<NetData>());
+
+    replicated_entities_.insert(entity.id());
+
+    // Send create entity message to clients.
+    for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
+        auto message = (ServerCreateEntityMessage*)server_->CreateMessage(i, MT_ServerCreateEntity);
+        message->entity_id = entity.id();
+        // Serialise replicated properties.
+        // TOOD: Come up with Bitstream class.
+        // TODO: Rewrite InputStream/OutputStream to expose an unreal FArchive like interface, which
+        // by default will just write the bytes as-is.
+        server_->SendMessage(i, 0, message);
+    }
 }
 }  // namespace dw
