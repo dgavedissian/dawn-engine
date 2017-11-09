@@ -293,13 +293,13 @@ file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
 set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
 if(WIN32)
     set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/mbedcrypto.lib
-        ${EXTERNAL_INSTALL}/lib/mbedx509.lib)
+        ${EXTERNAL_INSTALL}/lib/mbedx509.lib
+        ${EXTERNAL_INSTALL}/lib/mbedcrypto.lib)
     set_property(TARGET yojimbo_mbedtls PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/mbedtls.lib)
 else()
     set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/libmbedcrypto.a
-        ${EXTERNAL_INSTALL}/lib/libmbedx509.a)
+        ${EXTERNAL_INSTALL}/lib/libmbedx509.a
+        ${EXTERNAL_INSTALL}/lib/libmbedcrypto.a)
     set_property(TARGET yojimbo_mbedtls PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libmbedtls.a)
 endif()
 

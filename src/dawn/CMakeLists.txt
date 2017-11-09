@@ -71,6 +71,8 @@ set(SOURCE_FILES
     math/Vec3i.h
     math/Vec4i.cpp
     math/Vec4i.h
+    net/BitStream.cpp
+    net/BitStream.h
     net/NetData.cpp
     net/NetData.h
     net/NetSystem.cpp
