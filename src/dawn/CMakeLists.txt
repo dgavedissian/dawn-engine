@@ -44,7 +44,7 @@ set(SOURCE_FILES
     input/Input.cpp
     input/Input.h
     io/File.cpp
-    io/BitStream.h
+    io/File.h
     io/FileSystem.cpp
     io/FileSystem.h
     io/InputStream.cpp

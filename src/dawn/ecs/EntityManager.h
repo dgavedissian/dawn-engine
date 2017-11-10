@@ -46,5 +46,7 @@ private:
     EntityId entity_id_allocator_;
 
     Entity& createEntity(EntityId reserved_entity_id);
+
+    friend class NetSystem;
 };
 }  // namespace dw

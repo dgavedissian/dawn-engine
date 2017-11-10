@@ -38,18 +38,17 @@ protected:
 };
 
 namespace stream {
-
-template <class T> T read(InputStream& stream) {
+template <class T> T read(InputStream& s) {
     static_assert(sizeof(T) != sizeof(T), "stream::read is not implemented for arbitrary types");
     return T();
 }
 
 // Implement read for primitive types
-#define IMPL_READ(T)                                     \
-    template <> inline T read<T>(InputStream & stream) { \
-        T value;                                         \
-        stream.read(&value, sizeof(T));                  \
-        return value;                                    \
+#define IMPL_READ(T)                                \
+    template <> inline T read<T>(InputStream & s) { \
+        T value;                                    \
+        s.read(&value, sizeof(T));                  \
+        return value;                               \
     }
 
 IMPL_READ(i8)
@@ -66,8 +65,8 @@ IMPL_READ(float)
 IMPL_READ(double)
 
 /// Read a null terminated string
-template <> inline String read<String>(InputStream& stream) {
-    return stream.readLine('\0');
+template <> inline String read<String>(InputStream& s) {
+    return s.readLine('\0');
 }
 }  // namespace stream
 }  // namespace dw

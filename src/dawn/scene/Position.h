@@ -5,6 +5,9 @@
 #pragma once
 #include "math/Defs.h"
 
+#include "io/InputStream.h"
+#include "io/OutputStream.h"
+
 namespace dw {
 
 class Camera_OLD;
@@ -54,6 +57,18 @@ public:
     // Origin
     static const Position origin;
 };
+
+/// Streams
+namespace stream {
+template <> inline Position read<Position>(InputStream& s) {
+    return Position(stream::read<double>(s), stream::read<double>(s), stream::read<double>(s));
+}
+template <> inline void write<Position>(OutputStream& s, const Position& value) {
+    stream::write(s, value.x);
+    stream::write(s, value.y);
+    stream::write(s, value.z);
+}
+}  // namespace stream
 
 /// Implementation of Lerp for Position objects
 inline Position lerp(const Position& a, const Position& b, float t, float dt) {

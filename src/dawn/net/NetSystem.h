@@ -6,9 +6,11 @@
 
 #include "yojimbo.h"
 
+#include "ecs/Entity.h"
+
 namespace dw {
 
-class DW_API NetSystem : public Object {
+class DW_API NetSystem : public Object, public yojimbo::Adapter {
 public:
     DW_OBJECT(NetSystem);
 
@@ -44,5 +46,12 @@ private:
     UniquePtr<yojimbo::Server> server_;
 
     HashSet<EntityId> replicated_entities_;
+
+    void sendCreateEntity(int clientIndex, const Entity& entity);
+
+    // Implementation of yojimbo::Adapter.
+    yojimbo::MessageFactory* CreateMessageFactory(yojimbo::Allocator& allocator) override;
+    void OnServerClientConnected(int clientIndex) override;
+    void OnServerClientDisconnected(int clientIndex) override;
 };
 }  // namespace dw

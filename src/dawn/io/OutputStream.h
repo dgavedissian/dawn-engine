@@ -18,14 +18,14 @@ public:
 namespace stream {
 
 /// Write functions implemented for different types
-template <typename T> void write(OutputStream& stream, const T& value) {
+template <typename T> void write(OutputStream& s, const T& value) {
     static_assert(sizeof(T) != sizeof(T), "stream::write is not implemented for arbitrary types");
 }
 
 // Implement write for primitive types
-#define IMPL_WRITE(T)                                                         \
-    template <> inline void write<T>(OutputStream & stream, const T& value) { \
-        stream.write(&value, sizeof(T));                                      \
+#define IMPL_WRITE(T)                                                    \
+    template <> inline void write<T>(OutputStream & s, const T& value) { \
+        s.write(&value, sizeof(T));                                      \
     }
 
 IMPL_WRITE(i8)
@@ -42,12 +42,12 @@ IMPL_WRITE(float)
 IMPL_WRITE(double)
 
 /// Read from a null terminated string
-template <> inline void write<String>(OutputStream& stream, const String& str) {
+template <> inline void write<String>(OutputStream& s, const String& str) {
     for (char c : str) {
-        stream.write(&c, sizeof(char));
+        s.write(&c, sizeof(char));
     }
-    char nullByte = '\0';
-    stream.write(&nullByte, sizeof(char));
+    char null_byte = '\0';
+    s.write(&null_byte, sizeof(char));
 }
 }  // namespace stream
 }  // namespace dw

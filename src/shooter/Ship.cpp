@@ -1,5 +1,6 @@
 #include "DawnEngine.h"
 #include "scene/Transform.h"
+#include "net/NetData.h"
 #include "Ship.h"
 
 using namespace dw;
@@ -415,7 +416,10 @@ Ship::Ship(Context* ctx) : Object(ctx) {
                                             {{0.0f, 25.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
                                             {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
                                             {{0.0f, 25.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
-                                            {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
+                                            {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}})
+                 .addComponent<NetData>(
+                     ReplicatedPropertyList{ReplicatedProperty::bind(&Transform::position)});
+    subsystem<NetSystem>()->replicateEntity(*core_);
     auto node = core_->component<RenderableComponent>()->node;
     node->addChild(makeShared<RenderableNode>(sphere, Vec3{8.0f, 0.0f, 0.0f}, Quat::identity));
     node->addChild(makeShared<RenderableNode>(sphere, Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity));

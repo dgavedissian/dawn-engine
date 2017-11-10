@@ -43,12 +43,12 @@ public:
     Transform* transform() const;
 
 private:
-    Ontology::EntityManager& entity_manager_;
+    Ontology::EntityManager& internal_entity_mgr_;
     Ontology::Entity::ID internal_entity_id_;
     EntityId id_;
 
     Ontology::Entity& entity() const {
-        return entity_manager_.getEntity(internal_entity_id_);
+        return internal_entity_mgr_.getEntity(internal_entity_id_);
     }
 
     Transform* transform_;
@@ -67,4 +67,11 @@ template <typename T, typename... Args> Entity& Entity::addComponent(Args... arg
     entity().getComponentPtr<T>()->onAddToEntity(this);
     return *this;
 }
+
+/// Ontology metadata component.
+struct OntologyMetadata : public Component {
+    Entity* entity_ptr;
+    explicit OntologyMetadata(Entity* entity_ptr) : entity_ptr(entity_ptr) {
+    }
+};
 }  // namespace dw

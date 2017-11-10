@@ -68,7 +68,7 @@ BillboardSet::BillboardSet(Context* ctx, u32 particle_count, const Vec2& particl
 
 void BillboardSet::resize(u32 particle_count) {
     particles_.resize(particle_count);
-    for (int i = 0; i < particle_count; ++i) {
+    for (u32 i = 0; i < particle_count; ++i) {
         particles_[i].position = Vec3(0.0f, 0.0f, 0.0f);
         particles_[i].size = particle_size_;
         particles_[i].direction = Vec3::unitY;
@@ -79,7 +79,7 @@ void BillboardSet::resize(u32 particle_count) {
 
     // Build index data.
     index_data_.resize(particle_count * 6);
-    for (int i = 0; i < particle_count; ++i) {
+    for (u32 i = 0; i < particle_count; ++i) {
         // 0 1
         // 2 3
         u32 start_vertex = static_cast<u32>(i) * 4;
@@ -97,17 +97,17 @@ void BillboardSet::setBillboardType(BillboardType type) {
     type_ = type;
 }
 
-void BillboardSet::setParticlePosition(int particle_id, const Vec3& position) {
+void BillboardSet::setParticlePosition(u32 particle_id, const Vec3& position) {
     assert(particle_id < particles_.size());
     particles_[particle_id].position = position;
 }
 
-void BillboardSet::setParticleSize(int particle_id, const Vec2& size) {
+void BillboardSet::setParticleSize(u32 particle_id, const Vec2& size) {
     assert(particle_id < particles_.size());
     particles_[particle_id].size = size;
 }
 
-void BillboardSet::setParticleDirection(int particle_id, const Vec3& direction) {
+void BillboardSet::setParticleDirection(u32 particle_id, const Vec3& direction) {
     assert(particle_id < particles_.size());
     particles_[particle_id].direction = direction.Normalized();
 }

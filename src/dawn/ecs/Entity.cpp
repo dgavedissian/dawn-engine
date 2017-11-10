@@ -6,13 +6,13 @@
 #include "ecs/Entity.h"
 
 namespace dw {
-Entity::Entity(Context* context, Ontology::EntityManager& entity_manager,          EntityId id)
+Entity::Entity(Context* context, Ontology::EntityManager& entity_manager, EntityId id)
     : Object{context},
       id_{id},
-      entity_manager_{entity_manager},
-      internal_entity_id_{0},
+      internal_entity_mgr_{entity_manager},
+      internal_entity_id_{entity_manager.createEntity("").getID()},
       transform_{nullptr} {
-    internal_entity_id_ = entity_manager_.createEntity("").getID();
+    entity().addComponent<OntologyMetadata>(this);
 }
 
 EntityId Entity::id() const {

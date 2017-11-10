@@ -10,9 +10,8 @@
 namespace dw {
 class DW_API BitStream : public InputStream, public OutputStream {
 public:
-    DW_OBJECT(BitStream);
-
     BitStream();
+    BitStream(const Vector<u8>& initial_data);
     ~BitStream() = default;
 
     u32 read(void* dest, u32 size) override;
@@ -20,10 +19,9 @@ public:
 
     u32 write(const void* src, u32 size) override;
 
-    bool open(const Path& path, int mode);
-    void close();
+    const Vector<u8> data() const;
 
 private:
-    Vector<uint8> bytes;
+    Vector<u8> data_;
 };
 }  // namespace dw

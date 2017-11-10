@@ -5,7 +5,9 @@
 #include "Common.h"
 #include "net/NetSystem.h"
 
+#include "ecs/Entity.h"
 #include "ecs/EntityManager.h"
+#include "net/BitStream.h"
 #include "net/NetData.h"
 
 namespace dw {
@@ -27,7 +29,7 @@ int yojimbo_printf_function(const char* format, ...) {
 }
 
 // Test message.
-//inline int GetNumBitsForMessage(uint16_t sequence) {
+// inline int GetNumBitsForMessage(uint16_t sequence) {
 //    static int messageBitsArray[] = {1,  320, 120, 4, 256, 45,  11, 13, 101, 100, 84,
 //                                     95, 203, 2,   3, 8,   512, 5,  3,  7,   50};
 //    const int modulus = sizeof(messageBitsArray) / sizeof(int);
@@ -35,7 +37,7 @@ int yojimbo_printf_function(const char* format, ...) {
 //    return messageBitsArray[index];
 //}
 //
-//struct TestMessage : public yojimbo::Message {
+// struct TestMessage : public yojimbo::Message {
 //    uint16_t sequence;
 //
 //    TestMessage() {
@@ -61,6 +63,7 @@ int yojimbo_printf_function(const char* format, ...) {
 //};
 struct ServerCreateEntityMessage : public yojimbo::Message {
     EntityId entity_id;
+    Vector<u8> data;
 
     ServerCreateEntityMessage() {
         entity_id = 0;
@@ -68,6 +71,17 @@ struct ServerCreateEntityMessage : public yojimbo::Message {
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint32(stream, entity_id);
+        if (Stream::IsReading) {
+            u32 size;
+            serialize_uint32(stream, size);
+            data.resize(size);
+            serialize_bytes(stream, data.data(), size);
+        } else {
+            u32 size = (u32)data.size();
+            serialize_uint32(stream, size);
+            serialize_bytes(stream, data.data(), size);
+        }
+        return true;
     }
 
     YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
@@ -81,6 +95,7 @@ struct ServerDestroyEntityMessage : public yojimbo::Message {
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint32(stream, entity_id);
+        return true;
     }
 
     YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
@@ -93,14 +108,6 @@ YOJIMBO_MESSAGE_FACTORY_START(NetMessageFactory, MT_Count);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerCreateEntity, ServerCreateEntityMessage);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerDestroyEntity, ServerDestroyEntityMessage);
 YOJIMBO_MESSAGE_FACTORY_FINISH();
-
-class NetAdapter : public yojimbo::Adapter {
-public:
-    yojimbo::MessageFactory* CreateMessageFactory(yojimbo::Allocator& allocator) override {
-        return YOJIMBO_NEW(allocator, NetMessageFactory, allocator);
-    }
-};
-NetAdapter g_adapter;
 }  // namespace
 
 NetSystem::NetSystem(Context* context)
@@ -126,7 +133,7 @@ void NetSystem::connect(const String& ip, u16 port) {
     memset(privateKey, 0, yojimbo::KeyBytes);
 
     client_ = makeUnique<yojimbo::Client>(yojimbo::GetDefaultAllocator(),
-                                          yojimbo::Address{"0.0.0.0"}, config, g_adapter, time_);
+                                          yojimbo::Address{"0.0.0.0"}, config, *this, time_);
 
     // Decide on client ID.
     u64 clientId = 0;
@@ -150,7 +157,7 @@ void NetSystem::listen(u16 port, u16 max_clients) {
 
     server_ =
         makeUnique<yojimbo::Server>(yojimbo::GetDefaultAllocator(), privateKey,
-                                    yojimbo::Address{"127.0.0.1", port}, config, g_adapter, time_);
+                                    yojimbo::Address{"127.0.0.1", port}, config, *this, time_);
     server_->Start(max_clients);
     is_server_ = true;
 }
@@ -166,18 +173,49 @@ void NetSystem::disconnect() {
 }
 
 void NetSystem::update(float dt) {
-    if (!isConnected()) {
-        return;
-    }
-
     time_ += dt;
-    if (isServer()) {
+    if (server_) {
         server_->SendPackets();
         server_->ReceivePackets();
+        for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
+            while (true) {
+                yojimbo::Message* message = server_->ReceiveMessage(i, 0);
+                if (!message)
+                    break;
+                switch (message->GetType()) {
+                    default:
+                        log().warn("Unexpected message received on server: %d", message->GetType());
+                }
+            }
+        }
         server_->AdvanceTime(time_);
-    } else {
+    } else if (client_) {
         client_->SendPackets();
         client_->ReceivePackets();
+        while (true) {
+            yojimbo::Message* message = client_->ReceiveMessage(0);
+            if (!message)
+                break;
+            switch (message->GetType()) {
+                case MT_ServerCreateEntity: {
+                    // TODO: Create EntitySpawnPipeline and move this code to there.
+                    auto create_entity_message = (ServerCreateEntityMessage*)message;
+                    BitStream input_bitstream(create_entity_message->data);
+                    EntityId entity_id = create_entity_message->entity_id + 100;
+                    Entity& entity = subsystem<EntityManager>()->createEntity(entity_id);
+                    entity.addComponent<Transform>(Position::origin, Quat::identity, nullptr);
+                    entity.addComponent<NetData>(
+                        ReplicatedPropertyList{ReplicatedProperty::bind(&Transform::position)});
+                    entity.component<NetData>()->deserialise(input_bitstream);
+                    log().info("Created replicated entity %d at %d %d %d", entity_id,
+                               entity.transform()->position().x, entity.transform()->position().y,
+                               entity.transform()->position().z);
+                    break;
+                }
+                default:
+                    log().warn("Unexpected message received on client: %d", message->GetType());
+            }
+        }
         client_->AdvanceTime(time_);
     }
 }
@@ -194,21 +232,49 @@ bool NetSystem::isConnected() const {
     return isClient() || isServer();
 }
 
-void NetSystem::replicateEntity(const Entity &entity) {
-    assert(isServer());
+void NetSystem::replicateEntity(const Entity& entity) {
+    // assert(isServer());
     assert(entity.hasComponent<NetData>());
 
     replicated_entities_.insert(entity.id());
 
     // Send create entity message to clients.
-    for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
-        auto message = (ServerCreateEntityMessage*)server_->CreateMessage(i, MT_ServerCreateEntity);
-        message->entity_id = entity.id();
-        // Serialise replicated properties.
-        // TOOD: Come up with Bitstream class.
-        // TODO: Rewrite InputStream/OutputStream to expose an unreal FArchive like interface, which
-        // by default will just write the bytes as-is.
-        server_->SendMessage(i, 0, message);
+    if (server_) {
+        for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
+            sendCreateEntity(i, entity);
+        }
     }
+}
+
+void NetSystem::sendCreateEntity(int clientIndex, const Entity& entity) {
+    auto message =
+        (ServerCreateEntityMessage*)server_->CreateMessage(clientIndex, MT_ServerCreateEntity);
+    message->entity_id = entity.id();
+    // Serialise replicated properties.
+    BitStream output_bitstream;
+    entity.component<NetData>()->serialise(output_bitstream);
+    message->data = output_bitstream.data();
+    // TODO: Rewrite InputStream/OutputStream to expose an unreal FArchive like interface, which
+    // by default will just write the bytes as-is.
+    server_->SendMessage(clientIndex, 0, message);
+}
+
+yojimbo::MessageFactory* NetSystem::CreateMessageFactory(yojimbo::Allocator& allocator) {
+    return YOJIMBO_NEW(allocator, NetMessageFactory, allocator);
+}
+
+void NetSystem::OnServerClientConnected(int clientIndex) {
+    // Send replicated entities to client.
+    for (auto entity_id : replicated_entities_) {
+        Entity* entity = subsystem<EntityManager>()->findEntity(entity_id);
+        if (entity) {
+            sendCreateEntity(clientIndex, *entity);
+        } else {
+            log().error("Replicated Entity ID %s missing from EntityManager", entity_id);
+        }
+    }
+}
+
+void NetSystem::OnServerClientDisconnected(int clientIndex) {
 }
 }  // namespace dw

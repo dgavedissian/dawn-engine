@@ -8,7 +8,9 @@
 
 namespace dw {
 EntityManager::EntityManager(Context* context)
-    : Object{context}, entity_manager_{context->ontology_world_.getEntityManager()}, entity_id_allocator_{1} {
+    : Object{context},
+      entity_manager_{context->ontology_world_.getEntityManager()},
+      entity_id_allocator_{1} {
 }
 
 Entity& EntityManager::createEntity() {
@@ -43,7 +45,7 @@ void EntityManager::removeEntity(Entity* entity) {
     entity_lookup_table_.erase(entity->id());
 }
 
-Entity &EntityManager::createEntity(EntityId reserved_entity_id) {
+Entity& EntityManager::createEntity(EntityId reserved_entity_id) {
     UniquePtr<Entity> entity = makeUnique<Entity>(context(), entity_manager_, reserved_entity_id);
     auto entity_ptr = entity.get();
     entity_lookup_table_.emplace(makePair(entity->id(), std::move(entity)));

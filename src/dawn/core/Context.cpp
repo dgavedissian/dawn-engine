@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "io/BitStream.h"
+#include "io/File.h"
 
 namespace dw {
 Context::Context(String base_path, String pref_path)
