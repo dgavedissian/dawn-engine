@@ -28,46 +28,37 @@ int yojimbo_printf_function(const char* format, ...) {
     return count;
 }
 
-// Test message.
-// inline int GetNumBitsForMessage(uint16_t sequence) {
-//    static int messageBitsArray[] = {1,  320, 120, 4, 256, 45,  11, 13, 101, 100, 84,
-//                                     95, 203, 2,   3, 8,   512, 5,  3,  7,   50};
-//    const int modulus = sizeof(messageBitsArray) / sizeof(int);
-//    const int index = sequence % modulus;
-//    return messageBitsArray[index];
-//}
-//
-// struct TestMessage : public yojimbo::Message {
-//    uint16_t sequence;
-//
-//    TestMessage() {
-//        sequence = 0;
-//    }
-//
-//    template <typename Stream> bool Serialize(Stream& stream) {
-//        serialize_bits(stream, sequence, 16);
-//
-//        int numBits = GetNumBitsForMessage(sequence);
-//        int numWords = numBits / 32;
-//        uint32_t dummy = 0;
-//        for (int i = 0; i < numWords; ++i)
-//            serialize_bits(stream, dummy, 32);
-//        int numRemainderBits = numBits - numWords * 32;
-//        if (numRemainderBits > 0)
-//            serialize_bits(stream, dummy, numRemainderBits);
-//
-//        return true;
-//    }
-//
-//    YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
-//};
 struct ServerCreateEntityMessage : public yojimbo::Message {
     EntityId entity_id;
+    u32 metadata;
     Vector<u8> data;
 
     ServerCreateEntityMessage() {
         entity_id = 0;
     }
+
+    template <typename Stream> bool Serialize(Stream& stream) {
+        serialize_uint32(stream, entity_id);
+        serialize_uint32(stream, metadata);
+        if (Stream::IsReading) {
+            u32 size;
+            serialize_uint32(stream, size);
+            data.resize(size);
+            serialize_bytes(stream, data.data(), size);
+        } else {
+            u32 size = (u32)data.size();
+            serialize_uint32(stream, size);
+            serialize_bytes(stream, data.data(), size);
+        }
+        return true;
+    }
+
+    YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
+};
+
+struct ServerPropertyReplicationMessage : public yojimbo::Message {
+    EntityId entity_id;
+    Vector<u8> data;
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint32(stream, entity_id);
@@ -86,6 +77,7 @@ struct ServerCreateEntityMessage : public yojimbo::Message {
 
     YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
 };
+
 struct ServerDestroyEntityMessage : public yojimbo::Message {
     EntityId entity_id;
 
@@ -102,10 +94,16 @@ struct ServerDestroyEntityMessage : public yojimbo::Message {
 };
 
 // Naming convention: <Src><Msg> e.g. ServerCreateEntity - Server sending CreateEntity to clients.
-enum MessageType { MT_ServerCreateEntity, MT_ServerDestroyEntity, MT_Count };
+enum MessageType {
+    MT_ServerCreateEntity,
+    MT_ServerPropertyReplication,
+    MT_ServerDestroyEntity,
+    MT_Count
+};
 
 YOJIMBO_MESSAGE_FACTORY_START(NetMessageFactory, MT_Count);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerCreateEntity, ServerCreateEntityMessage);
+YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerPropertyReplication, ServerPropertyReplicationMessage);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerDestroyEntity, ServerDestroyEntityMessage);
 YOJIMBO_MESSAGE_FACTORY_FINISH();
 }  // namespace
@@ -173,10 +171,14 @@ void NetSystem::disconnect() {
 }
 
 void NetSystem::update(float dt) {
+    static double time_since_last_replication = 0.0;
+    const double replication_time = 1.0 / 20.0;  // 1 / replication rate in Hz
     time_ += dt;
     if (server_) {
         server_->SendPackets();
         server_->ReceivePackets();
+
+        // Process received messages.
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
             while (true) {
                 yojimbo::Message* message = server_->ReceiveMessage(i, 0);
@@ -188,6 +190,20 @@ void NetSystem::update(float dt) {
                 }
             }
         }
+
+        // Send replicated updates.
+        if (time_since_last_replication >= replication_time) {
+            time_since_last_replication = 0.0;
+            auto& em = *subsystem<EntityManager>();
+            for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
+                for (auto id : replicated_entities_) {
+                    sendPropertyReplication(i, *em.findEntity(id));
+                }
+            }
+        } else {
+            time_since_last_replication += dt;
+        }
+
         server_->AdvanceTime(time_);
     } else if (client_) {
         client_->SendPackets();
@@ -201,15 +217,28 @@ void NetSystem::update(float dt) {
                     // TODO: Create EntitySpawnPipeline and move this code to there.
                     auto create_entity_message = (ServerCreateEntityMessage*)message;
                     BitStream input_bitstream(create_entity_message->data);
-                    EntityId entity_id = create_entity_message->entity_id + 100;
-                    Entity& entity = subsystem<EntityManager>()->createEntity(entity_id);
-                    entity.addComponent<Transform>(Position::origin, Quat::identity, nullptr);
-                    entity.addComponent<NetData>(
-                        ReplicatedPropertyList{ReplicatedProperty::bind(&Transform::position)});
-                    entity.component<NetData>()->deserialise(input_bitstream);
-                    log().info("Created replicated entity %d at %d %d %d", entity_id,
-                               entity.transform()->position().x, entity.transform()->position().y,
-                               entity.transform()->position().z);
+                    EntityId entity_id = create_entity_message->entity_id;
+                    u32 metadata = create_entity_message->metadata;
+                    if (entity_pipeline_) {
+                        Entity& entity =
+                            entity_pipeline_->onClientDeserialiseEntity(entity_id, metadata);
+                        assert(entity.hasComponent<NetData>());
+                        entity.component<NetData>()->deserialise(input_bitstream);
+                        log().info("Created replicated entity %d at %d %d %d", entity_id,
+                                   entity.transform()->position().x,
+                                   entity.transform()->position().y,
+                                   entity.transform()->position().z);
+                    } else {
+                        log().warn("Attempted to replicate entity, but no entity pipeline setup.");
+                    }
+                    break;
+                }
+                case MT_ServerPropertyReplication: {
+                    auto replication_message = (ServerPropertyReplicationMessage*)message;
+                    BitStream input_bitstream(replication_message->data);
+                    EntityId entity_id = replication_message->entity_id;
+                    Entity* entity = subsystem<EntityManager>()->findEntity(entity_id);
+                    entity->component<NetData>()->deserialise(input_bitstream);
                     break;
                 }
                 default:
@@ -246,16 +275,36 @@ void NetSystem::replicateEntity(const Entity& entity) {
     }
 }
 
+void NetSystem::setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline) {
+    entity_pipeline_ = std::move(entity_pipeline);
+}
+
 void NetSystem::sendCreateEntity(int clientIndex, const Entity& entity) {
     auto message =
         (ServerCreateEntityMessage*)server_->CreateMessage(clientIndex, MT_ServerCreateEntity);
-    message->entity_id = entity.id();
+    message->entity_id =
+        entity.id() + 10000;  // TODO: Reserve entity ID which the client will have free.
     // Serialise replicated properties.
     BitStream output_bitstream;
     entity.component<NetData>()->serialise(output_bitstream);
     message->data = output_bitstream.data();
     // TODO: Rewrite InputStream/OutputStream to expose an unreal FArchive like interface, which
     // by default will just write the bytes as-is.
+    if (entity_pipeline_) {
+        message->metadata = entity_pipeline_->onServerSerialiseEntity(entity);
+    }
+    server_->SendMessage(clientIndex, 0, message);
+}
+
+void NetSystem::sendPropertyReplication(int clientIndex, const Entity& entity) {
+    auto message = (ServerPropertyReplicationMessage*)server_->CreateMessage(
+        clientIndex, MT_ServerPropertyReplication);
+    message->entity_id =
+        entity.id() + 10000;  // TODO: Reserve entity ID which the client will have free.
+    // Serialise replicated properties.
+    BitStream output_bitstream;
+    entity.component<NetData>()->serialise(output_bitstream);
+    message->data = output_bitstream.data();
     server_->SendMessage(clientIndex, 0, message);
 }
 

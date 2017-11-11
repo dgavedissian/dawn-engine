@@ -8,7 +8,33 @@
 
 #include "Ship.h"
 
+#include "net/NetData.h"
+
 using namespace dw;
+
+class ShooterEntityPipeline : public EntityPipeline {
+public:
+    DW_OBJECT(ShooterEntityPipeline);
+
+    Vector<UniquePtr<Ship>> ship_list_;
+
+    ShooterEntityPipeline(Context* ctx) : EntityPipeline(ctx) {
+    }
+
+    ~ShooterEntityPipeline() = default;
+
+    u32 onServerSerialiseEntity(const Entity& entity) override {
+        return 0;
+    }
+
+    Entity& onClientDeserialiseEntity(EntityId entity_id, u32 metadata) override {
+        assert(metadata == 0);  // only one entity type supported.
+        UniquePtr<Ship> ship = makeUnique<Ship>(context(), entity_id, true);
+        Entity& entity = *ship->entity();
+        ship_list_.emplace_back(std::move(ship));
+        return entity;
+    }
+};
 
 class Shooter : public App {
 public:
@@ -24,6 +50,7 @@ public:
         rc->addPath("base", "../media/base");
         rc->addPath("shooter", "../media/shooter");
 
+        subsystem<NetSystem>()->setEntityPipeline(makeUnique<ShooterEntityPipeline>(context()));
         subsystem<SystemManager>()->addSystem<ShipEngineSystem>();
 
         ship = makeShared<Ship>(context());

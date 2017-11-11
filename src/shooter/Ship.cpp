@@ -5,6 +5,14 @@
 
 using namespace dw;
 
+namespace {
+class ShipControls : public Component {
+public:
+    Vec3 target_linear_velocity;
+    Vec3 target_angular_velocity;
+};
+}  // namespace
+
 ShipCameraController::ShipCameraController(Context* ctx, const Vec3& offset)
     : Object{ctx}, possessed_{nullptr}, followed_{nullptr}, offset_{offset} {
 }
@@ -162,7 +170,7 @@ void ShipEngines::onAddToEntity(Entity* parent) {
 void ShipEngines::calculateMaxMovementForce(Vec3& pos_force, Vec3& neg_force) {
     pos_force = {0.0f, 0.0f, 0.0f};
     neg_force = {0.0f, 0.0f, 0.0f};
-    for (int i = 0; i < movement_engines_.size(); ++i) {
+    for (size_t i = 0; i < movement_engines_.size(); ++i) {
         for (auto& engine : movement_engines_[i]) {
             if (engine.isForwards()) {
                 pos_force += engine.force();
@@ -175,7 +183,7 @@ void ShipEngines::calculateMaxMovementForce(Vec3& pos_force, Vec3& neg_force) {
 
 Vec3 ShipEngines::fireMovementEngines(const Vec3& power) {
     Vec3 total_force{0.0f, 0.0f, 0.0f};
-    for (int i = 0; i < movement_engines_.size(); ++i) {
+    for (size_t i = 0; i < movement_engines_.size(); ++i) {
         bool forwards = power[i] > 0.0f;
         for (auto& engine : movement_engines_[i]) {
             if (engine.isForwards() == forwards) {
@@ -196,7 +204,7 @@ void ShipEngines::calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticlockw
     // Roll - Z axis.
     clockwise = {0.0f, 0.0f, 0.0f};
     anticlockwise = {0.0f, 0.0f, 0.0f};
-    for (int i = 0; i < navigation_engines_.size(); ++i) {
+    for (size_t i = 0; i < navigation_engines_.size(); ++i) {
         for (auto& nav_engine : navigation_engines_[i]) {
             if (nav_engine.isForwards()) {
                 clockwise += nav_engine.torque();
@@ -209,7 +217,7 @@ void ShipEngines::calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticlockw
 
 Vec3 ShipEngines::calculateRotationalTorque(const Vec3& power) const {
     Vec3 total_torque{0.0f, 0.0f, 0.0f};
-    for (int i = 0; i < navigation_engines_.size(); ++i) {
+    for (size_t i = 0; i < navigation_engines_.size(); ++i) {
         bool forwards = power[i] > 0;
         for (auto& nav_engine : navigation_engines_[i]) {
             if (nav_engine.isForwards() == forwards) {
@@ -222,7 +230,7 @@ Vec3 ShipEngines::calculateRotationalTorque(const Vec3& power) const {
 
 Vec3 ShipEngines::fireRotationalEngines(const Vec3& power) {
     Vec3 total_torque{0.0f, 0.0f, 0.0f};
-    for (int i = 0; i < navigation_engines_.size(); ++i) {
+    for (size_t i = 0; i < navigation_engines_.size(); ++i) {
         bool forwards = power[i] > 0;
         for (auto& nav_engine : navigation_engines_[i]) {
             if (nav_engine.isForwards() == forwards) {
@@ -358,7 +366,10 @@ void ShipFlightComputer::update(float dt) {
     ImGui::End();
 }
 
-Ship::Ship(Context* ctx) : Object(ctx) {
+Ship::Ship(Context* ctx) : Ship(ctx, ctx->subsystem<EntityManager>()->reserveEntityId(), false) {
+}
+
+Ship::Ship(Context* ctx, EntityId reserved_entity_id, bool replicated) : Object(ctx) {
     auto rc = subsystem<ResourceCache>();
     assert(rc);
 
@@ -372,70 +383,77 @@ Ship::Ship(Context* ctx) : Object(ctx) {
     auto sphere = rc->get<Mesh>("shooter:models/side-wing.mesh.xml");
     sphere->setMaterial(material_);
 
-    // Create entities.
+    // Create ship entity.
     auto em = subsystem<EntityManager>();
-    core_ = &em->createEntity(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
-                 .addComponent<RenderableComponent>(renderable)
-                 .addComponent<RigidBody>(subsystem<PhysicsSystem>(), 10.0f,
-                                          makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}))
-                 .addComponent<ShipEngines>(
-                     context(),
-                     Vector<ShipEngineData>{// 4 on back.
-                                            {{0.0f, 0.0f, -400.0f}, {5.0f, 0.0f, 15.0f}},
-                                            {{0.0f, 0.0f, -400.0f}, {3.0f, 0.0f, 15.0f}},
-                                            {{0.0f, 0.0f, -400.0f}, {-3.0f, 0.0f, 15.0f}},
-                                            {{0.0f, 0.0f, -400.0f}, {-5.0f, 0.0f, 15.0f}},
-                                            // 2 on front.
-                                            {{0.0f, 0.0f, 400.0f}, {5.0f, 0.0f, -12.0f}},
-                                            {{0.0f, 0.0f, 400.0f}, {-5.0f, 0.0f, -12.0f}},
-                                            // 2 on each side
-                                            {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, 8.0f}},
-                                            {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, -8.0f}},
-                                            {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, 8.0f}},
-                                            {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, -8.0f}},
-                                            // 2 above and below
-                                            {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, 8.0f}},
-                                            {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, -8.0f}},
-                                            {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, 8.0f}},
-                                            {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, -8.0f}}},
-                     Vector<ShipEngineData>{// 4 on right, 4 on left
-                                            {{-25.0f, 0.0f, 0.0f}, {5.0f, 2.0f, 10.0f}},
-                                            {{-25.0f, 0.0f, 0.0f}, {5.0f, -2.0f, 10.0f}},
-                                            {{-25.0f, 0.0f, 0.0f}, {5.0f, 2.0f, -10.0f}},
-                                            {{-25.0f, 0.0f, 0.0f}, {5.0f, -2.0f, -10.0f}},
-                                            {{25.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, 10.0f}},
-                                            {{25.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, 10.0f}},
-                                            {{25.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, -10.0f}},
-                                            {{25.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, -10.0f}},
+    ship_entity_ = &em->createEntity(reserved_entity_id)
+                        .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
+                        .addComponent<RenderableComponent>(renderable)
+                        .addComponent<ShipEngines>(
+                            context(),
+                            Vector<ShipEngineData>{// 4 on back.
+                                                   {{0.0f, 0.0f, -400.0f}, {5.0f, 0.0f, 15.0f}},
+                                                   {{0.0f, 0.0f, -400.0f}, {3.0f, 0.0f, 15.0f}},
+                                                   {{0.0f, 0.0f, -400.0f}, {-3.0f, 0.0f, 15.0f}},
+                                                   {{0.0f, 0.0f, -400.0f}, {-5.0f, 0.0f, 15.0f}},
+                                                   // 2 on front.
+                                                   {{0.0f, 0.0f, 400.0f}, {5.0f, 0.0f, -12.0f}},
+                                                   {{0.0f, 0.0f, 400.0f}, {-5.0f, 0.0f, -12.0f}},
+                                                   // 2 on each side
+                                                   {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, 8.0f}},
+                                                   {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, -8.0f}},
+                                                   {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, 8.0f}},
+                                                   {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, -8.0f}},
+                                                   // 2 above and below
+                                                   {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, 8.0f}},
+                                                   {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, -8.0f}},
+                                                   {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, 8.0f}},
+                                                   {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, -8.0f}}},
+                            Vector<ShipEngineData>{// 4 on right, 4 on left
+                                                   {{-25.0f, 0.0f, 0.0f}, {5.0f, 2.0f, 10.0f}},
+                                                   {{-25.0f, 0.0f, 0.0f}, {5.0f, -2.0f, 10.0f}},
+                                                   {{-25.0f, 0.0f, 0.0f}, {5.0f, 2.0f, -10.0f}},
+                                                   {{-25.0f, 0.0f, 0.0f}, {5.0f, -2.0f, -10.0f}},
+                                                   {{25.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, 10.0f}},
+                                                   {{25.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, 10.0f}},
+                                                   {{25.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, -10.0f}},
+                                                   {{25.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, -10.0f}},
 
-                                            // 4 on top, 4 on bottom.
-                                            {{0.0f, -25.0f, 0.0f}, {2.0f, 5.0f, 10.0f}},
-                                            {{0.0f, -25.0f, 0.0f}, {-2.0f, 5.0f, 10.0f}},
-                                            {{0.0f, -25.0f, 0.0f}, {2.0f, 5.0f, -10.0f}},
-                                            {{0.0f, -25.0f, 0.0f}, {-2.0f, 5.0f, -10.0f}},
-                                            {{0.0f, 25.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
-                                            {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
-                                            {{0.0f, 25.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
-                                            {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}})
-                 .addComponent<NetData>(
-                     ReplicatedPropertyList{ReplicatedProperty::bind(&Transform::position)});
-    subsystem<NetSystem>()->replicateEntity(*core_);
-    auto node = core_->component<RenderableComponent>()->node;
+                                                   // 4 on top, 4 on bottom.
+                                                   {{0.0f, -25.0f, 0.0f}, {2.0f, 5.0f, 10.0f}},
+                                                   {{0.0f, -25.0f, 0.0f}, {-2.0f, 5.0f, 10.0f}},
+                                                   {{0.0f, -25.0f, 0.0f}, {2.0f, 5.0f, -10.0f}},
+                                                   {{0.0f, -25.0f, 0.0f}, {-2.0f, 5.0f, -10.0f}},
+                                                   {{0.0f, 25.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
+                                                   {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
+                                                   {{0.0f, 25.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
+                                                   {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}})
+                        .addComponent<NetData>(
+                            ReplicatedPropertyList{
+                                    ReplicatedProperty::bind(&Transform::position),
+                                    ReplicatedProperty::bind(&Transform::orientation)
+                            });
+    auto node = ship_entity_->component<RenderableComponent>()->node;
     node->addChild(makeShared<RenderableNode>(sphere, Vec3{8.0f, 0.0f, 0.0f}, Quat::identity));
     node->addChild(makeShared<RenderableNode>(sphere, Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity));
 
     // Get rigid body.
-    rb_ = core_->component<RigidBody>()->_rigidBody();
+    if (replicated) {
+    } else {
+        ship_entity_->addComponent<RigidBody>(
+            subsystem<PhysicsSystem>(), 10.0f,
+            makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}));
+        rb_ = ship_entity_->component<RigidBody>()->_rigidBody();
+        subsystem<NetSystem>()->replicateEntity(*ship_entity_);
 
-    // Initialise flight computer.
-    flight_computer_ = makeShared<ShipFlightComputer>(context(), this);
+        // Initialise flight computer.
+        flight_computer_ = makeShared<ShipFlightComputer>(context(), this);
+    }
 }
 
 void Ship::update(float dt) {
     auto input = subsystem<Input>();
 
-    auto& engines = *core_->component<ShipEngines>();
-    auto& rb = *core_->component<RigidBody>();
+    auto& engines = *ship_entity_->component<ShipEngines>();
 
     // Control movement thrusters.
     float x_movement =
@@ -460,9 +478,10 @@ void Ship::update(float dt) {
     flight_computer_->update(dt);
 
     // Calculate angular acceleration.
-    Vec3 angular_acc =
-        rb._rigidBody()->getInvInertiaTensorWorld() *
-        engines.calculateRotationalTorque({pitch_direction, yaw_direction, roll_direction});
+    Vec3 angular_acc = rb_ ? Vec3(rb_->getInvInertiaTensorWorld() *
+                                  engines.calculateRotationalTorque(
+                                      {pitch_direction, yaw_direction, roll_direction}))
+                           : Vec3::zero;
     Vec3 angular_vel = angularVelocity();
 
     // Display stats.
@@ -481,29 +500,29 @@ void Ship::update(float dt) {
 }
 
 void Ship::fireMovementThrusters(const Vec3& power) {
-    Vec3 total_force = core_->component<ShipEngines>()->fireMovementEngines(power);
+    Vec3 total_force = ship_entity_->component<ShipEngines>()->fireMovementEngines(power);
     rb_->activate();
-    rb_->applyCentralForce(core_->transform()->orientation() * total_force);
+    rb_->applyCentralForce(ship_entity_->transform()->orientation() * total_force);
 }
 
 void Ship::fireRotationalThrusters(const Vec3& power) {
-    Vec3 total_torque = core_->component<ShipEngines>()->fireRotationalEngines(power);
+    Vec3 total_torque = ship_entity_->component<ShipEngines>()->fireRotationalEngines(power);
     rb_->activate();
-    rb_->applyTorque(core_->transform()->orientation() * total_torque);
+    rb_->applyTorque(ship_entity_->transform()->orientation() * total_torque);
 }
 
 Vec3 Ship::angularVelocity() const {
-    Quat inv_rotation = core_->transform()->orientation();
+    Quat inv_rotation = ship_entity_->transform()->orientation();
     inv_rotation.InverseAndNormalize();
     return inv_rotation * Vec3{rb_->getAngularVelocity()};
 }
 
 Vec3 Ship::localVelocity() const {
-    Quat inv_rotation = core_->transform()->orientation();
+    Quat inv_rotation = ship_entity_->transform()->orientation();
     inv_rotation.InverseAndNormalize();
     return inv_rotation * Vec3{rb_->getLinearVelocity()};
 }
 
 Entity* Ship::entity() const {
-    return core_;
+    return ship_entity_;
 }

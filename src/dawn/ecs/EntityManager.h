@@ -18,18 +18,26 @@ public:
     /// @return A newly created entity.
     Entity& createEntity();
 
-    /// Creates a new empty with a transform component.
+    /// Creates a new entity with a transform component.
     /// @param p Initial position.
     /// @param o Initial orientation.
     /// @param parent Parent entity.
     /// @return A newly created entity.
     Entity& createEntity(const Position& p, const Quat& o, Entity* parent);
 
-    /// Creates a new empty with a transform component.
+    /// Creates a new entity with a transform component.
     /// @param p Initial position.
     /// @param o Initial orientation.
     /// @return A newly created entity.
     Entity& createEntity(const Position& p, const Quat& o);
+
+    /// Creates a new empty entity with a previously reserved entity ID.
+    /// @return A newly created entity.
+    Entity& createEntity(EntityId reserved_entity_id);
+
+    /// Reserve a new entity ID.
+    /// @return Unique unused entity ID.
+    EntityId reserveEntityId();
 
     /// Looks up an entity by its ID.
     /// @param id Entity ID.
@@ -44,8 +52,6 @@ private:
     Ontology::EntityManager& entity_manager_;
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
     EntityId entity_id_allocator_;
-
-    Entity& createEntity(EntityId reserved_entity_id);
 
     friend class NetSystem;
 };

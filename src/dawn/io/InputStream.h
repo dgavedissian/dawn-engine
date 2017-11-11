@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "scene/Position.h"
+
 namespace dw {
 class DW_API InputStream {
 public:
@@ -44,25 +46,33 @@ template <class T> T read(InputStream& s) {
 }
 
 // Implement read for primitive types
-#define IMPL_READ(T)                                \
+#define IMPL_PRIMITIVE_READ(T)                                \
     template <> inline T read<T>(InputStream & s) { \
         T value;                                    \
         s.read(&value, sizeof(T));                  \
         return value;                               \
     }
 
-IMPL_READ(i8)
-IMPL_READ(u8)
-IMPL_READ(i16)
-IMPL_READ(u16)
-IMPL_READ(i32)
-IMPL_READ(u32)
-IMPL_READ(i64)
-IMPL_READ(u64)
-IMPL_READ(char)
-IMPL_READ(bool)
-IMPL_READ(float)
-IMPL_READ(double)
+IMPL_PRIMITIVE_READ(i8)
+IMPL_PRIMITIVE_READ(u8)
+IMPL_PRIMITIVE_READ(i16)
+IMPL_PRIMITIVE_READ(u16)
+IMPL_PRIMITIVE_READ(i32)
+IMPL_PRIMITIVE_READ(u32)
+IMPL_PRIMITIVE_READ(i64)
+IMPL_PRIMITIVE_READ(u64)
+IMPL_PRIMITIVE_READ(char)
+IMPL_PRIMITIVE_READ(bool)
+IMPL_PRIMITIVE_READ(float)
+IMPL_PRIMITIVE_READ(double)
+
+template <> inline Position read<Position>(InputStream& s) {
+    return Position(stream::read<double>(s), stream::read<double>(s), stream::read<double>(s));
+}
+
+template <> inline Quat read<Quat>(InputStream& s) {
+    return Quat(stream::read<float>(s), stream::read<float>(s), stream::read<float>(s), stream::read<float>(s));
+}
 
 /// Read a null terminated string
 template <> inline String read<String>(InputStream& s) {

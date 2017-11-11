@@ -11,7 +11,8 @@
 namespace dw {
 class Transform : public Component {
 public:
-    Transform(const Position& p, const Quat& o, Entity& entity);
+    Transform(const Position& p, const Quat& o);
+    Transform(const Position& p, const Quat& o, Entity& parent_entity);
     Transform(const Position& p, const Quat& o, Transform* parent);
 
     void setRelativeToCamera(bool relative_to_camera);

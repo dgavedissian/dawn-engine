@@ -9,6 +9,17 @@
 #include "ecs/Entity.h"
 
 namespace dw {
+// TODO: Move EntityPipeline elsewhere
+class DW_API EntityPipeline : public Object {
+public:
+    DW_OBJECT(EntityPipeline);
+
+    EntityPipeline(Context* ctx) : Object(ctx) {
+    }
+    virtual ~EntityPipeline() = default;
+    virtual u32 onServerSerialiseEntity(const Entity& entity) = 0;
+    virtual Entity& onClientDeserialiseEntity(EntityId entity_id, u32 metadata) = 0;
+};
 
 class DW_API NetSystem : public Object, public yojimbo::Adapter {
 public:
@@ -37,7 +48,9 @@ public:
     // Returns true if networking is active.
     bool isConnected() const;
 
+    // Entity pipeline.
     void replicateEntity(const Entity& entity);
+    void setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline);
 
 private:
     bool is_server_;
@@ -45,9 +58,11 @@ private:
     UniquePtr<yojimbo::Client> client_;
     UniquePtr<yojimbo::Server> server_;
 
+    UniquePtr<EntityPipeline> entity_pipeline_;
     HashSet<EntityId> replicated_entities_;
 
     void sendCreateEntity(int clientIndex, const Entity& entity);
+    void sendPropertyReplication(int clientIndex, const Entity& entity);
 
     // Implementation of yojimbo::Adapter.
     yojimbo::MessageFactory* CreateMessageFactory(yojimbo::Allocator& allocator) override;

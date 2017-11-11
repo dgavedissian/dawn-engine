@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "scene/Position.h"
+
 namespace dw {
 
 class DW_API OutputStream {
@@ -23,23 +25,36 @@ template <typename T> void write(OutputStream& s, const T& value) {
 }
 
 // Implement write for primitive types
-#define IMPL_WRITE(T)                                                    \
+#define IMPL_PRIMITIVE_WRITE(T)                                                    \
     template <> inline void write<T>(OutputStream & s, const T& value) { \
         s.write(&value, sizeof(T));                                      \
     }
 
-IMPL_WRITE(i8)
-IMPL_WRITE(u8)
-IMPL_WRITE(i16)
-IMPL_WRITE(u16)
-IMPL_WRITE(i32)
-IMPL_WRITE(u32)
-IMPL_WRITE(i64)
-IMPL_WRITE(u64)
-IMPL_WRITE(char)
-IMPL_WRITE(bool)
-IMPL_WRITE(float)
-IMPL_WRITE(double)
+IMPL_PRIMITIVE_WRITE(i8)
+IMPL_PRIMITIVE_WRITE(u8)
+IMPL_PRIMITIVE_WRITE(i16)
+IMPL_PRIMITIVE_WRITE(u16)
+IMPL_PRIMITIVE_WRITE(i32)
+IMPL_PRIMITIVE_WRITE(u32)
+IMPL_PRIMITIVE_WRITE(i64)
+IMPL_PRIMITIVE_WRITE(u64)
+IMPL_PRIMITIVE_WRITE(char)
+IMPL_PRIMITIVE_WRITE(bool)
+IMPL_PRIMITIVE_WRITE(float)
+IMPL_PRIMITIVE_WRITE(double)
+
+template <> inline void write<Position>(OutputStream& s, const Position& value) {
+    stream::write(s, value.x);
+    stream::write(s, value.y);
+    stream::write(s, value.z);
+}
+
+template <> inline void write<Quat>(OutputStream& s, const Quat& value) {
+    stream::write(s, value.x);
+    stream::write(s, value.y);
+    stream::write(s, value.z);
+    stream::write(s, value.w);
+}
 
 /// Read from a null terminated string
 template <> inline void write<String>(OutputStream& s, const String& str) {

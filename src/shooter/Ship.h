@@ -114,7 +114,7 @@ public:
 
     void processEntity(Entity& entity, float dt) override {
         auto& transform = *entity.component<Transform>();
-        auto& rigid_body = *entity.component<RigidBody>();
+        // auto& rigid_body = *entity.component<RigidBody>();
         auto& ship_engines = *entity.component<ShipEngines>();
 
         auto& engines = ship_engines.engine_data_;
@@ -122,7 +122,7 @@ public:
 
         // Update particles.
         if (ship_engines.glow_billboards_) {
-            for (int i = 0; i < engines.size(); i++) {
+            for (size_t i = 0; i < engines.size(); i++) {
                 int particle = i;
                 float engine_glow_size = 4.0f * engines[i].activity();
                 ship_engines.glow_billboards_->setParticlePosition(
@@ -139,7 +139,7 @@ public:
                     particle, Vec3{transform.modelMatrix(Position::origin) *
                                    Vec4{-engines[i].force().Normalized(), 0.0f}});
             }
-            for (int i = 0; i < nav_engines.size(); i++) {
+            for (size_t i = 0; i < nav_engines.size(); i++) {
                 int particle = i + engines.size();
                 float engine_glow_size = 2.0f * nav_engines[i].activity();
                 ship_engines.glow_billboards_->setParticlePosition(
@@ -197,6 +197,7 @@ public:
     DW_OBJECT(Ship);
 
     Ship(Context* ctx);
+    Ship(Context* ctx, EntityId reserved_entity_id, bool replicated);
     ~Ship() = default;
 
     void update(float dt);
@@ -210,7 +211,7 @@ public:
     Entity* entity() const;
 
 private:
-    Entity* core_;
+    Entity* ship_entity_;
     btRigidBody* rb_;
     SharedPtr<Material> material_;
 
