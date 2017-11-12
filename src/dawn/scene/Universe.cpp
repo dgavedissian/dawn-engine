@@ -11,11 +11,11 @@
 
 namespace dw {
 Universe::Universe(Context* context) : Object(context) {
-    root_node_ = makeShared<Transform>(Vec3::zero, Quat::identity, nullptr);
+    root_node_ = makeShared<Transform>(Position::origin, Quat::identity, nullptr);
 
     background_renderable_root_ = makeShared<RenderableNode>();
     background_entity_ = &subsystem<EntityManager>()
-                              ->createEntity(Vec3::zero, Quat::identity, nullptr)
+                              ->createEntity(Position::origin, Quat::identity, nullptr)
                               .addComponent<RenderableComponent>(background_renderable_root_);
     background_entity_->transform()->setRelativeToCamera(true);
 }

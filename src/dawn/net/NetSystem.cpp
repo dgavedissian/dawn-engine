@@ -197,7 +197,7 @@ void NetSystem::update(float dt) {
             auto& em = *subsystem<EntityManager>();
             for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
                 for (auto id : replicated_entities_) {
-                    sendPropertyReplication(i, *em.findEntity(id));
+                    sendServerPropertyReplication(i, *em.findEntity(id));
                 }
             }
         } else {
@@ -216,14 +216,14 @@ void NetSystem::update(float dt) {
                 case MT_ServerCreateEntity: {
                     // TODO: Create EntitySpawnPipeline and move this code to there.
                     auto create_entity_message = (ServerCreateEntityMessage*)message;
-                    BitStream input_bitstream(create_entity_message->data);
+                    InputBitStream bs(create_entity_message->data);
                     EntityId entity_id = create_entity_message->entity_id;
                     u32 metadata = create_entity_message->metadata;
                     if (entity_pipeline_) {
                         Entity& entity =
                             entity_pipeline_->onClientDeserialiseEntity(entity_id, metadata);
                         assert(entity.hasComponent<NetData>());
-                        entity.component<NetData>()->deserialise(input_bitstream);
+                        entity.component<NetData>()->deserialise(bs);
                         log().info("Created replicated entity %d at %d %d %d", entity_id,
                                    entity.transform()->position().x,
                                    entity.transform()->position().y,
@@ -235,10 +235,10 @@ void NetSystem::update(float dt) {
                 }
                 case MT_ServerPropertyReplication: {
                     auto replication_message = (ServerPropertyReplicationMessage*)message;
-                    BitStream input_bitstream(replication_message->data);
+                    InputBitStream bs(replication_message->data);
                     EntityId entity_id = replication_message->entity_id;
                     Entity* entity = subsystem<EntityManager>()->findEntity(entity_id);
-                    entity->component<NetData>()->deserialise(input_bitstream);
+                    entity->component<NetData>()->deserialise(bs);
                     break;
                 }
                 default:
@@ -270,7 +270,7 @@ void NetSystem::replicateEntity(const Entity& entity) {
     // Send create entity message to clients.
     if (server_) {
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
-            sendCreateEntity(i, entity);
+            sendServerCreateEntity(i, entity);
         }
     }
 }
@@ -279,15 +279,15 @@ void NetSystem::setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline) {
     entity_pipeline_ = std::move(entity_pipeline);
 }
 
-void NetSystem::sendCreateEntity(int clientIndex, const Entity& entity) {
+void NetSystem::sendServerCreateEntity(int clientIndex, const Entity& entity) {
     auto message =
         (ServerCreateEntityMessage*)server_->CreateMessage(clientIndex, MT_ServerCreateEntity);
     message->entity_id =
         entity.id() + 10000;  // TODO: Reserve entity ID which the client will have free.
     // Serialise replicated properties.
-    BitStream output_bitstream;
-    entity.component<NetData>()->serialise(output_bitstream);
-    message->data = output_bitstream.data();
+    OutputBitStream bs;
+    entity.component<NetData>()->serialise(bs);
+    message->data = bs.data();
     // TODO: Rewrite InputStream/OutputStream to expose an unreal FArchive like interface, which
     // by default will just write the bytes as-is.
     if (entity_pipeline_) {
@@ -296,15 +296,15 @@ void NetSystem::sendCreateEntity(int clientIndex, const Entity& entity) {
     server_->SendMessage(clientIndex, 0, message);
 }
 
-void NetSystem::sendPropertyReplication(int clientIndex, const Entity& entity) {
+void NetSystem::sendServerPropertyReplication(int clientIndex, const Entity& entity) {
     auto message = (ServerPropertyReplicationMessage*)server_->CreateMessage(
         clientIndex, MT_ServerPropertyReplication);
     message->entity_id =
         entity.id() + 10000;  // TODO: Reserve entity ID which the client will have free.
     // Serialise replicated properties.
-    BitStream output_bitstream;
-    entity.component<NetData>()->serialise(output_bitstream);
-    message->data = output_bitstream.data();
+    OutputBitStream bs;
+    entity.component<NetData>()->serialise(bs);
+    message->data = bs.data();
     server_->SendMessage(clientIndex, 0, message);
 }
 
@@ -317,7 +317,7 @@ void NetSystem::OnServerClientConnected(int clientIndex) {
     for (auto entity_id : replicated_entities_) {
         Entity* entity = subsystem<EntityManager>()->findEntity(entity_id);
         if (entity) {
-            sendCreateEntity(clientIndex, *entity);
+            sendServerCreateEntity(clientIndex, *entity);
         } else {
             log().error("Replicated Entity ID %s missing from EntityManager", entity_id);
         }

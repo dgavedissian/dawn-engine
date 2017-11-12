@@ -61,8 +61,8 @@ private:
     UniquePtr<EntityPipeline> entity_pipeline_;
     HashSet<EntityId> replicated_entities_;
 
-    void sendCreateEntity(int clientIndex, const Entity& entity);
-    void sendPropertyReplication(int clientIndex, const Entity& entity);
+    void sendServerCreateEntity(int clientIndex, const Entity& entity);
+    void sendServerPropertyReplication(int clientIndex, const Entity& entity);
 
     // Implementation of yojimbo::Adapter.
     yojimbo::MessageFactory* CreateMessageFactory(yojimbo::Allocator& allocator) override;

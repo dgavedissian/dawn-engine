@@ -101,7 +101,11 @@ bool ShipEngineInstance::isForwards() const {
 
 ShipEngines::ShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_engines,
                          const Vector<ShipEngineData>& nav_engines)
-    : Object(ctx), engine_data_(movement_engines), nav_engine_data_(nav_engines) {
+    : Object(ctx),
+      engine_data_(movement_engines),
+      nav_engine_data_(nav_engines),
+      current_movement_power_(Vec3::zero),
+      current_rotational_power_(Vec3::zero) {
     // Generate movement engines.
     Vector<Vec3> movement_axes = {
         {1.0f, 0.0f, 0.0f},  // right.
@@ -195,6 +199,7 @@ Vec3 ShipEngines::fireMovementEngines(const Vec3& power) {
             }
         }
     }
+    current_movement_power_ = power;
     return total_force;
 }
 
@@ -242,6 +247,7 @@ Vec3 ShipEngines::fireRotationalEngines(const Vec3& power) {
             }
         }
     }
+    current_rotational_power_ = power;
     return total_torque;
 }
 
@@ -261,6 +267,26 @@ Vec3 ShipEngines::convertToPower(const Vec3& force, const Vec3& max_pos_force,
         single_element_to_power(force.y, max_pos_force.y, max_neg_force.y),
         single_element_to_power(force.z, max_pos_force.z, max_neg_force.z),
     };
+}
+
+void ShipEngines::rep_setCurrentMovementPower(const Vec3& power) {
+    fireMovementEngines(power);
+}
+
+void ShipEngines::rep_setCurrentRotationalPower(const Vec3& power) {
+    fireRotationalEngines(power);
+}
+
+Vec3 ShipEngines::currentMovementPower() {
+    Vec3 current = current_movement_power_;
+    current_movement_power_ = Vec3::zero;
+    return current;
+}
+
+Vec3 ShipEngines::currentRotationalPower() {
+    Vec3 current = current_rotational_power_;
+    current_rotational_power_ = Vec3::zero;
+    return current;
 }
 
 ShipFlightComputer::ShipFlightComputer(Context* ctx, Ship* ship)
@@ -427,11 +453,13 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, bool replicated) : Object(
                                                    {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
                                                    {{0.0f, 25.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
                                                    {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}})
-                        .addComponent<NetData>(
-                            ReplicatedPropertyList{
-                                    ReplicatedProperty::bind(&Transform::position),
-                                    ReplicatedProperty::bind(&Transform::orientation)
-                            });
+                        .addComponent<NetData>(ReplicatedPropertyList{
+                            ReplicatedProperty::bind(&Transform::position),
+                            ReplicatedProperty::bind(&Transform::orientation),
+                            ReplicatedProperty::bind(&ShipEngines::currentMovementPower,
+                                                     &ShipEngines::rep_setCurrentMovementPower),
+                            ReplicatedProperty::bind(&ShipEngines::currentRotationalPower,
+                                                     &ShipEngines::rep_setCurrentRotationalPower)});
     auto node = ship_entity_->component<RenderableComponent>()->node;
     node->addChild(makeShared<RenderableNode>(sphere, Vec3{8.0f, 0.0f, 0.0f}, Quat::identity));
     node->addChild(makeShared<RenderableNode>(sphere, Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity));

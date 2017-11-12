@@ -155,7 +155,7 @@ void BillboardSet::update(Transform* camera_transform) {
 
 void BillboardSet::calculateAxes(Transform* camera_transform, const ParticleData& data,
                                  Vec3& axis_x, Vec3& axis_y) {
-    Vec3 to_eye = camera_transform->position().getRelativeTo(data.position).Normalized();
+    Vec3 to_eye = camera_transform->position().getRelativeTo(Position(data.position)).Normalized();
 
     // Point.
     switch (type_) {

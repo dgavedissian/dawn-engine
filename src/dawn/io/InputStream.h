@@ -34,49 +34,58 @@ public:
     /// Returns the size of the input stream
     u64 size() const;
 
+// Read for primitive types.
+#define IMPL_PRIMITIVE_READ(T)    \
+    virtual void read(T& value) { \
+        read(&value, sizeof(T));  \
+    }
+    IMPL_PRIMITIVE_READ(i8)
+    IMPL_PRIMITIVE_READ(u8)
+    IMPL_PRIMITIVE_READ(i16)
+    IMPL_PRIMITIVE_READ(u16)
+    IMPL_PRIMITIVE_READ(i32)
+    IMPL_PRIMITIVE_READ(u32)
+    IMPL_PRIMITIVE_READ(i64)
+    IMPL_PRIMITIVE_READ(u64)
+    IMPL_PRIMITIVE_READ(char)
+    IMPL_PRIMITIVE_READ(bool)
+    IMPL_PRIMITIVE_READ(float)
+    IMPL_PRIMITIVE_READ(double)
+
+    // Read for common types.
+    virtual void read(Vec3& v) {
+        read(v.x);
+        read(v.y);
+        read(v.z);
+    }
+
+    virtual void read(Position& p) {
+        read(p.x);
+        read(p.y);
+        read(p.z);
+    }
+
+    virtual void read(Quat& q) {
+        read(q.x);
+        read(q.y);
+        read(q.z);
+        read(q.w);
+    }
+
+    virtual void read(String& s) {
+        s = readLine('\0');
+    }
+
 protected:
     u64 position_;
     u64 size_;
 };
 
 namespace stream {
-template <class T> T read(InputStream& s) {
-    static_assert(sizeof(T) != sizeof(T), "stream::read is not implemented for arbitrary types");
-    return T();
-}
-
-// Implement read for primitive types
-#define IMPL_PRIMITIVE_READ(T)                                \
-    template <> inline T read<T>(InputStream & s) { \
-        T value;                                    \
-        s.read(&value, sizeof(T));                  \
-        return value;                               \
-    }
-
-IMPL_PRIMITIVE_READ(i8)
-IMPL_PRIMITIVE_READ(u8)
-IMPL_PRIMITIVE_READ(i16)
-IMPL_PRIMITIVE_READ(u16)
-IMPL_PRIMITIVE_READ(i32)
-IMPL_PRIMITIVE_READ(u32)
-IMPL_PRIMITIVE_READ(i64)
-IMPL_PRIMITIVE_READ(u64)
-IMPL_PRIMITIVE_READ(char)
-IMPL_PRIMITIVE_READ(bool)
-IMPL_PRIMITIVE_READ(float)
-IMPL_PRIMITIVE_READ(double)
-
-template <> inline Position read<Position>(InputStream& s) {
-    return Position(stream::read<double>(s), stream::read<double>(s), stream::read<double>(s));
-}
-
-template <> inline Quat read<Quat>(InputStream& s) {
-    return Quat(stream::read<float>(s), stream::read<float>(s), stream::read<float>(s), stream::read<float>(s));
-}
-
-/// Read a null terminated string
-template <> inline String read<String>(InputStream& s) {
-    return s.readLine('\0');
+template <typename T> T read(InputStream& s) {
+    T result;
+    s.read(result);
+    return result;
 }
 }  // namespace stream
 }  // namespace dw

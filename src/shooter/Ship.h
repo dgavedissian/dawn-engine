@@ -89,6 +89,12 @@ public:
     static Vec3 convertToPower(const Vec3& force, const Vec3& max_pos_force,
                                const Vec3& max_neg_force);
 
+    // Replication stuff.
+    void rep_setCurrentMovementPower(const Vec3& power);
+    void rep_setCurrentRotationalPower(const Vec3& power);
+    Vec3 currentMovementPower();
+    Vec3 currentRotationalPower();
+
 private:
     Vector<ShipEngineData> engine_data_;
     Vector<ShipEngineData> nav_engine_data_;
@@ -101,6 +107,9 @@ private:
     // Rotational engines.
     Array<Vector<ShipEngineInstance>, 3> navigation_engines_;
 
+    Vec3 current_movement_power_;
+    Vec3 current_rotational_power_;
+
     friend class ShipEngineSystem;
 };
 
@@ -109,7 +118,7 @@ public:
     DW_OBJECT(ShipEngineSystem);
 
     explicit ShipEngineSystem(Context* ctx) : System(ctx) {
-        supportsComponents<Transform, RigidBody, ShipEngines>();
+        supportsComponents<Transform, ShipEngines>();
     }
 
     void processEntity(Entity& entity, float dt) override {
