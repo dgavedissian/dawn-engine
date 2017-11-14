@@ -66,5 +66,6 @@ template <class T1, class T2> inline SharedPtr<T1> dynamicPointerCast(const Shar
 #include "core/Context.h"
 #include "core/Exception.h"
 #include "core/Object.h"
+#include "core/Subsystem.h"
 #include "core/Log.h"
 #include "core/EventSystem.h"

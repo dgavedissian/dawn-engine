@@ -26,7 +26,7 @@ void fromBulletTransform(const btTransform& source, Transform& dest) {
     dest.orientation() = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
 }
 }  // namespace
-PhysicsSystem::PhysicsSystem(Context* context) : Object(context) {
+PhysicsSystem::PhysicsSystem(Context* context) : Subsystem(context) {
     log().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
 
     broadphase_.reset(new btDbvtBroadphase());

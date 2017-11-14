@@ -12,7 +12,7 @@ static_assert(sizeof(ImDrawIdx) == sizeof(dw::u16), "Only 16-bit ImGUI indices a
 
 namespace dw {
 UserInterface::UserInterface(Context* ctx)
-    : Object(ctx),
+    : Subsystem(ctx),
       renderer_(subsystem<Renderer>()),
       imgui_io_(ImGui::GetIO()),
       imgui_style_(ImGui::GetStyle()),

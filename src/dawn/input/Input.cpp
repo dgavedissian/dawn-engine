@@ -15,7 +15,7 @@ const EventType MouseMoveEvent::eventType(0xcfcf6020);
 const EventType MouseScrollEvent::eventType(0xabc23f35);
 
 Input::Input(Context* context)
-    : Object(context),
+    : Subsystem(context),
       viewport_size_(1280, 800),
       mouse_position_(0, 0),
       mouse_move_(0, 0),

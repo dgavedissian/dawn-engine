@@ -7,7 +7,7 @@
 #include "ecs/Entity.h"
 
 namespace dw {
-class EntityManager : public Object {
+class EntityManager : public Subsystem {
 public:
     DW_OBJECT(EntityManager);
 

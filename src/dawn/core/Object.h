@@ -84,6 +84,7 @@ protected:
 };
 }  // namespace dw
 
+#include "core/Subsystem.h"
 #include "core/EventSystem.h"
 
 namespace dw {

@@ -39,7 +39,7 @@ private:
     Path path_;
 };
 
-class DW_API ResourceCache : public Object {
+class DW_API ResourceCache : public Subsystem {
 public:
     DW_OBJECT(ResourceCache);
 

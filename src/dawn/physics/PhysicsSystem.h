@@ -23,7 +23,7 @@ struct DW_API PhysicsRaycastResult {
 };
 
 // Manages the Bullet physics library and provides some helper functions.
-class DW_API PhysicsSystem : public Object {
+class DW_API PhysicsSystem : public Subsystem {
 public:
     DW_OBJECT(PhysicsSystem);
 

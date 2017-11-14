@@ -10,7 +10,7 @@
 #include "resource/ResourceCache.h"
 
 namespace dw {
-Universe::Universe(Context* context) : Object(context) {
+Universe::Universe(Context* context) : Subsystem(context) {
     root_node_ = makeShared<Transform>(Position::origin, Quat::identity, nullptr);
 
     background_renderable_root_ = makeShared<RenderableNode>();

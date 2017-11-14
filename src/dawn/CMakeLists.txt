@@ -26,6 +26,8 @@ set(SOURCE_FILES
     core/StateManager.h
     core/StringUtils.cpp
     core/StringUtils.h
+    core/Subsystem.cpp
+    core/Subsystem.h
     core/Timer.cpp
     core/Timer.h
     ecs/Component.cpp
@@ -41,6 +43,8 @@ set(SOURCE_FILES
     engine/App.h
     engine/Engine.cpp
     engine/Engine.h
+    gameplay/GameFramework.cpp
+    gameplay/GameFramework.h
     input/Input.cpp
     input/Input.h
     io/File.cpp

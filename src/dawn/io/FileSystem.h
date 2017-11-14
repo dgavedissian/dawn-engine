@@ -7,7 +7,7 @@
 #include "io/Path.h"
 
 namespace dw {
-class DW_API FileSystem : public Object {
+class DW_API FileSystem : public Subsystem {
 public:
     DW_OBJECT(FileSystem);
 

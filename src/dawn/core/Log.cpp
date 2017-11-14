@@ -41,7 +41,7 @@ public:
     }
 };
 
-Logger::Logger(Context* context) : Object{context}, object_name_{"UNKNOWN"} {
+Logger::Logger(Context* context) : Subsystem{context}, object_name_{"UNKNOWN"} {
     addLogMessageHandler(makeUnique<PlatformLogMessageHandler>());
 }
 

@@ -7,7 +7,7 @@
 
 namespace dw {
 SystemManager::SystemManager(Context* context)
-    : Object{context}, system_manager_{context->ontology_world_.getSystemManager()} {
+    : Subsystem{context}, system_manager_{context->ontology_world_.getSystemManager()} {
 }
 
 void SystemManager::beginMainLoop() {

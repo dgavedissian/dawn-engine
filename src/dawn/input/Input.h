@@ -141,7 +141,7 @@ namespace MouseButton {
 enum Enum { Left = 0, Middle, Right, Count };
 }
 
-class DW_API Input : public Object {
+class DW_API Input : public Subsystem {
 public:
     DW_OBJECT(Input);
 

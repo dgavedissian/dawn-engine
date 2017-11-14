@@ -60,7 +60,7 @@ EventDelegate makeEventDelegate(T* ptr, void (T::*handler)(const E&)) {
     return EventDelegate(ptr, handler);
 };
 
-class DW_API EventSystem : public Object {
+class DW_API EventSystem : public Subsystem {
 public:
     DW_OBJECT(EventSystem);
 

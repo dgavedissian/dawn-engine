@@ -9,7 +9,7 @@
 #include "ecs/System.h"
 
 namespace dw {
-class SystemManager : public Object {
+class SystemManager : public Subsystem {
 public:
     DW_OBJECT(SystemManager);
 

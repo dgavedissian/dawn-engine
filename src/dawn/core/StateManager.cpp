@@ -8,7 +8,7 @@
 
 namespace dw {
 
-StateManager::StateManager(Context* context) : Object(context) {
+StateManager::StateManager(Context* context) : Subsystem(context) {
     addEventListener<KeyEvent>(makeEventDelegate(this, &StateManager::onKey));
 }
 

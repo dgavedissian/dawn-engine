@@ -386,7 +386,7 @@ public:
 
 // Low level renderer.
 // Based off: https://github.com/bkaradzic/bgfx/blob/master/src/bgfx_p.h#L2297
-class DW_API Renderer : public Object {
+class DW_API Renderer : public Subsystem {
 public:
     DW_OBJECT(Renderer)
 

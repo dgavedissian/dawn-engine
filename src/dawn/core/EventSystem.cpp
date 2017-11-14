@@ -13,7 +13,7 @@ const EventType SendMessageEvent::eventType(0x244cec1b);
 const EventType MessageEvent::eventType(0x8d859562);
 
 EventSystem::EventSystem(Context* context)
-    : Object(context), active_queue_(0), processing_events_(false) {
+    : Subsystem(context), active_queue_(0), processing_events_(false) {
 }
 
 EventSystem::~EventSystem() {

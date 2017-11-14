@@ -10,7 +10,7 @@
 namespace dw {
 
 /// Used to keep track of the current universe, which contains all entities.
-class DW_API Universe : public Object {
+class DW_API Universe : public Subsystem {
 public:
     DW_OBJECT(Universe);
 

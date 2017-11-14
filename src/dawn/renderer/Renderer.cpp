@@ -83,7 +83,7 @@ View& Frame::view(uint view_index) {
 }
 
 Renderer::Renderer(Context* context)
-    : Object{context},
+    : Subsystem(context),
       use_render_thread_(false),
       is_first_frame_(true),
       shared_rt_should_exit_(false),

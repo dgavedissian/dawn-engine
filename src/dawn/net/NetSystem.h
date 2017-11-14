@@ -21,7 +21,7 @@ public:
     virtual Entity& onClientDeserialiseEntity(EntityId entity_id, u32 metadata) = 0;
 };
 
-class DW_API NetSystem : public Object, public yojimbo::Adapter {
+class DW_API NetSystem : public Subsystem, public yojimbo::Adapter {
 public:
     DW_OBJECT(NetSystem);
 

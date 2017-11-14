@@ -8,7 +8,7 @@
 
 namespace dw {
 EntityManager::EntityManager(Context* context)
-    : Object{context},
+    : Subsystem{context},
       entity_manager_{context->ontology_world_.getEntityManager()},
       entity_id_allocator_{1} {
 }

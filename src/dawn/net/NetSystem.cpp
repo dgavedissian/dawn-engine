@@ -109,7 +109,7 @@ YOJIMBO_MESSAGE_FACTORY_FINISH();
 }  // namespace
 
 NetSystem::NetSystem(Context* context)
-    : Object{context}, is_server_{false}, time_{100.0f}, client_{nullptr}, server_{nullptr} {
+    : Subsystem{context}, is_server_{false}, time_{100.0f}, client_{nullptr}, server_{nullptr} {
     yojimbo_logger = subsystem<Logger>();
     InitializeYojimbo();
     yojimbo_log_level(YOJIMBO_LOG_LEVEL_INFO);
