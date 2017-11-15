@@ -30,7 +30,8 @@ Subsystem* Context::addSubsystem(UniquePtr<Subsystem> subsystem) {
 
 void Context::removeSubsystem(StringHash subsystem_type) {
     subsystems_.erase(subsystem_type);
-    subsystem_init_order_.erase(std::find(subsystem_init_order_.begin(), subsystem_init_order_.end(), subsystem_type));
+    subsystem_init_order_.erase(
+        std::find(subsystem_init_order_.begin(), subsystem_init_order_.end(), subsystem_type));
 }
 
 void Context::clearSubsystems() {

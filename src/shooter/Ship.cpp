@@ -8,8 +8,12 @@ using namespace dw;
 namespace {
 class ShipControls : public Component {
 public:
+    ClientRpc<Vec3> setLinearVelocity;
+    void onHandleLinearVelocity(const Vec3& v) {
+        target_linear_velocity = v;
+    }
+
     Vec3 target_linear_velocity;
-    Vec3 target_angular_velocity;
 };
 }  // namespace
 
@@ -289,11 +293,11 @@ Vec3 ShipEngines::currentRotationalPower() {
     return current;
 }
 
-ShipEngineSystem::ShipEngineSystem(Context *ctx) : System(ctx) {
+ShipEngineSystem::ShipEngineSystem(Context* ctx) : System(ctx) {
     supportsComponents<Transform, ShipEngines>();
 }
 
-void ShipEngineSystem::processEntity(Entity &entity, float dt) {
+void ShipEngineSystem::processEntity(Entity& entity, float dt) {
     auto& transform = *entity.component<Transform>();
     auto& ship_engines = *entity.component<ShipEngines>();
 
@@ -306,35 +310,35 @@ void ShipEngineSystem::processEntity(Entity &entity, float dt) {
             int particle = i;
             float engine_glow_size = 4.0f * engines[i].activity();
             ship_engines.glow_billboards_->setParticlePosition(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{engines[i].offset(), 1.0f}});
-            ship_engines.glow_billboards_->setParticleSize(
-                    particle, {engine_glow_size, engine_glow_size});
+                particle,
+                Vec3{transform.modelMatrix(Position::origin) * Vec4{engines[i].offset(), 1.0f}});
+            ship_engines.glow_billboards_->setParticleSize(particle,
+                                                           {engine_glow_size, engine_glow_size});
             ship_engines.trail_billboards_->setParticlePosition(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{engines[i].offset(), 1.0f}});
+                particle,
+                Vec3{transform.modelMatrix(Position::origin) * Vec4{engines[i].offset(), 1.0f}});
             ship_engines.trail_billboards_->setParticleSize(
-                    particle, {engine_glow_size * 0.5f, engine_glow_size * 6.0f});
+                particle, {engine_glow_size * 0.5f, engine_glow_size * 6.0f});
             ship_engines.trail_billboards_->setParticleDirection(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{-engines[i].force().Normalized(), 0.0f}});
+                particle, Vec3{transform.modelMatrix(Position::origin) *
+                               Vec4{-engines[i].force().Normalized(), 0.0f}});
         }
         for (size_t i = 0; i < nav_engines.size(); i++) {
             int particle = i + engines.size();
             float engine_glow_size = 2.0f * nav_engines[i].activity();
             ship_engines.glow_billboards_->setParticlePosition(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{nav_engines[i].offset(), 1.0f}});
-            ship_engines.glow_billboards_->setParticleSize(
-                    particle, {engine_glow_size, engine_glow_size});
+                particle, Vec3{transform.modelMatrix(Position::origin) *
+                               Vec4{nav_engines[i].offset(), 1.0f}});
+            ship_engines.glow_billboards_->setParticleSize(particle,
+                                                           {engine_glow_size, engine_glow_size});
             ship_engines.trail_billboards_->setParticlePosition(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{nav_engines[i].offset(), 1.0f}});
+                particle, Vec3{transform.modelMatrix(Position::origin) *
+                               Vec4{nav_engines[i].offset(), 1.0f}});
             ship_engines.trail_billboards_->setParticleSize(
-                    particle, {engine_glow_size * 0.25f, engine_glow_size * 3.0f});
+                particle, {engine_glow_size * 0.25f, engine_glow_size * 3.0f});
             ship_engines.trail_billboards_->setParticleDirection(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{-nav_engines[i].force().Normalized(), 0.0f}});
+                particle, Vec3{transform.modelMatrix(Position::origin) *
+                               Vec4{-nav_engines[i].force().Normalized(), 0.0f}});
         }
     }
 
@@ -510,17 +514,23 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, bool replicated) : Object(
                                                    {{0.0f, 25.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
                                                    {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
                                                    {{0.0f, 25.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
-                                                   {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}})
-                        .addComponent<NetData>(ReplicatedPropertyList{
-                            ReplicatedProperty::bind(&Transform::position),
-                            ReplicatedProperty::bind(&Transform::orientation),
-                            ReplicatedProperty::bind(&ShipEngines::currentMovementPower,
-                                                     &ShipEngines::rep_setCurrentMovementPower),
-                            ReplicatedProperty::bind(&ShipEngines::currentRotationalPower,
-                                                     &ShipEngines::rep_setCurrentRotationalPower)});
+                                                   {{0.0f, 25.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
     auto node = ship_entity_->component<RenderableComponent>()->node;
     node->addChild(makeShared<RenderableNode>(sphere, Vec3{8.0f, 0.0f, 0.0f}, Quat::identity));
     node->addChild(makeShared<RenderableNode>(sphere, Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity));
+
+    // Networking.
+    ship_entity_->addComponent<ShipControls>();
+    ship_entity_->addComponent<NetData>(ReplicatedPropertyList{
+        ReplicatedProperty::bind(&Transform::position),
+        ReplicatedProperty::bind(&Transform::orientation),
+        ReplicatedProperty::bind(&ShipEngines::currentMovementPower,
+                                 &ShipEngines::rep_setCurrentMovementPower),
+        ReplicatedProperty::bind(&ShipEngines::currentRotationalPower,
+                                 &ShipEngines::rep_setCurrentRotationalPower)});
+    auto net_data = ship_entity_->component<NetData>();
+    net_data->registerClientRpc(
+        Rpc::bind(&ShipControls::setLinearVelocity, &ShipControls::onHandleLinearVelocity));
 
     // Get rigid body.
     if (replicated) {

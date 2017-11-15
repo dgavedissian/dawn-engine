@@ -11,6 +11,10 @@
 #include "net/NetData.h"
 
 namespace dw {
+const EventType JoinServerEvent::eventType(0x1234aedf);
+const EventType ServerClientConnectedEvent::eventType(0x1234aeef);
+const EventType ServerClientDisconnectedEvent::eventType(0x1234aeff);
+
 namespace {
 Logger* yojimbo_logger = nullptr;
 int yojimbo_printf_function(const char* format, ...) {
@@ -28,28 +32,28 @@ int yojimbo_printf_function(const char* format, ...) {
     return count;
 }
 
+// Assuming 'bytes' is of type 'Vector<u8>'.
+#define yojimbo_serialize_byte_array(stream, bytes)  \
+    if (Stream::IsReading) {                         \
+        u32 size;                                    \
+        serialize_uint32(stream, size);              \
+        bytes.resize(size);                          \
+        serialize_bytes(stream, bytes.data(), size); \
+    } else {                                         \
+        auto size = static_cast<u32>(bytes.size());  \
+        serialize_uint32(stream, size);              \
+        serialize_bytes(stream, bytes.data(), size); \
+    }
+
 struct ServerCreateEntityMessage : public yojimbo::Message {
     EntityId entity_id;
     u32 metadata;
     Vector<u8> data;
 
-    ServerCreateEntityMessage() {
-        entity_id = 0;
-    }
-
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint32(stream, entity_id);
         serialize_uint32(stream, metadata);
-        if (Stream::IsReading) {
-            u32 size;
-            serialize_uint32(stream, size);
-            data.resize(size);
-            serialize_bytes(stream, data.data(), size);
-        } else {
-            u32 size = (u32)data.size();
-            serialize_uint32(stream, size);
-            serialize_bytes(stream, data.data(), size);
-        }
+        yojimbo_serialize_byte_array(stream, data);
         return true;
     }
 
@@ -62,16 +66,7 @@ struct ServerPropertyReplicationMessage : public yojimbo::Message {
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint32(stream, entity_id);
-        if (Stream::IsReading) {
-            u32 size;
-            serialize_uint32(stream, size);
-            data.resize(size);
-            serialize_bytes(stream, data.data(), size);
-        } else {
-            u32 size = (u32)data.size();
-            serialize_uint32(stream, size);
-            serialize_bytes(stream, data.data(), size);
-        }
+        yojimbo_serialize_byte_array(stream, data);
         return true;
     }
 
@@ -81,12 +76,23 @@ struct ServerPropertyReplicationMessage : public yojimbo::Message {
 struct ServerDestroyEntityMessage : public yojimbo::Message {
     EntityId entity_id;
 
-    ServerDestroyEntityMessage() {
-        entity_id = 0;
+    template <typename Stream> bool Serialize(Stream& stream) {
+        serialize_uint32(stream, entity_id);
+        return true;
     }
+
+    YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
+};
+
+struct ClientRpcMessage : public yojimbo::Message {
+    EntityId entity_id;
+    RpcId rpc_id;
+    Vector<u8> payload;
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint32(stream, entity_id);
+        serialize_bits(stream, rpc_id, sizeof(RpcId) * 8);
+        yojimbo_serialize_byte_array(stream, payload);
         return true;
     }
 
@@ -98,6 +104,7 @@ enum MessageType {
     MT_ServerCreateEntity,
     MT_ServerPropertyReplication,
     MT_ServerDestroyEntity,
+    MT_ClientRpc,
     MT_Count
 };
 
@@ -105,11 +112,17 @@ YOJIMBO_MESSAGE_FACTORY_START(NetMessageFactory, MT_Count);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerCreateEntity, ServerCreateEntityMessage);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerPropertyReplication, ServerPropertyReplicationMessage);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerDestroyEntity, ServerDestroyEntityMessage);
+YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ClientRpc, ClientRpcMessage);
 YOJIMBO_MESSAGE_FACTORY_FINISH();
 }  // namespace
 
 NetSystem::NetSystem(Context* context)
-    : Subsystem{context}, is_server_{false}, time_{100.0f}, client_{nullptr}, server_{nullptr} {
+    : Subsystem{context},
+      is_server_(false),
+      time_(100.0f),
+      client_connection_state_(ConnectionState::Disconnected),
+      client_(nullptr),
+      server_(nullptr) {
     yojimbo_logger = subsystem<Logger>();
     InitializeYojimbo();
     yojimbo_log_level(YOJIMBO_LOG_LEVEL_INFO);
@@ -140,6 +153,7 @@ void NetSystem::connect(const String& ip, u16 port) {
 
     // Connect to server.
     client_->InsecureConnect(privateKey, clientId, yojimbo::Address{ip.c_str(), port});
+    client_connection_state_ = ConnectionState::Connecting;
     is_server_ = false;
 }
 
@@ -167,6 +181,7 @@ void NetSystem::disconnect() {
     } else if (isClient()) {
         client_->Disconnect();
         client_.reset();
+        client_connection_state_ = ConnectionState::Disconnected;
     }
 }
 
@@ -182,9 +197,28 @@ void NetSystem::update(float dt) {
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
             while (true) {
                 yojimbo::Message* message = server_->ReceiveMessage(i, 0);
-                if (!message)
+                if (!message) {
                     break;
+                }
                 switch (message->GetType()) {
+                    case MT_ClientRpc: {
+                        auto rpc_message = (ClientRpcMessage*)message;
+                        EntityId entity_id = rpc_message->entity_id;
+                        Entity* entity = subsystem<EntityManager>()->findEntity(entity_id);
+                        if (!entity) {
+                            log().error("Client RPC: Received from non-existent entity %d",
+                                        entity_id);
+                            break;
+                        }
+                        NetData* net_data = entity->component<NetData>();
+                        if (!net_data) {
+                            log().error("Client RPC: Entity %d has no NetData component.",
+                                        entity_id);
+                            break;
+                        }
+                        net_data->receiveClientRpc(rpc_message->rpc_id, rpc_message->payload);
+                        break;
+                    }
                     default:
                         log().warn("Unexpected message received on server: %d", message->GetType());
                 }
@@ -208,10 +242,26 @@ void NetSystem::update(float dt) {
     } else if (client_) {
         client_->SendPackets();
         client_->ReceivePackets();
+        // Handle Connecting -> Connected transition.
+        if (client_connection_state_ == ConnectionState::Connecting && client_->IsConnected()) {
+            client_connection_state_ = ConnectionState::Connected;
+            triggerEvent<JoinServerEvent>();
+        }
+        // Handle Connecting -> Disconnected transition.
+        if (client_connection_state_ == ConnectionState::Connecting && client_->IsDisconnected()) {
+            client_connection_state_ = ConnectionState::Disconnected;
+            // TODO: Trigger 'on connection failed' event.
+        }
+        // Handle Connected -> Disconnected transition.
+        if (client_connection_state_ == ConnectionState::Connected && client_->IsDisconnected()) {
+            client_connection_state_ = ConnectionState ::Disconnected;
+            // TODO: Trigger 'on disconnect' event.
+        }
         while (true) {
             yojimbo::Message* message = client_->ReceiveMessage(0);
-            if (!message)
+            if (!message) {
                 break;
+            }
             switch (message->GetType()) {
                 case MT_ServerCreateEntity: {
                     // TODO: Create EntitySpawnPipeline and move this code to there.
@@ -250,15 +300,15 @@ void NetSystem::update(float dt) {
 }
 
 bool NetSystem::isClient() const {
-    return client_ && client_->IsConnected();
+    return client_ != nullptr;
 }
 
 bool NetSystem::isServer() const {
-    return server_ && server_->IsRunning();
+    return server_ != nullptr;
 }
 
 bool NetSystem::isConnected() const {
-    return isClient() || isServer();
+    return isClient() ? client_connection_state_ == ConnectionState::Connected : isServer();
 }
 
 void NetSystem::replicateEntity(const Entity& entity) {
@@ -279,7 +329,18 @@ void NetSystem::setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline) {
     entity_pipeline_ = std::move(entity_pipeline);
 }
 
+void NetSystem::sendClientRpc(EntityId entity_id, RpcId rpc_id, const Vector<u8>& payload) {
+    assert(isClient());
+    assert(isConnected());
+    auto message = (ClientRpcMessage*)client_->CreateMessage(MT_ClientRpc);
+    message->entity_id = entity_id - 10000;
+    message->rpc_id = rpc_id;
+    message->payload = payload;
+    client_->SendMessage(0, message);
+}
+
 void NetSystem::sendServerCreateEntity(int clientIndex, const Entity& entity) {
+    assert(isServer());
     auto message =
         (ServerCreateEntityMessage*)server_->CreateMessage(clientIndex, MT_ServerCreateEntity);
     message->entity_id =
@@ -297,6 +358,7 @@ void NetSystem::sendServerCreateEntity(int clientIndex, const Entity& entity) {
 }
 
 void NetSystem::sendServerPropertyReplication(int clientIndex, const Entity& entity) {
+    assert(isServer());
     auto message = (ServerPropertyReplicationMessage*)server_->CreateMessage(
         clientIndex, MT_ServerPropertyReplication);
     message->entity_id =
@@ -322,8 +384,13 @@ void NetSystem::OnServerClientConnected(int clientIndex) {
             log().error("Replicated Entity ID %s missing from EntityManager", entity_id);
         }
     }
+
+    // Trigger event.
+    triggerEvent<ServerClientConnectedEvent>(clientIndex);
 }
 
 void NetSystem::OnServerClientDisconnected(int clientIndex) {
+    // Trigger event.
+    triggerEvent<ServerClientDisconnectedEvent>(clientIndex);
 }
 }  // namespace dw

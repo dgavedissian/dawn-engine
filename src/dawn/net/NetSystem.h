@@ -7,6 +7,7 @@
 #include "yojimbo.h"
 
 #include "ecs/Entity.h"
+#include "net/NetData.h"
 
 namespace dw {
 // TODO: Move EntityPipeline elsewhere
@@ -20,6 +21,8 @@ public:
     virtual u32 onServerSerialiseEntity(const Entity& entity) = 0;
     virtual Entity& onClientDeserialiseEntity(EntityId entity_id, u32 metadata) = 0;
 };
+
+enum class ConnectionState { Disconnected, Connecting, Connected };
 
 class DW_API NetSystem : public Subsystem, public yojimbo::Adapter {
 public:
@@ -37,6 +40,7 @@ public:
     // Disconnect from a server/stop hosting.
     void disconnect();
 
+    // Send/receive messages.
     void update(float dt);
 
     // Returns true if connected to a server as a client.
@@ -52,9 +56,14 @@ public:
     void replicateEntity(const Entity& entity);
     void setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline);
 
+    // RPCs.
+    void sendClientRpc(EntityId entity_id, RpcId rpc_id, const Vector<u8>& payload);
+
 private:
     bool is_server_;
     double time_;
+
+    ConnectionState client_connection_state_;
     UniquePtr<yojimbo::Client> client_;
     UniquePtr<yojimbo::Server> server_;
 
@@ -69,4 +78,8 @@ private:
     void OnServerClientConnected(int clientIndex) override;
     void OnServerClientDisconnected(int clientIndex) override;
 };
+
+DEFINE_EMPTY_EVENT(JoinServerEvent);
+DEFINE_EVENT(ServerClientConnectedEvent, int, clientIndex);
+DEFINE_EVENT(ServerClientDisconnectedEvent, int, clientIndex);
 }  // namespace dw

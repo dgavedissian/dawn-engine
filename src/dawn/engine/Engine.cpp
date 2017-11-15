@@ -140,7 +140,7 @@ void Engine::setup(int argc, char** argv) {
     // mAudio = new Audio;
     context_->addSubsystem<PhysicsSystem>();
     // mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
-    context_->addSubsystem<StateManager>();
+    context_->addSubsystem<GameFramework>();
     context_->addSubsystem<ResourceCache>();
 
     // Set input viewport size
@@ -181,7 +181,7 @@ void Engine::shutdown() {
     }
 
     // Remove subsystems.
-    context_->removeSubsystem<StateManager>();
+    context_->removeSubsystem<GameFramework>();
     context_->removeSubsystem<UserInterface>();
     context_->removeSubsystem<ResourceCache>();
     context_->removeSubsystem<SystemManager>();
@@ -234,8 +234,7 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         previous_time = current_time;
     }
 
-    // Ensure that all states have been exited so no crashes occur later.
-    context_->subsystem<StateManager>()->clear();
+    context_->subsystem<GameFramework>()->setGameMode(nullptr);
 }
 
 double Engine::frameTime() const {
@@ -362,7 +361,7 @@ void Engine::update(float dt) {
     context_->subsystem<NetSystem>()->update(dt);
 
     context_->subsystem<EventSystem>()->update(0.02f);
-    context_->subsystem<StateManager>()->update(dt);
+    context_->subsystem<GameFramework>()->update(dt);
     context_->subsystem<Universe>()->update(dt);
     context_->subsystem<PhysicsSystem>()->update(dt, nullptr);
 
@@ -371,7 +370,6 @@ void Engine::update(float dt) {
 }
 
 void Engine::preRender(Camera_OLD*) {
-    context_->subsystem<StateManager>()->preRender();
 }
 
 void Engine::postRender() {

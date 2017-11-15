@@ -22,8 +22,6 @@ set(SOURCE_FILES
     core/Object.h
     core/Option.h
     core/Preprocessor.h
-    core/StateManager.cpp
-    core/StateManager.h
     core/StringUtils.cpp
     core/StringUtils.h
     core/Subsystem.cpp
@@ -45,6 +43,8 @@ set(SOURCE_FILES
     engine/Engine.h
     gameplay/GameFramework.cpp
     gameplay/GameFramework.h
+    gameplay/GameMode.cpp
+    gameplay/GameMode.h
     input/Input.cpp
     input/Input.h
     io/File.cpp
@@ -79,6 +79,8 @@ set(SOURCE_FILES
     net/BitStream.h
     net/NetData.cpp
     net/NetData.h
+    net/NetGameMode.cpp
+    net/NetGameMode.h
     net/NetSystem.cpp
     net/NetSystem.h
     physics/BulletDynamics.h

@@ -6,12 +6,12 @@
 
 // Include everything
 #include "Common.h"
-#include "core/StateManager.h"
 #include "core/StringUtils.h"
 #include "ecs/EntityManager.h"
 #include "ecs/SystemManager.h"
 #include "engine/App.h"
 #include "engine/Engine.h"
+#include "gameplay/GameFramework.h"
 #include "io/FileSystem.h"
 #include "math/Defs.h"
 #include "math/Noise.h"

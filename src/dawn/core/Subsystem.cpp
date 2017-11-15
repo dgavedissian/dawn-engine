@@ -11,4 +11,4 @@ Subsystem::Subsystem(Context* ctx) : Object(ctx) {
 
 Subsystem::~Subsystem() {
 }
-}
+}  // namespace dw

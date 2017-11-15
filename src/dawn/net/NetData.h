@@ -9,8 +9,15 @@
 #include "io/InputStream.h"
 #include "io/OutputStream.h"
 
+#include "net/BitStream.h"
+
 namespace dw {
 
+using RpcId = u16;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// REPLICATED PROPERTIES
+////////////////////////////////////////////////////////////////////////////////////////////////////
 class DW_API ReplicatedPropertyBase {
 public:
     virtual ~ReplicatedPropertyBase() = default;
@@ -121,6 +128,12 @@ private:
     };
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// NET DATA
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class RpcHandlerBase;
+
 class DW_API NetData : public Component {
 public:
     NetData(ReplicatedPropertyList properties);
@@ -129,7 +142,99 @@ public:
     void serialise(OutputStream& out);
     void deserialise(InputStream& in);
 
+    void registerClientRpc(SharedPtr<RpcHandlerBase> rpc);
+    void sendClientRpc(RpcId rpc_id, const Vector<u8>& payload);
+    void receiveClientRpc(RpcId rpc_id, const Vector<u8>& payload);
+
 private:
+    Entity* entity_;
     ReplicatedPropertyList properties_;
+    Map<RpcId, SharedPtr<RpcHandlerBase>> rpc_list_;
+    RpcId rpc_allocator_;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// RPCS
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class DW_API RpcHandlerBase {
+public:
+    virtual void setRpcId(RpcId rpc_id) = 0;
+    virtual void onAddToEntity(Entity& entity) = 0;
+    virtual void handle(const Vector<u8>& data) = 0;
+};
+
+// RPC sender.
+template <typename... Args> class DW_API ClientRpc {
+public:
+    ClientRpc() : net_data_(nullptr), rpc_id_(0) {
+    }
+
+    void operator()(const Args&... args) {
+        // Pack arguments.
+        OutputBitStream bs;
+        // Below is a hack to apply stream::write to all args as we can't use C++17 folds. We use
+        // the expression {(f(args), 0)...} to generate an array of 0's (as we use the comma
+        // operator to discard the result of the function), then ignore the array by casting to
+        // void.
+        auto t = {(stream::write<Args>(bs, args), 0)...};
+        (void)t;
+
+        // Send RPC.
+        assert(net_data_);
+        net_data_->sendClientRpc(rpc_id_, bs.data());
+    }
+
+    void setNetDataInternal(NetData* net_data) {
+        net_data_ = net_data;
+    }
+
+    void setRpcIdInternal(RpcId rpc_id) {
+        rpc_id_ = rpc_id;
+    }
+
+private:
+    NetData* net_data_;
+    RpcId rpc_id_;
+};
+
+class DW_API Rpc {
+public:
+    template <typename C, typename... Args> using RpcFunctorPtr = ClientRpc<Args...>(C::*);
+    template <typename C, typename... Args> using RpcHandlerPtr = void (C::*)(const Args&...);
+
+    template <typename C, typename... Args>
+    static SharedPtr<RpcHandlerBase> bind(RpcFunctorPtr<C, Args...> functor,
+                                          RpcHandlerPtr<C, Args...> handler) {
+        return makeShared<ClientRpcBinding<C, Args...>>(functor, handler);
+    }
+
+private:
+    // RPC binding and receiver.
+    template <typename C, typename... Args> class DW_API ClientRpcBinding : public RpcHandlerBase {
+    public:
+        ClientRpcBinding(RpcFunctorPtr<C, Args...> functor, RpcHandlerPtr<C, Args...> handler)
+            : functor_(functor), handler_(handler), component_(nullptr) {
+        }
+
+        void setRpcId(RpcId rpc_id) override {
+            (component_->*functor_).setRpcIdInternal(rpc_id);
+        }
+
+        void onAddToEntity(Entity& entity) override {
+            component_ = entity.component<C>();
+            (component_->*functor_).setNetDataInternal(entity.component<NetData>());
+        }
+
+        void handle(const Vector<u8>& payload) override {
+            InputBitStream bs(payload);
+            (component_->*handler_)(stream::read<Args>(bs)...);
+        }
+
+    private:
+        RpcFunctorPtr<C, Args...> functor_;
+        RpcHandlerPtr<C, Args...> handler_;
+        C* component_;
+    };
 };
 }  // namespace dw

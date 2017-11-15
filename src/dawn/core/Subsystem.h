@@ -14,4 +14,4 @@ public:
     Subsystem(Context* ctx);
     virtual ~Subsystem();
 };
-}
+}  // namespace dw
