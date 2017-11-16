@@ -33,8 +33,8 @@ void NetData::deserialise(InputStream& in) {
 void NetData::registerClientRpc(SharedPtr<RpcHandlerBase> rpc) {
     assert(entity_);
     rpc_list_[rpc_allocator_] = rpc;
-    rpc->setRpcId(rpc_allocator_);
     rpc->onAddToEntity(*entity_);
+    rpc->setRpcId(rpc_allocator_);
     rpc_allocator_++;
 }
 

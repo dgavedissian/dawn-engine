@@ -9,6 +9,7 @@
 #include "Ship.h"
 
 #include "net/NetData.h"
+#include "net/NetGameMode.h"
 
 using namespace dw;
 
@@ -16,48 +17,65 @@ class ShooterEntityPipeline : public EntityPipeline {
 public:
     DW_OBJECT(ShooterEntityPipeline);
 
-    Vector<UniquePtr<Ship>> ship_list_;
+    Vector<SharedPtr<Ship>> ship_list_;
 
     ShooterEntityPipeline(Context* ctx) : EntityPipeline(ctx) {
     }
 
     ~ShooterEntityPipeline() = default;
 
-    u32 onServerSerialiseEntity(const Entity& entity) override {
+    u32 getEntityMetadata(const Entity& entity) override {
         return 0;
     }
 
-    Entity& onClientDeserialiseEntity(EntityId entity_id, u32 metadata) override {
+    Entity& createEntityFromMetadata(EntityId entity_id, u32 metadata) override {
         assert(metadata == 0);  // only one entity type supported.
-        UniquePtr<Ship> ship = makeUnique<Ship>(context(), entity_id, true);
+        SharedPtr<Ship> ship = makeShared<Ship>(context(), entity_id, true);
         Entity& entity = *ship->entity();
+        entity.component<ShipControls>()->ship = ship;
         ship_list_.emplace_back(std::move(ship));
         return entity;
     }
 };
 
-class Shooter : public App {
+class ShooterGameMode : public NetGameMode {
 public:
-    DW_OBJECT(Shooter);
+    DW_OBJECT(ShooterGameMode);
 
-    SharedPtr<Ship> ship;
+    ShooterGameMode(Context* ctx, ShooterEntityPipeline* entity_pipeline)
+        : NetGameMode(ctx), entity_pipeline_(entity_pipeline) {
+    }
 
-    SharedPtr<ShipCameraController> camera_controller;
+    // NetGameMode
+    void clientOnJoinServer() override {
+        log().info("Client: connected to server.");
+        subsystem<NetSystem>()->sendSpawnRequest(0, [this](Entity& entity) {
+            log().info("Received spawn response. Triggering callback.");
+            camera_controller->follow(&entity);
+        });
+    }
 
-    void init(int argc, char** argv) override {
-        auto rc = subsystem<ResourceCache>();
-        assert(rc);
-        rc->addPath("base", "../media/base");
-        rc->addPath("shooter", "../media/shooter");
+    void serverOnStart() override {
+        // ship = makeShared<Ship>(context());
+        // camera_controller->follow(ship->entity());
+    }
 
-        subsystem<NetSystem>()->setEntityPipeline(makeUnique<ShooterEntityPipeline>(context()));
-        subsystem<SystemManager>()->addSystem<ShipEngineSystem>();
+    void serverOnClientConnected() override {
+        log().info("Server: Client connected.");
+    }
 
-        ship = makeShared<Ship>(context());
+    void serverOnClientDisconnected() override {
+        log().info("Server: Client disconnected.");
+    }
+
+    // GameMode
+    void onStart() override {
+        NetGameMode::onStart();
 
         subsystem<Universe>()->createStarSystem();
 
         // Random thing.
+        auto rc = subsystem<ResourceCache>();
         auto material = makeShared<Material>(
             context(), makeShared<Program>(context(), rc->get<VertexShader>("base:space/planet.vs"),
                                            rc->get<FragmentShader>("base:space/planet.fs")));
@@ -77,12 +95,44 @@ public:
                            .addComponent<Camera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
         camera_controller->possess(&camera);
-        camera_controller->follow(ship->entity());
+    }
+
+    void onEnd() override {
+        NetGameMode::onEnd();
     }
 
     void update(float dt) override {
-        ship->update(dt);
+        NetGameMode::update(dt);
+        for (auto ship : entity_pipeline_->ship_list_) {
+            ship->update(dt);
+        }
         camera_controller->update(dt);
+    }
+
+private:
+    ShooterEntityPipeline* entity_pipeline_;
+    SharedPtr<ShipCameraController> camera_controller;
+};
+
+class Shooter : public App {
+public:
+    DW_OBJECT(Shooter);
+
+    void init(int argc, char** argv) override {
+        auto rc = subsystem<ResourceCache>();
+        assert(rc);
+        rc->addPath("base", "../media/base");
+        rc->addPath("shooter", "../media/shooter");
+
+        auto entity_pipeline = makeUnique<ShooterEntityPipeline>(context());
+        auto entity_pipeline_ptr = entity_pipeline.get();
+        subsystem<NetSystem>()->setEntityPipeline(std::move(entity_pipeline));
+        subsystem<SystemManager>()->addSystem<ShipEngineSystem>();
+        subsystem<GameFramework>()->setGameMode(
+            makeShared<ShooterGameMode>(context(), entity_pipeline_ptr));
+    }
+
+    void update(float dt) override {
     }
 
     void render() override {
@@ -128,7 +178,7 @@ public:
     }
 
     String gameName() override {
-        return "Sandbox";
+        return typeName();
     }
 
     String gameVersion() override {

@@ -13,13 +13,19 @@ NetGameMode::NetGameMode(Context* ctx) : GameMode(ctx) {
 NetGameMode::~NetGameMode() {
 }
 
-void NetGameMode::onJoinServer() {
+void NetGameMode::clientOnJoinServer() {
 }
 
-void NetGameMode::onClientConnected() {
+void NetGameMode::serverOnStart() {
 }
 
-void NetGameMode::onClientDisconnected() {
+void NetGameMode::serverOnEnd() {
+}
+
+void NetGameMode::serverOnClientConnected() {
+}
+
+void NetGameMode::serverOnClientDisconnected() {
 }
 
 void NetGameMode::onStart() {
@@ -28,6 +34,11 @@ void NetGameMode::onStart() {
         makeEventDelegate(this, &NetGameMode::eventOnServerClientConnected));
     addEventListener<ServerClientDisconnectedEvent>(
         makeEventDelegate(this, &NetGameMode::eventOnServerClientDisconnected));
+
+    if (subsystem<NetSystem>()->isServer()) {
+        serverOnStart();
+        server_started_ = true;
+    }
 }
 
 void NetGameMode::onEnd() {
@@ -36,20 +47,36 @@ void NetGameMode::onEnd() {
         makeEventDelegate(this, &NetGameMode::eventOnServerClientConnected));
     removeEventListener<ServerClientDisconnectedEvent>(
         makeEventDelegate(this, &NetGameMode::eventOnServerClientDisconnected));
+
+    if (server_started_) {
+        serverOnEnd();
+    }
 }
 
-void NetGameMode::update(float dt) {
+void NetGameMode::update(float) {
+    if (subsystem<NetSystem>()->isServer() && !server_started_) {
+        serverOnStart();
+        server_started_ = true;
+    }
+    if (!subsystem<NetSystem>()->isServer() && server_started_) {
+        serverOnEnd();
+        server_started_ = false;
+    }
 }
 
 void NetGameMode::eventOnJoinServer(const JoinServerEvent&) {
-    onJoinServer();
+    clientOnJoinServer();
 }
 
 void NetGameMode::eventOnServerClientConnected(const ServerClientConnectedEvent& e) {
-    onClientConnected();
+    serverOnClientConnected();
 }
 
 void NetGameMode::eventOnServerClientDisconnected(const ServerClientDisconnectedEvent& e) {
-    onClientDisconnected();
+    serverOnClientDisconnected();
+}
+
+bool NetGameMode::runningAsServer() const {
+    return server_started_;
 }
 }  // namespace dw

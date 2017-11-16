@@ -15,13 +15,22 @@ public:
     virtual ~NetGameMode();
 
     /// Called on the client when it joins a server.
-    virtual void onJoinServer();
+    virtual void clientOnJoinServer();
+
+    /// Called on the server when its started.
+    virtual void serverOnStart();
+
+    /// Called on the server when its ended.
+    virtual void serverOnEnd();
 
     /// Called on the server when a client connects.
-    virtual void onClientConnected();
+    virtual void serverOnClientConnected();
 
     /// Called on the server when a client disconnects.
-    virtual void onClientDisconnected();
+    virtual void serverOnClientDisconnected();
+
+    /// Returns true if this game mode is running on a server, otherwise it's running on a client.
+    bool runningAsServer() const;
 
     // GameMode
     virtual void onStart() override;
@@ -32,5 +41,7 @@ private:
     void eventOnJoinServer(const JoinServerEvent&);
     void eventOnServerClientConnected(const ServerClientConnectedEvent& e);
     void eventOnServerClientDisconnected(const ServerClientDisconnectedEvent& e);
+
+    bool server_started_;
 };
 }  // namespace dw

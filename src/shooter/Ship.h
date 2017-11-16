@@ -12,6 +12,25 @@
 
 using namespace dw;
 
+class Ship;
+
+class ShipControls : public Component {
+public:
+    WeakPtr<Ship> ship;
+
+    ClientRpc<Vec3> setLinearVelocity;
+    void onHandleLinearVelocity(const Vec3& v) {
+        target_linear_velocity = v;
+    }
+    ClientRpc<Vec3> setAngularVelocity;
+    void onHandleAngularVelocity(const Vec3& v) {
+        target_angular_velocity = v;
+    }
+
+    Vec3 target_linear_velocity;
+    Vec3 target_angular_velocity;
+};
+
 class ShipCameraController : public Object {
 public:
     DW_OBJECT(ShipCameraController);

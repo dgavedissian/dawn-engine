@@ -18,8 +18,8 @@ public:
     EntityPipeline(Context* ctx) : Object(ctx) {
     }
     virtual ~EntityPipeline() = default;
-    virtual u32 onServerSerialiseEntity(const Entity& entity) = 0;
-    virtual Entity& onClientDeserialiseEntity(EntityId entity_id, u32 metadata) = 0;
+    virtual u32 getEntityMetadata(const Entity& entity) = 0;
+    virtual Entity& createEntityFromMetadata(EntityId entity_id, u32 metadata) = 0;
 };
 
 enum class ConnectionState { Disconnected, Connecting, Connected };
@@ -57,6 +57,7 @@ public:
     void setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline);
 
     // RPCs.
+    void sendSpawnRequest(u32 metadata, std::function<void(Entity&)> callback);
     void sendClientRpc(EntityId entity_id, RpcId rpc_id, const Vector<u8>& payload);
 
 private:
@@ -70,6 +71,14 @@ private:
     UniquePtr<EntityPipeline> entity_pipeline_;
     HashSet<EntityId> replicated_entities_;
 
+    // Client only.
+    u32 spawn_request_id_;
+    HashMap<u32, std::function<void(Entity&)>> outgoing_spawn_requests_;
+    HashMap<EntityId, u32> pending_entity_spawns_;
+
+    // Server only.
+
+private:
     void sendServerCreateEntity(int clientIndex, const Entity& entity);
     void sendServerPropertyReplication(int clientIndex, const Entity& entity);
 

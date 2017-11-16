@@ -18,6 +18,6 @@ void GameMode::onStart() {
 void GameMode::onEnd() {
 }
 
-void GameMode::update(float dt) {
+void GameMode::update(float) {
 }
 }  // namespace dw

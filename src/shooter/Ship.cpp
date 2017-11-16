@@ -5,18 +5,6 @@
 
 using namespace dw;
 
-namespace {
-class ShipControls : public Component {
-public:
-    ClientRpc<Vec3> setLinearVelocity;
-    void onHandleLinearVelocity(const Vec3& v) {
-        target_linear_velocity = v;
-    }
-
-    Vec3 target_linear_velocity;
-};
-}  // namespace
-
 ShipCameraController::ShipCameraController(Context* ctx, const Vec3& offset)
     : Object{ctx}, possessed_{nullptr}, followed_{nullptr}, offset_{offset} {
 }
@@ -457,7 +445,7 @@ void ShipFlightComputer::update(float dt) {
 Ship::Ship(Context* ctx) : Ship(ctx, ctx->subsystem<EntityManager>()->reserveEntityId(), false) {
 }
 
-Ship::Ship(Context* ctx, EntityId reserved_entity_id, bool replicated) : Object(ctx) {
+Ship::Ship(Context* ctx, EntityId reserved_entity_id, bool replicated) : Object(ctx), rb_(nullptr) {
     auto rc = subsystem<ResourceCache>();
     assert(rc);
 
@@ -531,15 +519,19 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, bool replicated) : Object(
     auto net_data = ship_entity_->component<NetData>();
     net_data->registerClientRpc(
         Rpc::bind(&ShipControls::setLinearVelocity, &ShipControls::onHandleLinearVelocity));
+    net_data->registerClientRpc(
+        Rpc::bind(&ShipControls::setAngularVelocity, &ShipControls::onHandleAngularVelocity));
 
     // Get rigid body.
-    if (replicated) {
+    if (subsystem<NetSystem>()->isClient()) {
     } else {
         ship_entity_->addComponent<RigidBody>(
             subsystem<PhysicsSystem>(), 10.0f,
             makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}));
         rb_ = ship_entity_->component<RigidBody>()->_rigidBody();
-        subsystem<NetSystem>()->replicateEntity(*ship_entity_);
+        if (!replicated) {
+            subsystem<NetSystem>()->replicateEntity(*ship_entity_);
+        }
 
         // Initialise flight computer.
         flight_computer_ = makeShared<ShipFlightComputer>(context(), this);
@@ -550,6 +542,7 @@ void Ship::update(float dt) {
     auto input = subsystem<Input>();
 
     auto& engines = *ship_entity_->component<ShipEngines>();
+    auto& controls = *ship_entity_->component<ShipControls>();
 
     // Control movement thrusters.
     float x_movement =
@@ -558,7 +551,15 @@ void Ship::update(float dt) {
         static_cast<float>(input->isKeyDown(Key::R)) - static_cast<float>(input->isKeyDown(Key::F));
     float z_movement =
         static_cast<float>(input->isKeyDown(Key::S)) - static_cast<float>(input->isKeyDown(Key::W));
-    flight_computer_->setTargetLinearVelocity(Vec3{x_movement, y_movement, z_movement} * 100.0f);
+    Vec3 target_linear_velocity = Vec3{x_movement, y_movement, z_movement} * 100.0f;
+    if (subsystem<NetSystem>()->isClient()) {
+        if (!controls.target_linear_velocity.BitEquals(target_linear_velocity)) {
+            controls.setLinearVelocity(target_linear_velocity);
+            controls.target_linear_velocity = target_linear_velocity;
+        }
+    } else {
+        flight_computer_->setTargetLinearVelocity(controls.target_linear_velocity);
+    }
 
     // Control rotational thrusters.
     float pitch_direction = static_cast<float>(input->isKeyDown(Key::Up)) -
@@ -567,32 +568,43 @@ void Ship::update(float dt) {
                           static_cast<float>(input->isKeyDown(Key::Right));
     float roll_direction =
         static_cast<float>(input->isKeyDown(Key::Q)) - static_cast<float>(input->isKeyDown(Key::E));
-    flight_computer_->setTargetAngularVelocity(
-        Vec3{pitch_direction, yaw_direction, roll_direction} * 1.2f);
+    Vec3 target_angular_velocity = Vec3{pitch_direction, yaw_direction, roll_direction} * 1.2f;
+    if (subsystem<NetSystem>()->isClient()) {
+        if (!controls.target_angular_velocity.BitEquals(target_angular_velocity)) {
+            controls.setAngularVelocity(target_angular_velocity);
+            controls.target_angular_velocity = target_angular_velocity;
+        }
+    } else {
+        flight_computer_->setTargetAngularVelocity(controls.target_angular_velocity);
+    }
 
     // Update flight computer.
-    flight_computer_->update(dt);
-
-    // Calculate angular acceleration.
-    Vec3 angular_acc = rb_ ? Vec3(rb_->getInvInertiaTensorWorld() *
-                                  engines.calculateRotationalTorque(
-                                      {pitch_direction, yaw_direction, roll_direction}))
-                           : Vec3::zero;
-    Vec3 angular_vel = angularVelocity();
-
-    // Display stats.
-    ImGui::SetNextWindowPos({10, 50});
-    ImGui::SetNextWindowSize({300, 60});
-    if (!ImGui::Begin("Ship", nullptr, {0, 0}, 0.5f,
-                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-                          ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::End();
-        return;
+    if (flight_computer_) {
+        flight_computer_->update(dt);
     }
-    ImGui::Text("Angular Velocity: %.2f %.2f %.2f", angular_vel.x, angular_vel.y, angular_vel.z);
-    ImGui::Text("Angular Acceleration: %.2f %.2f %.2f", angular_acc.x, angular_acc.y,
-                angular_acc.z);
-    ImGui::End();
+
+    if (rb_) {
+        // Calculate angular acceleration.
+        Vec3 angular_acc = Vec3(
+            rb_->getInvInertiaTensorWorld() *
+            engines.calculateRotationalTorque({pitch_direction, yaw_direction, roll_direction}));
+        Vec3 angular_vel = angularVelocity();
+
+        // Display stats.
+        ImGui::SetNextWindowPos({10, 50});
+        ImGui::SetNextWindowSize({300, 60});
+        if (!ImGui::Begin("Ship", nullptr, {0, 0}, 0.5f,
+                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                              ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
+            ImGui::End();
+            return;
+        }
+        ImGui::Text("Angular Velocity: %.2f %.2f %.2f", angular_vel.x, angular_vel.y,
+                    angular_vel.z);
+        ImGui::Text("Angular Acceleration: %.2f %.2f %.2f", angular_acc.x, angular_acc.y,
+                    angular_acc.z);
+        ImGui::End();
+    }
 }
 
 void Ship::fireMovementThrusters(const Vec3& power) {

@@ -45,6 +45,34 @@ int yojimbo_printf_function(const char* format, ...) {
         serialize_bytes(stream, bytes.data(), size); \
     }
 
+struct ClientSpawnRequestMessage : public yojimbo::Message {
+    u32 request_id;
+    u32 metadata;
+
+    template <typename Stream> bool Serialize(Stream& stream) {
+        serialize_uint32(stream, metadata);
+        serialize_uint32(stream, request_id);
+        return true;
+    }
+
+    YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
+};
+
+struct ClientRpcMessage : public yojimbo::Message {
+    EntityId entity_id;
+    RpcId rpc_id;
+    Vector<u8> payload;
+
+    template <typename Stream> bool Serialize(Stream& stream) {
+        serialize_uint32(stream, entity_id);
+        serialize_bits(stream, rpc_id, sizeof(RpcId) * 8);
+        yojimbo_serialize_byte_array(stream, payload);
+        return true;
+    }
+
+    YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
+};
+
 struct ServerCreateEntityMessage : public yojimbo::Message {
     EntityId entity_id;
     u32 metadata;
@@ -84,15 +112,13 @@ struct ServerDestroyEntityMessage : public yojimbo::Message {
     YOJIMBO_VIRTUAL_SERIALIZE_FUNCTIONS();
 };
 
-struct ClientRpcMessage : public yojimbo::Message {
+struct ServerSpawnResponseMessage : public yojimbo::Message {
+    u32 request_id;
     EntityId entity_id;
-    RpcId rpc_id;
-    Vector<u8> payload;
 
     template <typename Stream> bool Serialize(Stream& stream) {
+        serialize_uint32(stream, request_id);
         serialize_uint32(stream, entity_id);
-        serialize_bits(stream, rpc_id, sizeof(RpcId) * 8);
-        yojimbo_serialize_byte_array(stream, payload);
         return true;
     }
 
@@ -101,18 +127,22 @@ struct ClientRpcMessage : public yojimbo::Message {
 
 // Naming convention: <Src><Msg> e.g. ServerCreateEntity - Server sending CreateEntity to clients.
 enum MessageType {
+    MT_ClientSpawnRequest,
+    MT_ClientRpc,
     MT_ServerCreateEntity,
     MT_ServerPropertyReplication,
     MT_ServerDestroyEntity,
-    MT_ClientRpc,
+    MT_ServerSpawnResponse,
     MT_Count
 };
 
 YOJIMBO_MESSAGE_FACTORY_START(NetMessageFactory, MT_Count);
+YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ClientSpawnRequest, ClientSpawnRequestMessage);
+YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ClientRpc, ClientRpcMessage);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerCreateEntity, ServerCreateEntityMessage);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerPropertyReplication, ServerPropertyReplicationMessage);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerDestroyEntity, ServerDestroyEntityMessage);
-YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ClientRpc, ClientRpcMessage);
+YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerSpawnResponse, ServerSpawnResponseMessage);
 YOJIMBO_MESSAGE_FACTORY_FINISH();
 }  // namespace
 
@@ -194,13 +224,31 @@ void NetSystem::update(float dt) {
         server_->ReceivePackets();
 
         // Process received messages.
-        for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
+        for (int clientIndex = 0; clientIndex < server_->GetNumConnectedClients(); ++clientIndex) {
             while (true) {
-                yojimbo::Message* message = server_->ReceiveMessage(i, 0);
+                yojimbo::Message* message = server_->ReceiveMessage(clientIndex, 0);
                 if (!message) {
                     break;
                 }
                 switch (message->GetType()) {
+                    case MT_ClientSpawnRequest: {
+                        auto spawn_message = (ClientSpawnRequestMessage*)message;
+                        // Spawn entity using metadata.
+                        EntityId entity_id = subsystem<EntityManager>()->reserveEntityId();
+                        log().info(
+                            "Received spawn request, spawning Entity ID %s from metadata %s.",
+                            entity_id, spawn_message->metadata);
+                        Entity& entity = entity_pipeline_->createEntityFromMetadata(
+                            entity_id, spawn_message->metadata);
+                        replicateEntity(entity);
+                        // Send response.
+                        auto response_message = (ServerSpawnResponseMessage*)server_->CreateMessage(
+                            clientIndex, MT_ServerSpawnResponse);
+                        response_message->entity_id = entity.id() + 10000;
+                        response_message->request_id = spawn_message->request_id;
+                        server_->SendMessage(clientIndex, 0, response_message);
+                        break;
+                    }
                     case MT_ClientRpc: {
                         auto rpc_message = (ClientRpcMessage*)message;
                         EntityId entity_id = rpc_message->entity_id;
@@ -210,7 +258,7 @@ void NetSystem::update(float dt) {
                                         entity_id);
                             break;
                         }
-                        NetData* net_data = entity->component<NetData>();
+                        auto net_data = entity->component<NetData>();
                         if (!net_data) {
                             log().error("Client RPC: Entity %d has no NetData component.",
                                         entity_id);
@@ -271,15 +319,34 @@ void NetSystem::update(float dt) {
                     u32 metadata = create_entity_message->metadata;
                     if (entity_pipeline_) {
                         Entity& entity =
-                            entity_pipeline_->onClientDeserialiseEntity(entity_id, metadata);
+                            entity_pipeline_->createEntityFromMetadata(entity_id, metadata);
                         assert(entity.hasComponent<NetData>());
                         entity.component<NetData>()->deserialise(bs);
                         log().info("Created replicated entity %d at %d %d %d", entity_id,
                                    entity.transform()->position().x,
                                    entity.transform()->position().y,
                                    entity.transform()->position().z);
+
+                        // If any spawn requests are waiting for an entity to be created, trigger
+                        // the callback and clear.
+                        if (pending_entity_spawns_.count(entity.id()) > 0) {
+                            auto it = outgoing_spawn_requests_.find(
+                                pending_entity_spawns_.at(entity.id()));
+                            if (it != outgoing_spawn_requests_.end()) {
+                                it->second(entity);
+                                outgoing_spawn_requests_.erase(it);
+                                pending_entity_spawns_.erase(entity.id());
+                            } else {
+                                log().error(
+                                    "Attempting to trigger an spawn request callback which no "
+                                    "longer exists. Entity ID: %s, Request ID: %s",
+                                    entity.id(), pending_entity_spawns_.at(entity.id()));
+                                pending_entity_spawns_.erase(entity.id());
+                            }
+                        }
                     } else {
                         log().warn("Attempted to replicate entity, but no entity pipeline setup.");
+                        break;
                     }
                     break;
                 }
@@ -289,6 +356,31 @@ void NetSystem::update(float dt) {
                     EntityId entity_id = replication_message->entity_id;
                     Entity* entity = subsystem<EntityManager>()->findEntity(entity_id);
                     entity->component<NetData>()->deserialise(bs);
+                    break;
+                }
+                case MT_ServerDestroyEntity: {
+                    break;
+                }
+                case MT_ServerSpawnResponse: {
+                    auto spawn_message = (ServerSpawnResponseMessage*)message;
+                    Entity* entity =
+                        subsystem<EntityManager>()->findEntity(spawn_message->entity_id);
+                    if (entity) {
+                        auto it = outgoing_spawn_requests_.find(spawn_message->request_id);
+                        if (it != outgoing_spawn_requests_.end()) {
+                            it->second(*entity);
+                            outgoing_spawn_requests_.erase(it);
+                        } else {
+                            log().warn(
+                                "Received spawn response for an unknown spawn request. Entity ID: "
+                                "%s, Request ID: %s",
+                                spawn_message->entity_id, spawn_message->request_id);
+                        }
+                    } else {
+                        // Wait for the entity to be created.
+                        pending_entity_spawns_[spawn_message->entity_id] =
+                            spawn_message->request_id;
+                    };
                     break;
                 }
                 default:
@@ -329,6 +421,17 @@ void NetSystem::setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline) {
     entity_pipeline_ = std::move(entity_pipeline);
 }
 
+void NetSystem::sendSpawnRequest(u32 metadata, std::function<void(Entity&)> callback) {
+    assert(isClient());
+    assert(isConnected());
+    outgoing_spawn_requests_[spawn_request_id_] = std::move(callback);
+    auto message = (ClientSpawnRequestMessage*)client_->CreateMessage(MT_ClientSpawnRequest);
+    message->request_id = spawn_request_id_;
+    message->metadata = metadata;
+    client_->SendMessage(0, message);
+    spawn_request_id_++;
+}
+
 void NetSystem::sendClientRpc(EntityId entity_id, RpcId rpc_id, const Vector<u8>& payload) {
     assert(isClient());
     assert(isConnected());
@@ -352,7 +455,7 @@ void NetSystem::sendServerCreateEntity(int clientIndex, const Entity& entity) {
     // TODO: Rewrite InputStream/OutputStream to expose an unreal FArchive like interface, which
     // by default will just write the bytes as-is.
     if (entity_pipeline_) {
-        message->metadata = entity_pipeline_->onServerSerialiseEntity(entity);
+        message->metadata = entity_pipeline_->getEntityMetadata(entity);
     }
     server_->SendMessage(clientIndex, 0, message);
 }
