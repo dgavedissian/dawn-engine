@@ -118,10 +118,10 @@ if(APPLE)
 endif()
 
 # Project
-add_library(Dawn SHARED ${CPP_FILES} ${H_FILES})
+add_library(Dawn STATIC ${CPP_FILES} ${H_FILES})
 add_dependencies(Dawn ${EXTERNAL_DEPS})
 set_output_dir(Dawn ${CMAKE_BINARY_DIR}/lib)
-set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
+set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD")
 
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)

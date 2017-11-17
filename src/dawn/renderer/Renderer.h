@@ -106,11 +106,11 @@ public:
 
 	/// Access the Resource Manager
     // TODO: Move this into a seperate class
-	void addResourceLocation(const String& location) {
+	void addResourceLocation(const String& location, const String& group_name) {
         LOG << "Adding location: " << location;
-        mResourceMgr->addResourceLocation(location, "FileSystem");
+        mResourceMgr->addResourceLocation(location, "FileSystem", group_name);
     }
-    void addResourcePrefix(const String& prefix) {
+    void addResourcePrefix(const String& prefix, const String& group_name) {
         Vector<String> rl;
         rl.push_back("fonts");
         rl.push_back("materials/deferred");
@@ -124,7 +124,7 @@ public:
 
         // Add locations
         for (String& location : rl)
-            addResourceLocation(prefix + "/" + location);
+            addResourceLocation(prefix + "/" + location, group_name);
 	    mResourceMgr->initialiseAllResourceGroups();
     }
 

@@ -53,7 +53,7 @@ void LuaState::executeString(const String& str)
 
 void LuaState::executeFile(const String& filename)
 {
-    String fullFilename = "Media/" + filename;
+    String fullFilename = "media/" + filename;
     luaL_loadfile(mL, fullFilename.c_str());
     int result = lua_pcall(mL, 0, 0, 0);
     if (result != 0)

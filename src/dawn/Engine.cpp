@@ -24,26 +24,21 @@ Engine::Engine(const String& game, const String& version)
 {
     gEngine = this;
 
-    // Get the base path
-    char* basePath = SDL_GetBasePath();
-    mBasePath = basePath;
-    SDL_free(basePath);
-#if DW_PLATFORM == DW_WIN32
-	mBasePath += "..\\";
-#elif DW_PLATFORM == DW_LINUX
-	mBasePath += "../";
-#endif
-
     // Get the preferences path
-    // Having an empty org will leave a double slash in the path so replace with a single slash.
     char* prefPath = SDL_GetPrefPath("", mGameName.c_str());
     mPrefPath = prefPath;
     SDL_free(prefPath);
+
+    // Get the base path
+    char* basePath = SDL_GetBasePath();
+    mBasePath = basePath;
+    // HACK: Override pref path.
+    mPrefPath = mBasePath;
+    SDL_free(basePath);
 #if DW_PLATFORM == DW_WIN32
-    mPrefPath.replace(mPrefPath.find("\\\\"), 2, "\\");
-#elif DW_PLATFORM == DW_LINUX
-    mPrefPath.replace(mPrefPath.find("//"), 2, "/");
+    mBasePath = replaceString(mBasePath, "\\", "/");
 #endif
+    mBasePath += "../";
 
     // Change the working directory
 #if DW_PLATFORM == DW_WIN32

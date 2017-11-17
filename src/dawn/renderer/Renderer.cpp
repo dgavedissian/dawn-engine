@@ -75,7 +75,7 @@ Renderer::Renderer(const String& basePath, const String& prefPath,
     mRenderWindow->setVisible(true);
 
     // OGRE IS NOW READY, SET UP THE SCENE
-    addResourcePrefix(basePath + "media/base");
+    addResourcePrefix(basePath + "engine/media/base", "DawnEngine");
     initScene();
 
     // Set up the raycast query object
