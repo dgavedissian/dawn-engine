@@ -1,5 +1,5 @@
 #!/bin/bash
-GAME=./bin/Shooter.app/Contents/MacOS/Shooter
+GAME=$(./tools/get-shooter.sh)
 trap 'kill %1; kill %2' SIGINT
 $GAME -host 40000 | tee server.log | sed "s/^/[server] /" &
 sleep 2
