@@ -123,6 +123,7 @@ ExternalProject_Add(Ogre
         -DOGRE_BUILD_COMPONENT_RTSHADERSYSTEM=0
         -DOGRE_BUILD_COMPONENT_TERRAIN=0
         -DOGRE_BUILD_COMPONENT_VOLUME=0
+        -DOGRE_BUILD_LIBS_AS_FRAMEWORKS=0
         -DOGRE_BUILD_PLUGIN_BSP=0
         -DOGRE_BUILD_PLUGIN_CG=0
         -DOGRE_BUILD_PLUGIN_OCTREE=0
@@ -170,11 +171,11 @@ elseif(APPLE)
         optimized ${EXTERNAL_INSTALL}/lib/Release/libfreetype.a
         debug ${EXTERNAL_INSTALL}/lib/Debug/libzlib.a
         optimized ${EXTERNAL_INSTALL}/lib/Release/libzlib.a
-        debug${EXTERNAL_INSTALL}/lib/Debug/libzziplib.a
+        debug ${EXTERNAL_INSTALL}/lib/Debug/libzziplib.a
         optimized ${EXTERNAL_INSTALL}/lib/Release/libzziplib.a
         ${EXTERNAL_INSTALL}/lib/libOgreMainStatic.a
         ${EXTERNAL_INSTALL}/lib/libOgreGLSupportStatic.a
-        ${EXTERNAL_INSTALL}/lib/libRenderSystem_GL3PlusStatic.a)
+        ${EXTERNAL_INSTALL}/lib/OGRE/libRenderSystem_GL3PlusStatic.a)
 else()
     set(OGRE_LIBRARIES
         debug ${EXTERNAL_INSTALL}/lib/libFreeImage_d.a
@@ -227,10 +228,14 @@ else()
 endif()
 
 # Luajit
+if(UNIX)
+    set(LUAJIT_PATCH_COMMAND sed -ie "s/liblua SHARED/liblua/g" CMakeLists.txt)
+endif()
 ExternalProject_Add(Luajit
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/LuaDist/luajit/archive/2.0.3.zip
+    PATCH_COMMAND ${LUAJIT_PATCH_COMMAND}
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_SHARED_LIBS=0

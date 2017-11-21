@@ -83,10 +83,15 @@ function(add_game GAME_NAME)
     elseif(APPLE)
         set(BUNDLE_DIR ${BIN_DIR}/${GAME_NAME}.app)
         set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)
+        set(RESOURCES_DIR ${BUNDLE_DIR}/Contents/Resources)
         add_custom_command(TARGET ${GAME_NAME} POST_BUILD
-            COMMAND cp -r ${LIB_DIR}/Dawn.framework ${FRAMEWORKS_DIR}/Dawn.framework)
-        add_custom_command(TARGET ${GAME_NAME} POST_BUILD
+            COMMAND mkdir -p ${FRAMEWORKS_DIR}
             COMMAND cp ${LIB_DIR}/libirrklang.dylib ${FRAMEWORKS_DIR})
+        add_custom_command(TARGET ${GAME_NAME} POST_BUILD
+            COMMAND mkdir -p ${RESOURCES_DIR}
+            COMMAND cp -r ${CMAKE_SOURCE_DIR}/media ${RESOURCES_DIR}/media
+            COMMAND mkdir -p ${RESOURCES_DIR}/engine
+            COMMAND cp -r ${CMAKE_SOURCE_DIR}/engine/media ${RESOURCES_DIR}/engine/media)
     else()
         # TODO: Linux
     endif()

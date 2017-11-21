@@ -38,7 +38,9 @@ Engine::Engine(const String& game, const String& version)
 #if DW_PLATFORM == DW_WIN32
     mBasePath = replaceString(mBasePath, "\\", "/");
 #endif
+#if DW_PLATFORM != DW_MAC_OSX
     mBasePath += "../";
+#endif
 
     // Change the working directory
 #if DW_PLATFORM == DW_WIN32
