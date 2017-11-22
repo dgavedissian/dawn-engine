@@ -19,7 +19,7 @@ public:
     }
     virtual ~EntityPipeline() = default;
     virtual u32 getEntityMetadata(const Entity& entity) = 0;
-    virtual Entity& createEntityFromMetadata(EntityId entity_id, u32 metadata) = 0;
+    virtual Entity& createEntityFromMetadata(EntityId entity_id, u32 metadata, NetRole role) = 0;
 };
 
 enum class ConnectionState { Disconnected, Connecting, Connected };
@@ -53,11 +53,14 @@ public:
     bool isConnected() const;
 
     // Entity pipeline.
-    void replicateEntity(const Entity& entity);
+    // messaging_proxy_client indicates a client which should receive the entity with Role =
+    // MessagingProxy. -1 for none.
+    void replicateEntity(const Entity& entity, int messaging_proxy_client = -1);
     void setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline);
 
     // RPCs.
-    void sendSpawnRequest(u32 metadata, std::function<void(Entity&)> callback);
+    void sendSpawnRequest(u32 metadata, std::function<void(Entity&)> callback,
+                          bool messaging_proxy = false);
     void sendClientRpc(EntityId entity_id, RpcId rpc_id, const Vector<u8>& payload);
 
 private:
@@ -79,7 +82,7 @@ private:
     // Server only.
 
 private:
-    void sendServerCreateEntity(int clientIndex, const Entity& entity);
+    void sendServerCreateEntity(int clientIndex, const Entity& entity, NetRole role);
     void sendServerPropertyReplication(int clientIndex, const Entity& entity);
 
     // Implementation of yojimbo::Adapter.

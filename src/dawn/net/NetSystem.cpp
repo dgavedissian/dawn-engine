@@ -48,10 +48,12 @@ int yojimbo_printf_function(const char* format, ...) {
 struct ClientSpawnRequestMessage : public yojimbo::Message {
     u32 request_id;
     u32 metadata;
+    bool messaging_proxy;
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint32(stream, metadata);
         serialize_uint32(stream, request_id);
+        serialize_bool(stream, messaging_proxy);
         return true;
     }
 
@@ -76,11 +78,15 @@ struct ClientRpcMessage : public yojimbo::Message {
 struct ServerCreateEntityMessage : public yojimbo::Message {
     EntityId entity_id;
     u32 metadata;
+    NetRole role;
     Vector<u8> data;
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint32(stream, entity_id);
         serialize_uint32(stream, metadata);
+        auto role_byte = static_cast<u8>(role);
+        serialize_bits(stream, role_byte, 8);
+        role = static_cast<NetRole>(role_byte);
         yojimbo_serialize_byte_array(stream, data);
         return true;
     }
@@ -224,9 +230,10 @@ void NetSystem::update(float dt) {
         server_->ReceivePackets();
 
         // Process received messages.
-        for (int clientIndex = 0; clientIndex < server_->GetNumConnectedClients(); ++clientIndex) {
+        for (int client_index = 0; client_index < server_->GetNumConnectedClients();
+             ++client_index) {
             while (true) {
-                yojimbo::Message* message = server_->ReceiveMessage(clientIndex, 0);
+                yojimbo::Message* message = server_->ReceiveMessage(client_index, 0);
                 if (!message) {
                     break;
                 }
@@ -239,14 +246,15 @@ void NetSystem::update(float dt) {
                             "Received spawn request, spawning Entity ID %s from metadata %s.",
                             entity_id, spawn_message->metadata);
                         Entity& entity = entity_pipeline_->createEntityFromMetadata(
-                            entity_id, spawn_message->metadata);
-                        replicateEntity(entity);
+                            entity_id, spawn_message->metadata, NetRole::Authority);
+                        replicateEntity(entity, spawn_message->messaging_proxy ? client_index : -1);
+
                         // Send response.
                         auto response_message = (ServerSpawnResponseMessage*)server_->CreateMessage(
-                            clientIndex, MT_ServerSpawnResponse);
+                            client_index, MT_ServerSpawnResponse);
                         response_message->entity_id = entity.id() + 10000;
                         response_message->request_id = spawn_message->request_id;
-                        server_->SendMessage(clientIndex, 0, response_message);
+                        server_->SendMessage(client_index, 0, response_message);
                         break;
                     }
                     case MT_ClientRpc: {
@@ -317,11 +325,14 @@ void NetSystem::update(float dt) {
                     InputBitStream bs(create_entity_message->data);
                     EntityId entity_id = create_entity_message->entity_id;
                     u32 metadata = create_entity_message->metadata;
+                    NetRole role = create_entity_message->role;
                     if (entity_pipeline_) {
                         Entity& entity =
-                            entity_pipeline_->createEntityFromMetadata(entity_id, metadata);
+                            entity_pipeline_->createEntityFromMetadata(entity_id, metadata, role);
                         assert(entity.hasComponent<NetData>());
                         entity.component<NetData>()->deserialise(bs);
+                        entity.component<NetData>()->role_ = role;
+                        entity.component<NetData>()->remote_role_ = NetRole::Authority;
                         log().info("Created replicated entity %d at %d %d %d", entity_id,
                                    entity.transform()->position().x,
                                    entity.transform()->position().y,
@@ -403,16 +414,26 @@ bool NetSystem::isConnected() const {
     return isClient() ? client_connection_state_ == ConnectionState::Connected : isServer();
 }
 
-void NetSystem::replicateEntity(const Entity& entity) {
-    // assert(isServer());
+void NetSystem::replicateEntity(const Entity& entity, int messaging_proxy_client) {
     assert(entity.hasComponent<NetData>());
 
-    replicated_entities_.insert(entity.id());
+    if (!server_) {
+        // No-op.
+        return;
+    }
 
-    // Send create entity message to clients.
-    if (server_) {
+    // Set roles.
+    entity.component<NetData>()->role_ = NetRole::Authority;
+    entity.component<NetData>()->remote_role_ = NetRole::Proxy;
+
+    // Add to replicated entities list.
+    if (replicated_entities_.find(entity.id()) == replicated_entities_.end()) {
+        replicated_entities_.insert(entity.id());
+
+        // Send create entity message to clients.
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
-            sendServerCreateEntity(i, entity);
+            sendServerCreateEntity(
+                i, entity, i == messaging_proxy_client ? NetRole::MessagingProxy : NetRole::Proxy);
         }
     }
 }
@@ -421,13 +442,15 @@ void NetSystem::setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline) {
     entity_pipeline_ = std::move(entity_pipeline);
 }
 
-void NetSystem::sendSpawnRequest(u32 metadata, std::function<void(Entity&)> callback) {
+void NetSystem::sendSpawnRequest(u32 metadata, std::function<void(Entity&)> callback,
+                                 bool messaging_proxy) {
     assert(isClient());
     assert(isConnected());
     outgoing_spawn_requests_[spawn_request_id_] = std::move(callback);
     auto message = (ClientSpawnRequestMessage*)client_->CreateMessage(MT_ClientSpawnRequest);
     message->request_id = spawn_request_id_;
     message->metadata = metadata;
+    message->messaging_proxy = messaging_proxy;
     client_->SendMessage(0, message);
     spawn_request_id_++;
 }
@@ -442,12 +465,13 @@ void NetSystem::sendClientRpc(EntityId entity_id, RpcId rpc_id, const Vector<u8>
     client_->SendMessage(0, message);
 }
 
-void NetSystem::sendServerCreateEntity(int clientIndex, const Entity& entity) {
+void NetSystem::sendServerCreateEntity(int clientIndex, const Entity& entity, NetRole role) {
     assert(isServer());
     auto message =
         (ServerCreateEntityMessage*)server_->CreateMessage(clientIndex, MT_ServerCreateEntity);
     message->entity_id =
         entity.id() + 10000;  // TODO: Reserve entity ID which the client will have free.
+    message->role = role;
     // Serialise replicated properties.
     OutputBitStream bs;
     entity.component<NetData>()->serialise(bs);
@@ -482,7 +506,7 @@ void NetSystem::OnServerClientConnected(int clientIndex) {
     for (auto entity_id : replicated_entities_) {
         Entity* entity = subsystem<EntityManager>()->findEntity(entity_id);
         if (entity) {
-            sendServerCreateEntity(clientIndex, *entity);
+            sendServerCreateEntity(clientIndex, *entity, NetRole::Proxy);
         } else {
             log().error("Replicated Entity ID %s missing from EntityManager", entity_id);
         }

@@ -170,7 +170,7 @@ public:
     DW_OBJECT(Ship);
 
     explicit Ship(Context* ctx);
-    Ship(Context* ctx, EntityId reserved_entity_id, bool replicated);
+    Ship(Context* ctx, EntityId reserved_entity_id, NetRole role);
     ~Ship() = default;
 
     void update(float dt);

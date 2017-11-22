@@ -19,18 +19,18 @@ public:
 
     Vector<SharedPtr<Ship>> ship_list_;
 
-    ShooterEntityPipeline(Context* ctx) : EntityPipeline(ctx) {
+    explicit ShooterEntityPipeline(Context* ctx) : EntityPipeline(ctx) {
     }
 
-    ~ShooterEntityPipeline() = default;
+    ~ShooterEntityPipeline() override = default;
 
     u32 getEntityMetadata(const Entity& entity) override {
         return 0;
     }
 
-    Entity& createEntityFromMetadata(EntityId entity_id, u32 metadata) override {
+    Entity& createEntityFromMetadata(EntityId entity_id, u32 metadata, NetRole role) override {
         assert(metadata == 0);  // only one entity type supported.
-        SharedPtr<Ship> ship = makeShared<Ship>(context(), entity_id, true);
+        SharedPtr<Ship> ship = makeShared<Ship>(context(), entity_id, role);
         Entity& entity = *ship->entity();
         entity.component<ShipControls>()->ship = ship;
         ship_list_.emplace_back(std::move(ship));
@@ -49,10 +49,13 @@ public:
     // NetGameMode
     void clientOnJoinServer() override {
         log().info("Client: connected to server.");
-        subsystem<NetSystem>()->sendSpawnRequest(0, [this](Entity& entity) {
-            log().info("Received spawn response. Triggering callback.");
-            camera_controller->follow(&entity);
-        });
+        subsystem<NetSystem>()->sendSpawnRequest(
+            0,
+            [this](Entity& entity) {
+                log().info("Received spawn response. Triggering callback.");
+                camera_controller->follow(&entity);
+            },
+            /* messaging_proxy */ true);
     }
 
     void serverOnStart() override {

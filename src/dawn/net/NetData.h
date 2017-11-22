@@ -13,6 +13,12 @@
 
 namespace dw {
 
+enum class NetRole {
+    Authority,       // Authoritative copy (usually on the server).
+    MessagingProxy,  // A proxy which can send client RPCs.
+    Proxy            // An object which receives replicated properties from the server.
+};
+
 using RpcId = u16;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,7 +138,7 @@ private:
 /// NET DATA
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class RpcHandlerBase;
+class RpcBinding;
 
 class DW_API NetData : public Component {
 public:
@@ -142,22 +148,30 @@ public:
     void serialise(OutputStream& out);
     void deserialise(InputStream& in);
 
-    void registerClientRpc(SharedPtr<RpcHandlerBase> rpc);
+    void registerClientRpc(SharedPtr<RpcBinding> rpc);
     void sendClientRpc(RpcId rpc_id, const Vector<u8>& payload);
     void receiveClientRpc(RpcId rpc_id, const Vector<u8>& payload);
+
+    NetRole getRole() const;
+    NetRole getRemoteRole() const;
 
 private:
     Entity* entity_;
     ReplicatedPropertyList properties_;
-    Map<RpcId, SharedPtr<RpcHandlerBase>> rpc_list_;
+    Map<RpcId, SharedPtr<RpcBinding>> rpc_list_;
     RpcId rpc_allocator_;
+
+    NetRole role_;
+    NetRole remote_role_;
+
+    friend class NetSystem;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// RPCS
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class DW_API RpcHandlerBase {
+class DW_API RpcBinding {
 public:
     virtual void setRpcId(RpcId rpc_id) = 0;
     virtual void onAddToEntity(Entity& entity) = 0;
@@ -171,6 +185,11 @@ public:
     }
 
     void operator()(const Args&... args) {
+        if (net_data_->getRole() != NetRole::MessagingProxy) {
+            logger_->warn("Trying to send a client RPC from a non-messaging proxy.");
+            return;
+        }
+
         // Pack arguments.
         OutputBitStream bs;
         // Below is a hack to apply stream::write to all args as we can't use C++17 folds. We use
@@ -185,8 +204,9 @@ public:
         net_data_->sendClientRpc(rpc_id_, bs.data());
     }
 
-    void setNetDataInternal(NetData* net_data) {
+    void setNetDataInternal(NetData* net_data, Logger* logger) {
         net_data_ = net_data;
+        logger_ = logger;
     }
 
     void setRpcIdInternal(RpcId rpc_id) {
@@ -195,6 +215,7 @@ public:
 
 private:
     NetData* net_data_;
+    Logger* logger_;
     RpcId rpc_id_;
 };
 
@@ -204,14 +225,14 @@ public:
     template <typename C, typename... Args> using RpcHandlerPtr = void (C::*)(const Args&...);
 
     template <typename C, typename... Args>
-    static SharedPtr<RpcHandlerBase> bind(RpcFunctorPtr<C, Args...> functor,
-                                          RpcHandlerPtr<C, Args...> handler) {
+    static SharedPtr<RpcBinding> bind(RpcFunctorPtr<C, Args...> functor,
+                                      RpcHandlerPtr<C, Args...> handler) {
         return makeShared<ClientRpcBinding<C, Args...>>(functor, handler);
     }
 
 private:
     // RPC binding and receiver.
-    template <typename C, typename... Args> class DW_API ClientRpcBinding : public RpcHandlerBase {
+    template <typename C, typename... Args> class DW_API ClientRpcBinding : public RpcBinding {
     public:
         ClientRpcBinding(RpcFunctorPtr<C, Args...> functor, RpcHandlerPtr<C, Args...> handler)
             : functor_(functor), handler_(handler), component_(nullptr) {
@@ -223,7 +244,7 @@ private:
 
         void onAddToEntity(Entity& entity) override {
             component_ = entity.component<C>();
-            (component_->*functor_).setNetDataInternal(entity.component<NetData>());
+            (component_->*functor_).setNetDataInternal(entity.component<NetData>(), &entity.log());
         }
 
         void handle(const Vector<u8>& payload) override {

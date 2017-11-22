@@ -8,7 +8,11 @@
 
 namespace dw {
 NetData::NetData(ReplicatedPropertyList properties)
-    : entity_(nullptr), properties_(std::move(properties)), rpc_allocator_(0) {
+    : entity_(nullptr),
+      properties_(std::move(properties)),
+      rpc_allocator_(0),
+      role_(NetRole::Authority),
+      remote_role_(NetRole::Proxy) {
 }
 
 void NetData::onAddToEntity(Entity* parent) {
@@ -30,7 +34,7 @@ void NetData::deserialise(InputStream& in) {
     }
 }
 
-void NetData::registerClientRpc(SharedPtr<RpcHandlerBase> rpc) {
+void NetData::registerClientRpc(SharedPtr<RpcBinding> rpc) {
     assert(entity_);
     rpc_list_[rpc_allocator_] = rpc;
     rpc->onAddToEntity(*entity_);
@@ -48,5 +52,13 @@ void NetData::receiveClientRpc(RpcId rpc_id, const Vector<u8>& payload) {
         entity_->log().warn("Received unregistered RPC with ID %s, ignoring.", rpc_id);
     }
     (*rpc_func).second->handle(payload);
+}
+
+NetRole NetData::getRole() const {
+    return role_;
+}
+
+NetRole NetData::getRemoteRole() const {
+    return remote_role_;
 }
 }  // namespace dw
