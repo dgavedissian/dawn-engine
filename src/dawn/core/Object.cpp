@@ -22,7 +22,7 @@ TypeInfo::TypeInfo(const std::type_info& t) : type_name_{}, type_name_hash_{} {
 #else
     type_name_ = t.name();
 #endif
-    type_name_hash_ = Type{type_name_};
+    type_name_hash_ = Hash(type_name_);
 }
 
 TypeInfo::~TypeInfo() {

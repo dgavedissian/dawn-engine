@@ -67,7 +67,6 @@ set(SOURCE_FILES
     math/Noise.h
     math/Rect.cpp
     math/Rect.h
-    math/StringHash.cpp
     math/StringHash.h
     math/Vec2i.cpp
     math/Vec2i.h

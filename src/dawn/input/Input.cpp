@@ -7,13 +7,6 @@
 #include "Input.h"
 
 namespace dw {
-
-const EventType KeyEvent::eventType(0x3d00cddc);
-const EventType CharInputEvent::eventType(0x4d82f23e);
-const EventType MouseButtonEvent::eventType(0x2c080377);
-const EventType MouseMoveEvent::eventType(0xcfcf6020);
-const EventType MouseScrollEvent::eventType(0xabc23f35);
-
 Input::Input(Context* context)
     : Subsystem(context),
       viewport_size_(1280, 800),

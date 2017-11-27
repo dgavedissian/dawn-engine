@@ -7,13 +7,13 @@
 #include "core/Delegate.h"
 
 namespace dw {
-using EventType = u32;
+using EventType = StringHash;
 
 class DW_API EventData {
 public:
     virtual ~EventData() = default;
-    virtual const EventType& getType() const = 0;
-    virtual String getName() const = 0;
+    virtual EventType type() const = 0;
+    virtual String name() const = 0;
 };
 
 using EventDataPtr = SharedPtr<EventData>;

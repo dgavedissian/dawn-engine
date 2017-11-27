@@ -7,11 +7,6 @@
 #include "core/Timer.h"
 
 namespace dw {
-
-const EventType ExitEvent::eventType(0x98aceab8);
-const EventType SendMessageEvent::eventType(0x244cec1b);
-const EventType MessageEvent::eventType(0x8d859562);
-
 EventSystem::EventSystem(Context* context)
     : Subsystem(context), active_queue_(0), processing_events_(false) {
 }
@@ -68,7 +63,7 @@ void EventSystem::removeAllListeners(const EventDelegate& event_delegate) {
 bool EventSystem::triggerEvent(const EventDataPtr& event_data) const {
     bool processed = false;
 
-    auto find_it = event_listeners_.find(event_data->getType());
+    auto find_it = event_listeners_.find(event_data->type());
     if (find_it != event_listeners_.end()) {
         auto& listeners = find_it->second;
         for (const auto& delegate_function : listeners) {
@@ -90,7 +85,7 @@ bool EventSystem::queueEvent(const EventDataPtr& event_data) {
         return false;
     }
 
-    auto find_it = event_listeners_.find(event_data->getType());
+    auto find_it = event_listeners_.find(event_data->type());
     if (find_it != event_listeners_.end()) {
         queues_[active_queue_].push_back(event_data);
         return true;
@@ -115,7 +110,7 @@ bool EventSystem::abortEvent(const EventType& type, bool all_of_type /*= false*/
             auto current_it = it;
             ++it;
 
-            if ((*current_it)->getType() == type) {
+            if ((*current_it)->type() == type) {
                 event_queue.erase(current_it);
                 success = true;
 
@@ -143,7 +138,7 @@ bool EventSystem::update(double max_duration) {
         // Pop the front of the queue
         EventDataPtr event_data = queues_[queue_to_process].front();
         queues_[queue_to_process].pop_front();
-        const EventType& event_type = event_data->getType();
+        const EventType& event_type = event_data->type();
 
         // Find all the delegate functions registered for this event
         auto find_it = event_listeners_.find(event_type);

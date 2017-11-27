@@ -5,41 +5,36 @@
 #pragma once
 
 namespace dw {
-class DW_API StringHash {
-public:
-    using HashType = u32;
+using StringHash = u32;
+using StringHash64 = u64;
 
-    StringHash();
-    explicit StringHash(HashType value);
-    StringHash(const char* str);
-    StringHash(const String& str);
+// FNV1a c++11 constexpr compile time hash functions, 32 and 64 bit
+// str should be a null terminated string literal, value should be left out
+// e.g StringHash("example")
+// code license: public domain or equivalent
+// post: https://notes.underscorediscovery.com/constexpr-fnv1a/
 
-    StringHash operator+(const StringHash& rhs) const;
-    StringHash& operator+=(const StringHash& rhs);
-    bool operator==(const StringHash& rhs) const;
-    bool operator!=(const StringHash& rhs) const;
-    bool operator<(const StringHash& rhs) const;
-    bool operator>(const StringHash& rhs) const;
-    operator bool() const;
+constexpr StringHash val_32_const = 0x811c9dc5;
+constexpr StringHash prime_32_const = 0x1000193;
+constexpr StringHash64 val_64_const = 0xcbf29ce484222325;
+constexpr StringHash64 prime_64_const = 0x100000001b3;
 
-    HashType value() const;
+inline constexpr StringHash Hash(const char* const str,
+                                 const StringHash value = val_32_const) noexcept {
+    return (str[0] == '\0') ? value : Hash(&str[1], (value ^ StringHash(str[0])) * prime_32_const);
+}
 
-    static HashType calculate(const char* str);
+inline constexpr StringHash Hash(const String& str) noexcept {
+    return Hash(str.c_str());
+}
 
-    static const StringHash ZERO;
+inline constexpr StringHash64 Hash64(const char* const str,
+                                     const StringHash64 value = val_64_const) noexcept {
+    return (str[0] == '\0') ? value
+                            : Hash64(&str[1], (value ^ StringHash64(str[0])) * prime_64_const);
+}
 
-private:
-    HashType value_;
-};
+inline constexpr StringHash64 Hash64(const String& str) noexcept {
+    return Hash(str.c_str());
+}
 }  // namespace dw
-
-// Specialisation of std::hash used for HashMap<K, V>.
-namespace std {
-template <> struct hash<dw::StringHash> {
-    typedef dw::StringHash argument_type;
-    typedef std::size_t result_type;
-    result_type operator()(argument_type const& s) const {
-        return s.value();
-    }
-};
-}  // namespace std

@@ -11,10 +11,6 @@
 #include "net/NetData.h"
 
 namespace dw {
-const EventType JoinServerEvent::eventType(0x1234aedf);
-const EventType ServerClientConnectedEvent::eventType(0x1234aeef);
-const EventType ServerClientDisconnectedEvent::eventType(0x1234aeff);
-
 namespace {
 Logger* yojimbo_logger = nullptr;
 int yojimbo_printf_function(const char* format, ...) {
