@@ -6,7 +6,7 @@
 
 #include "yojimbo.h"
 
-#include "ecs/Entity.h"
+#include "scene/Entity.h"
 #include "net/NetData.h"
 
 namespace dw {

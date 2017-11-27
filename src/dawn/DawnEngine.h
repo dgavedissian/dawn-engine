@@ -7,8 +7,6 @@
 // Include everything
 #include "Common.h"
 #include "core/StringUtils.h"
-#include "ecs/EntityManager.h"
-#include "ecs/SystemManager.h"
 #include "engine/App.h"
 #include "engine/Engine.h"
 #include "gameplay/GameFramework.h"
@@ -26,6 +24,7 @@
 #include "renderer/EntityRenderer.h"
 #include "renderer/Renderer.h"
 #include "resource/ResourceCache.h"
+#include "scene/SystemManager.h"
 #include "scene/Universe.h"
 #include "script/LuaState.h"
 #include "ui/UserInterface.h"

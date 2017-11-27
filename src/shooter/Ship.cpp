@@ -443,7 +443,7 @@ void ShipFlightComputer::update(float dt) {
 }
 
 Ship::Ship(Context* ctx)
-    : Ship(ctx, ctx->subsystem<EntityManager>()->reserveEntityId(), NetRole::Authority) {
+    : Ship(ctx, ctx->subsystem<Universe>()->reserveEntityId(), NetRole::Authority) {
 }
 
 Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx), rb_(nullptr) {
@@ -461,8 +461,8 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
     sphere->setMaterial(material_);
 
     // Create ship entity.
-    auto em = subsystem<EntityManager>();
-    ship_entity_ = &em->createEntity(reserved_entity_id)
+    auto universe = subsystem<Universe>();
+    ship_entity_ = &universe->createEntity(reserved_entity_id)
                         .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
                         .addComponent<RenderableComponent>(renderable)
                         .addComponent<ShipEngines>(

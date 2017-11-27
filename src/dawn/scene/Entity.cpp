@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "ecs/Entity.h"
+#include "Entity.h"
 
 namespace dw {
 Entity::Entity(Context* context, Ontology::EntityManager& entity_manager, EntityId id)

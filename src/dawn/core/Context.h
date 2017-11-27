@@ -97,8 +97,8 @@ private:
 
     // Ontology world.
     Ontology::World ontology_world_;
-    friend class EntityManager;
     friend class SystemManager;
+    friend class Universe;
 };
 
 template <typename T> T* Context::subsystem() const {

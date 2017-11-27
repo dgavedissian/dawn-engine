@@ -4,8 +4,8 @@
  */
 #pragma once
 
-#include "ecs/Entity.h"
-#include "ecs/Component.h"
+#include "scene/Entity.h"
+#include "scene/Component.h"
 #include "renderer/BillboardSet.h"
 #include "renderer/Mesh.h"
 #include "math/Defs.h"

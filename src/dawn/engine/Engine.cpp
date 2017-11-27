@@ -114,11 +114,6 @@ void Engine::setup(int argc, char** argv) {
     context_->addSubsystem<LuaState>();
     // TODO(David): bind engine services to lua?
 
-    // Set up the ECS architecture.
-    auto& em = *context_->addSubsystem<EntityManager>();
-    auto& sm = *context_->addSubsystem<SystemManager>();
-    sm.addSystem<EntityRenderer>();
-
     // Create the engine subsystems.
     auto* net = context_->addSubsystem<NetSystem>();
     if (arguments.find("-host") != arguments.end()) {
@@ -139,13 +134,17 @@ void Engine::setup(int argc, char** argv) {
                        context_->config().at("window_height").get<u16>(), window_title, false);
     }
     context_->addSubsystem<UserInterface>();
-
     context_->addSubsystem<ResourceCache>();
+    context_->addSubsystem<SystemManager>();
     context_->addSubsystem<Universe>();
     // mAudio = new Audio;
     context_->addSubsystem<PhysicsSystem>();
     // mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
     context_->addSubsystem<GameFramework>();
+
+    // Set up built in entity systems.
+    auto& sm = *context_->subsystem<SystemManager>();
+    sm.addSystem<EntityRenderer>();
 
     // Set input viewport size
     /*
@@ -189,7 +188,6 @@ void Engine::shutdown() {
     context_->removeSubsystem<UserInterface>();
     context_->removeSubsystem<ResourceCache>();
     context_->removeSubsystem<SystemManager>();
-    context_->removeSubsystem<EntityManager>();
     context_->removeSubsystem<Universe>();
     context_->clearSubsystems();
 

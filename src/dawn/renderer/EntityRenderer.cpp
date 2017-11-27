@@ -5,8 +5,7 @@
 #include "Common.h"
 #include "renderer/EntityRenderer.h"
 #include "renderer/Renderable.h"
-#include "ecs/EntityManager.h"
-#include "ecs/SystemManager.h"
+#include "scene/SystemManager.h"
 #include "scene/Transform.h"
 
 namespace dw {

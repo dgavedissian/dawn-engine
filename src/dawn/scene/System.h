@@ -5,7 +5,7 @@
 #pragma once
 
 #include "ontology/System.hpp"
-#include "ecs/Entity.h"
+#include "Entity.h"
 
 namespace dw {
 class SystemManager;

@@ -3,9 +3,8 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
-#include "ecs/EntityManager.h"
-#include "ecs/Component.h"
-#include "ecs/System.h"
+#include "scene/Component.h"
+#include "scene/System.h"
 #include "renderer/Program.h"
 #include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
@@ -88,7 +87,7 @@ public:
           run_update_thread_{true},
           terrain_patches_{},
           t_output_ready_{false} {
-        auto em = subsystem<EntityManager>();
+        auto universe = subsystem<Universe>();
         auto rc = subsystem<ResourceCache>();
 
         // Set up material.
@@ -104,7 +103,7 @@ public:
         setupTerrainRenderable();
         custom_mesh_renderable_->setMaterial(material);
 
-        planet_ = &em->createEntity(Position::origin, Quat::identity)
+        planet_ = &universe->createEntity(Position::origin, Quat::identity)
                        .addComponent<RenderableComponent>(custom_mesh_renderable_);
 
         // Kick off terrain update thread.
@@ -531,7 +530,7 @@ public:
         const float radius = 1000.0f;
 
         // Create a camera.
-        auto& camera = subsystem<EntityManager>()
+        auto& camera = subsystem<Universe>()
                            ->createEntity(Position{0.0f, 0.0f, radius * 2}, Quat::identity)
                            .addComponent<Camera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);

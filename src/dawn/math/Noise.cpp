@@ -72,7 +72,7 @@ PerlinNoise::PerlinNoise(uint seed) {
     // Initialize a random engine with seed.
     std::default_random_engine engine(seed);
 
-    // Suffle  using the above random engine.
+    // Shuffle using the above random engine.
     std::shuffle(p.begin(), p.end(), engine);
 
     // Duplicate the permutation vector.

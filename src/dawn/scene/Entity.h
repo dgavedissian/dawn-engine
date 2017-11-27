@@ -6,7 +6,7 @@
 
 #include "ontology/Entity.hpp"
 
-#include "ecs/Component.h"
+#include "Component.h"
 #include "scene/Transform.h"
 
 namespace dw {

@@ -3,8 +3,8 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
-#include "ecs/EntityManager.h"
-#include "ecs/SystemManager.h"
+#include "scene/EntityManager.h"
+#include "scene/SystemManager.h"
 #include "renderer/MeshBuilder.h"
 #include "renderer/Program.h"
 #include "resource/ResourceCache.h"

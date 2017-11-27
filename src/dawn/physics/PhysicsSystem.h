@@ -3,7 +3,9 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #pragma once
+
 #include "scene/Position.h"
+#include "scene/SystemManager.h"
 
 // Bullet
 #include "physics/BulletDynamics.h"

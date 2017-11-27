@@ -618,17 +618,12 @@ TEST_CLASS(MovingSphereHighLevel) {
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
         auto sm = subsystem<SystemManager>();
-        auto em = subsystem<EntityManager>();
         auto scene = subsystem<Universe>();
-        object = &em->createEntity()
-                      .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity,
-                                               scene->rootNode())
+        object = &scene->createEntity(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
                       .addComponent<RenderableComponent>(renderable);
 
         // Create a camera.
-        camera = &em->createEntity()
-                      .addComponent<Transform>(Position{0.0f, 0.0f, 50.0f}, Quat::identity,
-                                               scene->rootNode())
+        camera = &scene->createEntity(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
                       .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
     }
 
@@ -640,8 +635,8 @@ TEST_CLASS(MovingSphereHighLevel) {
     }
 
     void stop() {
-        subsystem<EntityManager>()->removeEntity(object);
-        subsystem<EntityManager>()->removeEntity(camera);
+        subsystem<Universe>()->removeEntity(object);
+        subsystem<Universe>()->removeEntity(camera);
     }
 };
 

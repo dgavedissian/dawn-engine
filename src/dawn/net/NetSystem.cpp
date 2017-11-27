@@ -5,8 +5,8 @@
 #include "Common.h"
 #include "net/NetSystem.h"
 
-#include "ecs/Entity.h"
-#include "ecs/EntityManager.h"
+#include "scene/Entity.h"
+#include "scene/Universe.h"
 #include "net/BitStream.h"
 #include "net/NetData.h"
 
@@ -155,7 +155,7 @@ NetSystem::NetSystem(Context* context)
       client_connection_state_(ConnectionState::Disconnected),
       client_(nullptr),
       server_(nullptr) {
-    setDependencies<EntityManager>();
+    setDependencies<Universe>();
     yojimbo_logger = subsystem<Logger>();
     InitializeYojimbo();
     yojimbo_log_level(YOJIMBO_LOG_LEVEL_INFO);
@@ -238,7 +238,7 @@ void NetSystem::update(float dt) {
                     case MT_ClientSpawnRequest: {
                         auto spawn_message = (ClientSpawnRequestMessage*)message;
                         // Spawn entity using metadata.
-                        EntityId entity_id = subsystem<EntityManager>()->reserveEntityId();
+                        EntityId entity_id = subsystem<Universe>()->reserveEntityId();
                         log().info(
                             "Received spawn request, spawning Entity ID %s from metadata %s.",
                             entity_id, spawn_message->metadata);
@@ -257,7 +257,7 @@ void NetSystem::update(float dt) {
                     case MT_ClientRpc: {
                         auto rpc_message = (ClientRpcMessage*)message;
                         EntityId entity_id = rpc_message->entity_id;
-                        Entity* entity = subsystem<EntityManager>()->findEntity(entity_id);
+                        Entity* entity = subsystem<Universe>()->findEntity(entity_id);
                         if (!entity) {
                             log().error("Client RPC: Received from non-existent entity %d",
                                         entity_id);
@@ -281,7 +281,7 @@ void NetSystem::update(float dt) {
         // Send replicated updates.
         if (time_since_last_replication >= replication_time) {
             time_since_last_replication = 0.0;
-            auto& em = *subsystem<EntityManager>();
+            auto& em = *subsystem<Universe>();
             for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
                 for (auto id : replicated_entities_) {
                     sendServerPropertyReplication(i, *em.findEntity(id));
@@ -362,7 +362,7 @@ void NetSystem::update(float dt) {
                     auto replication_message = (ServerPropertyReplicationMessage*)message;
                     InputBitStream bs(replication_message->data);
                     EntityId entity_id = replication_message->entity_id;
-                    Entity* entity = subsystem<EntityManager>()->findEntity(entity_id);
+                    Entity* entity = subsystem<Universe>()->findEntity(entity_id);
                     entity->component<NetData>()->deserialise(bs);
                     break;
                 }
@@ -371,8 +371,7 @@ void NetSystem::update(float dt) {
                 }
                 case MT_ServerSpawnResponse: {
                     auto spawn_message = (ServerSpawnResponseMessage*)message;
-                    Entity* entity =
-                        subsystem<EntityManager>()->findEntity(spawn_message->entity_id);
+                    Entity* entity = subsystem<Universe>()->findEntity(spawn_message->entity_id);
                     if (entity) {
                         auto it = outgoing_spawn_requests_.find(spawn_message->request_id);
                         if (it != outgoing_spawn_requests_.end()) {
@@ -501,11 +500,11 @@ yojimbo::MessageFactory* NetSystem::CreateMessageFactory(yojimbo::Allocator& all
 void NetSystem::OnServerClientConnected(int clientIndex) {
     // Send replicated entities to client.
     for (auto entity_id : replicated_entities_) {
-        Entity* entity = subsystem<EntityManager>()->findEntity(entity_id);
+        Entity* entity = subsystem<Universe>()->findEntity(entity_id);
         if (entity) {
             sendServerCreateEntity(clientIndex, *entity, NetRole::Proxy);
         } else {
-            log().error("Replicated Entity ID %s missing from EntityManager", entity_id);
+            log().error("Replicated Entity ID %s missing from Universe", entity_id);
         }
     }
 

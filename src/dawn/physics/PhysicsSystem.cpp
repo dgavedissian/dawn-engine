@@ -4,8 +4,8 @@
  */
 #include "Common.h"
 #include "input/Input.h"
-#include "ecs/System.h"
-#include "ecs/SystemManager.h"
+#include "scene/System.h"
+#include "scene/SystemManager.h"
 #include "PhysicsSystem.h"
 
 namespace dw {

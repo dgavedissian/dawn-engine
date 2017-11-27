@@ -3,11 +3,11 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "ecs/SystemManager.h"
+#include "SystemManager.h"
 
 namespace dw {
-SystemManager::SystemManager(Context* context)
-    : Subsystem{context}, system_manager_{context->ontology_world_.getSystemManager()} {
+SystemManager::SystemManager(Context* ctx)
+    : Subsystem(ctx), system_manager_(ctx->ontology_world_.getSystemManager()) {
 }
 
 void SystemManager::beginMainLoop() {

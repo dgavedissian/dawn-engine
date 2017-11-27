@@ -4,8 +4,8 @@
  */
 #pragma once
 
-#include "ecs/Component.h"
-#include "ecs/Entity.h"
+#include "scene/Component.h"
+#include "scene/Entity.h"
 #include "io/InputStream.h"
 #include "io/OutputStream.h"
 

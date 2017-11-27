@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "ecs/Component.h"
+#include "Component.h"
 #include "math/Defs.h"
 #include "scene/Position.h"
 

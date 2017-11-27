@@ -6,7 +6,7 @@
 
 #include <ontology/SystemManager.hpp>
 
-#include "ecs/System.h"
+#include "System.h"
 
 namespace dw {
 class SystemManager : public Subsystem {

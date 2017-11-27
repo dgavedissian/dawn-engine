@@ -6,7 +6,7 @@
 
 #include "renderer/Camera.h"
 #include "renderer/Renderer.h"
-#include "ecs/System.h"
+#include "scene/System.h"
 #include "scene/Transform.h"
 
 namespace dw {

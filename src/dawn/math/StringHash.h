@@ -24,7 +24,7 @@ inline constexpr StringHash Hash(const char* const str,
     return (str[0] == '\0') ? value : Hash(&str[1], (value ^ StringHash(str[0])) * prime_32_const);
 }
 
-inline constexpr StringHash Hash(const String& str) noexcept {
+inline StringHash Hash(const String& str) noexcept {
     return Hash(str.c_str());
 }
 
@@ -34,7 +34,7 @@ inline constexpr StringHash64 Hash64(const char* const str,
                             : Hash64(&str[1], (value ^ StringHash64(str[0])) * prime_64_const);
 }
 
-inline constexpr StringHash64 Hash64(const String& str) noexcept {
+inline StringHash64 Hash64(const String& str) noexcept {
     return Hash(str.c_str());
 }
 }  // namespace dw

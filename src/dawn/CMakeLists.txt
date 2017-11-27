@@ -28,15 +28,6 @@ set(SOURCE_FILES
     core/Subsystem.h
     core/Timer.cpp
     core/Timer.h
-    ecs/Component.cpp
-    ecs/Component.h
-    ecs/Entity.cpp
-    ecs/Entity.h
-    ecs/EntityManager.cpp
-    ecs/EntityManager.h
-    ecs/System.h
-    ecs/SystemManager.cpp
-    ecs/SystemManager.h
     engine/App.cpp
     engine/App.h
     engine/Engine.cpp
@@ -133,8 +124,15 @@ set(SOURCE_FILES
     resource/ResourceCache.h
     scene/CameraController.cpp
     scene/CameraController.h
+    scene/Component.cpp
+    scene/Component.h
+    scene/Entity.cpp
+    scene/Entity.h
     scene/Position.cpp
     scene/Position.h
+    scene/System.h
+    scene/SystemManager.cpp
+    scene/SystemManager.h
     scene/Transform.cpp
     scene/Transform.h
     scene/Universe.cpp
@@ -153,34 +151,34 @@ set(SOURCE_FILES
 add_definitions(-DONTOLOGY_WITH_ASSERT)
 set (SOURCE_FILES
     ${SOURCE_FILES}
-    ecs/ontology/include/ontology/Config.hpp
-    ecs/ontology/include/ontology/Component.hpp
-    ecs/ontology/include/ontology/Entity.hpp
-    ecs/ontology/include/ontology/Entity.hxx
-    ecs/ontology/include/ontology/EntityManager.hpp
-    ecs/ontology/include/ontology/EntityManagerInterface.hpp
-    ecs/ontology/include/ontology/EntityManagerListener.hpp
-    ecs/ontology/include/ontology/Exception.hpp
-    ecs/ontology/include/ontology/ListenerDispatcher.hpp
-    ecs/ontology/include/ontology/ListenerDispatcher.hxx
-    ecs/ontology/include/ontology/System.hpp
-    ecs/ontology/include/ontology/System.hxx
-    ecs/ontology/include/ontology/SystemManager.hpp
-    ecs/ontology/include/ontology/SystemManager.hxx
-    ecs/ontology/include/ontology/Type.hpp
-    ecs/ontology/include/ontology/Type.hxx
-    ecs/ontology/include/ontology/TypeContainers.hpp
-    ecs/ontology/include/ontology/World.hpp
-    ecs/ontology/include/ontology/Ontology.hpp
-    ecs/ontology/src/Component.cpp
-    ecs/ontology/src/Entity.cpp
-    ecs/ontology/src/EntityManager.cpp
-    ecs/ontology/src/EntityManagerListener.cpp
-    ecs/ontology/src/Exception.cpp
-    ecs/ontology/src/System.cpp
-    ecs/ontology/src/SystemManager.cpp
-    ecs/ontology/src/Type.cpp
-    ecs/ontology/src/World.cpp
+    scene/ontology/include/ontology/Config.hpp
+    scene/ontology/include/ontology/Component.hpp
+    scene/ontology/include/ontology/Entity.hpp
+    scene/ontology/include/ontology/Entity.hxx
+    scene/ontology/include/ontology/EntityManager.hpp
+    scene/ontology/include/ontology/EntityManagerInterface.hpp
+    scene/ontology/include/ontology/EntityManagerListener.hpp
+    scene/ontology/include/ontology/Exception.hpp
+    scene/ontology/include/ontology/ListenerDispatcher.hpp
+    scene/ontology/include/ontology/ListenerDispatcher.hxx
+    scene/ontology/include/ontology/System.hpp
+    scene/ontology/include/ontology/System.hxx
+    scene/ontology/include/ontology/SystemManager.hpp
+    scene/ontology/include/ontology/SystemManager.hxx
+    scene/ontology/include/ontology/Type.hpp
+    scene/ontology/include/ontology/Type.hxx
+    scene/ontology/include/ontology/TypeContainers.hpp
+    scene/ontology/include/ontology/World.hpp
+    scene/ontology/include/ontology/Ontology.hpp
+    scene/ontology/src/Component.cpp
+    scene/ontology/src/Entity.cpp
+    scene/ontology/src/EntityManager.cpp
+    scene/ontology/src/EntityManagerListener.cpp
+    scene/ontology/src/Exception.cpp
+    scene/ontology/src/System.cpp
+    scene/ontology/src/SystemManager.cpp
+    scene/ontology/src/Type.cpp
+    scene/ontology/src/World.cpp
 )
 
 # Project
@@ -194,7 +192,7 @@ if(BUILD_SHARED_LIBS)
 endif()
 target_include_directories(Dawn PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/ecs/ontology/include)
+    scene/ontology/include)
 
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)
