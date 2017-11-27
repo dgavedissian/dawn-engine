@@ -5,6 +5,7 @@
 #include "Common.h"
 #include "renderer/Renderer.h"
 #include "renderer/api/GLRenderContext.h"
+#include "renderer/api/NullRenderContext.h"
 #include "renderer/GLSL.h"
 
 namespace dw {
@@ -91,11 +92,9 @@ Renderer::Renderer(Context* context)
       shared_frame_barrier_(2),
       submit_(&frames_[0]),
       render_(&frames_[1]) {
-    glslang::InitializeProcess();
 }
 
 Renderer::~Renderer() {
-    glslang::FinalizeProcess();
     // Wait for render thread if multithreaded.
     if (use_render_thread_) {
         if (!shared_rt_finished_) {
@@ -111,7 +110,12 @@ Renderer::~Renderer() {
     }
 }
 
-void Renderer::init(u16 width, u16 height, const String& title, bool use_render_thread) {
+void Renderer::init(RendererType type, u16 width, u16 height, const String& title,
+                    bool use_render_thread) {
+    if (type == RendererType::Null) {
+        use_render_thread = false;
+    }
+
     width_ = width;
     height_ = height;
     window_title_ = title;
@@ -129,7 +133,20 @@ void Renderer::init(u16 width, u16 height, const String& title, bool use_render_
     frames_[0].transient_ib_storage.handle = frames_[1].transient_ib_storage.handle = transient_ib;
 
     // Kick off rendering thread.
-    shared_render_context_ = makeUnique<GLRenderContext>(context());
+    switch (type) {
+        case RendererType::Null:
+            log().info("Using Null renderer.");
+            shared_render_context_ = makeUnique<NullRenderContext>(context());
+            break;
+        case RendererType::OpenGL:
+            log().info("Using OpenGL renderer.");
+            shared_render_context_ = makeUnique<GLRenderContext>(context());
+            break;
+        case RendererType::D3D12:
+            log().error("D3D12 renderer unimplemented. Deferring to OpenGL.");
+            shared_render_context_ = makeUnique<GLRenderContext>(context());
+            break;
+    }
     shared_render_context_->createWindow(width_, height_, window_title_);
     if (use_render_thread) {
         render_thread_ = Thread{[this]() { renderThread(); }};

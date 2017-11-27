@@ -304,7 +304,7 @@ private:
 };
 }  // namespace
 
-GLRenderContext::GLRenderContext(Context* context) : RenderContext{context} {
+GLRenderContext::GLRenderContext(Context* ctx) : RenderContext(ctx) {
 }
 
 GLRenderContext::~GLRenderContext() {

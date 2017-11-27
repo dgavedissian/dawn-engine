@@ -9,25 +9,36 @@
 #include "math/StringHash.h"
 
 namespace dw {
-class Logger;
-class EventSystem;
+using Type = StringHash;
 
 class DW_API TypeInfo {
 public:
     TypeInfo(const std::type_info& t);
     ~TypeInfo();
 
-    StringHash type() const;
+    Type type() const;
     String typeName() const;
+
+    bool operator==(const TypeInfo& other) const;
+    bool operator!=(const TypeInfo& other) const;
 
 private:
     String type_name_;
-    StringHash type_name_hash_;
+    Type type_name_hash_;
 };
+}  // namespace dw
+
+namespace std {
+template <> struct hash<dw::TypeInfo> {
+    typedef std::size_t result_type;
+    result_type operator()(const dw::TypeInfo& k) const {
+        return static_cast<result_type>(k.type());
+    }
+};
+}  // namespace std
 
 #define DW_OBJECT(T)                                 \
-    using Type = T;                                  \
-    virtual dw::StringHash type() const override {   \
+    virtual dw::Type type() const override {         \
         return typeInfo().type();                    \
     }                                                \
     virtual dw::String typeName() const override {   \
@@ -36,16 +47,20 @@ private:
     virtual dw::TypeInfo typeInfo() const override { \
         return typeInfoStatic();                     \
     }                                                \
-    static dw::StringHash typeStatic() {             \
+    static dw::Type typeStatic() {                   \
         return typeInfoStatic().type();              \
     }                                                \
     static dw::String typeNameStatic() {             \
         return typeInfoStatic().typeName();          \
     }                                                \
     static const dw::TypeInfo& typeInfoStatic() {    \
-        static dw::TypeInfo ti(typeid(Type));        \
+        static dw::TypeInfo ti(typeid(T));           \
         return ti;                                   \
     }
+
+namespace dw {
+class Logger;
+class EventSystem;
 
 class DW_API Object {
 public:
@@ -70,12 +85,16 @@ public:
     /// E::eventType)
     template <typename E> bool removeEventListener(const EventDelegate& delegate);
 
-    /// A convenient wrapper for context().subsystem<T>().
+    /// A convenient wrapper for context()->subsystem(type);
+    /// @param Subsystem type. Either T::typeInfoStatic() or dw::Object::typeInfo()
+    virtual Subsystem* subsystemByType(const TypeInfo& subsystem_type) const;
+
+    /// A type safe wrapper for subsystem(T::typeInfoStatic()).
     /// @tparam T Subsystem type.
     /// @return Subsystem instance.
     template <typename T> T* subsystem() const;
 
-    virtual StringHash type() const = 0;
+    virtual Type type() const = 0;
     virtual String typeName() const = 0;
     virtual TypeInfo typeInfo() const = 0;
 
@@ -108,6 +127,6 @@ template <typename E> bool Object::removeEventListener(const EventDelegate& dele
 }
 
 template <typename T> T* Object::subsystem() const {
-    return context_->subsystem<T>();
+    return static_cast<T*>(subsystemByType(T::typeInfoStatic()));
 }
 }  // namespace dw

@@ -11,8 +11,8 @@ NetData::NetData(ReplicatedPropertyList properties)
     : entity_(nullptr),
       properties_(std::move(properties)),
       rpc_allocator_(0),
-      role_(NetRole::Authority),
-      remote_role_(NetRole::Proxy) {
+      role_(NetRole::None),
+      remote_role_(NetRole::None) {
 }
 
 void NetData::onAddToEntity(Entity* parent) {

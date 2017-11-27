@@ -36,6 +36,9 @@ using ProgramHandle = Handle<detail::ProgramTag, -1>;
 using TextureHandle = Handle<detail::TextureTag, -1>;
 using FrameBufferHandle = Handle<detail::FrameBufferTag, -1>;
 
+// Renderer type.
+enum class RendererType { Null, OpenGL, D3D12 };
+
 // Shader type.
 enum class ShaderStage { Vertex, Geometry, Fragment };
 
@@ -394,7 +397,8 @@ public:
     ~Renderer();
 
     /// Initialise.
-    void init(u16 width, u16 height, const String& title, bool use_render_thread);
+    void init(RendererType type, u16 width, u16 height, const String& title,
+              bool use_render_thread);
 
     /// Create vertex buffer.
     VertexBufferHandle createVertexBuffer(const void* data, uint size, const VertexDecl& decl,

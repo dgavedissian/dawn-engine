@@ -159,6 +159,7 @@ NetSystem::NetSystem(Context* context)
       client_connection_state_(ConnectionState::Disconnected),
       client_(nullptr),
       server_(nullptr) {
+    setDependencies<EntityManager>();
     yojimbo_logger = subsystem<Logger>();
     InitializeYojimbo();
     yojimbo_log_level(YOJIMBO_LOG_LEVEL_INFO);

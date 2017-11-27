@@ -524,7 +524,7 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
         Rpc::bind(&ShipControls::setAngularVelocity, &ShipControls::onHandleAngularVelocity));
 
     // Initialise server-side details.
-    if (role == NetRole::Authority) {
+    if (role >= NetRole::Authority) {
         ship_entity_->addComponent<RigidBody>(
             subsystem<PhysicsSystem>(), 10.0f,
             makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}));
@@ -543,7 +543,7 @@ void Ship::update(float dt) {
     auto& net_data = *ship_entity_->component<NetData>();
 
     // Update based on net role.
-    if (net_data.getRole() == NetRole::Authority) {
+    if (net_data.getRole() >= NetRole::Authority) {
         //=============================
         // Handle authoritative server.
         //=============================

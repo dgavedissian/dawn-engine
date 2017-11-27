@@ -11,6 +11,7 @@ EntityManager::EntityManager(Context* context)
     : Subsystem{context},
       entity_manager_{context->ontology_world_.getEntityManager()},
       entity_id_allocator_{1} {
+    setOptionalDependencies<Universe>();
 }
 
 Entity& EntityManager::createEntity() {

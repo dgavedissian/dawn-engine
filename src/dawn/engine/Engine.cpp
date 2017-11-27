@@ -120,8 +120,6 @@ void Engine::setup(int argc, char** argv) {
     sm.addSystem<EntityRenderer>();
 
     // Create the engine subsystems.
-    context_->addSubsystem<Input>();
-
     auto* net = context_->addSubsystem<NetSystem>();
     if (arguments.find("-host") != arguments.end()) {
         net->listen(std::stoi(arguments["-host"]), 32);
@@ -132,16 +130,22 @@ void Engine::setup(int argc, char** argv) {
     }
 
     auto* renderer = context_->addSubsystem<Renderer>();
-    renderer->init(context_->config().at("window_width").get<u16>(),
-                   context_->config().at("window_height").get<u16>(), window_title, true);
-
+    if (flags.find("-norenderer") == flags.end()) {
+        renderer->init(RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
+                       context_->config().at("window_height").get<u16>(), window_title, true);
+        context_->addSubsystem<Input>();
+    } else {
+        renderer->init(RendererType::Null, context_->config().at("window_width").get<u16>(),
+                       context_->config().at("window_height").get<u16>(), window_title, false);
+    }
     context_->addSubsystem<UserInterface>();
+
+    context_->addSubsystem<ResourceCache>();
     context_->addSubsystem<Universe>();
     // mAudio = new Audio;
     context_->addSubsystem<PhysicsSystem>();
     // mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
     context_->addSubsystem<GameFramework>();
-    context_->addSubsystem<ResourceCache>();
 
     // Set input viewport size
     /*

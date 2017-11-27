@@ -27,6 +27,8 @@ void fromBulletTransform(const btTransform& source, Transform& dest) {
 }
 }  // namespace
 PhysicsSystem::PhysicsSystem(Context* context) : Subsystem(context) {
+    setDependencies<SystemManager>();
+
     log().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
 
     broadphase_.reset(new btDbvtBroadphase());

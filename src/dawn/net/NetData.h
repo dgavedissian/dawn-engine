@@ -14,9 +14,10 @@
 namespace dw {
 
 enum class NetRole {
-    Authority,       // Authoritative copy (usually on the server).
-    MessagingProxy,  // A proxy which can send client RPCs.
-    Proxy            // An object which receives replicated properties from the server.
+    Proxy = 1,           // An object which receives replicated properties from the server.
+    MessagingProxy = 2,  // A proxy which can send client RPCs.
+    Authority = 3,       // Authoritative copy (usually on the server).
+    None = 4             // No net role.
 };
 
 using RpcId = u16;

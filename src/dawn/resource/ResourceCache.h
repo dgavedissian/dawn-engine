@@ -67,6 +67,7 @@ public:
         SharedPtr<T> resource = makeShared<T>(context());
         resource_cache_.emplace(name, resource);
         log().info("Loading asset '%s'", resource_path);
+        // TODO: Do something if the resource load fails.
         resource->load(resource_path, *resource_data.get());
         return resource;
     }

@@ -91,6 +91,8 @@ set(SOURCE_FILES
     renderer/api/GL.h
     renderer/api/GLRenderContext.cpp
     renderer/api/GLRenderContext.h
+    renderer/api/NullRenderContext.cpp
+    renderer/api/NullRenderContext.h
     renderer/BillboardSet.cpp
     renderer/BillboardSet.h
     renderer/Camera.cpp
