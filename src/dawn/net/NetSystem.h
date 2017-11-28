@@ -82,8 +82,10 @@ private:
     // Server only.
 
 private:
-    void sendServerCreateEntity(int clientIndex, const Entity& entity, NetRole role);
-    void sendServerPropertyReplication(int clientIndex, const Entity& entity);
+    void sendServerCreateEntity(int clientIndex, const Entity& entity,
+                                const OutputBitStream& properties, NetRole role);
+    void sendServerPropertyReplication(int clientIndex, const Entity& entity,
+                                       const OutputBitStream& properties);
 
     // Implementation of yojimbo::Adapter.
     yojimbo::MessageFactory* CreateMessageFactory(yojimbo::Allocator& allocator) override;

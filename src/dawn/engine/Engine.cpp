@@ -75,7 +75,7 @@ void Engine::setup(int argc, char** argv) {
     context_->subsystem<FileSystem>()->setWorkingDir(context_->basePath());
 
     // Print info.
-    log().info("Initialising engine");
+    log().info("Initialising engine " DW_VERSION_STR);
     printSystemInfo();
     if (flags.size() > 0) {
         log().info("Flags:");

@@ -9,9 +9,9 @@
 
 // Version Information
 #define DW_VERSION_MAJOR 0
-#define DW_VERSION_MINOR 2
+#define DW_VERSION_MINOR 1
 #define DW_VERSION_PATCH 0
-#define DW_VERSION_STR "0.2.0 (Pre-alpha 2)"
+#define DW_VERSION_STR "0.1.0 (Pre-alpha 1)"
 
 namespace dw {
 

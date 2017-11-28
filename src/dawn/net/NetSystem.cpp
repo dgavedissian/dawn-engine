@@ -172,6 +172,7 @@ void NetSystem::connect(const String& ip, u16 port) {
     }
 
     yojimbo::ClientServerConfig config;
+    config.timeout = -1;  // Disable timeout.
 
     uint8_t privateKey[yojimbo::KeyBytes];
     memset(privateKey, 0, yojimbo::KeyBytes);
@@ -196,6 +197,7 @@ void NetSystem::listen(u16 port, u16 max_clients) {
     }
 
     yojimbo::ClientServerConfig config;
+    config.timeout = -1;  // Disable timeout.
 
     uint8_t privateKey[yojimbo::KeyBytes];
     memset(privateKey, 0, yojimbo::KeyBytes);
@@ -282,9 +284,12 @@ void NetSystem::update(float dt) {
         if (time_since_last_replication >= replication_time) {
             time_since_last_replication = 0.0;
             auto& em = *subsystem<Universe>();
-            for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
-                for (auto id : replicated_entities_) {
-                    sendServerPropertyReplication(i, *em.findEntity(id));
+            for (auto id : replicated_entities_) {
+                Entity& entity = *em.findEntity(id);
+                OutputBitStream properties;
+                entity.component<NetData>()->serialise(properties);
+                for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
+                    sendServerPropertyReplication(i, entity, properties);
                 }
             }
         } else {
@@ -362,8 +367,8 @@ void NetSystem::update(float dt) {
                     auto replication_message = (ServerPropertyReplicationMessage*)message;
                     InputBitStream bs(replication_message->data);
                     EntityId entity_id = replication_message->entity_id;
-                    Entity* entity = subsystem<Universe>()->findEntity(entity_id);
-                    entity->component<NetData>()->deserialise(bs);
+                    Entity& entity = *subsystem<Universe>()->findEntity(entity_id);
+                    entity.component<NetData>()->deserialise(bs);
                     break;
                 }
                 case MT_ServerDestroyEntity: {
@@ -426,10 +431,17 @@ void NetSystem::replicateEntity(const Entity& entity, int messaging_proxy_client
     if (replicated_entities_.find(entity.id()) == replicated_entities_.end()) {
         replicated_entities_.insert(entity.id());
 
+        // Serialise replicated properties.
+        // TODO: Rewrite InputStream/OutputStream to expose an unreal FArchive like interface, which
+        // by default will just write the bytes as-is.
+        OutputBitStream properties;
+        entity.component<NetData>()->serialise(properties);
+
         // Send create entity message to clients.
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
             sendServerCreateEntity(
-                i, entity, i == messaging_proxy_client ? NetRole::MessagingProxy : NetRole::Proxy);
+                i, entity, properties,
+                i == messaging_proxy_client ? NetRole::MessagingProxy : NetRole::Proxy);
         }
     }
 }
@@ -461,35 +473,33 @@ void NetSystem::sendClientRpc(EntityId entity_id, RpcId rpc_id, const Vector<u8>
     client_->SendMessage(0, message);
 }
 
-void NetSystem::sendServerCreateEntity(int clientIndex, const Entity& entity, NetRole role) {
+void NetSystem::sendServerCreateEntity(int clientIndex, const Entity& entity,
+                                       const OutputBitStream& properties, NetRole role) {
     assert(isServer());
+
+    u32 metadata = 0;
+    if (entity_pipeline_) {
+        metadata = entity_pipeline_->getEntityMetadata(entity);
+    }
+
     auto message =
         (ServerCreateEntityMessage*)server_->CreateMessage(clientIndex, MT_ServerCreateEntity);
-    message->entity_id =
-        entity.id() + 10000;  // TODO: Reserve entity ID which the client will have free.
+    // TODO: Reserve entity ID which the client will have free.
+    message->entity_id = entity.id() + 10000;
     message->role = role;
-    // Serialise replicated properties.
-    OutputBitStream bs;
-    entity.component<NetData>()->serialise(bs);
-    message->data = bs.data();
-    // TODO: Rewrite InputStream/OutputStream to expose an unreal FArchive like interface, which
-    // by default will just write the bytes as-is.
-    if (entity_pipeline_) {
-        message->metadata = entity_pipeline_->getEntityMetadata(entity);
-    }
+    message->data = properties.data();
+    message->metadata = metadata;
     server_->SendMessage(clientIndex, 0, message);
 }
 
-void NetSystem::sendServerPropertyReplication(int clientIndex, const Entity& entity) {
+void NetSystem::sendServerPropertyReplication(int clientIndex, const Entity& entity,
+                                              const OutputBitStream& properties) {
     assert(isServer());
     auto message = (ServerPropertyReplicationMessage*)server_->CreateMessage(
         clientIndex, MT_ServerPropertyReplication);
-    message->entity_id =
-        entity.id() + 10000;  // TODO: Reserve entity ID which the client will have free.
-    // Serialise replicated properties.
-    OutputBitStream bs;
-    entity.component<NetData>()->serialise(bs);
-    message->data = bs.data();
+    // TODO: Reserve entity ID which the client will have free.
+    message->entity_id = entity.id() + 10000;
+    message->data = properties.data();
     server_->SendMessage(clientIndex, 0, message);
 }
 
@@ -502,7 +512,9 @@ void NetSystem::OnServerClientConnected(int clientIndex) {
     for (auto entity_id : replicated_entities_) {
         Entity* entity = subsystem<Universe>()->findEntity(entity_id);
         if (entity) {
-            sendServerCreateEntity(clientIndex, *entity, NetRole::Proxy);
+            OutputBitStream properties;
+            entity->component<NetData>()->serialise(properties);
+            sendServerCreateEntity(clientIndex, *entity, properties, NetRole::Proxy);
         } else {
             log().error("Replicated Entity ID %s missing from Universe", entity_id);
         }
