@@ -328,6 +328,11 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
 
     // Create the window.
     window_ = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+    if (!window_) {
+        // Failed to create window.
+        // TODO: Handle error properly.
+        throw Exception{"glfwCreateWindow failed."};
+    }
     int fb_width, fb_height;
     glfwGetFramebufferSize(window_, &fb_width, &fb_height);
     backbuffer_width_ = fb_width;
@@ -394,6 +399,7 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
 
     // Initialise GL extensions.
     if (gl3wInit() != 0) {
+        // TODO: Handle error properly.
         throw Exception{"gl3wInit failed."};
     }
 
