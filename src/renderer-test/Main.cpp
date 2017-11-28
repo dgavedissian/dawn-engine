@@ -200,7 +200,7 @@ TEST_CLASS(BasicIndexBuffer) {
             .end();
         vb_ = r->createVertexBuffer(vertices, sizeof(vertices), decl);
 
-        GLuint elements[] = {0, 2, 1, 2, 0, 3};
+        u32 elements[] = {0, 2, 1, 2, 0, 3};
         ib_ = r->createIndexBuffer(elements, sizeof(elements), IndexBufferType::U32);
     }
 
@@ -422,7 +422,9 @@ TEST_CLASS(DeferredShading) {
         DW_OBJECT(PointLight);
 
         PointLight(Context* ctx, float radius, const Vec2& screen_size)
-            : Object{ctx}, light_sphere_radius_{radius * 4}, r{subsystem<Renderer>()} {
+            : Object{ctx}, r{subsystem<Renderer>()}, light_sphere_radius_{radius * 4} {
+            setPosition(Vec3::zero);
+
             // Load shaders.
             auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/light_pass.vs");
             auto fs =
@@ -617,7 +619,6 @@ TEST_CLASS(MovingSphereHighLevel) {
         renderable->setMaterial(material);
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
-        auto sm = subsystem<SystemManager>();
         auto scene = subsystem<Universe>();
         object = &scene->createEntity(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
                       .addComponent<RenderableComponent>(renderable);

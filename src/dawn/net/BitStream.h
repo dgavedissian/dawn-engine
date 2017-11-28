@@ -14,7 +14,7 @@ public:
     ~InputBitStream() = default;
 
     // InputStream.
-    u32 read(void* dest, u32 size) override;
+    u32 readData(void* dest, u32 size) override;
     void seek(u64 position) override;
 
     const Vector<u8>& data() const;
@@ -28,7 +28,7 @@ public:
     OutputBitStream(u32 bytes_to_reserve = 0);
     ~OutputBitStream() = default;
 
-    u32 write(const void* src, u32 size) override;
+    u32 writeData(const void* src, u32 size) override;
 
     const Vector<u8>& data() const;
 

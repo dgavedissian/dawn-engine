@@ -30,8 +30,9 @@ private:
 
 namespace std {
 template <> struct hash<dw::TypeInfo> {
+    typedef dw::TypeInfo argument_type;
     typedef std::size_t result_type;
-    result_type operator()(const dw::TypeInfo& k) const {
+    result_type operator()(const argument_type& k) const {
         return static_cast<result_type>(k.type());
     }
 };
@@ -110,7 +111,7 @@ namespace dw {
 template <typename T, typename... Args> bool Object::triggerEvent(Args&&... args) const {
     return context_->subsystem<EventSystem>()->triggerEvent(
         makeShared<T>(std::forward<Args>(args)...));
-};
+}
 
 template <typename E> bool Object::addEventListener(const EventDelegate& delegate) {
     if (context_->subsystem<EventSystem>()) {

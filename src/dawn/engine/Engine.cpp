@@ -271,7 +271,7 @@ static String readSymLink(const String& path) {
         rc = readlink(path.c_str(), retval, len);
         if (rc == -1) {
             break; /* not a symlink, i/o error, etc. */
-        } else if (rc < len) {
+        } else if (rc < static_cast<ssize_t>(len)) {
             retval[rc] = '\0'; /* readlink doesn't null-terminate. */
             String result{retval};
             delete[] retval;

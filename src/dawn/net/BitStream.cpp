@@ -9,7 +9,7 @@ namespace dw {
 InputBitStream::InputBitStream(const Vector<u8>& data) : data_(data) {
 }
 
-u32 InputBitStream::read(void* dest, u32 size) {
+u32 InputBitStream::readData(void* dest, u32 size) {
     memcpy(dest, data_.data() + position_, size);
     position_ += size;
     return size;
@@ -27,7 +27,7 @@ OutputBitStream::OutputBitStream(u32 bytes_to_reserve) {
     data_.reserve(bytes_to_reserve);
 }
 
-u32 OutputBitStream::write(const void* src, u32 size) {
+u32 OutputBitStream::writeData(const void* src, u32 size) {
     size_t end = data_.size();
     data_.resize(data_.size() + size);
     memcpy(data_.data() + end, src, size);

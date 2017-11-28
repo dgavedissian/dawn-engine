@@ -73,6 +73,7 @@ set(SOURCE_FILES
     net/NetGameMode.h
     net/NetSystem.cpp
     net/NetSystem.h
+    net/Yojimbo.h
     physics/BulletDynamics.h
     physics/PhysicsSystem.cpp
     physics/PhysicsSystem.h

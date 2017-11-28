@@ -44,7 +44,7 @@ bool Mesh::beginLoad(const String& asset_name, InputStream& is) {
     assert(is.size() > 0);
     u64 size = is.size();
     byte* data = new byte[size];
-    is.read(data, size);
+    is.readData(data, size);
     assert(is.eof());
 
     const unsigned int severity = Assimp::Logger::Debugging | Assimp::Logger::Info |

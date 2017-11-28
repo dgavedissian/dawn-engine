@@ -6,7 +6,6 @@
 #include "io/OutputStream.h"
 
 namespace dw {
-
 OutputStream::~OutputStream() {
 }
 }  // namespace dw

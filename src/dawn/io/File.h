@@ -31,10 +31,10 @@ public:
     File(Context* context, const Path& path, int mode = FileMode::Read);
     ~File() override;
 
-    u32 read(void* dest, u32 size) override;
+    u32 readData(void* dest, u32 size) override;
     void seek(u64 position) override;
 
-    u32 write(const void* src, u32 size) override;
+    u32 writeData(const void* src, u32 size) override;
 
     bool open(const Path& path, int mode);
     void close();

@@ -15,7 +15,7 @@ public:
 
     /// Read an arbitrary amount of bytes from the stream.
     /// @return Number of bytes read
-    virtual u32 read(void* dest, u32 size) = 0;
+    virtual u32 readData(void* dest, u32 size) = 0;
 
     /// Moves the position of the cursor in the stream.
     /// @param position Offset from the start of the stream, in bytes
@@ -37,7 +37,7 @@ public:
 // Read for primitive types.
 #define IMPL_PRIMITIVE_READ(T)    \
     virtual void read(T& value) { \
-        read(&value, sizeof(T));  \
+        readData(&value, sizeof(T));  \
     }
     IMPL_PRIMITIVE_READ(i8)
     IMPL_PRIMITIVE_READ(u8)

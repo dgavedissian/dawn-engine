@@ -20,7 +20,7 @@ String InputStream::readLine(char delim) {
     String out;
     char c;
     while (!eof()) {
-        read(&c, sizeof(char));
+        readData(&c, sizeof(char));
         if (c == delim) {
             break;
         }

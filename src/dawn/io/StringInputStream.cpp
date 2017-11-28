@@ -10,7 +10,7 @@ StringInputStream::StringInputStream(const String& data)
     : InputStream{data.size() + 1}, data_{data} {
 }
 
-u32 StringInputStream::read(void* dest, u32 size) {
+u32 StringInputStream::readData(void* dest, u32 size) {
     if (position_ + size > size_) {
         return 0;
     }

@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "yojimbo.h"
+#include "net/Yojimbo.h"
 
 #include "scene/Entity.h"
 #include "net/NetData.h"

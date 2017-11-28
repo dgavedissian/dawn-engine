@@ -62,7 +62,7 @@ namespace dw {
 template <typename T, typename E>
 EventDelegate makeEventDelegate(T* ptr, void (T::*handler)(const E&)) {
     return EventDelegate(ptr, handler);
-};
+}
 
 class DW_API EventSystem : public Subsystem {
 public:

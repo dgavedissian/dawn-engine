@@ -538,7 +538,7 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
 void Ship::update(float dt) {
     auto input = subsystem<Input>();
 
-    auto& engines = *ship_entity_->component<ShipEngines>();
+    //auto& engines = *ship_entity_->component<ShipEngines>();
     auto& controls = *ship_entity_->component<ShipControls>();
     auto& net_data = *ship_entity_->component<NetData>();
 

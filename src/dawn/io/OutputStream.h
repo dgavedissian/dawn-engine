@@ -14,12 +14,12 @@ public:
 
     /// Write an arbitrary amount of bytes to the stream.
     /// @return Number of bytes written
-    virtual u32 write(const void* src, u32 size) = 0;
+    virtual u32 writeData(const void* src, u32 size) = 0;
 
 // Write for primitive types.
 #define IMPL_PRIMITIVE_WRITE(T)          \
     virtual void write(const T& value) { \
-        write(&value, sizeof(T));        \
+        writeData(&value, sizeof(T));        \
     }
 
     IMPL_PRIMITIVE_WRITE(i8)
@@ -57,10 +57,10 @@ public:
 
     virtual void write(const String& s) {
         for (char c : s) {
-            write(&c, sizeof(char));
+            writeData(&c, sizeof(char));
         }
         char null_byte = '\0';
-        write(&null_byte, sizeof(char));
+        writeData(&null_byte, sizeof(char));
     }
 };
 

@@ -486,6 +486,10 @@ bool GLRenderContext::frame(const Frame* frame) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
+        // TODO: Not sure what to use these for yet.
+        (void)fb_width;
+        (void)fb_height;
+
         // Set up view.
         glClearColor(v.clear_colour.r(), v.clear_colour.g(), v.clear_colour.b(),
                      v.clear_colour.a());

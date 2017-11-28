@@ -63,24 +63,17 @@ file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
 set_property(TARGET Assimp PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
 if(WIN32)
     set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
-        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/Debug/irrXMLd.lib>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/RelWithDebInfo/irrXML.lib>
-        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/Release/irrXML.lib>
-        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/Debug/zlibstaticd.lib>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/RelWithDebInfo/zlibstatic.lib>
-        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/Release/zlibstatic.lib>)
+        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/$<CONFIG>/irrXML$<$<CONFIG:Debug>:d>.lib
+        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/$<CONFIG>/zlibstatic$<$<CONFIG:Debug>:d>.lib)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/assimp-vc140-mtd.lib)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
 else()
     set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
-        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXMLd.a>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML.a>
-        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML.a>
-        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstaticd.a>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a>
-        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a>)
+        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML$<$<CONFIG:Debug>:d>.a
+        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic$<$<CONFIG:Debug>:d>.a)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/libassimpd.a)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libassimp.a)
+    message(STATUS ${CMAKE_BUILD_TYPE})
 endif()
 set(LIBS ${LIBS} Assimp)
 
@@ -106,17 +99,12 @@ file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/bullet)
 set_property(TARGET Bullet PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include/bullet)
 if(WIN32)
     set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
-        $<$<CONFIG:Debug>:${EXTERNAL_INSTALL}/lib/BulletCollision_Debug.lib>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_INSTALL}/lib/BulletCollision.lib>
-        $<$<CONFIG:Release>:${EXTERNAL_INSTALL}/lib/BulletCollision.lib>
-        $<$<CONFIG:Debug>:${EXTERNAL_INSTALL}/lib/LinearMath_Debug.lib>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_INSTALL}/lib/LinearMath.lib>
-        $<$<CONFIG:Release>:${EXTERNAL_INSTALL}/lib/LinearMath.lib>)
+        ${EXTERNAL_INSTALL}/lib/BulletCollision$<$<CONFIG:Debug>:_Debug>.lib
+        ${EXTERNAL_INSTALL}/lib/LinearMath$<$<CONFIG:Debug>:_Debug>.lib)
     set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/BulletDynamics_Debug.lib)
     set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/BulletDynamics.lib)
 else()
     set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a
         ${EXTERNAL_INSTALL}/lib/libBulletCollision.a
         ${EXTERNAL_INSTALL}/lib/libLinearMath.a)
     set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a)
