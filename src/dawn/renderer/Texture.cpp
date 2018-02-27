@@ -17,7 +17,7 @@ int imageCallbackRead(void* user, char* data, int size) {
     if ((stream.position() + size) > stream.size()) {
         size = static_cast<int>(stream.size() - stream.position());
     }
-    return static_cast<int>(stream.read(data, static_cast<u32>(size)));
+    return static_cast<int>(stream.readData(data, static_cast<u32>(size)));
 }
 
 void imageCallbackSkip(void* user, int n) {

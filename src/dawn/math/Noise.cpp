@@ -32,7 +32,7 @@ double fBmNoise::noise(double x, double y, double z) {
     double frequency = frequency_;
     double amplitude = amplitude_;
     double noise_value = 0.0f;
-    for (int octave = 0; octave < octaves_; ++octave) {
+    for (uint octave = 0; octave < octaves_; ++octave) {
         noise_value +=
             amplitude * noise_function_.noise(x * frequency, y * frequency, z * frequency);
         frequency *= lacunarity_;
@@ -72,7 +72,7 @@ PerlinNoise::PerlinNoise(uint seed) {
     // Initialize a random engine with seed.
     std::default_random_engine engine(seed);
 
-    // Suffle  using the above random engine.
+    // Shuffle using the above random engine.
     std::shuffle(p.begin(), p.end(), engine);
 
     // Duplicate the permutation vector.

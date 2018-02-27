@@ -12,7 +12,7 @@ class DW_API GLRenderContext : public RenderContext {
 public:
     DW_OBJECT(GLRenderContext);
 
-    GLRenderContext(Context* context);
+    GLRenderContext(Context* ctx);
     virtual ~GLRenderContext();
 
     // Window management. Executed on the main thread.

@@ -8,29 +8,33 @@
 #include "core/Preprocessor.h"
 
 // Event definition generator macro.
-#define DEFINE_EMPTY_EVENT(name)                        \
-    struct name : public dw::EventData {                \
-        static const dw::EventType eventType;           \
-        name() = default;                               \
-        const dw::EventType& getType() const override { \
-            return eventType;                           \
-        }                                               \
-        dw::String getName() const override {           \
-            return #name;                               \
-        }                                               \
+#define DEFINE_EMPTY_EVENT(event_name)         \
+    struct event_name : public dw::EventData { \
+        event_name() = default;                \
+        static dw::EventType typeStatic() {    \
+            return Hash(#event_name);          \
+        }                                      \
+        dw::EventType type() const override {  \
+            return Hash(#event_name);          \
+        }                                      \
+        dw::String name() const override {     \
+            return #event_name;                \
+        }                                      \
     }
-#define DEFINE_EVENT(name, ...)                                                    \
-    struct name : public dw::EventData {                                           \
-        static const dw::EventType eventType;                                      \
-        name(EVENT_CTOR_ARGS(__VA_ARGS__)) : EVENT_INITIALISER_LIST(__VA_ARGS__) { \
-        }                                                                          \
-        const dw::EventType& getType() const override {                            \
-            return eventType;                                                      \
-        }                                                                          \
-        dw::String getName() const override {                                      \
-            return #name;                                                          \
-        }                                                                          \
-        EVENT_DATA_FIELDS(__VA_ARGS__)                                             \
+#define DEFINE_EVENT(event_name, ...)                                                    \
+    struct event_name : public dw::EventData {                                           \
+        event_name(EVENT_CTOR_ARGS(__VA_ARGS__)) : EVENT_INITIALISER_LIST(__VA_ARGS__) { \
+        }                                                                                \
+        static dw::EventType typeStatic() {                                              \
+            return Hash(#event_name);                                                    \
+        }                                                                                \
+        dw::EventType type() const override {                                            \
+            return Hash(#event_name);                                                    \
+        }                                                                                \
+        dw::String name() const override {                                               \
+            return #event_name;                                                          \
+        }                                                                                \
+        EVENT_DATA_FIELDS(__VA_ARGS__)                                                   \
     }
 #define EVENT_CTOR_ARGS(...) CALL_OVERLOAD(EVENT_CTOR_ARGS, __VA_ARGS__)
 #define EVENT_CTOR_ARGS2(type1, name1) const type1& name1
@@ -58,9 +62,9 @@ namespace dw {
 template <typename T, typename E>
 EventDelegate makeEventDelegate(T* ptr, void (T::*handler)(const E&)) {
     return EventDelegate(ptr, handler);
-};
+}
 
-class DW_API EventSystem : public Object {
+class DW_API EventSystem : public Subsystem {
 public:
     DW_OBJECT(EventSystem);
 

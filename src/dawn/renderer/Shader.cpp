@@ -8,6 +8,19 @@
 #include "renderer/GLSL.h"
 
 namespace {
+class GlslangInitialiser {
+public:
+    GlslangInitialiser() {
+        glslang::InitializeProcess();
+    }
+    ~GlslangInitialiser() {
+        glslang::FinalizeProcess();
+    }
+};
+GlslangInitialiser g_glslang_initialiser;
+}  // namespace
+
+namespace {
 void initResourcesGLSL(TBuiltInResource& resources) {
     resources.maxLights = 32;
     resources.maxClipPlanes = 6;
@@ -112,7 +125,7 @@ bool Shader::beginLoad(const String&, InputStream& src) {
     u32 src_len = static_cast<u32>(src.size());
     assert(src_len != 0);
     char* src_data = new char[src_len + 1];
-    src.read(src_data, src_len);
+    src.readData(src_data, src_len);
     src_data[src_len] = '\0';
 
     // Parse GLSL code.
@@ -153,6 +166,9 @@ bool Shader::beginLoad(const String&, InputStream& src) {
     }
 
     // Convert to SPIR-V and hand to renderer.
+    if (!subsystem<Renderer>()) {
+        return false;
+    }
     Vector<u32> spirv_out;
     glslang::GlslangToSpv(*program.getIntermediate(stage), spirv_out);
     handle_ = subsystem<Renderer>()->createShader(type_, spirv_out.data(),

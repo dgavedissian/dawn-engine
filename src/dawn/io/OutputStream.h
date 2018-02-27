@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "scene/Position.h"
+
 namespace dw {
 
 class DW_API OutputStream {
@@ -12,42 +14,59 @@ public:
 
     /// Write an arbitrary amount of bytes to the stream.
     /// @return Number of bytes written
-    virtual u32 write(const void* src, u32 size) = 0;
+    virtual u32 writeData(const void* src, u32 size) = 0;
+
+// Write for primitive types.
+#define IMPL_PRIMITIVE_WRITE(T)          \
+    virtual void write(const T& value) { \
+        writeData(&value, sizeof(T));        \
+    }
+
+    IMPL_PRIMITIVE_WRITE(i8)
+    IMPL_PRIMITIVE_WRITE(u8)
+    IMPL_PRIMITIVE_WRITE(i16)
+    IMPL_PRIMITIVE_WRITE(u16)
+    IMPL_PRIMITIVE_WRITE(i32)
+    IMPL_PRIMITIVE_WRITE(u32)
+    IMPL_PRIMITIVE_WRITE(i64)
+    IMPL_PRIMITIVE_WRITE(u64)
+    IMPL_PRIMITIVE_WRITE(char)
+    IMPL_PRIMITIVE_WRITE(bool)
+    IMPL_PRIMITIVE_WRITE(float)
+    IMPL_PRIMITIVE_WRITE(double)
+
+    // Write for common types.
+    virtual void write(const Vec3& v) {
+        write(v.x);
+        write(v.y);
+        write(v.z);
+    }
+
+    virtual void write(const Position& p) {
+        write(p.x);
+        write(p.y);
+        write(p.z);
+    }
+
+    virtual void write(const Quat& q) {
+        write(q.x);
+        write(q.y);
+        write(q.z);
+        write(q.w);
+    }
+
+    virtual void write(const String& s) {
+        for (char c : s) {
+            writeData(&c, sizeof(char));
+        }
+        char null_byte = '\0';
+        writeData(&null_byte, sizeof(char));
+    }
 };
 
 namespace stream {
-
-/// Write functions implemented for different types
-template <typename T> void write(OutputStream& stream, const T& value) {
-    static_assert(sizeof(T) != sizeof(T), "stream::write is not implemented for arbitrary types");
-}
-
-// Implement write for primitive types
-#define IMPL_WRITE(T)                                                         \
-    template <> inline void write<T>(OutputStream & stream, const T& value) { \
-        stream.write(&value, sizeof(T));                                      \
-    }
-
-IMPL_WRITE(i8)
-IMPL_WRITE(u8)
-IMPL_WRITE(i16)
-IMPL_WRITE(u16)
-IMPL_WRITE(i32)
-IMPL_WRITE(u32)
-IMPL_WRITE(i64)
-IMPL_WRITE(u64)
-IMPL_WRITE(char)
-IMPL_WRITE(bool)
-IMPL_WRITE(float)
-IMPL_WRITE(double)
-
-/// Read from a null terminated string
-template <> inline void write<String>(OutputStream& stream, const String& str) {
-    for (char c : str) {
-        stream.write(&c, sizeof(char));
-    }
-    char nullByte = '\0';
-    stream.write(&nullByte, sizeof(char));
+template <typename T> void write(OutputStream& s, const T& value) {
+    s.write(value);
 }
 }  // namespace stream
 }  // namespace dw

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "ontology/System.hpp"
-#include "ecs/Entity.h"
+#include "Entity.h"
 
 namespace dw {
 class SystemManager;
@@ -27,9 +27,7 @@ public:
             dt_ = wrapped_system_->template subsystem<SystemManager>()->_lastDt();
             first_iteration = true;
         }
-        Entity wrapped_entity{wrapped_system_->context(), world->getEntityManager(),
-                              entity.getID()};
-        wrapped_system_->processEntity(wrapped_entity, dt_);
+        wrapped_system_->processEntity(*entity.getComponent<OntologyMetadata>().entity_ptr, dt_);
     }
 
     void configureEntity(Ontology::Entity&, std::string) override {

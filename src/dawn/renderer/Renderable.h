@@ -5,7 +5,7 @@
 #pragma once
 
 #include "renderer/Material.h"
-#include "ecs/Component.h"
+#include "scene/Component.h"
 #include "scene/Transform.h"
 
 namespace dw {

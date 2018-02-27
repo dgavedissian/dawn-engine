@@ -28,7 +28,7 @@ public:
     virtual void onMessage(LogLevel level, const String& message) = 0;
 };
 
-class DW_API Logger : public Object {
+class DW_API Logger : public Subsystem {
 public:
     DW_OBJECT(Logger)
 

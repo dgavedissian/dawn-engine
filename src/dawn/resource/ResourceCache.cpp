@@ -38,7 +38,7 @@ SharedPtr<InputStream> ResourceFilesystemPath::getFile(const ResourcePath& path_
     }
 }
 
-ResourceCache::ResourceCache(Context* context) : Object(context) {
+ResourceCache::ResourceCache(Context* context) : Subsystem(context) {
 }
 
 ResourceCache::~ResourceCache() {

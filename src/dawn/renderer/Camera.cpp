@@ -7,7 +7,7 @@
 
 namespace dw {
 Camera::Camera(float near, float far, float fov_y, float aspect)
-    : near{near}, far{far}, fov{fov}, aspect{aspect} {
+    : near{near}, far{far}, fov{fov_y}, aspect{aspect} {
     float tangent = static_cast<float>(tan(fov_y * dw::M_DEGTORAD_OVER_2));  // tangent of half fovY
     float v = near * tangent * 2;  // half height of near plane
     float h = v * aspect;          // half width of near plane

@@ -15,7 +15,7 @@ class DW_API Position {
 public:
     Position();
     Position(double x, double y, double z);
-    Position(const Vec3& vector);
+    explicit Position(const Vec3& vector);
     Position(const Position& other);
 
     // Get relative position from a point

@@ -12,11 +12,15 @@ static_assert(sizeof(ImDrawIdx) == sizeof(dw::u16), "Only 16-bit ImGUI indices a
 
 namespace dw {
 UserInterface::UserInterface(Context* ctx)
-    : Object(ctx),
-      renderer_(subsystem<Renderer>()),
+    : Subsystem(ctx),
       imgui_io_(ImGui::GetIO()),
       imgui_style_(ImGui::GetStyle()),
       mouse_wheel_(0.0f) {
+    setDependencies<Renderer>();
+    setOptionalDependencies<Input>();
+
+    renderer_ = subsystem<Renderer>();
+
     // Initialise mouse state.
     for (bool& state : mouse_pressed_) {
         state = false;
@@ -195,23 +199,24 @@ void UserInterface::render() {
 
     // Read input state and pass to imgui.
     auto input = subsystem<Input>();
+    if (input) {
+        // Mouse position and wheel.
+        const auto& mouse_position = input->mousePosition();
+        imgui_io_.MousePos.x = mouse_position.x;
+        imgui_io_.MousePos.y = mouse_position.y;
+        imgui_io_.MouseWheel = mouse_wheel_;
+        mouse_wheel_ = 0.0f;
 
-    // Mouse position and wheel.
-    const auto& mouse_position = input->mousePosition();
-    imgui_io_.MousePos.x = mouse_position.x;
-    imgui_io_.MousePos.y = mouse_position.y;
-    imgui_io_.MouseWheel = mouse_wheel_;
-    mouse_wheel_ = 0.0f;
-
-    // Pass mouse button state and reset.
-    imgui_io_.MouseDown[0] =
-        mouse_pressed_[MouseButton::Left] || input->isMouseButtonDown(MouseButton::Left);
-    imgui_io_.MouseDown[1] =
-        mouse_pressed_[MouseButton::Right] || input->isMouseButtonDown(MouseButton::Right);
-    imgui_io_.MouseDown[2] =
-        mouse_pressed_[MouseButton::Middle] || input->isMouseButtonDown(MouseButton::Middle);
-    for (bool& state : mouse_pressed_) {
-        state = false;
+        // Pass mouse button state and reset.
+        imgui_io_.MouseDown[0] =
+            mouse_pressed_[MouseButton::Left] || input->isMouseButtonDown(MouseButton::Left);
+        imgui_io_.MouseDown[1] =
+            mouse_pressed_[MouseButton::Right] || input->isMouseButtonDown(MouseButton::Right);
+        imgui_io_.MouseDown[2] =
+            mouse_pressed_[MouseButton::Middle] || input->isMouseButtonDown(MouseButton::Middle);
+        for (bool& state : mouse_pressed_) {
+            state = false;
+        }
     }
 
     // Begin a new frame.

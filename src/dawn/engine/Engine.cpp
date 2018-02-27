@@ -35,8 +35,28 @@ Engine::~Engine() {
     shutdown();
 }
 
-void Engine::setup() {
+void Engine::setup(int argc, char** argv) {
     assert(!initialised_);
+
+    // Process command line arguments.
+    Set<String> flags;
+    Map<String, String> arguments;
+    for (int i = 0; i < argc; i++) {
+        if (argv[i][0] == '-') {
+            // Look ahead to next arg. If flag then add this arg as flag, otherwise add argument
+            // pair
+            if (i < argc - 1) {
+                if (argv[i + 1][0] == '-') {
+                    flags.insert(String{argv[i]});
+                } else {
+                    arguments[String{argv[i]}] = String{argv[i + 1]};
+                    i++;  // skip argument value
+                }
+            } else {
+                flags.insert(String{argv[i]});
+            }
+        }
+    }
 
     // Create context.
     context_ = new Context(basePath(), "");
@@ -55,8 +75,20 @@ void Engine::setup() {
     context_->subsystem<FileSystem>()->setWorkingDir(context_->basePath());
 
     // Print info.
-    log().info("Initialising engine");
+    log().info("Initialising engine " DW_VERSION_STR);
     printSystemInfo();
+    if (flags.size() > 0) {
+        log().info("Flags:");
+        for (auto& flag : flags) {
+            log().info("\t%s", flag);
+        }
+    }
+    if (arguments.size() > 0) {
+        log().info("Arguments:");
+        for (auto& arg : arguments) {
+            log().info("\t%s %s", arg.first, arg.second);
+        }
+    }
 
     // Build window title.
     String window_title{game_name_};
@@ -82,23 +114,37 @@ void Engine::setup() {
     context_->addSubsystem<LuaState>();
     // TODO(David): bind engine services to lua?
 
-    // Set up the ECS architecture.
-    auto& em = *context_->addSubsystem<EntityManager>();
-    auto& sm = *context_->addSubsystem<SystemManager>();
-    sm.addSystem<EntityRenderer>();
-
     // Create the engine subsystems.
-    context_->addSubsystem<Input>();
+    auto* net = context_->addSubsystem<NetSystem>();
+    if (arguments.find("-host") != arguments.end()) {
+        net->listen(std::stoi(arguments["-host"]), 32);
+    } else if (arguments.find("-join") != arguments.end()) {
+        String ip = arguments["-join"];
+        u16 port = std::stoi(arguments["-p"]);
+        net->connect(ip, port);
+    }
+
     auto* renderer = context_->addSubsystem<Renderer>();
-    renderer->init(context_->config().at("window_width").get<u16>(),
-                   context_->config().at("window_height").get<u16>(), window_title, true);
+    if (flags.find("-norenderer") == flags.end()) {
+        renderer->init(RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
+                       context_->config().at("window_height").get<u16>(), window_title, true);
+        context_->addSubsystem<Input>();
+    } else {
+        renderer->init(RendererType::Null, context_->config().at("window_width").get<u16>(),
+                       context_->config().at("window_height").get<u16>(), window_title, false);
+    }
     context_->addSubsystem<UserInterface>();
+    context_->addSubsystem<ResourceCache>();
+    context_->addSubsystem<SystemManager>();
     context_->addSubsystem<Universe>();
     // mAudio = new Audio;
     context_->addSubsystem<PhysicsSystem>();
     // mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
-    context_->addSubsystem<StateManager>();
-    context_->addSubsystem<ResourceCache>();
+    context_->addSubsystem<GameFramework>();
+
+    // Set up built in entity systems.
+    auto& sm = *context_->subsystem<SystemManager>();
+    sm.addSystem<EntityRenderer>();
 
     // Set input viewport size
     /*
@@ -138,11 +184,10 @@ void Engine::shutdown() {
     }
 
     // Remove subsystems.
-    context_->removeSubsystem<StateManager>();
+    context_->removeSubsystem<GameFramework>();
     context_->removeSubsystem<UserInterface>();
     context_->removeSubsystem<ResourceCache>();
     context_->removeSubsystem<SystemManager>();
-    context_->removeSubsystem<EntityManager>();
     context_->removeSubsystem<Universe>();
     context_->clearSubsystems();
 
@@ -191,8 +236,7 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         previous_time = current_time;
     }
 
-    // Ensure that all states have been exited so no crashes occur later.
-    context_->subsystem<StateManager>()->clear();
+    context_->subsystem<GameFramework>()->setGameMode(nullptr);
 }
 
 double Engine::frameTime() const {
@@ -227,7 +271,7 @@ static String readSymLink(const String& path) {
         rc = readlink(path.c_str(), retval, len);
         if (rc == -1) {
             break; /* not a symlink, i/o error, etc. */
-        } else if (rc < len) {
+        } else if (rc < static_cast<ssize_t>(len)) {
             retval[rc] = '\0'; /* readlink doesn't null-terminate. */
             String result{retval};
             delete[] retval;
@@ -316,9 +360,10 @@ String Engine::basePath() const {
 
 void Engine::update(float dt) {
     // log().debug("Frame Time: %f", dt);
+    context_->subsystem<NetSystem>()->update(dt);
 
     context_->subsystem<EventSystem>()->update(0.02f);
-    context_->subsystem<StateManager>()->update(dt);
+    context_->subsystem<GameFramework>()->update(dt);
     context_->subsystem<Universe>()->update(dt);
     context_->subsystem<PhysicsSystem>()->update(dt, nullptr);
 
@@ -327,7 +372,6 @@ void Engine::update(float dt) {
 }
 
 void Engine::preRender(Camera_OLD*) {
-    context_->subsystem<StateManager>()->preRender();
 }
 
 void Engine::postRender() {

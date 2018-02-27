@@ -7,7 +7,7 @@
 
 namespace dw {
 
-LuaState::LuaState(Context* context) : Object(context) {
+LuaState::LuaState(Context* context) : Subsystem(context) {
     // Redirect Lua printing to the Log
     /*
     executeString(

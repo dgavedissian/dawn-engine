@@ -21,9 +21,9 @@ public:
 
     void setBillboardType(BillboardType type);
 
-    void setParticlePosition(int particle_id, const Vec3& position);
-    void setParticleSize(int particle_id, const Vec2& size);
-    void setParticleDirection(int particle_id, const Vec3& direction);
+    void setParticlePosition(u32 particle_id, const Vec3& position);
+    void setParticleSize(u32 particle_id, const Vec2& size);
+    void setParticleDirection(u32 particle_id, const Vec3& direction);
 
     void draw(Renderer* renderer, uint view, Transform* camera, const Mat4&,
               const Mat4& view_projection_matrix) override;

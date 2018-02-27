@@ -3,7 +3,9 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #pragma once
+
 #include "scene/Position.h"
+#include "scene/SystemManager.h"
 
 // Bullet
 #include "physics/BulletDynamics.h"
@@ -23,7 +25,7 @@ struct DW_API PhysicsRaycastResult {
 };
 
 // Manages the Bullet physics library and provides some helper functions.
-class DW_API PhysicsSystem : public Object {
+class DW_API PhysicsSystem : public Subsystem {
 public:
     DW_OBJECT(PhysicsSystem);
 

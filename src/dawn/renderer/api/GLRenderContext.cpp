@@ -304,7 +304,7 @@ private:
 };
 }  // namespace
 
-GLRenderContext::GLRenderContext(Context* context) : RenderContext{context} {
+GLRenderContext::GLRenderContext(Context* ctx) : RenderContext(ctx) {
 }
 
 GLRenderContext::~GLRenderContext() {
@@ -328,6 +328,11 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
 
     // Create the window.
     window_ = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+    if (!window_) {
+        // Failed to create window.
+        // TODO: Handle error properly.
+        throw Exception{"glfwCreateWindow failed."};
+    }
     int fb_width, fb_height;
     glfwGetFramebufferSize(window_, &fb_width, &fb_height);
     backbuffer_width_ = fb_width;
@@ -394,6 +399,7 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
 
     // Initialise GL extensions.
     if (gl3wInit() != 0) {
+        // TODO: Handle error properly.
         throw Exception{"gl3wInit failed."};
     }
 
@@ -479,6 +485,10 @@ bool GLRenderContext::frame(const Frame* frame) {
             fb_height = backbuffer_height_;
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
+
+        // TODO: Not sure what to use these for yet.
+        (void)fb_width;
+        (void)fb_height;
 
         // Set up view.
         glClearColor(v.clear_colour.r(), v.clear_colour.g(), v.clear_colour.b(),

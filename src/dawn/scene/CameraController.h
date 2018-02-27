@@ -5,7 +5,7 @@
 #pragma once
 
 #include "input/Input.h"
-#include "ecs/Entity.h"
+#include "Entity.h"
 
 namespace dw {
 class DW_API CameraController : public Object {

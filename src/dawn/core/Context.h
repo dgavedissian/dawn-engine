@@ -11,7 +11,7 @@
 
 namespace dw {
 
-class Object;
+class Subsystem;
 class ConfigNode;
 class Entity;
 
@@ -22,7 +22,7 @@ using Json = nlohmann::json;
 /// also contains the engine and game configuration encoded as JSON.
 class DW_API Context {
 public:
-    Context(String base_path, String pref_path);
+    Context(const String& base_path, const String& pref_path);
     Context(Context& other) = delete;
     ~Context();
 
@@ -32,11 +32,11 @@ public:
     /// Accesses a subsystem by type hash. Requires a downcast.
     /// @param subsystem_type Subsystem type hash.
     /// @return A pointer to the subsystem instance, or nullptr otherwise.
-    Object* subsystem(StringHash subsystem_type) const;
+    Subsystem* subsystem(StringHash subsystem_type) const;
 
     /// Adds a subsystem to this context.
     /// @param subsystem Subsystem instance.
-    Object* addSubsystem(UniquePtr<Object> subsystem);
+    Subsystem* addSubsystem(UniquePtr<Subsystem> subsystem);
 
     /// Removes a subsystem contained within the context, calling the subsystems
     /// deconstructor.
@@ -85,7 +85,8 @@ public:
     const String& prefPath() const;
 
 private:
-    HashMap<StringHash, UniquePtr<Object>> subsystems_;
+    HashMap<StringHash, UniquePtr<Subsystem>> subsystems_;
+    Vector<StringHash> subsystem_init_order_;
 
     // Engine configuration.
     Json config_;
@@ -96,8 +97,8 @@ private:
 
     // Ontology world.
     Ontology::World ontology_world_;
-    friend class EntityManager;
     friend class SystemManager;
+    friend class Universe;
 };
 
 template <typename T> T* Context::subsystem() const {

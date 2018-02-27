@@ -3,19 +3,20 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "ecs/Entity.h"
+#include "Entity.h"
 
 namespace dw {
-Entity::Entity(Context* context, Ontology::EntityManager& entity_manager,
-               Ontology::Entity::ID entity_id)
+Entity::Entity(Context* context, Ontology::EntityManager& entity_manager, EntityId id)
     : Object{context},
-      entity_manager_{entity_manager},
-      internal_entity_id_{entity_id},
+      id_{id},
+      internal_entity_mgr_{entity_manager},
+      internal_entity_id_{entity_manager.createEntity("").getID()},
       transform_{nullptr} {
+    entity().addComponent<OntologyMetadata>(this);
 }
 
 EntityId Entity::id() const {
-    return internal_entity_id_;
+    return id_;
 }
 
 Transform* Entity::transform() const {

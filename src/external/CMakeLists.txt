@@ -39,7 +39,7 @@ elseif(UNIX)
         -DCMAKE_CXX_FLAGS=-fPIC)
 endif()
 
-# Note that "set_property(TARGET Assimp PROPERTY INTERFACE_INCLUDE_DIRECTORIES ...)" checks for the
+# Note that "set_property(TARGET <target> PROPERTY INTERFACE_INCLUDE_DIRECTORIES ...)" checks for the
 # existence of the path. Therefore, we create the path beforehand.
 
 # Assimp
@@ -48,9 +48,7 @@ ExternalProject_Add(Assimp_Build
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/assimp/assimp/archive/6b4e3177e836dfb05c7eb5e3347b15a9916eebe7.zip
     URL_MD5 f7bb45ebbccdde3997be22e61fdb242b
-    BUILD_COMMAND ""
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config ${CMAKE_BUILD_TYPE}
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DASSIMP_BUILD_ASSIMP_TOOLS=0
         -DASSIMP_BUILD_TESTS=0
@@ -65,24 +63,17 @@ file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
 set_property(TARGET Assimp PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
 if(WIN32)
     set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
-        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/Debug/irrXMLd.lib>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/RelWithDebInfo/irrXML.lib>
-        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/Release/irrXML.lib>
-        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/Debug/zlibstaticd.lib>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/RelWithDebInfo/zlibstatic.lib>
-        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/Release/zlibstatic.lib>)
+        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/$<CONFIG>/irrXML$<$<CONFIG:Debug>:d>.lib
+        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/$<CONFIG>/zlibstatic$<$<CONFIG:Debug>:d>.lib)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/assimp-vc140-mtd.lib)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
 else()
     set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
-        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXMLd.a>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML.a>
-        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML.a>
-        $<$<CONFIG:Debug>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstaticd.a>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a>
-        $<$<CONFIG:Release>:${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic.a>)
+        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML$<$<CONFIG:Debug>:d>.a
+        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic$<$<CONFIG:Debug>:d>.a)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/libassimpd.a)
     set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libassimp.a)
+    message(STATUS ${CMAKE_BUILD_TYPE})
 endif()
 set(LIBS ${LIBS} Assimp)
 
@@ -92,9 +83,7 @@ ExternalProject_Add(Bullet_Build
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/bulletphysics/bullet3/archive/2.86.zip
     URL_MD5 8b57278946186e9792824069637bbc97
-    BUILD_COMMAND ""
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config ${CMAKE_BUILD_TYPE}
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_EXTRAS=0
         -DBUILD_BULLET2_DEMOS=0
@@ -110,17 +99,12 @@ file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/bullet)
 set_property(TARGET Bullet PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include/bullet)
 if(WIN32)
     set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
-        $<$<CONFIG:Debug>:${EXTERNAL_INSTALL}/lib/BulletCollision_Debug.lib>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_INSTALL}/lib/BulletCollision.lib>
-        $<$<CONFIG:Release>:${EXTERNAL_INSTALL}/lib/BulletCollision.lib>
-        $<$<CONFIG:Debug>:${EXTERNAL_INSTALL}/lib/LinearMath_Debug.lib>
-        $<$<CONFIG:RelWithDebInfo>:${EXTERNAL_INSTALL}/lib/LinearMath.lib>
-        $<$<CONFIG:Release>:${EXTERNAL_INSTALL}/lib/LinearMath.lib>)
+        ${EXTERNAL_INSTALL}/lib/BulletCollision$<$<CONFIG:Debug>:_Debug>.lib
+        ${EXTERNAL_INSTALL}/lib/LinearMath$<$<CONFIG:Debug>:_Debug>.lib)
     set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/BulletDynamics_Debug.lib)
     set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/BulletDynamics.lib)
 else()
     set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a
         ${EXTERNAL_INSTALL}/lib/libBulletCollision.a
         ${EXTERNAL_INSTALL}/lib/libLinearMath.a)
     set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a)
@@ -133,9 +117,7 @@ ExternalProject_Add(MathGeoLib_Build
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/davedissian/dawnengine-MathGeoLib/archive/master.zip
     URL_MD5 d1fd2ed6aa2284049234f377c6a6f1e9
-    BUILD_COMMAND ""
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config ${CMAKE_BUILD_TYPE}
     CMAKE_ARGS ${EXTERNAL_ARGS}
 )
 set_target_properties(MathGeoLib_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
@@ -281,6 +263,98 @@ add_library(variant INTERFACE)
 target_include_directories(variant INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/variant/include)
 set(LIBS ${LIBS} variant)
 
+# yojimbo_mbedtls
+ExternalProject_Add(yojimbo_mbedtls_build
+    PREFIX ${EXTERNAL_PREFIX}
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo_mbedtls
+    DOWNLOAD_COMMAND ""
+    BUILD_COMMAND ""
+    UPDATE_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config ${CMAKE_CFG_INTDIR}
+    CMAKE_ARGS ${EXTERNAL_ARGS}
+    )
+set_target_properties(yojimbo_mbedtls_build PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(yojimbo_mbedtls STATIC IMPORTED GLOBAL)
+add_dependencies(yojimbo_mbedtls yojimbo_mbedtls_build)
+file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
+set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
+if(WIN32)
+    set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/mbedx509.lib
+        ${EXTERNAL_INSTALL}/lib/mbedcrypto.lib)
+    set_property(TARGET yojimbo_mbedtls PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/mbedtls.lib)
+else()
+    set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/libmbedx509.a
+        ${EXTERNAL_INSTALL}/lib/libmbedcrypto.a)
+    set_property(TARGET yojimbo_mbedtls PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libmbedtls.a)
+endif()
+
+# yojimbo_sodium
+if (MSVC)
+    ExternalProject_Add(yojimbo_sodium_build
+        PREFIX ${EXTERNAL_PREFIX}
+        URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.15-msvc.zip
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+        UPDATE_COMMAND ""
+        )
+else()
+    ExternalProject_Add(yojimbo_sodium_build
+        PREFIX ${EXTERNAL_PREFIX}
+        URL ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo_sodium
+        BUILD_IN_SOURCE 1
+        CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL}
+        BUILD_COMMAND make
+        INSTALL_COMMAND make install
+        UPDATE_COMMAND ""
+        )
+endif()
+set_target_properties(yojimbo_sodium_build PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(yojimbo_sodium STATIC IMPORTED GLOBAL)
+add_dependencies(yojimbo_sodium yojimbo_sodium_build)
+if(WIN32)
+    file(MAKE_DIRECTORY ${EXTERNAL_PREFIX}/src/yojimbo_sodium_build/include)
+    set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PREFIX}/src/yojimbo_sodium_build/include)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(SODIUM_ARCH x64)
+    elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(SODIUM_ARCH Win32)
+    else()
+        message(FATAL_ERROR "Unsupported architecture. CMAKE_SIZEOF_VOID_P is ${CMAKE_SIZEOF_VOID_P}")
+    endif()
+    if(NOT(MSVC_VERSION LESS 1910))
+        # Visual Studio 15.0 (2017)
+        set(SODIUM_MSVC v141)
+    elseif(NOT(MSVC_VERSION LESS 1900))
+        # Visual Studio 14.0 (2015)
+        set(SODIUM_MSVC v140)
+    else()
+        message(FATAL_ERROR "Unsupported MSVC version: ${MSVC_VERSION}")
+    endif()
+    set_property(TARGET yojimbo_sodium PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_PREFIX}/src/yojimbo_sodium_build/${SODIUM_ARCH}/Debug/${SODIUM_MSVC}/static/libsodium.lib)
+    set_property(TARGET yojimbo_sodium PROPERTY IMPORTED_LOCATION ${EXTERNAL_PREFIX}/src/yojimbo_sodium_build/${SODIUM_ARCH}/Release/${SODIUM_MSVC}/static/libsodium.lib)
+else()
+    file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
+    set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
+    set_property(TARGET yojimbo_sodium PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libsodium.a)
+endif()
+
+# yojimbo
+add_library(yojimbo EXCLUDE_FROM_ALL
+    yojimbo/yojimbo.cpp
+    yojimbo/tlsf/tlsf.c
+    yojimbo/netcode.io/netcode.c
+    yojimbo/reliable.io/reliable.c)
+target_include_directories(yojimbo PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo)
+target_include_directories(yojimbo PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo/netcode.io
+    ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo/reliable.io)
+target_link_libraries(yojimbo yojimbo_mbedtls yojimbo_sodium)
+set(LIBS ${LIBS} yojimbo)
 
 ##############################################################
 # Push dependencies to the parent scope

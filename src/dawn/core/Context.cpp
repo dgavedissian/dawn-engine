@@ -6,14 +6,14 @@
 #include "io/File.h"
 
 namespace dw {
-Context::Context(String base_path, String pref_path)
+Context::Context(const String& base_path, const String& pref_path)
     : config_(Json::object()), base_path_(base_path), pref_path_(pref_path) {
 }
 
 Context::~Context() {
 }
 
-Object* Context::subsystem(StringHash subsystem_type) const {
+Subsystem* Context::subsystem(StringHash subsystem_type) const {
     auto it = subsystems_.find(subsystem_type);
     if (it != subsystems_.end()) {
         return (*it).second.get();
@@ -21,18 +21,25 @@ Object* Context::subsystem(StringHash subsystem_type) const {
     return nullptr;
 }
 
-Object* Context::addSubsystem(UniquePtr<Object> subsystem) {
-    Object* subsystem_ptr = subsystem.get();
+Subsystem* Context::addSubsystem(UniquePtr<Subsystem> subsystem) {
+    Subsystem* subsystem_ptr = subsystem.get();
+    subsystem_init_order_.emplace_back(subsystem->type());
     subsystems_.emplace(subsystem->type(), std::move(subsystem));
     return subsystem_ptr;
 }
 
 void Context::removeSubsystem(StringHash subsystem_type) {
     subsystems_.erase(subsystem_type);
+    subsystem_init_order_.erase(
+        std::find(subsystem_init_order_.begin(), subsystem_init_order_.end(), subsystem_type));
 }
 
 void Context::clearSubsystems() {
-    subsystems_.clear();
+    for (auto it = subsystem_init_order_.rbegin(); it != subsystem_init_order_.rend(); ++it) {
+        subsystems_.erase(*it);
+    }
+    subsystem_init_order_.clear();
+    assert(subsystems_.empty());
 }
 
 Json& Context::config() {
@@ -54,8 +61,8 @@ void Context::saveConfig(const String& config_file) {
 }
 
 void Context::setDefaultConfig() {
-    config_["window_width"] = 1280;
-    config_["window_height"] = 800;
+    config_["window_width"] = 1024;
+    config_["window_height"] = 600;
 }
 
 const String& Context::basePath() const {

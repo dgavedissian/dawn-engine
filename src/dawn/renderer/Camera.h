@@ -5,7 +5,7 @@
 #pragma once
 
 #include "math/Defs.h"
-#include "ecs/Component.h"
+#include "scene/Component.h"
 
 namespace dw {
 struct DW_API Camera : public Component {

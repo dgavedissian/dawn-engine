@@ -22,18 +22,26 @@ TypeInfo::TypeInfo(const std::type_info& t) : type_name_{}, type_name_hash_{} {
 #else
     type_name_ = t.name();
 #endif
-    type_name_hash_ = StringHash{type_name_};
+    type_name_hash_ = Hash(type_name_);
 }
 
 TypeInfo::~TypeInfo() {
 }
 
-StringHash TypeInfo::type() const {
+Type TypeInfo::type() const {
     return type_name_hash_;
 }
 
 String TypeInfo::typeName() const {
     return type_name_;
+}
+
+bool TypeInfo::operator==(const TypeInfo& other) const {
+    return type_name_hash_ == other.type_name_hash_;
+}
+
+bool TypeInfo::operator!=(const TypeInfo& other) const {
+    return !(*this == other);
 }
 
 Object::Object(Context* context) : context_{context} {
@@ -48,5 +56,9 @@ Context* Object::context() const {
 
 Logger& Object::log() const {
     return subsystem<Logger>()->withObjectName(typeName());
+}
+
+Subsystem* Object::subsystemByType(const TypeInfo& subsystem_type) const {
+    return context_->subsystem(subsystem_type.type());
 }
 }  // namespace dw

@@ -12,7 +12,7 @@ public:
     StringInputStream(const String& data);
     ~StringInputStream() = default;
 
-    u32 read(void* dest, u32 size) override;
+    u32 readData(void* dest, u32 size) override;
     void seek(u64 position) override;
 
 private:

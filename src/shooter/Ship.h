@@ -4,13 +4,32 @@
  */
 #pragma once
 
-#include "ecs/Entity.h"
-#include "ecs/Component.h"
+#include "scene/Entity.h"
+#include "scene/Component.h"
 #include "renderer/BillboardSet.h"
 #include "renderer/Mesh.h"
 #include "math/Defs.h"
 
 using namespace dw;
+
+class Ship;
+
+class ShipControls : public Component {
+public:
+    WeakPtr<Ship> ship;
+
+    ClientRpc<Vec3> setLinearVelocity;
+    void onHandleLinearVelocity(const Vec3& v) {
+        target_linear_velocity = v;
+    }
+    ClientRpc<Vec3> setAngularVelocity;
+    void onHandleAngularVelocity(const Vec3& v) {
+        target_angular_velocity = v;
+    }
+
+    Vec3 target_linear_velocity;
+    Vec3 target_angular_velocity;
+};
 
 class ShipCameraController : public Object {
 public:
@@ -89,6 +108,12 @@ public:
     static Vec3 convertToPower(const Vec3& force, const Vec3& max_pos_force,
                                const Vec3& max_neg_force);
 
+    // Replication stuff.
+    void rep_setCurrentMovementPower(const Vec3& power);
+    void rep_setCurrentRotationalPower(const Vec3& power);
+    Vec3 currentMovementPower();
+    Vec3 currentRotationalPower();
+
 private:
     Vector<ShipEngineData> engine_data_;
     Vector<ShipEngineData> nav_engine_data_;
@@ -101,6 +126,9 @@ private:
     // Rotational engines.
     Array<Vector<ShipEngineInstance>, 3> navigation_engines_;
 
+    Vec3 current_movement_power_;
+    Vec3 current_rotational_power_;
+
     friend class ShipEngineSystem;
 };
 
@@ -108,64 +136,9 @@ class ShipEngineSystem : public System {
 public:
     DW_OBJECT(ShipEngineSystem);
 
-    explicit ShipEngineSystem(Context* ctx) : System(ctx) {
-        supportsComponents<Transform, RigidBody, ShipEngines>();
-    }
+    explicit ShipEngineSystem(Context* ctx);
 
-    void processEntity(Entity& entity, float dt) override {
-        auto& transform = *entity.component<Transform>();
-        auto& rigid_body = *entity.component<RigidBody>();
-        auto& ship_engines = *entity.component<ShipEngines>();
-
-        auto& engines = ship_engines.engine_data_;
-        auto& nav_engines = ship_engines.nav_engine_data_;
-
-        // Update particles.
-        if (ship_engines.glow_billboards_) {
-            for (int i = 0; i < engines.size(); i++) {
-                int particle = i;
-                float engine_glow_size = 4.0f * engines[i].activity();
-                ship_engines.glow_billboards_->setParticlePosition(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{engines[i].offset(), 1.0f}});
-                ship_engines.glow_billboards_->setParticleSize(
-                    particle, {engine_glow_size, engine_glow_size});
-                ship_engines.trail_billboards_->setParticlePosition(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{engines[i].offset(), 1.0f}});
-                ship_engines.trail_billboards_->setParticleSize(
-                    particle, {engine_glow_size * 0.5f, engine_glow_size * 6.0f});
-                ship_engines.trail_billboards_->setParticleDirection(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{-engines[i].force().Normalized(), 0.0f}});
-            }
-            for (int i = 0; i < nav_engines.size(); i++) {
-                int particle = i + engines.size();
-                float engine_glow_size = 2.0f * nav_engines[i].activity();
-                ship_engines.glow_billboards_->setParticlePosition(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{nav_engines[i].offset(), 1.0f}});
-                ship_engines.glow_billboards_->setParticleSize(
-                    particle, {engine_glow_size, engine_glow_size});
-                ship_engines.trail_billboards_->setParticlePosition(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{nav_engines[i].offset(), 1.0f}});
-                ship_engines.trail_billboards_->setParticleSize(
-                    particle, {engine_glow_size * 0.25f, engine_glow_size * 3.0f});
-                ship_engines.trail_billboards_->setParticleDirection(
-                    particle, Vec3{transform.modelMatrix(Position::origin) *
-                                   Vec4{-nav_engines[i].force().Normalized(), 0.0f}});
-            }
-        }
-
-        // Attenuate engines.
-        for (auto& e : engines) {
-            e.update(dt);
-        }
-        for (auto& e : nav_engines) {
-            e.update(dt);
-        }
-    }
+    void processEntity(Entity& entity, float dt) override;
 };
 
 class Ship;
@@ -196,7 +169,8 @@ class Ship : public Object {
 public:
     DW_OBJECT(Ship);
 
-    Ship(Context* ctx);
+    explicit Ship(Context* ctx);
+    Ship(Context* ctx, EntityId reserved_entity_id, NetRole role);
     ~Ship() = default;
 
     void update(float dt);
@@ -210,7 +184,7 @@ public:
     Entity* entity() const;
 
 private:
-    Entity* core_;
+    Entity* ship_entity_;
     btRigidBody* rb_;
     SharedPtr<Material> material_;
 

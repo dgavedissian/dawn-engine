@@ -23,7 +23,7 @@ protected:
 TEST_F(FileTest, ReadByte) {
     dw::File file(context_, "testfiles/data", dw::FileMode::Read);
     dw::u32 data;
-    dw::u32 bytes_read = file.read(&data, sizeof(dw::u32));
+    dw::u32 bytes_read = file.readData(&data, sizeof(dw::u32));
     EXPECT_EQ(0x806f6f66, data);
     EXPECT_EQ(4, bytes_read);
     EXPECT_EQ(true, file.eof());
@@ -48,12 +48,12 @@ TEST_F(FileTest, WriteThenRead) {
 
     {
         dw::File out_file(context_, filename, dw::FileMode::Write);
-        out_file.write(&data, sizeof(dw::u32));
+        out_file.writeData(&data, sizeof(dw::u32));
     }
 
     {
         dw::File in_file(context_, filename, dw::FileMode::Read);
-        in_file.read(&in_data, sizeof(dw::u32));
+        in_file.readData(&in_data, sizeof(dw::u32));
     }
 
     fs.deleteFile(filename);
@@ -70,20 +70,20 @@ TEST_F(FileTest, WriteThenAppendThenRead) {
     // Write
     {
         dw::File out_file(context_, filename, dw::FileMode::Write);
-        out_file.write(&data, sizeof(dw::u32));
+        out_file.writeData(&data, sizeof(dw::u32));
     }
 
     // Append
     {
         dw::File append_file(context_, filename, dw::FileMode::Write | dw::FileMode::Append);
-        append_file.write(&data, sizeof(dw::u32));
+        append_file.writeData(&data, sizeof(dw::u32));
     }
 
     // Read
     dw::u64 in_data;
     {
         dw::File in_file(context_, filename, dw::FileMode::Read);
-        in_file.read(&in_data, sizeof(dw::u64));
+        in_file.readData(&in_data, sizeof(dw::u64));
     }
 
     fs.deleteFile(filename);

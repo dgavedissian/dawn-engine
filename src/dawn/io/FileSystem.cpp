@@ -18,7 +18,7 @@
 
 namespace dw {
 
-FileSystem::FileSystem(Context* context) : Object(context) {
+FileSystem::FileSystem(Context* context) : Subsystem(context) {
 }
 
 FileSystem::~FileSystem() {

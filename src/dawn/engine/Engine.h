@@ -20,7 +20,7 @@ public:
     ~Engine();
 
     /// Sets up the engine
-    void setup();
+    void setup(int argc, char** argv);
 
     /// Shuts down the engine
     void shutdown();

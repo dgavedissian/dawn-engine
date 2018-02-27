@@ -3,16 +3,19 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "ecs/Entity.h"
+#include "Entity.h"
 #include "scene/Transform.h"
 
 namespace dw {
-Transform::Transform(const Position& p, const Quat& o, Entity& entity)
-    : Transform{p, o, entity.component<Transform>()} {
+Transform::Transform(const Position& p, const Quat& o) : Transform(p, o, nullptr) {
+}
+
+Transform::Transform(const Position& p, const Quat& o, Entity& parent_entity)
+    : Transform(p, o, parent_entity.component<Transform>()) {
 }
 
 Transform::Transform(const Position& p, const Quat& o, Transform* parent)
-    : position_{p}, orientation_{o}, relative_to_camera_{false}, parent_{nullptr} {
+    : position_(p), orientation_(o), relative_to_camera_(false), parent_(nullptr) {
     attachTo(parent);
 }
 

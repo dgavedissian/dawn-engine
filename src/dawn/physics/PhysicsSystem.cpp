@@ -4,8 +4,8 @@
  */
 #include "Common.h"
 #include "input/Input.h"
-#include "ecs/System.h"
-#include "ecs/SystemManager.h"
+#include "scene/System.h"
+#include "scene/SystemManager.h"
 #include "PhysicsSystem.h"
 
 namespace dw {
@@ -26,7 +26,9 @@ void fromBulletTransform(const btTransform& source, Transform& dest) {
     dest.orientation() = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
 }
 }  // namespace
-PhysicsSystem::PhysicsSystem(Context* context) : Object(context) {
+PhysicsSystem::PhysicsSystem(Context* context) : Subsystem(context) {
+    setDependencies<SystemManager>();
+
     log().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
 
     broadphase_.reset(new btDbvtBroadphase());

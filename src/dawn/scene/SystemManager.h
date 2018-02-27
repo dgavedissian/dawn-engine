@@ -6,10 +6,10 @@
 
 #include <ontology/SystemManager.hpp>
 
-#include "ecs/System.h"
+#include "System.h"
 
 namespace dw {
-class SystemManager : public Object {
+class SystemManager : public Subsystem {
 public:
     DW_OBJECT(SystemManager);
 
