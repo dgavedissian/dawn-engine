@@ -53,9 +53,9 @@ public:
     bool isConnected() const;
 
     // Entity pipeline.
-    // messaging_proxy_client indicates a client which should receive the entity with Role =
-    // MessagingProxy. -1 for none.
-    void replicateEntity(const Entity& entity, int messaging_proxy_client = -1);
+    // authoritative_proxy_client indicates a client which should receive the entity with Role =
+    // AuthoritativeProxy. -1 for none.
+    void replicateEntity(const Entity& entity, int authoritative_proxy_client = -1);
     void setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline);
 
     // RPCs.

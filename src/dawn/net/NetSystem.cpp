@@ -44,12 +44,12 @@ int yojimbo_printf_function(const char* format, ...) {
 struct ClientSpawnRequestMessage : public yojimbo::Message {
     u32 request_id;
     u32 metadata;
-    bool messaging_proxy;
+    bool authoritative_proxy;
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint32(stream, metadata);
         serialize_uint32(stream, request_id);
-        serialize_bool(stream, messaging_proxy);
+        serialize_bool(stream, authoritative_proxy);
         return true;
     }
 
@@ -246,7 +246,8 @@ void NetSystem::update(float dt) {
                             entity_id, spawn_message->metadata);
                         Entity& entity = entity_pipeline_->createEntityFromMetadata(
                             entity_id, spawn_message->metadata, NetRole::Authority);
-                        replicateEntity(entity, spawn_message->messaging_proxy ? client_index : -1);
+                        replicateEntity(entity,
+                                        spawn_message->authoritative_proxy ? client_index : -1);
 
                         // Send response.
                         auto response_message = (ServerSpawnResponseMessage*)server_->CreateMessage(
@@ -415,7 +416,7 @@ bool NetSystem::isConnected() const {
     return isClient() ? client_connection_state_ == ConnectionState::Connected : isServer();
 }
 
-void NetSystem::replicateEntity(const Entity& entity, int messaging_proxy_client) {
+void NetSystem::replicateEntity(const Entity& entity, int authoritative_proxy_client) {
     assert(entity.hasComponent<NetData>());
 
     if (!server_) {
@@ -441,7 +442,7 @@ void NetSystem::replicateEntity(const Entity& entity, int messaging_proxy_client
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
             sendServerCreateEntity(
                 i, entity, properties,
-                i == messaging_proxy_client ? NetRole::MessagingProxy : NetRole::Proxy);
+                i == authoritative_proxy_client ? NetRole::AuthoritativeProxy : NetRole::Proxy);
         }
     }
 }
@@ -458,7 +459,7 @@ void NetSystem::sendSpawnRequest(u32 metadata, std::function<void(Entity&)> call
     auto message = (ClientSpawnRequestMessage*)client_->CreateMessage(MT_ClientSpawnRequest);
     message->request_id = spawn_request_id_;
     message->metadata = metadata;
-    message->messaging_proxy = messaging_proxy;
+    message->authoritative_proxy = messaging_proxy;
     client_->SendMessage(0, message);
     spawn_request_id_++;
 }

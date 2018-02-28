@@ -250,4 +250,4 @@ Ogre::MaterialPtr GBufferMaterialGenerator::GenerateTemplateMaterial(
 
     return matPtr;
 }
-}
+}  // namespace dw

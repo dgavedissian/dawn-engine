@@ -19,7 +19,7 @@ public:
 // Write for primitive types.
 #define IMPL_PRIMITIVE_WRITE(T)          \
     virtual void write(const T& value) { \
-        writeData(&value, sizeof(T));        \
+        writeData(&value, sizeof(T));    \
     }
 
     IMPL_PRIMITIVE_WRITE(i8)

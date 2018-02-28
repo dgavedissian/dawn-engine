@@ -238,4 +238,4 @@ void UI::buildProjMatrix(Ogre::Matrix4& projectionMatrix) {
     projectionMatrix[2][2] = -2.0f / (zFar - zNear);
     projectionMatrix[3][3] = 1.0f;
 }
-}
+}  // namespace dw

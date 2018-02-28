@@ -538,7 +538,7 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
 void Ship::update(float dt) {
     auto input = subsystem<Input>();
 
-    //auto& engines = *ship_entity_->component<ShipEngines>();
+    // auto& engines = *ship_entity_->component<ShipEngines>();
     auto& controls = *ship_entity_->component<ShipControls>();
     auto& net_data = *ship_entity_->component<NetData>();
 
@@ -578,7 +578,7 @@ void Ship::update(float dt) {
         // ImGui::Text("Angular Acceleration: %.2f %.2f %.2f", angular_acc.x, angular_acc.y,
         //            angular_acc.z);
         ImGui::End();
-    } else if (net_data.getRole() == NetRole::MessagingProxy) {
+    } else if (net_data.getRole() == NetRole::AuthoritativeProxy) {
         //=============================
         // Handle controlling client.
         //=============================

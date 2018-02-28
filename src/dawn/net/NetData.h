@@ -14,10 +14,10 @@
 namespace dw {
 
 enum class NetRole {
-    Proxy = 1,           // An object which receives replicated properties from the server.
-    MessagingProxy = 2,  // A proxy which can send client RPCs.
-    Authority = 3,       // Authoritative copy (usually on the server).
-    None = 4             // No net role.
+    Proxy = 1,               // An object which receives replicated properties from the server.
+    AuthoritativeProxy = 2,  // A proxy which can send client RPCs.
+    Authority = 3,           // Authoritative copy (usually on the server).
+    None = 4                 // No net role.
 };
 
 using RpcId = u16;
@@ -186,7 +186,7 @@ public:
     }
 
     void operator()(const Args&... args) {
-        if (net_data_->getRole() != NetRole::MessagingProxy) {
+        if (net_data_->getRole() != NetRole::AuthoritativeProxy) {
             logger_->warn("Trying to send a client RPC from a non-messaging proxy.");
             return;
         }

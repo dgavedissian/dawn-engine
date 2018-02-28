@@ -35,9 +35,9 @@ public:
     u64 size() const;
 
 // Read for primitive types.
-#define IMPL_PRIMITIVE_READ(T)    \
-    virtual void read(T& value) { \
-        readData(&value, sizeof(T));  \
+#define IMPL_PRIMITIVE_READ(T)       \
+    virtual void read(T& value) {    \
+        readData(&value, sizeof(T)); \
     }
     IMPL_PRIMITIVE_READ(i8)
     IMPL_PRIMITIVE_READ(u8)
