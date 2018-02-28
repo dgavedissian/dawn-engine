@@ -11,7 +11,6 @@ public:
         context_ = new dw::Context("", "");
         context_->addSubsystem<dw::Logger>();
         auto& fs = *context_->addSubsystem<dw::FileSystem>();
-        fs.setWorkingDir("../../../test/dawn/io");
     }
 
     void TearDown() override {}
@@ -21,7 +20,7 @@ protected:
 };
 
 TEST_F(FileTest, ReadByte) {
-    dw::File file(context_, "testfiles/data", dw::FileMode::Read);
+    dw::File file(context_, "io/testfiles/data", dw::FileMode::Read);
     dw::u32 data;
     dw::u32 bytes_read = file.readData(&data, sizeof(dw::u32));
     EXPECT_EQ(0x806f6f66, data);
@@ -30,12 +29,12 @@ TEST_F(FileTest, ReadByte) {
 }
 
 TEST_F(FileTest, ReadSingleLine) {
-    dw::File file(context_, "testfiles/a.txt", dw::FileMode::Read);
+    dw::File file(context_, "io/testfiles/a.txt", dw::FileMode::Read);
     EXPECT_EQ("test", dw::stream::read<dw::String>(file));
 }
 
 TEST_F(FileTest, ReadMultiLine) {
-    dw::File file(context_, "testfiles/b.txt", dw::FileMode::Read);
+    dw::File file(context_, "io/testfiles/b.txt", dw::FileMode::Read);
     EXPECT_EQ("line1\nline2\n", dw::stream::read<dw::String>(file));
 }
 

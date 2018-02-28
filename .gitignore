@@ -9,6 +9,7 @@ bin
 
 # CMake Output Directories
 build*/
+Testing/
 
 # YouCompleteMe
 *.pyc

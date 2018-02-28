@@ -11,7 +11,6 @@ public:
         context_ = new dw::Context("", "");
         context_->addSubsystem<dw::Logger>();
         auto& fs = *context_->addSubsystem<dw::FileSystem>();
-        fs.setWorkingDir("../../../test/dawn/io");
     }
 
     void TearDown() override {}
@@ -21,9 +20,9 @@ protected:
 };
 
 TEST_F(FileSystemTest, FileDoesExist) {
-    EXPECT_TRUE(context_->subsystem<dw::FileSystem>()->fileExists("testfiles/a.txt"));
+    EXPECT_TRUE(context_->subsystem<dw::FileSystem>()->fileExists("io/testfiles/a.txt"));
 }
 
 TEST_F(FileSystemTest, FileDoesNotExist) {
-    EXPECT_FALSE(context_->subsystem<dw::FileSystem>()->fileExists("testfiles/missing.txt"));
+    EXPECT_FALSE(context_->subsystem<dw::FileSystem>()->fileExists("io/testfiles/missing.txt"));
 }
