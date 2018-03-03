@@ -9,6 +9,7 @@
 #include "renderer/BillboardSet.h"
 #include "renderer/Mesh.h"
 #include "math/Defs.h"
+#include "core/Delegate.h"
 
 using namespace dw;
 
@@ -17,13 +18,12 @@ class Ship;
 class ShipControls : public Component {
 public:
     WeakPtr<Ship> ship;
-
     ClientRpc<Vec3> setLinearVelocity;
-    void onHandleLinearVelocity(const Vec3& v) {
+    void setLinearVelocityImpl(const Vec3& v) {
         target_linear_velocity = v;
     }
     ClientRpc<Vec3> setAngularVelocity;
-    void onHandleAngularVelocity(const Vec3& v) {
+    void setAngularVelocityImpl(const Vec3& v) {
         target_angular_velocity = v;
     }
 

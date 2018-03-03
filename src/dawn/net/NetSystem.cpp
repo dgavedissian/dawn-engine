@@ -272,7 +272,7 @@ void NetSystem::update(float dt) {
                                         entity_id);
                             break;
                         }
-                        net_data->receiveClientRpc(rpc_message->rpc_id, rpc_message->payload);
+                        net_data->receiveRpc(rpc_message->rpc_id, rpc_message->payload);
                         break;
                     }
                     default:
@@ -464,14 +464,19 @@ void NetSystem::sendSpawnRequest(u32 metadata, std::function<void(Entity&)> call
     spawn_request_id_++;
 }
 
-void NetSystem::sendClientRpc(EntityId entity_id, RpcId rpc_id, const Vector<u8>& payload) {
-    assert(isClient());
+void NetSystem::sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type, const Vector<u8>& payload) {
     assert(isConnected());
-    auto message = (ClientRpcMessage*)client_->CreateMessage(MT_ClientRpc);
-    message->entity_id = entity_id - 10000;
-    message->rpc_id = rpc_id;
-    message->payload = payload;
-    client_->SendMessage(0, message);
+    if (type == RpcType::Client) {
+        assert(isClient());
+        auto message = (ClientRpcMessage*)client_->CreateMessage(MT_ClientRpc);
+        message->entity_id = entity_id - 10000;
+        message->rpc_id = rpc_id;
+        message->payload = payload;
+        client_->SendMessage(0, message);
+    } else {
+        assert(isServer());
+        log().warn("Server RPCs not implemented.");
+    }
 }
 
 void NetSystem::sendServerCreateEntity(int clientIndex, const Entity& entity,

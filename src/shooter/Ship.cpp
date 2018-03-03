@@ -518,9 +518,9 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
                           &ShipEngines::rep_setCurrentRotationalPower)});
     auto net_data = ship_entity_->component<NetData>();
     net_data->registerClientRpc(
-        Rpc::bind(&ShipControls::setLinearVelocity, &ShipControls::onHandleLinearVelocity));
+        Rpc::bind(&ShipControls::setLinearVelocity, &ShipControls::setLinearVelocityImpl));
     net_data->registerClientRpc(
-        Rpc::bind(&ShipControls::setAngularVelocity, &ShipControls::onHandleAngularVelocity));
+        Rpc::bind(&ShipControls::setAngularVelocity, &ShipControls::setAngularVelocityImpl));
 
     // Initialise server-side details.
     if (role >= NetRole::Authority) {

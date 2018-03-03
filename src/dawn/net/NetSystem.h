@@ -23,6 +23,7 @@ public:
 };
 
 enum class ConnectionState { Disconnected, Connecting, Connected };
+enum class NetMode { Server, Client };
 
 class DW_API NetSystem : public Subsystem, public yojimbo::Adapter {
 public:
@@ -61,7 +62,7 @@ public:
     // RPCs.
     void sendSpawnRequest(u32 metadata, std::function<void(Entity&)> callback,
                           bool messaging_proxy = false);
-    void sendClientRpc(EntityId entity_id, RpcId rpc_id, const Vector<u8>& payload);
+    void sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type, const Vector<u8>& payload);
 
 private:
     bool is_server_;

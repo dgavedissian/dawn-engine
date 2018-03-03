@@ -41,11 +41,16 @@ void NetData::registerClientRpc(SharedPtr<RpcBinding> rpc) {
     rpc_allocator_++;
 }
 
-void NetData::sendClientRpc(RpcId rpc_id, const Vector<u8>& payload) {
-    entity_->subsystem<NetSystem>()->sendClientRpc(entity_->id(), rpc_id, payload);
+void NetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload) {
+    auto* netsystem = entity_->subsystem<NetSystem>();
+    if (netsystem->isServer()) {
+        receiveRpc(rpc_id, payload);
+    } else {
+        netsystem->sendRpc(entity_->id(), rpc_id, type, payload);
+    }
 }
 
-void NetData::receiveClientRpc(RpcId rpc_id, const Vector<u8>& payload) {
+void NetData::receiveRpc(RpcId rpc_id, const Vector<u8>& payload) {
     auto rpc_func = rpc_list_.find(rpc_id);
     if (rpc_func == rpc_list_.end()) {
         entity_->log().warn("Received unregistered RPC with ID %s, ignoring.", rpc_id);

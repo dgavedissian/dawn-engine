@@ -34,8 +34,8 @@ public:
     void initInternal(NetData* net_data, Logger* logger, RpcId rpc_id);
 
 protected:
-    void sendClientRpc(const OutputBitStream& payload);
     void sendServerRpc(const OutputBitStream& payload);
+    void sendClientRpc(const OutputBitStream& payload);
 
 protected:
     NetData* net_data_;

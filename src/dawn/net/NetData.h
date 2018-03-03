@@ -24,8 +24,8 @@ public:
     void deserialise(InputStream& in);
 
     void registerClientRpc(SharedPtr<RpcBinding> rpc);
-    void sendClientRpc(RpcId rpc_id, const Vector<u8>& payload);
-    void receiveClientRpc(RpcId rpc_id, const Vector<u8>& payload);
+    void sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload);
+    void receiveRpc(RpcId rpc_id, const Vector<u8>& payload);
 
     NetRole role() const;
     NetRole remoteRole() const;
