@@ -71,8 +71,14 @@ set(SOURCE_FILES
     net/NetData.h
     net/NetGameMode.cpp
     net/NetGameMode.h
+    net/NetRole.h
     net/NetSystem.cpp
     net/NetSystem.h
+    net/RepProperty.h
+    net/RepProperty.i.h
+    net/Rpc.cpp
+    net/Rpc.h
+    net/Rpc.i.h
     net/Yojimbo.h
     physics/BulletDynamics.h
     physics/PhysicsSystem.cpp

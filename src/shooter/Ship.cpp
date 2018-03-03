@@ -510,13 +510,12 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
 
     // Networking.
     ship_entity_->addComponent<ShipControls>();
-    ship_entity_->addComponent<NetData>(ReplicatedPropertyList{
-        ReplicatedProperty::bind(&Transform::position),
-        ReplicatedProperty::bind(&Transform::orientation),
-        ReplicatedProperty::bind(&ShipEngines::currentMovementPower,
-                                 &ShipEngines::rep_setCurrentMovementPower),
-        ReplicatedProperty::bind(&ShipEngines::currentRotationalPower,
-                                 &ShipEngines::rep_setCurrentRotationalPower)});
+    ship_entity_->addComponent<NetData>(RepPropertyList{
+        RepProperty::bind(&Transform::position), RepProperty::bind(&Transform::orientation),
+        RepProperty::bind(&ShipEngines::currentMovementPower,
+                          &ShipEngines::rep_setCurrentMovementPower),
+        RepProperty::bind(&ShipEngines::currentRotationalPower,
+                          &ShipEngines::rep_setCurrentRotationalPower)});
     auto net_data = ship_entity_->component<NetData>();
     net_data->registerClientRpc(
         Rpc::bind(&ShipControls::setLinearVelocity, &ShipControls::onHandleLinearVelocity));
@@ -543,7 +542,7 @@ void Ship::update(float dt) {
     auto& net_data = *ship_entity_->component<NetData>();
 
     // Update based on net role.
-    if (net_data.getRole() >= NetRole::Authority) {
+    if (net_data.role() >= NetRole::Authority) {
         //=============================
         // Handle authoritative server.
         //=============================
@@ -578,7 +577,7 @@ void Ship::update(float dt) {
         // ImGui::Text("Angular Acceleration: %.2f %.2f %.2f", angular_acc.x, angular_acc.y,
         //            angular_acc.z);
         ImGui::End();
-    } else if (net_data.getRole() == NetRole::AuthoritativeProxy) {
+    } else if (net_data.role() == NetRole::AuthoritativeProxy) {
         //=============================
         // Handle controlling client.
         //=============================

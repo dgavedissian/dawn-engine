@@ -7,7 +7,7 @@
 #include "net/NetSystem.h"
 
 namespace dw {
-NetData::NetData(ReplicatedPropertyList properties)
+NetData::NetData(RepPropertyList properties)
     : entity_(nullptr),
       properties_(std::move(properties)),
       rpc_allocator_(0),
@@ -37,8 +37,7 @@ void NetData::deserialise(InputStream& in) {
 void NetData::registerClientRpc(SharedPtr<RpcBinding> rpc) {
     assert(entity_);
     rpc_list_[rpc_allocator_] = rpc;
-    rpc->onAddToEntity(*entity_);
-    rpc->setRpcId(rpc_allocator_);
+    rpc->onAddToEntity(*entity_, rpc_allocator_);
     rpc_allocator_++;
 }
 
@@ -51,14 +50,14 @@ void NetData::receiveClientRpc(RpcId rpc_id, const Vector<u8>& payload) {
     if (rpc_func == rpc_list_.end()) {
         entity_->log().warn("Received unregistered RPC with ID %s, ignoring.", rpc_id);
     }
-    (*rpc_func).second->handle(payload);
+    (*rpc_func).second->receiveRpc(payload);
 }
 
-NetRole NetData::getRole() const {
+NetRole NetData::role() const {
     return role_;
 }
 
-NetRole NetData::getRemoteRole() const {
+NetRole NetData::remoteRole() const {
     return remote_role_;
 }
 }  // namespace dw
