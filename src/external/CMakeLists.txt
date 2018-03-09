@@ -99,9 +99,10 @@ file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/bullet)
 set_property(TARGET Bullet PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include/bullet)
 if(WIN32)
     set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/BulletCollision$<$<CONFIG:Debug>:_Debug>.lib
-        ${EXTERNAL_INSTALL}/lib/LinearMath$<$<CONFIG:Debug>:_Debug>.lib)
+        ${EXTERNAL_INSTALL}/lib/BulletCollision$<$<CONFIG:Debug>:_Debug>$<$<CONFIG:RelWithDebInfo>:_RelWithDebugInfo>.lib
+        ${EXTERNAL_INSTALL}/lib/LinearMath$<$<CONFIG:Debug>:_Debug>$<$<CONFIG:RelWithDebInfo>:_RelWithDebugInfo>.lib)
     set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/BulletDynamics_Debug.lib)
+    set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${EXTERNAL_INSTALL}/lib/BulletDynamics_RelWithDebugInfo.lib)
     set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/BulletDynamics.lib)
 else()
     set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES

@@ -7,9 +7,25 @@
 #include "net/NetSystem.h"
 
 namespace dw {
-NetData::NetData(RepPropertyList properties)
+RepLayout::RepLayout(const RepPropertyList& property_list) : property_list_(property_list)
+{
+}
+
+RepLayout& RepLayout::operator+(const RepLayout& other)
+{
+	property_list_.insert(property_list_.end(), other.property_list_.begin(), other.property_list_.end());
+	return *this;
+}
+
+RepLayout& RepLayout::operator+=(const RepLayout & other)
+{
+	property_list_.insert(property_list_.end(), other.property_list_.begin(), other.property_list_.end());
+	return *this;
+}
+
+NetData::NetData(RepLayout rep_layout)
     : entity_(nullptr),
-      properties_(std::move(properties)),
+      rep_layout_(std::move(rep_layout)),
       rpc_allocator_(0),
       role_(NetRole::None),
       remote_role_(NetRole::None) {
@@ -17,19 +33,19 @@ NetData::NetData(RepPropertyList properties)
 
 void NetData::onAddToEntity(Entity* parent) {
     entity_ = parent;
-    for (auto& prop : properties_) {
+    for (auto& prop : rep_layout_.property_list_) {
         prop->onAddToEntity(*parent);
     }
 }
 
 void NetData::serialise(OutputStream& out) {
-    for (auto& prop : properties_) {
+    for (auto& prop : rep_layout_.property_list_) {
         prop->serialise(out);
     }
 }
 
 void NetData::deserialise(InputStream& in) {
-    for (auto& prop : properties_) {
+    for (auto& prop : rep_layout_.property_list_) {
         prop->deserialise(in);
     }
 }

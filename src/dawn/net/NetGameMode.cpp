@@ -68,11 +68,11 @@ void NetGameMode::eventOnJoinServer(const JoinServerEvent&) {
     clientOnJoinServer();
 }
 
-void NetGameMode::eventOnServerClientConnected(const ServerClientConnectedEvent& e) {
+void NetGameMode::eventOnServerClientConnected(const ServerClientConnectedEvent&) {
     serverOnClientConnected();
 }
 
-void NetGameMode::eventOnServerClientDisconnected(const ServerClientDisconnectedEvent& e) {
+void NetGameMode::eventOnServerClientDisconnected(const ServerClientDisconnectedEvent&) {
     serverOnClientDisconnected();
 }
 

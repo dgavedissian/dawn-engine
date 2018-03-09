@@ -14,10 +14,35 @@
 #include "net/RepProperty.h"
 #include "net/Rpc.h"
 
-namespace dw {
+namespace dw
+{
+// Replication layout.
+class DW_API RepLayout
+{
+public:
+	RepLayout() = default;
+	RepLayout(const RepPropertyList& property_list);
+	RepLayout& operator+(const RepLayout& other);
+	RepLayout& operator+=(const RepLayout& other);
+
+	template <typename... Components>
+	static RepLayout build() {
+		RepLayout combined_rep_layout;
+		auto a = {(combined_rep_layout += Components::repLayout())...};
+		(void)a;
+		return combined_rep_layout;
+	}
+
+private:
+	RepPropertyList property_list_;
+
+	friend class NetData;
+};
+
+// A component that stores network data such as replication layout and roles.
 class DW_API NetData : public Component {
 public:
-    NetData(RepPropertyList properties);
+    NetData(RepLayout layout);
     void onAddToEntity(Entity* parent);
 
     void serialise(OutputStream& out);
@@ -32,7 +57,7 @@ public:
 
 private:
     Entity* entity_;
-    RepPropertyList properties_;
+    RepLayout rep_layout_;
     Map<RpcId, SharedPtr<RpcBinding>> rpc_list_;
     RpcId rpc_allocator_;
 

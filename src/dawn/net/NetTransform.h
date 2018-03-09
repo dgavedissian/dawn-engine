@@ -59,6 +59,11 @@ template <> void write<NetTransformState>(OutputStream& s, const NetTransformSta
 class NetTransform : public Component {
 public:
     NetTransformState transform_state;
+
+	static RepLayout repLayout()
+	{
+		return {{RepProperty::bind<NetTransform>(&NetTransform::transform_state)}};
+	}
 };
 
 class NetTransformSyncSystem : public System {

@@ -531,8 +531,18 @@ void Renderer::frame() {
     }
 }
 
-Vec2i Renderer::getBackbufferSize() const {
-    return Vec2i(width_, height_);
+Vec2i Renderer::windowSize() const
+{
+	return shared_render_context_->windowSize();
+}
+
+Vec2 Renderer::windowScale() const
+{
+	return shared_render_context_->windowScale();
+}
+
+Vec2i Renderer::backbufferSize() const {
+	return shared_render_context_->backbufferSize();
 }
 
 void Renderer::submitPreFrameCommand(RenderCommand&& command) {
@@ -607,7 +617,7 @@ bool Renderer::renderFrame(Frame* frame) {
     return true;
 }
 
-uint Renderer::getBackbufferView() const {
+uint Renderer::backbufferView() const {
     for (uint view_index = 0; view_index < submit_->views.size(); ++view_index) {
         if (submit_->views[view_index].frame_buffer.internal() == 0) {
             return view_index;

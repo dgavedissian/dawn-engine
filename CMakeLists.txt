@@ -29,11 +29,11 @@ include(Utilities)
 # Platform specific stuff
 ###############################################
 
-# Fix for "error C3859: virtual memory range for PCH exceeded" with MSVC
+# Workaround for 'warning C4577: 'noexcept' used with no exception handling mode specified;
+# termination on exception is not guaranteed. Specify /EHsc'
 if(MSVC)
-    #string(REGEX REPLACE "/Zm[0-9]+ " "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm500" CACHE STRING "" FORCE)
-endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+endif(MSVC)
 
 ###############################################
 # Helpful functions

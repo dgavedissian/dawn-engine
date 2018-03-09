@@ -28,8 +28,10 @@ UserInterface::UserInterface(Context* ctx)
 
     // TODO: Resize this on screen size change.
     // TODO: Fill others settings of the io structure later.
-    imgui_io_.DisplaySize.x = renderer_->getBackbufferSize().x;
-    imgui_io_.DisplaySize.y = renderer_->getBackbufferSize().y;
+    imgui_io_.DisplaySize.x = renderer_->backbufferSize().x / renderer_->windowScale().x;
+	imgui_io_.DisplaySize.y = renderer_->backbufferSize().y / renderer_->windowScale().y;
+	imgui_io_.DisplayFramebufferScale.x = renderer_->windowScale().x;
+	imgui_io_.DisplayFramebufferScale.y = renderer_->windowScale().y;
     imgui_io_.RenderDrawListsFn = nullptr;
     imgui_io_.IniFilename = nullptr;
 
@@ -178,8 +180,8 @@ void UserInterface::render() {
                 renderer_->setStateDisable(RenderState::Depth);
                 renderer_->setScissor(static_cast<u16>(cmd->ClipRect.x),
                                       static_cast<u16>(cmd->ClipRect.y),
-                                      static_cast<u16>(cmd->ClipRect.z - cmd->ClipRect.x),
-                                      static_cast<u16>(cmd->ClipRect.w - cmd->ClipRect.y));
+                                      static_cast<u16>(cmd->ClipRect.z - cmd->ClipRect.x) * imgui_io_.DisplayFramebufferScale.x,
+                                      static_cast<u16>(cmd->ClipRect.w - cmd->ClipRect.y) * imgui_io_.DisplayFramebufferScale.y);
 
                 // Set resources.
                 renderer_->setTexture(TextureHandle{static_cast<TextureHandle::base_type>(
@@ -190,7 +192,7 @@ void UserInterface::render() {
 
                 // Draw.
                 program_->applyRendererState();
-                renderer_->submit(renderer_->getBackbufferView(), program_->internalHandle(),
+                renderer_->submit(renderer_->backbufferView(), program_->internalHandle(),
                                   cmd->ElemCount, offset);
             }
             offset += cmd->ElemCount;

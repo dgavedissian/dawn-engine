@@ -108,11 +108,14 @@ public:
     static Vec3 convertToPower(const Vec3& force, const Vec3& max_pos_force,
                                const Vec3& max_neg_force);
 
-    // Replication stuff.
-    void rep_setCurrentMovementPower(const Vec3& power);
-    void rep_setCurrentRotationalPower(const Vec3& power);
-    Vec3 currentMovementPower();
-    Vec3 currentRotationalPower();
+    // Replication layout.
+	static RepLayout repLayout()
+	{
+		return {{
+			RepProperty::bind<ShipEngines>(&ShipEngines::currentMovementPower, &ShipEngines::rep_setCurrentMovementPower),
+			RepProperty::bind<ShipEngines>(&ShipEngines::currentRotationalPower, &ShipEngines::rep_setCurrentRotationalPower)
+		}};
+	}
 
 private:
     Vector<ShipEngineData> engine_data_;
@@ -127,7 +130,13 @@ private:
     Array<Vector<ShipEngineInstance>, 3> navigation_engines_;
 
     Vec3 current_movement_power_;
-    Vec3 current_rotational_power_;
+	Vec3 current_rotational_power_;
+
+	// Private replication functions.
+	void rep_setCurrentMovementPower(const Vec3& power);
+	void rep_setCurrentRotationalPower(const Vec3& power);
+	Vec3 currentMovementPower();
+	Vec3 currentRotationalPower();
 
     friend class ShipEngineSystem;
 };

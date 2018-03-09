@@ -1,7 +1,7 @@
-#include <net/NetTransform.h>
 #include "DawnEngine.h"
 #include "scene/Transform.h"
 #include "net/NetData.h"
+#include "net/NetTransform.h"
 #include "Ship.h"
 
 using namespace dw;
@@ -511,17 +511,12 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
 
     // Networking.
     ship_entity_->addComponent<ShipControls>();
-    ship_entity_->addComponent<NetData>(
-        RepPropertyList{RepProperty::bind(&NetTransform::transform_state),
-                        RepProperty::bind(&ShipEngines::currentMovementPower,
-                                          &ShipEngines::rep_setCurrentMovementPower),
-                        RepProperty::bind(&ShipEngines::currentRotationalPower,
-                                          &ShipEngines::rep_setCurrentRotationalPower)});
+    ship_entity_->addComponent<NetData>(RepLayout::build<NetTransform, ShipEngines>());
     auto net_data = ship_entity_->component<NetData>();
     net_data->registerClientRpc(
-        Rpc::bind(&ShipControls::setLinearVelocity, &ShipControls::setLinearVelocityImpl));
+        Rpc::bind<ShipControls>(&ShipControls::setLinearVelocity, &ShipControls::setLinearVelocityImpl));
     net_data->registerClientRpc(
-        Rpc::bind(&ShipControls::setAngularVelocity, &ShipControls::setAngularVelocityImpl));
+        Rpc::bind<ShipControls>(&ShipControls::setAngularVelocity, &ShipControls::setAngularVelocityImpl));
 
     // Initialise server-side details.
     if (role >= NetRole::Authority) {
