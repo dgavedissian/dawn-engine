@@ -7,6 +7,8 @@
 #include "Component.h"
 #include "math/Defs.h"
 #include "scene/Position.h"
+#include "io/InputStream.h"
+#include "io/OutputStream.h"
 
 namespace dw {
 class Transform : public Component {
@@ -32,6 +34,7 @@ public:
 private:
     Position position_;
     Quat orientation_;
+
     bool relative_to_camera_;
     Transform* parent_;
     Vector<Transform*> children_;

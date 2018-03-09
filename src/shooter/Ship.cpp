@@ -1,3 +1,4 @@
+#include <net/NetTransform.h>
 #include "DawnEngine.h"
 #include "scene/Transform.h"
 #include "net/NetData.h"
@@ -510,12 +511,12 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
 
     // Networking.
     ship_entity_->addComponent<ShipControls>();
-    ship_entity_->addComponent<NetData>(RepPropertyList{
-        RepProperty::bind(&Transform::position), RepProperty::bind(&Transform::orientation),
-        RepProperty::bind(&ShipEngines::currentMovementPower,
-                          &ShipEngines::rep_setCurrentMovementPower),
-        RepProperty::bind(&ShipEngines::currentRotationalPower,
-                          &ShipEngines::rep_setCurrentRotationalPower)});
+    ship_entity_->addComponent<NetData>(
+        RepPropertyList{RepProperty::bind(&NetTransform::transform_state),
+                        RepProperty::bind(&ShipEngines::currentMovementPower,
+                                          &ShipEngines::rep_setCurrentMovementPower),
+                        RepProperty::bind(&ShipEngines::currentRotationalPower,
+                                          &ShipEngines::rep_setCurrentRotationalPower)});
     auto net_data = ship_entity_->component<NetData>();
     net_data->registerClientRpc(
         Rpc::bind(&ShipControls::setLinearVelocity, &ShipControls::setLinearVelocityImpl));

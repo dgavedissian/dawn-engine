@@ -74,6 +74,8 @@ set(SOURCE_FILES
     net/NetRole.h
     net/NetSystem.cpp
     net/NetSystem.h
+    net/NetTransform.cpp
+    net/NetTransform.h
     net/RepProperty.h
     net/RepProperty.i.h
     net/Rpc.cpp
