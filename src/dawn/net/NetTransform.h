@@ -37,7 +37,7 @@ struct NetTransformState {
     }
 };
 
-// TODO: Compressed
+// TODO: Compress
 namespace stream {
 template <> NetTransformState read<NetTransformState>(InputStream& s) {
     NetTransformState output;
@@ -62,7 +62,7 @@ public:
 
 	static RepLayout repLayout()
 	{
-		return {{RepProperty::bind<NetTransform>(&NetTransform::transform_state)}};
+		return {{RepProperty::bind<NetTransform>(&NetTransform::transform_state)}, {}};
 	}
 };
 

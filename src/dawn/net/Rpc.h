@@ -23,6 +23,7 @@ public:
 
 // Useful aliases.
 using RpcBindingPtr = SharedPtr<RpcBinding>;
+using RpcBindingList = Vector<RpcBindingPtr>;
 
 // RPC functor base class.
 class DW_API RpcSenderBase {

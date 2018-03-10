@@ -40,7 +40,7 @@ UserInterface::UserInterface(Context* ctx)
     int width, height;
     imgui_io_.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
     TextureHandle handle =
-        renderer_->createTexture2D(width, height, TextureFormat::RGBA8, pixels, width * height * 4);
+        renderer_->createTexture2D(static_cast<u16>(width), static_cast<u16>(height), TextureFormat::RGBA8, pixels, width * height * 4);
     imgui_io_.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(handle.internal()));
 
     // Set up key map.
@@ -137,9 +137,15 @@ void UserInterface::render() {
     ImGui::Render();
     auto draw_data = ImGui::GetDrawData();
 
+	// Give up if we have no draw surface.
+	if (imgui_io_.DisplaySize.x == 0.0f || imgui_io_.DisplaySize.y == 0.0f) {
+		ImGui::NewFrame();
+		return;
+	}
+
     // Setup projection matrix.
     Mat4 projection_matrix =
-        Mat4::OpenGLOrthoProjRH(-1.0f, 1.0f, imgui_io_.DisplaySize.x, imgui_io_.DisplaySize.y) *
+        Mat4::OpenGLOrthoProjRH(-1.0f, 1.0f, imgui_io_.DisplaySize.x , imgui_io_.DisplaySize.y) *
         Mat4::Translate(-imgui_io_.DisplaySize.x * 0.5f, imgui_io_.DisplaySize.y * 0.5f, 0.0f) *
         Mat4::Scale(1.0f, -1.0f, 1.0f);
     program_->setUniform<Mat4>("projection_matrix", projection_matrix);
@@ -178,10 +184,10 @@ void UserInterface::render() {
                                                  BlendFunc::OneMinusSrcAlpha);
                 renderer_->setStateDisable(RenderState::CullFace);
                 renderer_->setStateDisable(RenderState::Depth);
-                renderer_->setScissor(static_cast<u16>(cmd->ClipRect.x),
-                                      static_cast<u16>(cmd->ClipRect.y),
-                                      static_cast<u16>(cmd->ClipRect.z - cmd->ClipRect.x) * imgui_io_.DisplayFramebufferScale.x,
-                                      static_cast<u16>(cmd->ClipRect.w - cmd->ClipRect.y) * imgui_io_.DisplayFramebufferScale.y);
+                renderer_->setScissor(static_cast<u16>(cmd->ClipRect.x * imgui_io_.DisplayFramebufferScale.x),
+                                      static_cast<u16>(cmd->ClipRect.y * imgui_io_.DisplayFramebufferScale.y),
+                                      static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) * imgui_io_.DisplayFramebufferScale.x),
+                                      static_cast<u16>((cmd->ClipRect.w - cmd->ClipRect.y) * imgui_io_.DisplayFramebufferScale.y));
 
                 // Set resources.
                 renderer_->setTexture(TextureHandle{static_cast<TextureHandle::base_type>(
@@ -204,8 +210,8 @@ void UserInterface::render() {
     if (input) {
         // Mouse position and wheel.
         const auto& mouse_position = input->mousePosition();
-        imgui_io_.MousePos.x = mouse_position.x;
-        imgui_io_.MousePos.y = mouse_position.y;
+        imgui_io_.MousePos.x = mouse_position.x / imgui_io_.DisplayFramebufferScale.x;
+        imgui_io_.MousePos.y = mouse_position.y / imgui_io_.DisplayFramebufferScale.y;
         imgui_io_.MouseWheel = mouse_wheel_;
         mouse_wheel_ = 0.0f;
 

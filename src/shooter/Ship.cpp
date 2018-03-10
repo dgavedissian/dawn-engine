@@ -510,13 +510,9 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
     node->addChild(makeShared<RenderableNode>(sphere, Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity));
 
     // Networking.
+	ship_entity_->addComponent<NetTransform>();
     ship_entity_->addComponent<ShipControls>();
-    ship_entity_->addComponent<NetData>(RepLayout::build<NetTransform, ShipEngines>());
-    auto net_data = ship_entity_->component<NetData>();
-    net_data->registerClientRpc(
-        Rpc::bind<ShipControls>(&ShipControls::setLinearVelocity, &ShipControls::setLinearVelocityImpl));
-    net_data->registerClientRpc(
-        Rpc::bind<ShipControls>(&ShipControls::setAngularVelocity, &ShipControls::setAngularVelocityImpl));
+    ship_entity_->addComponent<NetData>(RepLayout::build<NetTransform, ShipEngines, ShipControls>());
 
     // Initialise server-side details.
     if (role >= NetRole::Authority) {

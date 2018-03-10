@@ -30,7 +30,7 @@ Vec2i NullRenderContext::windowSize() const {
 }
 
 Vec2 NullRenderContext::windowScale() const {
-	return {0.0f, 0.0f};
+	return {1.0f, 1.0f};
 }
 
 Vec2i NullRenderContext::backbufferSize() const {

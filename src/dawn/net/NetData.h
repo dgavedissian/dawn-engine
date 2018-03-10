@@ -14,15 +14,15 @@
 #include "net/RepProperty.h"
 #include "net/Rpc.h"
 
-namespace dw
-{
+namespace dw {
 // Replication layout.
 class DW_API RepLayout
 {
 public:
 	RepLayout() = default;
-	RepLayout(const RepPropertyList& property_list);
-	RepLayout& operator+(const RepLayout& other);
+	RepLayout(const RepPropertyList& property_list, const RpcBindingList& rpc_list);
+
+	RepLayout operator+(const RepLayout& other);
 	RepLayout& operator+=(const RepLayout& other);
 
 	template <typename... Components>
@@ -35,6 +35,11 @@ public:
 
 private:
 	RepPropertyList property_list_;
+    Map<RpcId, SharedPtr<RpcBinding>> rpc_map_;
+	RpcId next_rpc_id_;
+
+private:
+	void onAddToEntity(Entity& entity);
 
 	friend class NetData;
 };
@@ -48,7 +53,6 @@ public:
     void serialise(OutputStream& out);
     void deserialise(InputStream& in);
 
-    void registerClientRpc(SharedPtr<RpcBinding> rpc);
     void sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload);
     void receiveRpc(RpcId rpc_id, const Vector<u8>& payload);
 
@@ -58,8 +62,6 @@ public:
 private:
     Entity* entity_;
     RepLayout rep_layout_;
-    Map<RpcId, SharedPtr<RpcBinding>> rpc_list_;
-    RpcId rpc_allocator_;
 
     NetRole role_;
     NetRole remote_role_;
