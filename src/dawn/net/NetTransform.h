@@ -39,7 +39,7 @@ struct NetTransformState {
 
 // TODO: Compress
 namespace stream {
-template <> NetTransformState read<NetTransformState>(InputStream& s) {
+template <> inline NetTransformState read<NetTransformState>(InputStream& s) {
     NetTransformState output;
     s.read(output.position);
     s.read(output.velocity);
@@ -48,7 +48,7 @@ template <> NetTransformState read<NetTransformState>(InputStream& s) {
     return output;
 }
 
-template <> void write<NetTransformState>(OutputStream& s, const NetTransformState& state) {
+template <> inline  void write<NetTransformState>(OutputStream& s, const NetTransformState& state) {
     s.write(state.position);
     s.write(state.velocity);
     s.write(state.orientation);

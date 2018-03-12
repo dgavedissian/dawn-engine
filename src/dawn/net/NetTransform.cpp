@@ -34,12 +34,8 @@ void NetTransformSyncSystem::processEntity(Entity& entity, float dt) {
         net_state.position = current_position;
         net_state.orientation = current_orientation;
     } else {
-        // Apply velocity to position/orientation.
-        net_state.position += net_state.velocity;
-        net_state.orientation = net_state.angular_velocity * net_state.orientation;
-
         // Update transform.
-        transform.position() = net_state.position;
+        transform.position() = net_state.position + net_state.velocity * dt;
         transform.orientation() = net_state.orientation;
     }
 }

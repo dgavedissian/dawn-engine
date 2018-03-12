@@ -7,8 +7,10 @@
 
 #include "scene/Entity.h"
 #include "scene/Universe.h"
+#include "scene/SystemManager.h"
 #include "net/BitStream.h"
 #include "net/NetData.h"
+#include "net/NetTransform.h"
 
 namespace dw {
 namespace {
@@ -155,14 +157,19 @@ NetSystem::NetSystem(Context* context)
       client_connection_state_(ConnectionState::Disconnected),
       client_(nullptr),
       server_(nullptr) {
-    setDependencies<Universe>();
+    setDependencies<Universe, SystemManager>();
+
     yojimbo_logger = subsystem<Logger>();
     InitializeYojimbo();
     yojimbo_log_level(YOJIMBO_LOG_LEVEL_INFO);
     yojimbo_set_printf_function(yojimbo_printf_function);
+
+    // Set up NetTransformSyncSystem.
+    subsystem<SystemManager>()->addSystem<NetTransformSyncSystem>();
 }
 
 NetSystem::~NetSystem() {
+    subsystem<SystemManager>()->removeSystem<NetTransformSyncSystem>();
     ShutdownYojimbo();
 }
 

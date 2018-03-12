@@ -115,15 +115,6 @@ void Engine::setup(int argc, char** argv) {
     // TODO(David): bind engine services to lua?
 
     // Create the engine subsystems.
-    auto* net = context_->addSubsystem<NetSystem>();
-    if (arguments.find("-host") != arguments.end()) {
-        net->listen(std::stoi(arguments["-host"]), 32);
-    } else if (arguments.find("-join") != arguments.end()) {
-        String ip = arguments["-join"];
-        u16 port = std::stoi(arguments["-p"]);
-        net->connect(ip, port);
-    }
-
     auto* renderer = context_->addSubsystem<Renderer>();
     if (flags.find("-norenderer") == flags.end()) {
         renderer->init(RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
@@ -141,6 +132,16 @@ void Engine::setup(int argc, char** argv) {
     context_->addSubsystem<PhysicsSystem>();
     // mStarSystem = new StarSystem(mRenderer, mPhysicsWorld);
     context_->addSubsystem<GameFramework>();
+
+    auto* net = context_->addSubsystem<NetSystem>();
+    if (arguments.find("-host") != arguments.end()) {
+        net->listen(std::stoi(arguments["-host"]), 32);
+    }
+    else if (arguments.find("-join") != arguments.end()) {
+        String ip = arguments["-join"];
+        u16 port = std::stoi(arguments["-p"]);
+        net->connect(ip, port);
+    }
 
     // Set up built in entity systems.
     auto& sm = *context_->subsystem<SystemManager>();
@@ -184,6 +185,7 @@ void Engine::shutdown() {
     }
 
     // Remove subsystems.
+    context_->removeSubsystem<NetSystem>();
     context_->removeSubsystem<GameFramework>();
     context_->removeSubsystem<UserInterface>();
     context_->removeSubsystem<ResourceCache>();
