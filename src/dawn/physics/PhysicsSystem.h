@@ -6,6 +6,7 @@
 
 #include "scene/Position.h"
 #include "scene/SystemManager.h"
+#include "input/Input.h"
 
 // Bullet
 #include "physics/BulletDynamics.h"

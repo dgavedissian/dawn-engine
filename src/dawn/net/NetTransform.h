@@ -15,21 +15,28 @@ namespace dw {
 struct NetTransformState {
     Position position;
     Vec3 velocity;
+    Vec3 acceleration;
     Quat orientation;
-    Quat angular_velocity;
+    Vec3 angular_velocity;
+    Vec3 angular_acceleration;
 
     NetTransformState()
         : position(Position::origin),
           velocity(Vec3::zero),
+          acceleration(Vec3::zero),
           orientation(Quat::identity),
-          angular_velocity(Quat::identity) {
+          angular_velocity(Vec3::zero),
+          angular_acceleration(Vec3::zero) {
     }
 
     bool operator==(const NetTransformState& other) const {
         const float eps = 0.01f;
-        return position == other.position && velocity.DistanceSq(other.velocity) < 0.01f &&
+        return position == other.position &&
+               velocity.DistanceSq(other.velocity) < 0.01f &&
+               acceleration.DistanceSq(other.acceleration) < 0.01f &&
                orientation.Dot(other.orientation) > (1.0f - eps) &&
-               angular_velocity.Dot(other.angular_velocity) > (1.0f - eps);
+               angular_velocity.DistanceSq(other.angular_velocity) < 0.01f &&
+               angular_acceleration.DistanceSq(other.angular_acceleration) < 0.01f;
     }
 
     bool operator!=(const NetTransformState& other) const {
@@ -43,16 +50,20 @@ template <> inline NetTransformState read<NetTransformState>(InputStream& s) {
     NetTransformState output;
     s.read(output.position);
     s.read(output.velocity);
+    s.read(output.acceleration);
     s.read(output.orientation);
     s.read(output.angular_velocity);
+    s.read(output.angular_acceleration);
     return output;
 }
 
 template <> inline  void write<NetTransformState>(OutputStream& s, const NetTransformState& state) {
     s.write(state.position);
     s.write(state.velocity);
+    s.write(state.acceleration);
     s.write(state.orientation);
     s.write(state.angular_velocity);
+    s.write(state.angular_acceleration);
 }
 }  // namespace stream
 
