@@ -9,8 +9,8 @@ namespace dw {
 class App;
 class Camera_OLD;
 
-typedef std::function<void(float)> EngineTickCallback;
-typedef std::function<void()> EngineRenderCallback;
+typedef Function<void(float)> EngineTickCallback;
+typedef Function<void(float)> EngineRenderCallback;
 
 class DW_API Engine : public Object {
 public:

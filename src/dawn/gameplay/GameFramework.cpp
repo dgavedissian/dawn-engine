@@ -23,9 +23,11 @@ void GameFramework::setGameMode(SharedPtr<GameMode> game_mode) {
 void GameFramework::update(float dt) {
     if (game_mode_) {
         game_mode_->update(dt);
-        game_mode_->onEnd();
     }
     if (new_game_mode_) {
+		if (game_mode_) {
+			game_mode_->onEnd();
+		}
         game_mode_ = new_game_mode_;
         game_mode_->onStart();
         new_game_mode_.reset();

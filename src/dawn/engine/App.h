@@ -29,9 +29,9 @@ public:
     }
 
     virtual void init(int argc, char** argv) = 0;
-    virtual void render() {
-    }
     virtual void update(float dt) = 0;
+    virtual void render(float) {
+    }
     virtual void shutdown() = 0;
 
     virtual String gameName() = 0;

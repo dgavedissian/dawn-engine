@@ -551,7 +551,7 @@ public:
         planet_->update(dt);
     }
 
-    void render() override {
+    void render(float) override {
         subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
 
         // Calculate average FPS.

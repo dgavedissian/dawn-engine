@@ -18,7 +18,7 @@ int runApp(UniquePtr<App> app, int argc, char** argv) {
     app->context_ = engine.context();
     app->engine_ = &engine;
     app->init(argc, argv);
-    engine.run([&app](float dt) { app->update(dt); }, [&app] { app->render(); });
+    engine.run([&app](float dt) { app->update(dt); }, [&app](float interpolation) { app->render(interpolation); });
     app->shutdown();
     app.reset();
 

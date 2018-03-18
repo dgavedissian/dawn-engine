@@ -198,44 +198,35 @@ void Engine::shutdown() {
 }
 
 void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_callback) {
-    // TODO(David) stub
-    Camera_OLD* main_camera = nullptr;
-
     // Initialise the ECS dependency graph.
     context_->subsystem<SystemManager>()->beginMainLoop();
 
     // Start the main loop.
-    const float dt = 1.0f / 60.0f;
+	float time_per_update = 1.0f / 60.0f;
     time::TimePoint previous_time = time::beginTiming();
-    double accumulator = 0.0;
-    bool fixed_game_logic_update = false;
-    frame_time_ = dt;
-    while (running_) {
+    double accumulated_time = 0.0;
+	while (running_)
+	{
+		time::TimePoint current_time = time::beginTiming();
+		frame_time_ = time::elapsed(previous_time, current_time);
+		previous_time = current_time;
+		accumulated_time += frame_time_;
+
         // Update game logic.
-        if (fixed_game_logic_update) {
-            while (accumulator >= dt) {
-                update(dt);
-                tick_callback(dt);
-                accumulator -= dt;
-            }
-        } else {
-            tick_callback(frame_time_);
-            update(frame_time_);
-        }
+		while (accumulated_time >= time_per_update)
+		{
+			update(time_per_update);
+			tick_callback(time_per_update);
+			accumulated_time -= time_per_update;
+		}
 
         // Render a frame.
-        preRender(main_camera);
-        render_callback();
+		float interpolation = accumulated_time / time_per_update;
+        preRender(nullptr);
+		context_->subsystem<SystemManager>()->getSystem<EntityRenderer>()->render(interpolation);
+        render_callback(interpolation);
         postRender();
         context_->subsystem<Renderer>()->frame();
-
-        // Calculate frameTime.
-        time::TimePoint current_time = time::beginTiming();
-        frame_time_ = time::elapsed(previous_time, current_time);
-        if (fixed_game_logic_update) {
-            accumulator += frame_time_;
-        }
-        previous_time = current_time;
     }
 
     context_->subsystem<GameFramework>()->setGameMode(nullptr);
@@ -362,14 +353,26 @@ String Engine::basePath() const {
 
 void Engine::update(float dt) {
     // log().debug("Frame Time: %f", dt);
+
+	// Receive network packets.
     context_->subsystem<NetSystem>()->update(dt);
 
-    context_->subsystem<EventSystem>()->update(0.02f);
-    context_->subsystem<GameFramework>()->update(dt);
-    context_->subsystem<Universe>()->update(dt);
-    context_->subsystem<PhysicsSystem>()->update(dt, nullptr);
+	// Trigger events.
+    context_->subsystem<EventSystem>()->update(dt);
 
+	// Tick the current universe. (currently no-op).
+    context_->subsystem<Universe>()->update(dt);
+
+	// Tick the physics simulation.
+	context_->subsystem<PhysicsSystem>()->update(dt, nullptr);
+
+	// Tick the current game mode.
+	context_->subsystem<GameFramework>()->update(dt);
+
+	// Update gameplay systems.
     context_->subsystem<SystemManager>()->update(dt);
+
+	// Update user interface.
     context_->subsystem<UserInterface>()->update(dt);
 }
 

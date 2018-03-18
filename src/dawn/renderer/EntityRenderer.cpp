@@ -7,6 +7,7 @@
 #include "renderer/Renderable.h"
 #include "scene/SystemManager.h"
 #include "scene/Transform.h"
+#include "physics/PhysicsSystem.h"
 
 namespace dw {
 namespace {
@@ -32,29 +33,48 @@ Mat4 deriveTransform(Transform* transform, Transform* camera,
 }  // namespace
 
 EntityRenderer::EntityRenderer(Context* context) : System{context} {
-    supportsComponents<RenderableComponent, Transform>();
+	supportsComponents<RenderableComponent, Transform>();
+	executesAfter<EntityRenderer::CameraEntitySystem>();
     camera_entity_system_ = subsystem<SystemManager>()->addSystem<CameraEntitySystem>();
 }
 
 void EntityRenderer::beginProcessing() {
     world_transform_cache_.clear();
+	render_operations_.clear();
 }
 
 void EntityRenderer::processEntity(Entity& entity, float) {
-    auto renderable = entity.component<RenderableComponent>();
     for (auto camera : camera_entity_system_->cameras) {
-        Mat4 model =
-            deriveTransform(entity.transform(), camera.transform_component, world_transform_cache_);
-        Mat4 view = camera.transform_component->modelMatrix(Position::origin).Inverted();
-        renderable->node->drawSceneGraph(subsystem<Renderer>(), camera.view,
-                                         camera.transform_component, model,
-                                         camera.projection_matrix * view);
+		Mat4 view = camera.transform_component->modelMatrix(Position::origin).Inverted();
+		Mat4 model =
+			deriveTransform(entity.transform(), camera.transform_component, world_transform_cache_);
+		render_operations_.push_back([this, &entity, camera, model, view](float interpolation)
+		{
+			auto* renderable = entity.component<RenderableComponent>();
+			auto* rigid_body = entity.component<RigidBody>();
+			if (rigid_body)
+			{
+				// Apply velocity to model matrix.
+				Vec3 velocity = rigid_body->_rigidBody()->getLinearVelocity() * interpolation;
+				model.Translate(velocity * model.RotatePart());
+			}
+			renderable->node->drawSceneGraph(subsystem<Renderer>(), camera.view,
+				camera.transform_component, model,
+				camera.projection_matrix * view);
+		});
     }
+}
+
+void EntityRenderer::render(float interpolation)
+{
+	for (auto& op : render_operations_)
+	{
+		op(interpolation);
+	}
 }
 
 EntityRenderer::CameraEntitySystem::CameraEntitySystem(Context* context) : System{context} {
     supportsComponents<Camera, Transform>();
-    executesAfter<EntityRenderer>();
 }
 
 void EntityRenderer::CameraEntitySystem::beginProcessing() {

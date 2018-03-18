@@ -45,6 +45,7 @@ void NetTransformSyncSystem::processEntity(Entity& entity, float dt) {
         net_state.position = current_position;
         net_state.orientation = current_orientation;
     } else {
+		/*
         // Update transform and integrate velocities.
         transform.position() = net_state.position + net_state.velocity * dt + 0.5f * net_state.acceleration * dt * dt;
         // TODO: Combine the next 6 lines into one line once operator+ is implemented properly.
@@ -57,6 +58,9 @@ void NetTransformSyncSystem::processEntity(Entity& entity, float dt) {
         new_orientation.w += dt * 0.5f * integrated_delta_rotation.w;
         new_orientation.Normalize();
         transform.orientation() = new_orientation;
+		*/
+		transform.position() = net_state.position;
+		transform.orientation() = net_state.orientation;
     }
 }
 }  // namespace dw

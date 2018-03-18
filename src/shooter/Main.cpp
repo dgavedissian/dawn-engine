@@ -97,7 +97,7 @@ public:
                            ->createEntity(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
                            .addComponent<Camera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
-        camera_controller->possess(&camera);
+		camera_controller->possess(&camera);
     }
 
     void onEnd() override {
@@ -138,7 +138,7 @@ public:
     void update(float dt) override {
     }
 
-    void render() override {
+    void render(float) override {
         subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
 
         // Calculate average FPS.

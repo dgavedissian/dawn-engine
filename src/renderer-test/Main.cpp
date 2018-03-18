@@ -18,7 +18,7 @@ public:
         example_->start();
     }
 
-    void render() override {
+    void render(float) override {
         // Store FPS history.
         float current_fps = static_cast<float>(1.0 / engine_->frameTime());
         static const int FPS_HISTORY_COUNT = 100;
