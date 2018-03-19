@@ -228,8 +228,8 @@ void NetSystem::disconnect() {
 }
 
 void NetSystem::update(float dt) {
-    static double time_since_last_replication = 0.0;
-    const double replication_time = 1.0 / 20.0;  // 1 / replication rate in Hz
+    //static double time_since_last_replication = 0.0;
+    //const double replication_time = 1.0 / 20.0;  // 1 / replication rate in Hz
     time_ += dt;
     if (server_) {
         server_->SendPackets();
@@ -289,19 +289,14 @@ void NetSystem::update(float dt) {
         }
 
         // Send replicated updates.
-        if (time_since_last_replication >= replication_time) {
-            time_since_last_replication = 0.0;
-            auto& em = *subsystem<Universe>();
-            for (auto id : replicated_entities_) {
-                Entity& entity = *em.findEntity(id);
-                OutputBitStream properties;
-                entity.component<NetData>()->serialise(properties);
-                for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
-                    sendServerPropertyReplication(i, entity, properties);
-                }
+        auto& em = *subsystem<Universe>();
+        for (auto id : replicated_entities_) {
+            Entity& entity = *em.findEntity(id);
+            OutputBitStream properties;
+            entity.component<NetData>()->serialise(properties);
+            for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
+                sendServerPropertyReplication(i, entity, properties);
             }
-        } else {
-            time_since_last_replication += dt;
         }
 
         server_->AdvanceTime(time_);

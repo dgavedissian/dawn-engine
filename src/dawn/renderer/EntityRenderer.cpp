@@ -75,6 +75,7 @@ void EntityRenderer::render(float interpolation)
 
 EntityRenderer::CameraEntitySystem::CameraEntitySystem(Context* context) : System{context} {
     supportsComponents<Camera, Transform>();
+	executesAfter<PhysicsSystem::PhysicsComponentSystem>();
 }
 
 void EntityRenderer::CameraEntitySystem::beginProcessing() {

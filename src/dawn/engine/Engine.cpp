@@ -215,8 +215,10 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         // Update game logic.
 		while (accumulated_time >= time_per_update)
 		{
+			context_->subsystem<UserInterface>()->beginTick();
 			update(time_per_update);
 			tick_callback(time_per_update);
+			context_->subsystem<UserInterface>()->endTick();
 			accumulated_time -= time_per_update;
 		}
 

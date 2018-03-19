@@ -40,6 +40,15 @@ public:
     bool rayQuery(const Position& start, const Position& end, Camera_OLD* camera,
                   PhysicsRaycastResult& result);
 
+    // System for updating RigidBody components.
+    class PhysicsComponentSystem : public System {
+    public:
+        DW_OBJECT(PhysicsComponentSystem);
+
+        PhysicsComponentSystem(Context* context);
+        void processEntity(Entity& entity, float dt) override;
+    };
+
 private:
     SharedPtr<btBroadphaseInterface> broadphase_;
     SharedPtr<btCollisionConfiguration> collision_config_;
@@ -54,18 +63,9 @@ private:
     void addRigidBody(btRigidBody* rigid_body);
     void removeRigidBody(btRigidBody* rigid_body);
 
-    static void onPhysicsTick(btDynamicsWorld* world, btScalar timestep);
+	static void onPhysicsTick(btDynamicsWorld* world, btScalar timestep);
 
-    // System for updating RigidBody components.
-    class PhysicsComponentSystem : public System {
-    public:
-        DW_OBJECT(PhysicsComponentSystem);
-
-        PhysicsComponentSystem(Context* context);
-        void processEntity(Entity& entity, float dt) override;
-    };
-
-    friend class RigidBody;
+	friend class RigidBody;
 };
 
 class RigidBody : public Component {
