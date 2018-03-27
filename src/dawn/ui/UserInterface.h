@@ -40,6 +40,7 @@ private:
     bool mouse_pressed_[MouseButton::Count];
 
 	void forAllContexts(Function<void(ImGuiIO& io)> functor);
+    void drawGUI(ImDrawData* draw_data, ImGuiIO& io);
 
     // Callback handlers.
     void onKey(const KeyEvent& state);

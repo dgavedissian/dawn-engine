@@ -10,6 +10,7 @@
 #include "scene/Position.h"
 #include "io/InputStream.h"
 #include "io/OutputStream.h"
+#include "net/NetData.h"
 
 namespace dw {
 struct NetTransformState {

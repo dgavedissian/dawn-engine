@@ -28,10 +28,11 @@ RenderableNode::RenderableNode(SharedPtr<Renderable> renderable)
 }
 
 RenderableNode::RenderableNode(SharedPtr<Renderable> renderable, const Vec3& position,
-                               const Quat& orientation)
+                               const Quat& orientation, const Vec3& scale)
     : RenderableNode(renderable) {
     setPosition(position);
     setOrientation(orientation);
+    setScale(scale);
 }
 
 RenderableNode::~RenderableNode() {
@@ -43,6 +44,11 @@ void RenderableNode::setPosition(const Vec3& position) {
 
 void RenderableNode::setOrientation(const Quat& orientation) {
     local_offset_.Set3x3Part(Mat3{orientation});
+}
+
+void RenderableNode::setScale(const Vec3& scale)
+{
+    // TODO.
 }
 
 void RenderableNode::addChild(SharedPtr<Renderable> renderable) {

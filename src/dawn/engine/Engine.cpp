@@ -379,9 +379,11 @@ void Engine::update(float dt) {
 }
 
 void Engine::preRender(Camera_OLD*) {
+    context_->subsystem<UserInterface>()->preRender();
 }
 
 void Engine::postRender() {
+    context_->subsystem<UserInterface>()->postRender();
     context_->subsystem<UserInterface>()->render();
 }
 

@@ -8,6 +8,7 @@
 #include "scene/SystemManager.h"
 #include "scene/Transform.h"
 #include "physics/PhysicsSystem.h"
+#include "net/NetTransform.h"
 
 namespace dw {
 namespace {
@@ -34,7 +35,7 @@ Mat4 deriveTransform(Transform* transform, Transform* camera,
 
 EntityRenderer::EntityRenderer(Context* context) : System{context} {
 	supportsComponents<RenderableComponent, Transform>();
-	executesAfter<EntityRenderer::CameraEntitySystem>();
+	executesAfter<CameraEntitySystem, NetTransformSyncSystem>();
     camera_entity_system_ = subsystem<SystemManager>()->addSystem<CameraEntitySystem>();
 }
 

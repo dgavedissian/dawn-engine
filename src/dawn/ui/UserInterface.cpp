@@ -162,19 +162,60 @@ void UserInterface::update(float dt) {
 }
 
 void UserInterface::render() {
-    // Generate ImGui render buffers and draw.
-    ImDrawData* draw_data = ImGui::GetDrawData();
+    ImGui::SetCurrentContext(logic_context_);
+    drawGUI(ImGui::GetDrawData(), *logic_io_);
+    ImGui::SetCurrentContext(renderer_context_);
+    drawGUI(ImGui::GetDrawData(), *renderer_io_);
 
-	// Give up if we have no draw surface.
-	if (logic_io_->DisplaySize.x == 0.0f || logic_io_->DisplaySize.y == 0.0f) {
-		ImGui::NewFrame();
-		return;
-	}
+    // Read input state and pass to imgui.
+    auto input = subsystem<Input>();
+    if (input) {
+        // Update mouse button state and reset.
+        bool left_state = mouse_pressed_[MouseButton::Left] || input->isMouseButtonDown(MouseButton::Left);
+        bool right_state = mouse_pressed_[MouseButton::Right] || input->isMouseButtonDown(MouseButton::Right);
+        bool middle_state = mouse_pressed_[MouseButton::Middle] || input->isMouseButtonDown(MouseButton::Middle);
+        for (bool& state : mouse_pressed_) {
+            state = false;
+        }
+
+        // Apply data to ImGui
+        forAllContexts([this, input, left_state, right_state, middle_state](ImGuiIO& io) {
+            // Mouse position and wheel.
+            const auto& mouse_position = input->mousePosition();
+            io.MousePos.x = mouse_position.x / io.DisplayFramebufferScale.x;
+            io.MousePos.y = mouse_position.y / io.DisplayFramebufferScale.y;
+            io.MouseWheel = mouse_wheel_;
+            mouse_wheel_ = 0.0f;
+
+            io.MouseDown[0] = left_state;
+            io.MouseDown[1] = right_state;
+            io.MouseDown[2] = middle_state;
+        });
+    }
+}
+
+void UserInterface::forAllContexts(Function<void(ImGuiIO& io)> functor)
+{
+	functor(*logic_io_);
+	functor(*renderer_io_);
+}
+
+void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io)
+{
+    if (!draw_data)
+    {
+        return;
+    }
+
+    // Give up if we have no draw surface.
+    if (io.DisplaySize.x == 0.0f || io.DisplaySize.y == 0.0f) {
+        return;
+    }
 
     // Setup projection matrix.
     Mat4 projection_matrix =
-        Mat4::OpenGLOrthoProjRH(-1.0f, 1.0f, imgui_io_.DisplaySize.x , imgui_io_.DisplaySize.y) *
-        Mat4::Translate(-imgui_io_.DisplaySize.x * 0.5f, imgui_io_.DisplaySize.y * 0.5f, 0.0f) *
+        Mat4::OpenGLOrthoProjRH(-1.0f, 1.0f, io.DisplaySize.x, io.DisplaySize.y) *
+        Mat4::Translate(-io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f, 0.0f) *
         Mat4::Scale(1.0f, -1.0f, 1.0f);
     program_->setUniform<Mat4>("projection_matrix", projection_matrix);
 
@@ -195,9 +236,9 @@ void UserInterface::render() {
             continue;
         }
         memcpy(renderer_->getTransientVertexBufferData(tvb), vtx_buffer.Data,
-               vtx_buffer.Size * sizeof(ImDrawVert));
+            vtx_buffer.Size * sizeof(ImDrawVert));
         memcpy(renderer_->getTransientIndexBufferData(tib), idx_buffer.Data,
-               idx_buffer.Size * sizeof(ImDrawIdx));
+            idx_buffer.Size * sizeof(ImDrawIdx));
 
         // Execute draw commands.
         uint offset = 0;
@@ -205,61 +246,34 @@ void UserInterface::render() {
             const ImDrawCmd* cmd = &cmd_list->CmdBuffer[cmd_i];
             if (cmd->UserCallback) {
                 cmd->UserCallback(cmd_list, cmd);
-            } else {
+            }
+            else {
                 // Set render state.
                 renderer_->setStateEnable(RenderState::Blending);
                 renderer_->setStateBlendEquation(BlendEquation::Add, BlendFunc::SrcAlpha,
-                                                 BlendFunc::OneMinusSrcAlpha);
+                    BlendFunc::OneMinusSrcAlpha);
                 renderer_->setStateDisable(RenderState::CullFace);
                 renderer_->setStateDisable(RenderState::Depth);
-                renderer_->setScissor(static_cast<u16>(cmd->ClipRect.x * imgui_io_.DisplayFramebufferScale.x),
-                                      static_cast<u16>(cmd->ClipRect.y * imgui_io_.DisplayFramebufferScale.y),
-                                      static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) * imgui_io_.DisplayFramebufferScale.x),
-                                      static_cast<u16>((cmd->ClipRect.w - cmd->ClipRect.y) * imgui_io_.DisplayFramebufferScale.y));
+                renderer_->setScissor(static_cast<u16>(cmd->ClipRect.x * io.DisplayFramebufferScale.x),
+                    static_cast<u16>(cmd->ClipRect.y * io.DisplayFramebufferScale.y),
+                    static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) * io.DisplayFramebufferScale.x),
+                    static_cast<u16>((cmd->ClipRect.w - cmd->ClipRect.y) * io.DisplayFramebufferScale.y));
 
                 // Set resources.
-                renderer_->setTexture(TextureHandle{static_cast<TextureHandle::base_type>(
-                                          reinterpret_cast<uintptr>(cmd->TextureId))},
-                                      0);
+                renderer_->setTexture(TextureHandle{ static_cast<TextureHandle::base_type>(
+                    reinterpret_cast<uintptr>(cmd->TextureId)) },
+                    0);
                 renderer_->setVertexBuffer(tvb);
                 renderer_->setIndexBuffer(tib);
 
                 // Draw.
                 program_->applyRendererState();
                 renderer_->submit(renderer_->backbufferView(), program_->internalHandle(),
-                                  cmd->ElemCount, offset);
+                    cmd->ElemCount, offset);
             }
             offset += cmd->ElemCount;
         }
     }
-
-    // Read input state and pass to imgui.
-    auto input = subsystem<Input>();
-    if (input) {
-        // Mouse position and wheel.
-        const auto& mouse_position = input->mousePosition();
-        imgui_io_.MousePos.x = mouse_position.x / imgui_io_.DisplayFramebufferScale.x;
-        imgui_io_.MousePos.y = mouse_position.y / imgui_io_.DisplayFramebufferScale.y;
-        imgui_io_.MouseWheel = mouse_wheel_;
-        mouse_wheel_ = 0.0f;
-
-        // Pass mouse button state and reset.
-        imgui_io_.MouseDown[0] =
-            mouse_pressed_[MouseButton::Left] || input->isMouseButtonDown(MouseButton::Left);
-        imgui_io_.MouseDown[1] =
-            mouse_pressed_[MouseButton::Right] || input->isMouseButtonDown(MouseButton::Right);
-        imgui_io_.MouseDown[2] =
-            mouse_pressed_[MouseButton::Middle] || input->isMouseButtonDown(MouseButton::Middle);
-        for (bool& state : mouse_pressed_) {
-            state = false;
-        }
-    }
-}
-
-void UserInterface::forAllContexts(Function<void(ImGuiIO& io)> functor)
-{
-	functor(*logic_io_);
-	functor(*renderer_io_);
 }
 
 void UserInterface::onKey(const KeyEvent& state) {
