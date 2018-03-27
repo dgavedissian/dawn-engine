@@ -136,8 +136,7 @@ void Engine::setup(int argc, char** argv) {
     auto* net = context_->addSubsystem<NetSystem>();
     if (arguments.find("-host") != arguments.end()) {
         net->listen(std::stoi(arguments["-host"]), 32);
-    }
-    else if (arguments.find("-join") != arguments.end()) {
+    } else if (arguments.find("-join") != arguments.end()) {
         String ip = arguments["-join"];
         u16 port = std::stoi(arguments["-p"]);
         net->connect(ip, port);
@@ -202,30 +201,28 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
     context_->subsystem<SystemManager>()->beginMainLoop();
 
     // Start the main loop.
-	float time_per_update = 1.0f / 60.0f;
+    float time_per_update = 1.0f / 60.0f;
     time::TimePoint previous_time = time::beginTiming();
     double accumulated_time = 0.0;
-	while (running_)
-	{
-		time::TimePoint current_time = time::beginTiming();
-		frame_time_ = time::elapsed(previous_time, current_time);
-		previous_time = current_time;
-		accumulated_time += frame_time_;
+    while (running_) {
+        time::TimePoint current_time = time::beginTiming();
+        frame_time_ = time::elapsed(previous_time, current_time);
+        previous_time = current_time;
+        accumulated_time += frame_time_;
 
         // Update game logic.
-		while (accumulated_time >= time_per_update)
-		{
-			context_->subsystem<UserInterface>()->beginTick();
-			update(time_per_update);
-			tick_callback(time_per_update);
-			context_->subsystem<UserInterface>()->endTick();
-			accumulated_time -= time_per_update;
-		}
+        while (accumulated_time >= time_per_update) {
+            context_->subsystem<UserInterface>()->beginTick();
+            update(time_per_update);
+            tick_callback(time_per_update);
+            context_->subsystem<UserInterface>()->endTick();
+            accumulated_time -= time_per_update;
+        }
 
         // Render a frame.
-		float interpolation = accumulated_time / time_per_update;
+        float interpolation = accumulated_time / time_per_update;
         preRender(nullptr);
-		context_->subsystem<SystemManager>()->getSystem<EntityRenderer>()->render(interpolation);
+        context_->subsystem<SystemManager>()->getSystem<EntityRenderer>()->render(interpolation);
         render_callback(interpolation);
         postRender();
         context_->subsystem<Renderer>()->frame();
@@ -356,25 +353,25 @@ String Engine::basePath() const {
 void Engine::update(float dt) {
     // log().debug("Frame Time: %f", dt);
 
-	// Receive network packets.
+    // Receive network packets.
     context_->subsystem<NetSystem>()->update(dt);
 
-	// Trigger events.
+    // Trigger events.
     context_->subsystem<EventSystem>()->update(dt);
 
-	// Tick the current universe. (currently no-op).
+    // Tick the current universe. (currently no-op).
     context_->subsystem<Universe>()->update(dt);
 
-	// Tick the physics simulation.
-	context_->subsystem<PhysicsSystem>()->update(dt, nullptr);
+    // Tick the physics simulation.
+    context_->subsystem<PhysicsSystem>()->update(dt, nullptr);
 
-	// Tick the current game mode.
-	context_->subsystem<GameFramework>()->update(dt);
+    // Tick the current game mode.
+    context_->subsystem<GameFramework>()->update(dt);
 
-	// Update gameplay systems.
+    // Update gameplay systems.
     context_->subsystem<SystemManager>()->update(dt);
 
-	// Update user interface.
+    // Update user interface.
     context_->subsystem<UserInterface>()->update(dt);
 }
 

@@ -43,11 +43,17 @@ endif()
 # existence of the path. Therefore, we create the path beforehand.
 
 # Assimp
+if(WIN32)
+    set(ASSIMP_PATCH_COMMAND)
+else()
+    set(ASSIMP_PATCH_COMMAND sed -e "/use_pkgconfig(UNZIP minizip)/s/^/#/g" -i CMakeLists.txt)
+endif()
 ExternalProject_Add(Assimp_Build
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/assimp/assimp/archive/6b4e3177e836dfb05c7eb5e3347b15a9916eebe7.zip
     URL_MD5 f7bb45ebbccdde3997be22e61fdb242b
+    PATCH_COMMAND ${ASSIMP_PATCH_COMMAND}
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DASSIMP_BUILD_ASSIMP_TOOLS=0

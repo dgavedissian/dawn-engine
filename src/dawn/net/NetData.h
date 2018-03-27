@@ -16,32 +16,30 @@
 
 namespace dw {
 // Replication layout.
-class DW_API RepLayout
-{
+class DW_API RepLayout {
 public:
-	RepLayout() = default;
-	RepLayout(const RepPropertyList& property_list, const RpcBindingList& rpc_list);
+    RepLayout() = default;
+    RepLayout(const RepPropertyList& property_list, const RpcBindingList& rpc_list);
 
-	RepLayout operator+(const RepLayout& other);
-	RepLayout& operator+=(const RepLayout& other);
+    RepLayout operator+(const RepLayout& other);
+    RepLayout& operator+=(const RepLayout& other);
 
-	template <typename... Components>
-	static RepLayout build() {
-		RepLayout combined_rep_layout;
-		auto a = {(combined_rep_layout += Components::repLayout())...};
-		(void)a;
-		return combined_rep_layout;
-	}
+    template <typename... Components> static RepLayout build() {
+        RepLayout combined_rep_layout;
+        auto a = {(combined_rep_layout += Components::repLayout())...};
+        (void)a;
+        return combined_rep_layout;
+    }
 
 private:
-	RepPropertyList property_list_;
+    RepPropertyList property_list_;
     Map<RpcId, SharedPtr<RpcBinding>> rpc_map_;
-	RpcId next_rpc_id_;
+    RpcId next_rpc_id_;
 
 private:
-	void onAddToEntity(Entity& entity);
+    void onAddToEntity(Entity& entity);
 
-	friend class NetData;
+    friend class NetData;
 };
 
 // A component that stores network data such as replication layout and roles.

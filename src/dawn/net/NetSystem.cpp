@@ -228,8 +228,8 @@ void NetSystem::disconnect() {
 }
 
 void NetSystem::update(float dt) {
-    //static double time_since_last_replication = 0.0;
-    //const double replication_time = 1.0 / 20.0;  // 1 / replication rate in Hz
+    // static double time_since_last_replication = 0.0;
+    // const double replication_time = 1.0 / 20.0;  // 1 / replication rate in Hz
     time_ += dt;
     if (server_) {
         server_->SendPackets();

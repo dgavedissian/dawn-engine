@@ -63,9 +63,9 @@ private:
     void addRigidBody(btRigidBody* rigid_body);
     void removeRigidBody(btRigidBody* rigid_body);
 
-	static void onPhysicsTick(btDynamicsWorld* world, btScalar timestep);
+    static void onPhysicsTick(btDynamicsWorld* world, btScalar timestep);
 
-	friend class RigidBody;
+    friend class RigidBody;
 };
 
 class RigidBody : public Component {

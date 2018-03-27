@@ -16,10 +16,10 @@ public:
     UserInterface(Context* ctx);
     ~UserInterface();
 
-	void beginTick();
-	void endTick();
-	void preRender();
-	void postRender();
+    void beginTick();
+    void endTick();
+    void preRender();
+    void postRender();
 
     void update(float dt);
     void render();
@@ -28,18 +28,18 @@ private:
     Renderer* renderer_;
 
     // ImGui.
-	ImGuiContext* logic_context_;
-	ImGuiContext* renderer_context_;
-	ImGuiIO* logic_io_;
-	ImGuiIO* renderer_io_;
+    ImGuiContext* logic_context_;
+    ImGuiContext* renderer_context_;
+    ImGuiIO* logic_io_;
+    ImGuiIO* renderer_io_;
     SharedPtr<Program> program_;
     VertexDecl vertex_decl_;
 
     // Input.
-	float mouse_wheel_;
+    float mouse_wheel_;
     bool mouse_pressed_[MouseButton::Count];
 
-	void forAllContexts(Function<void(ImGuiIO& io)> functor);
+    void forAllContexts(Function<void(ImGuiIO& io)> functor);
     void drawGUI(ImDrawData* draw_data, ImGuiIO& io);
 
     // Callback handlers.

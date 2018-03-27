@@ -11,66 +11,65 @@
 static_assert(sizeof(ImDrawIdx) == sizeof(dw::u16), "Only 16-bit ImGUI indices are supported.");
 
 namespace dw {
-UserInterface::UserInterface(Context* ctx)
-    : Subsystem(ctx),
-      mouse_wheel_(0.0f) {
+UserInterface::UserInterface(Context* ctx) : Subsystem(ctx), mouse_wheel_(0.0f) {
     setDependencies<Renderer>();
     setOptionalDependencies<Input>();
 
-	logic_context_ = ImGui::CreateContext(malloc, free);
-	renderer_context_ = ImGui::CreateContext(malloc, free);
+    logic_context_ = ImGui::CreateContext(malloc, free);
+    renderer_context_ = ImGui::CreateContext(malloc, free);
 
-	ImGui::SetCurrentContext(logic_context_);
-	logic_io_ = &ImGui::GetIO();
-	ImGui::SetCurrentContext(renderer_context_);
-	renderer_io_ = &ImGui::GetIO();
+    ImGui::SetCurrentContext(logic_context_);
+    logic_io_ = &ImGui::GetIO();
+    ImGui::SetCurrentContext(renderer_context_);
+    renderer_io_ = &ImGui::GetIO();
 
     renderer_ = subsystem<Renderer>();
 
     // Initialise mouse state.
     for (bool& state : mouse_pressed_) {
         state = false;
-	}
+    }
 
-	forAllContexts([this](ImGuiIO& io) {
-		// TODO: Resize this on screen size change.
-		// TODO: Fill others settings of the io structure later.
-		io.DisplaySize.x = renderer_->backbufferSize().x / renderer_->windowScale().x;
-		io.DisplaySize.y = renderer_->backbufferSize().y / renderer_->windowScale().y;
-		io.DisplayFramebufferScale.x = renderer_->windowScale().x;
-		io.DisplayFramebufferScale.y = renderer_->windowScale().y;
-		io.RenderDrawListsFn = nullptr;
-		io.IniFilename = nullptr;
+    forAllContexts([this](ImGuiIO& io) {
+        // TODO: Resize this on screen size change.
+        // TODO: Fill others settings of the io structure later.
+        io.DisplaySize.x = renderer_->backbufferSize().x / renderer_->windowScale().x;
+        io.DisplaySize.y = renderer_->backbufferSize().y / renderer_->windowScale().y;
+        io.DisplayFramebufferScale.x = renderer_->windowScale().x;
+        io.DisplayFramebufferScale.y = renderer_->windowScale().y;
+        io.RenderDrawListsFn = nullptr;
+        io.IniFilename = nullptr;
 
-		// Load font texture atlas.
-		unsigned char* pixels;
-		int width, height;
-		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-		TextureHandle handle =
-			renderer_->createTexture2D(static_cast<u16>(width), static_cast<u16>(height), TextureFormat::RGBA8, pixels, width * height * 4);
-		io.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(handle.internal()));
+        // Load font texture atlas.
+        unsigned char* pixels;
+        int width, height;
+        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+        TextureHandle handle =
+            renderer_->createTexture2D(static_cast<u16>(width), static_cast<u16>(height),
+                                       TextureFormat::RGBA8, pixels, width * height * 4);
+        io.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(handle.internal()));
 
-		// Set up key map.
-		io.KeyMap[ImGuiKey_Tab] = Key::Tab;
-		io.KeyMap[ImGuiKey_LeftArrow] = Key::Left;
-		io.KeyMap[ImGuiKey_RightArrow] = Key::Right;
-		io.KeyMap[ImGuiKey_UpArrow] = Key::Up;
-		io.KeyMap[ImGuiKey_DownArrow] = Key::Down;
-		io.KeyMap[ImGuiKey_PageUp] = Key::PageUp;
-		io.KeyMap[ImGuiKey_PageDown] = Key::PageDown;
-		io.KeyMap[ImGuiKey_Home] = Key::Home;
-		io.KeyMap[ImGuiKey_End] = Key::End;
-		io.KeyMap[ImGuiKey_Delete] = Key::Delete;
-		io.KeyMap[ImGuiKey_Backspace] = Key::Backspace;
-		io.KeyMap[ImGuiKey_Enter] = Key::Enter;
-		io.KeyMap[ImGuiKey_Escape] = Key::Escape;
-		io.KeyMap[ImGuiKey_A] = Key::A;
-		io.KeyMap[ImGuiKey_C] = Key::C;
-		io.KeyMap[ImGuiKey_V] = Key::V;
-		io.KeyMap[ImGuiKey_X] = Key::X;
-		io.KeyMap[ImGuiKey_Y] = Key::Y;
-		io.KeyMap[ImGuiKey_Z] = Key::Z;
-	});
+        // Set up key map.
+        io.KeyMap[ImGuiKey_Tab] = Key::Tab;
+        io.KeyMap[ImGuiKey_LeftArrow] = Key::Left;
+        io.KeyMap[ImGuiKey_RightArrow] = Key::Right;
+        io.KeyMap[ImGuiKey_UpArrow] = Key::Up;
+        io.KeyMap[ImGuiKey_DownArrow] = Key::Down;
+        io.KeyMap[ImGuiKey_PageUp] = Key::PageUp;
+        io.KeyMap[ImGuiKey_PageDown] = Key::PageDown;
+        io.KeyMap[ImGuiKey_Home] = Key::Home;
+        io.KeyMap[ImGuiKey_End] = Key::End;
+        io.KeyMap[ImGuiKey_Delete] = Key::Delete;
+        io.KeyMap[ImGuiKey_Backspace] = Key::Backspace;
+        io.KeyMap[ImGuiKey_Enter] = Key::Enter;
+        io.KeyMap[ImGuiKey_Escape] = Key::Escape;
+        io.KeyMap[ImGuiKey_A] = Key::A;
+        io.KeyMap[ImGuiKey_C] = Key::C;
+        io.KeyMap[ImGuiKey_V] = Key::V;
+        io.KeyMap[ImGuiKey_X] = Key::X;
+        io.KeyMap[ImGuiKey_Y] = Key::Y;
+        io.KeyMap[ImGuiKey_Z] = Key::Z;
+    });
 
     // Set up renderer resources.
     vertex_decl_.begin()
@@ -133,32 +132,26 @@ UserInterface::~UserInterface() {
     removeEventListener<MouseScrollEvent>(makeEventDelegate(this, &UserInterface::onMouseScroll));
 }
 
-void UserInterface::beginTick()
-{
-	ImGui::SetCurrentContext(logic_context_);
-	ImGui::NewFrame();
+void UserInterface::beginTick() {
+    ImGui::SetCurrentContext(logic_context_);
+    ImGui::NewFrame();
 }
 
-void UserInterface::endTick()
-{
-	ImGui::Render();
+void UserInterface::endTick() {
+    ImGui::Render();
 }
 
-void UserInterface::preRender()
-{
-	ImGui::SetCurrentContext(renderer_context_);
-	ImGui::NewFrame();
+void UserInterface::preRender() {
+    ImGui::SetCurrentContext(renderer_context_);
+    ImGui::NewFrame();
 }
 
-void UserInterface::postRender()
-{
-	ImGui::Render();
+void UserInterface::postRender() {
+    ImGui::Render();
 }
 
 void UserInterface::update(float dt) {
-	forAllContexts([dt](ImGuiIO& io) {
-		io.DeltaTime = dt;
-	});
+    forAllContexts([dt](ImGuiIO& io) { io.DeltaTime = dt; });
 }
 
 void UserInterface::render() {
@@ -171,9 +164,12 @@ void UserInterface::render() {
     auto input = subsystem<Input>();
     if (input) {
         // Update mouse button state and reset.
-        bool left_state = mouse_pressed_[MouseButton::Left] || input->isMouseButtonDown(MouseButton::Left);
-        bool right_state = mouse_pressed_[MouseButton::Right] || input->isMouseButtonDown(MouseButton::Right);
-        bool middle_state = mouse_pressed_[MouseButton::Middle] || input->isMouseButtonDown(MouseButton::Middle);
+        bool left_state =
+            mouse_pressed_[MouseButton::Left] || input->isMouseButtonDown(MouseButton::Left);
+        bool right_state =
+            mouse_pressed_[MouseButton::Right] || input->isMouseButtonDown(MouseButton::Right);
+        bool middle_state =
+            mouse_pressed_[MouseButton::Middle] || input->isMouseButtonDown(MouseButton::Middle);
         for (bool& state : mouse_pressed_) {
             state = false;
         }
@@ -194,16 +190,13 @@ void UserInterface::render() {
     }
 }
 
-void UserInterface::forAllContexts(Function<void(ImGuiIO& io)> functor)
-{
-	functor(*logic_io_);
-	functor(*renderer_io_);
+void UserInterface::forAllContexts(Function<void(ImGuiIO& io)> functor) {
+    functor(*logic_io_);
+    functor(*renderer_io_);
 }
 
-void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io)
-{
-    if (!draw_data)
-    {
+void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) {
+    if (!draw_data) {
         return;
     }
 
@@ -236,9 +229,9 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io)
             continue;
         }
         memcpy(renderer_->getTransientVertexBufferData(tvb), vtx_buffer.Data,
-            vtx_buffer.Size * sizeof(ImDrawVert));
+               vtx_buffer.Size * sizeof(ImDrawVert));
         memcpy(renderer_->getTransientIndexBufferData(tib), idx_buffer.Data,
-            idx_buffer.Size * sizeof(ImDrawIdx));
+               idx_buffer.Size * sizeof(ImDrawIdx));
 
         // Execute draw commands.
         uint offset = 0;
@@ -246,30 +239,32 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io)
             const ImDrawCmd* cmd = &cmd_list->CmdBuffer[cmd_i];
             if (cmd->UserCallback) {
                 cmd->UserCallback(cmd_list, cmd);
-            }
-            else {
+            } else {
                 // Set render state.
                 renderer_->setStateEnable(RenderState::Blending);
                 renderer_->setStateBlendEquation(BlendEquation::Add, BlendFunc::SrcAlpha,
-                    BlendFunc::OneMinusSrcAlpha);
+                                                 BlendFunc::OneMinusSrcAlpha);
                 renderer_->setStateDisable(RenderState::CullFace);
                 renderer_->setStateDisable(RenderState::Depth);
-                renderer_->setScissor(static_cast<u16>(cmd->ClipRect.x * io.DisplayFramebufferScale.x),
+                renderer_->setScissor(
+                    static_cast<u16>(cmd->ClipRect.x * io.DisplayFramebufferScale.x),
                     static_cast<u16>(cmd->ClipRect.y * io.DisplayFramebufferScale.y),
-                    static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) * io.DisplayFramebufferScale.x),
-                    static_cast<u16>((cmd->ClipRect.w - cmd->ClipRect.y) * io.DisplayFramebufferScale.y));
+                    static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) *
+                                     io.DisplayFramebufferScale.x),
+                    static_cast<u16>((cmd->ClipRect.w - cmd->ClipRect.y) *
+                                     io.DisplayFramebufferScale.y));
 
                 // Set resources.
-                renderer_->setTexture(TextureHandle{ static_cast<TextureHandle::base_type>(
-                    reinterpret_cast<uintptr>(cmd->TextureId)) },
-                    0);
+                renderer_->setTexture(TextureHandle{static_cast<TextureHandle::base_type>(
+                                          reinterpret_cast<uintptr>(cmd->TextureId))},
+                                      0);
                 renderer_->setVertexBuffer(tvb);
                 renderer_->setIndexBuffer(tib);
 
                 // Draw.
                 program_->applyRendererState();
                 renderer_->submit(renderer_->backbufferView(), program_->internalHandle(),
-                    cmd->ElemCount, offset);
+                                  cmd->ElemCount, offset);
             }
             offset += cmd->ElemCount;
         }
@@ -277,19 +272,17 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io)
 }
 
 void UserInterface::onKey(const KeyEvent& state) {
-	forAllContexts([state](ImGuiIO& io) {
-		io.KeysDown[state.key] = state.down;
-		io.KeyCtrl = io.KeysDown[Key::LeftCtrl] || io.KeysDown[Key::RightCtrl];
-		io.KeyShift = io.KeysDown[Key::LeftShift] || io.KeysDown[Key::RightShift];
-		io.KeyAlt = io.KeysDown[Key::LeftAlt] || io.KeysDown[Key::RightAlt];
-		io.KeySuper = io.KeysDown[Key::LeftSuper] || io.KeysDown[Key::RightSuper];
-	});
+    forAllContexts([state](ImGuiIO& io) {
+        io.KeysDown[state.key] = state.down;
+        io.KeyCtrl = io.KeysDown[Key::LeftCtrl] || io.KeysDown[Key::RightCtrl];
+        io.KeyShift = io.KeysDown[Key::LeftShift] || io.KeysDown[Key::RightShift];
+        io.KeyAlt = io.KeysDown[Key::LeftAlt] || io.KeysDown[Key::RightAlt];
+        io.KeySuper = io.KeysDown[Key::LeftSuper] || io.KeysDown[Key::RightSuper];
+    });
 }
 
 void UserInterface::onCharInput(const CharInputEvent& text) {
-	forAllContexts([text](ImGuiIO& io) {
-		io.AddInputCharactersUTF8(text.text.c_str());
-	});
+    forAllContexts([text](ImGuiIO& io) { io.AddInputCharactersUTF8(text.text.c_str()); });
 }
 
 void UserInterface::onMouseButton(const MouseButtonEvent& mouse_button) {

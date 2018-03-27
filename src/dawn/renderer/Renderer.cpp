@@ -531,18 +531,16 @@ void Renderer::frame() {
     }
 }
 
-Vec2i Renderer::windowSize() const
-{
-	return shared_render_context_->windowSize();
+Vec2i Renderer::windowSize() const {
+    return shared_render_context_->windowSize();
 }
 
-Vec2 Renderer::windowScale() const
-{
-	return shared_render_context_->windowScale();
+Vec2 Renderer::windowScale() const {
+    return shared_render_context_->windowScale();
 }
 
 Vec2i Renderer::backbufferSize() const {
-	return shared_render_context_->backbufferSize();
+    return shared_render_context_->backbufferSize();
 }
 
 void Renderer::submitPreFrameCommand(RenderCommand&& command) {

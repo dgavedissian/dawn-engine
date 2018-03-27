@@ -26,15 +26,15 @@ bool NullRenderContext::isWindowClosed() const {
 }
 
 Vec2i NullRenderContext::windowSize() const {
-	return {0, 0};
+    return {0, 0};
 }
 
 Vec2 NullRenderContext::windowScale() const {
-	return {1.0f, 1.0f};
+    return {1.0f, 1.0f};
 }
 
 Vec2i NullRenderContext::backbufferSize() const {
-	return {0, 0};
+    return {0, 0};
 }
 
 void NullRenderContext::startRendering() {

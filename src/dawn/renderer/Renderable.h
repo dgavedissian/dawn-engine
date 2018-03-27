@@ -34,7 +34,8 @@ class DW_API RenderableNode {
 public:
     RenderableNode();
     RenderableNode(SharedPtr<Renderable> renderable);
-    RenderableNode(SharedPtr<Renderable> renderable, const Vec3& position, const Quat& orientation, const Vec3& scale = Vec3::one);
+    RenderableNode(SharedPtr<Renderable> renderable, const Vec3& position, const Quat& orientation,
+                   const Vec3& scale = Vec3::one);
     ~RenderableNode();
 
     void setPosition(const Vec3& position);

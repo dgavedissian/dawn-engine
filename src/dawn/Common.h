@@ -47,10 +47,12 @@ template <typename T, typename... Args> inline SharedPtr<T> makeShared(Args&&...
 template <typename T, typename... Args> inline UniquePtr<T> makeUnique(Args&&... args) {
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
-template <typename T1, typename T2> inline SharedPtr<T1> staticPointerCast(const SharedPtr<T2>& other) {
+template <typename T1, typename T2>
+inline SharedPtr<T1> staticPointerCast(const SharedPtr<T2>& other) {
     return std::static_pointer_cast<T1, T2>(other);
 }
-template <typename T1, typename T2> inline SharedPtr<T1> dynamicPointerCast(const SharedPtr<T2>& other) {
+template <typename T1, typename T2>
+inline SharedPtr<T1> dynamicPointerCast(const SharedPtr<T2>& other) {
     return std::dynamic_pointer_cast<T1, T2>(other);
 }
 }  // namespace dw

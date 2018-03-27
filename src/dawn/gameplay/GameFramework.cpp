@@ -25,9 +25,9 @@ void GameFramework::update(float dt) {
         game_mode_->update(dt);
     }
     if (new_game_mode_) {
-		if (game_mode_) {
-			game_mode_->onEnd();
-		}
+        if (game_mode_) {
+            game_mode_->onEnd();
+        }
         game_mode_ = new_game_mode_;
         game_mode_->onStart();
         new_game_mode_.reset();

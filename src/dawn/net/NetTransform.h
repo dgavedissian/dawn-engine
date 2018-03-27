@@ -32,8 +32,7 @@ struct NetTransformState {
 
     bool operator==(const NetTransformState& other) const {
         const float eps = 0.01f;
-        return position == other.position &&
-               velocity.DistanceSq(other.velocity) < 0.01f &&
+        return position == other.position && velocity.DistanceSq(other.velocity) < 0.01f &&
                acceleration.DistanceSq(other.acceleration) < 0.01f &&
                orientation.Dot(other.orientation) > (1.0f - eps) &&
                angular_velocity.DistanceSq(other.angular_velocity) < 0.01f &&
@@ -58,7 +57,7 @@ template <> inline NetTransformState read<NetTransformState>(InputStream& s) {
     return output;
 }
 
-template <> inline  void write<NetTransformState>(OutputStream& s, const NetTransformState& state) {
+template <> inline void write<NetTransformState>(OutputStream& s, const NetTransformState& state) {
     s.write(state.position);
     s.write(state.velocity);
     s.write(state.acceleration);
@@ -72,10 +71,9 @@ class NetTransform : public Component {
 public:
     NetTransformState transform_state;
 
-	static RepLayout repLayout()
-	{
-		return {{RepProperty::bind<NetTransform>(&NetTransform::transform_state)}, {}};
-	}
+    static RepLayout repLayout() {
+        return {{RepProperty::bind<NetTransform>(&NetTransform::transform_state)}, {}};
+    }
 };
 
 class NetTransformSyncSystem : public System {

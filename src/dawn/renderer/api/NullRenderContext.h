@@ -18,10 +18,10 @@ public:
     void createWindow(u16 width, u16 height, const String& title) override;
     void destroyWindow() override;
     void processEvents() override;
-	bool isWindowClosed() const override;
-	virtual Vec2i windowSize() const;
-	virtual Vec2 windowScale() const;
-	virtual Vec2i backbufferSize() const;
+    bool isWindowClosed() const override;
+    Vec2i windowSize() const override;
+    Vec2 windowScale() const override;
+    Vec2i backbufferSize() const override;
 
     // Command buffer processing. Executed on the render thread.
     void startRendering() override;

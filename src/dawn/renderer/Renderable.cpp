@@ -46,8 +46,7 @@ void RenderableNode::setOrientation(const Quat& orientation) {
     local_offset_.Set3x3Part(Mat3{orientation});
 }
 
-void RenderableNode::setScale(const Vec3& scale)
-{
+void RenderableNode::setScale(const Vec3& scale) {
     // TODO.
 }
 

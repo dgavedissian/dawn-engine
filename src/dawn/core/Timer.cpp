@@ -29,14 +29,13 @@ String format(SystemTimePoint timepoint, const String& format) {
     StringStream out;
     std::time_t tt = _SystemClock::to_time_t(timepoint);
 #if DW_PLATFORM == DW_WIN32
-	tm time;
-	errno_t err = ::gmtime_s(&time, &tt);
-	if (err == EINVAL)
-	{
-		return "";
-	}
+    tm time;
+    errno_t err = ::gmtime_s(&time, &tt);
+    if (err == EINVAL) {
+        return "";
+    }
 #else
-	tm time = *std::gmtime(&tt);
+    tm time = *std::gmtime(&tt);
 #endif
     out << std::put_time(&time, format.c_str());
     return out.str();

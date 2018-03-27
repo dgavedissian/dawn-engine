@@ -15,6 +15,7 @@ enum class RpcType { Server, Client };
 // Rpc binding interface. Used internally by NetData.
 class DW_API RpcBinding {
 public:
+    virtual ~RpcBinding() = default;
     // Called by NetData when registering this RPC with a particular entity.
     virtual void onAddToEntity(Entity& entity, RpcId rpc_id) = 0;
     // Called by NetData when an RPC is received.

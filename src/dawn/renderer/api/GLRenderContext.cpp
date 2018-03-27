@@ -326,20 +326,21 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	// Select monitor.
-	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    // Select monitor.
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
-	// Get DPI settings.
-	glfwGetMonitorContentScale(monitor, &window_scale_.x, &window_scale_.y);
+    // Get DPI settings.
+    glfwGetMonitorContentScale(monitor, &window_scale_.x, &window_scale_.y);
 
     // Create the window.
-    window_ = glfwCreateWindow(width * window_scale_.x, height * window_scale_.y, title.c_str(), nullptr, nullptr);
+    window_ = glfwCreateWindow(width * window_scale_.x, height * window_scale_.y, title.c_str(),
+                               nullptr, nullptr);
     if (!window_) {
         // Failed to create window.
         // TODO: Handle error properly.
         throw Exception{"glfwCreateWindow failed."};
     }
-	Vec2i fb_size = backbufferSize();
+    Vec2i fb_size = backbufferSize();
     backbuffer_width_ = fb_size.x;
     backbuffer_height_ = fb_size.y;
     glfwMakeContextCurrent(window_);
@@ -434,19 +435,19 @@ bool GLRenderContext::isWindowClosed() const {
 }
 
 Vec2i GLRenderContext::windowSize() const {
-	int window_width, window_height;
-	glfwGetWindowSize(window_, &window_width, &window_height);
-	return Vec2i{window_width, window_height};
+    int window_width, window_height;
+    glfwGetWindowSize(window_, &window_width, &window_height);
+    return Vec2i{window_width, window_height};
 }
 
 Vec2 GLRenderContext::windowScale() const {
-	return window_scale_;
+    return window_scale_;
 }
 
 Vec2i GLRenderContext::backbufferSize() const {
-	int fb_width, fb_height;
-	glfwGetFramebufferSize(window_, &fb_width, &fb_height);
-	return Vec2i{fb_width, fb_height};
+    int fb_width, fb_height;
+    glfwGetFramebufferSize(window_, &fb_width, &fb_height);
+    return Vec2i{fb_width, fb_height};
 }
 
 void GLRenderContext::startRendering() {

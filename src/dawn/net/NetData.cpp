@@ -7,40 +7,37 @@
 #include "net/NetSystem.h"
 
 namespace dw {
-RepLayout::RepLayout(const RepPropertyList& property_list, const RpcBindingList& rpc_list) : property_list_(property_list), next_rpc_id_(0)
-{
-	for (auto rpc : rpc_list)
-	{
-		rpc_map_[next_rpc_id_++] = rpc;
-	}
+RepLayout::RepLayout(const RepPropertyList& property_list, const RpcBindingList& rpc_list)
+    : property_list_(property_list), next_rpc_id_(0) {
+    for (auto rpc : rpc_list) {
+        rpc_map_[next_rpc_id_++] = rpc;
+    }
 }
 
-RepLayout RepLayout::operator+(const RepLayout& other)
-{
-	RepLayout result;
-	result.property_list_ = property_list_;
-	result.rpc_map_ = rpc_map_;
-	result += other;
-	return result;
+RepLayout RepLayout::operator+(const RepLayout& other) {
+    RepLayout result;
+    result.property_list_ = property_list_;
+    result.rpc_map_ = rpc_map_;
+    result += other;
+    return result;
 }
 
-RepLayout& RepLayout::operator+=(const RepLayout & other)
-{
-	property_list_.insert(property_list_.end(), other.property_list_.begin(), other.property_list_.end());
-	for (auto& rpc : other.rpc_map_)
-	{
-		rpc_map_[next_rpc_id_++] = rpc.second;
-	}
-	return *this;
+RepLayout& RepLayout::operator+=(const RepLayout& other) {
+    property_list_.insert(property_list_.end(), other.property_list_.begin(),
+                          other.property_list_.end());
+    for (auto& rpc : other.rpc_map_) {
+        rpc_map_[next_rpc_id_++] = rpc.second;
+    }
+    return *this;
 }
 
 void RepLayout::onAddToEntity(Entity& entity) {
-	for (auto& prop : property_list_) {
-		prop->onAddToEntity(entity);
-	}
-	for (auto& rpc : rpc_map_) {
-		rpc.second->onAddToEntity(entity, rpc.first);
-	}
+    for (auto& prop : property_list_) {
+        prop->onAddToEntity(entity);
+    }
+    for (auto& rpc : rpc_map_) {
+        rpc.second->onAddToEntity(entity, rpc.first);
+    }
 }
 
 NetData::NetData(RepLayout rep_layout)
@@ -52,7 +49,7 @@ NetData::NetData(RepLayout rep_layout)
 
 void NetData::onAddToEntity(Entity* parent) {
     entity_ = parent;
-	rep_layout_.onAddToEntity(*parent);
+    rep_layout_.onAddToEntity(*parent);
 }
 
 void NetData::serialise(OutputStream& out) {

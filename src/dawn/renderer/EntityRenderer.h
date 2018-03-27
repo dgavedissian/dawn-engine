@@ -22,9 +22,9 @@ public:
     void beginProcessing() override;
     void processEntity(Entity& entity, float dt) override;
 
-	// Called during rendering, with an interpolation factor used to extrapolate the last state
-	// of the world.
-	void render(float interpolation);
+    // Called during rendering, with an interpolation factor used to extrapolate the last state
+    // of the world.
+    void render(float interpolation);
 
 private:
     class DW_API CameraEntitySystem : public System {
@@ -46,6 +46,6 @@ private:
     };
     CameraEntitySystem* camera_entity_system_;
     HashMap<Transform*, Mat4> world_transform_cache_;
-	Vector<RenderOperation> render_operations_;
+    Vector<RenderOperation> render_operations_;
 };
 }  // namespace dw

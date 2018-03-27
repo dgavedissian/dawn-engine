@@ -30,13 +30,13 @@ public:
     Vec3 target_linear_velocity;
     Vec3 target_angular_velocity;
 
-	static RepLayout repLayout()
-	{
-		return {{}, {
-			Rpc::bind<ShipControls>(&ShipControls::setLinearVelocity, &ShipControls::setLinearVelocityImpl),
-			Rpc::bind<ShipControls>(&ShipControls::setAngularVelocity, &ShipControls::setAngularVelocityImpl)
-		}};
-	}
+    static RepLayout repLayout() {
+        return {{},
+                {Rpc::bind<ShipControls>(&ShipControls::setLinearVelocity,
+                                         &ShipControls::setLinearVelocityImpl),
+                 Rpc::bind<ShipControls>(&ShipControls::setAngularVelocity,
+                                         &ShipControls::setAngularVelocityImpl)}};
+    }
 };
 
 class ShipCameraController : public Object {
@@ -117,13 +117,13 @@ public:
                                const Vec3& max_neg_force);
 
     // Replication layout.
-	static RepLayout repLayout()
-	{
-		return {{
-			RepProperty::bind<ShipEngines>(&ShipEngines::currentMovementPower, &ShipEngines::rep_setCurrentMovementPower),
-			RepProperty::bind<ShipEngines>(&ShipEngines::currentRotationalPower, &ShipEngines::rep_setCurrentRotationalPower)
-		}, {}};
-	}
+    static RepLayout repLayout() {
+        return {{RepProperty::bind<ShipEngines>(&ShipEngines::currentMovementPower,
+                                                &ShipEngines::rep_setCurrentMovementPower),
+                 RepProperty::bind<ShipEngines>(&ShipEngines::currentRotationalPower,
+                                                &ShipEngines::rep_setCurrentRotationalPower)},
+                {}};
+    }
 
 private:
     Vector<ShipEngineData> engine_data_;
@@ -138,13 +138,13 @@ private:
     Array<Vector<ShipEngineInstance>, 3> navigation_engines_;
 
     Vec3 current_movement_power_;
-	Vec3 current_rotational_power_;
+    Vec3 current_rotational_power_;
 
-	// Private replication functions.
-	void rep_setCurrentMovementPower(const Vec3& power);
-	void rep_setCurrentRotationalPower(const Vec3& power);
-	Vec3 currentMovementPower();
-	Vec3 currentRotationalPower();
+    // Private replication functions.
+    void rep_setCurrentMovementPower(const Vec3& power);
+    void rep_setCurrentRotationalPower(const Vec3& power);
+    Vec3 currentMovementPower();
+    Vec3 currentRotationalPower();
 
     friend class ShipEngineSystem;
 };
