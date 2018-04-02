@@ -4,7 +4,7 @@
  */
 #include "Common.h"
 #include "net/NetData.h"
-#include "net/NetSystem.h"
+#include "net/Networking.h"
 
 namespace dw {
 RepLayout::RepLayout(const RepPropertyList& property_list, const RpcBindingList& rpc_list)
@@ -65,7 +65,7 @@ void NetData::deserialise(InputStream& in) {
 }
 
 void NetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload) {
-    auto* netsystem = entity_->subsystem<NetSystem>();
+    auto* netsystem = entity_->module<Networking>();
     if (netsystem->isServer()) {
         receiveRpc(rpc_id, payload);
     } else {

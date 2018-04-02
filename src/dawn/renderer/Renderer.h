@@ -7,8 +7,8 @@
 #include "core/Concurrency.h"
 #include "core/Handle.h"
 #include "core/Memory.h"
-#include "math/Colour.h"
-#include "math/Vec2i.h"
+#include "core/math/Colour.h"
+#include "core/math/Vec2i.h"
 #include "renderer/VertexDecl.h"
 
 #define MAX_TEXTURE_SAMPLERS 8
@@ -392,7 +392,7 @@ public:
 
 // Low level renderer.
 // Based off: https://github.com/bkaradzic/bgfx/blob/master/src/bgfx_p.h#L2297
-class DW_API Renderer : public Subsystem {
+class DW_API Renderer : public Module {
 public:
     DW_OBJECT(Renderer)
 

@@ -55,10 +55,10 @@ Context* Object::context() const {
 }
 
 Logger& Object::log() const {
-    return subsystem<Logger>()->withObjectName(typeName());
+    return module<Logger>()->withObjectName(typeName());
 }
 
-Subsystem* Object::subsystemByType(const TypeInfo& subsystem_type) const {
-    return context_->subsystem(subsystem_type.type());
+Module* Object::moduleByType(const TypeInfo& subsystem_type) const {
+    return context_->module(subsystem_type.type());
 }
 }  // namespace dw

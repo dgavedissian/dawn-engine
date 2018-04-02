@@ -8,7 +8,7 @@
 #include "scene/Component.h"
 #include "renderer/BillboardSet.h"
 #include "renderer/Mesh.h"
-#include "math/Defs.h"
+#include "core/math/Defs.h"
 #include "core/Delegate.h"
 
 using namespace dw;

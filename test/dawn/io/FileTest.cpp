@@ -9,8 +9,8 @@ class FileTest : public ::testing::Test {
 public:
     void SetUp() override {
         context_ = new dw::Context("", "");
-        context_->addSubsystem<dw::Logger>();
-        auto& fs = *context_->addSubsystem<dw::FileSystem>();
+        context_->addModule<dw::Logger>();
+        auto& fs = *context_->addModule<dw::FileSystem>();
     }
 
     void TearDown() override {}
@@ -39,7 +39,7 @@ TEST_F(FileTest, ReadMultiLine) {
 }
 
 TEST_F(FileTest, WriteThenRead) {
-    auto& fs = *context_->subsystem<dw::FileSystem>();
+    auto& fs = *context_->module<dw::FileSystem>();
 
     auto filename = fs.tempDir() + "/write_test";
     dw::u32 data = 0xdeadbeef;
@@ -61,7 +61,7 @@ TEST_F(FileTest, WriteThenRead) {
 }
 
 TEST_F(FileTest, WriteThenAppendThenRead) {
-    auto& fs = *context_->subsystem<dw::FileSystem>();
+    auto& fs = *context_->module<dw::FileSystem>();
 
     auto filename = fs.tempDir() + "/append_test";
     dw::u32 data = 0xdeadbeef;

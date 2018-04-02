@@ -10,7 +10,7 @@
 #include "resource/ResourceCache.h"
 #include "scene/CameraController.h"
 #include "scene/Transform.h"
-#include "scene/Universe.h"
+#include "scene/SceneManager.h"
 #include "renderer/BillboardSet.h"
 #include "renderer/Mesh.h"
 #include "ui/Imgui.h"
@@ -87,8 +87,8 @@ public:
           run_update_thread_{true},
           terrain_patches_{},
           t_output_ready_{false} {
-        auto universe = subsystem<Universe>();
-        auto rc = subsystem<ResourceCache>();
+        auto universe = module<SceneManager>();
+        auto rc = module<ResourceCache>();
 
         // Set up material.
         auto material = makeShared<Material>(
@@ -522,7 +522,7 @@ public:
     SharedPtr<Planet> planet_;
 
     void init(int argc, char** argv) override {
-        auto rc = subsystem<ResourceCache>();
+        auto rc = module<ResourceCache>();
         assert(rc);
         rc->addPath("base", "../media/base");
         rc->addPath("sandbox", "../media/sandbox");
@@ -530,7 +530,7 @@ public:
         const float radius = 1000.0f;
 
         // Create a camera.
-        auto& camera = subsystem<Universe>()
+        auto& camera = module<SceneManager>()
                            ->createEntity(Position{0.0f, 0.0f, radius * 2}, Quat::identity)
                            .addComponent<Camera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);
@@ -552,7 +552,7 @@ public:
     }
 
     void render(float) override {
-        subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+        module<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
 
         // Calculate average FPS.
         float current_fps = 1.0 / engine_->frameTime();

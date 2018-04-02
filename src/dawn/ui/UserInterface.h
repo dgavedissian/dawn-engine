@@ -9,7 +9,7 @@
 #include "ui/Imgui.h"
 
 namespace dw {
-class DW_API UserInterface : public Subsystem {
+class DW_API UserInterface : public Module {
 public:
     DW_OBJECT(UserInterface);
 

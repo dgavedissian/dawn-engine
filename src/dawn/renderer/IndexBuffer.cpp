@@ -9,7 +9,7 @@ namespace dw {
 IndexBuffer::IndexBuffer(Context* context, const void* data, uint size, IndexBufferType type,
                          BufferUsage usage)
     : Object{context}, type_{type} {
-    handle_ = context_->subsystem<Renderer>()->createIndexBuffer(data, size, type, usage);
+    handle_ = context_->module<Renderer>()->createIndexBuffer(data, size, type, usage);
     if (type == IndexBufferType::U16) {
         index_count_ = size / sizeof(u16);
     } else if (type == IndexBufferType::U32) {
@@ -20,7 +20,7 @@ IndexBuffer::IndexBuffer(Context* context, const void* data, uint size, IndexBuf
 }
 
 IndexBuffer::~IndexBuffer() {
-    context_->subsystem<Renderer>()->deleteIndexBuffer(handle_);
+    context_->module<Renderer>()->deleteIndexBuffer(handle_);
 }
 
 void IndexBuffer::update(const void* data, uint size, uint offset) {
@@ -31,7 +31,7 @@ void IndexBuffer::update(const void* data, uint size, uint offset) {
     } else {
         assert(false);
     };
-    context_->subsystem<Renderer>()->updateIndexBuffer(handle_, data, size, offset);
+    context_->module<Renderer>()->updateIndexBuffer(handle_, data, size, offset);
 }
 
 IndexBufferHandle IndexBuffer::internalHandle() const {

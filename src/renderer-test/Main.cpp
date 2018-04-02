@@ -66,21 +66,21 @@ private:
 
 #define TEST_CLASS_NAME(test_name) test_name##Test
 #define TEST_CLASS(test_name) class TEST_CLASS_NAME(test_name) : public Object
-#define TEST_BODY(test_name)                                                    \
-                                                                                \
-public:                                                                         \
-    DW_OBJECT(TEST_CLASS_NAME(test_name));                                      \
-    TEST_CLASS_NAME(test_name)                                                  \
-    (Context * context, const Engine* engine)                                   \
-        : Object{context}, r{context->subsystem<Renderer>()}, engine_{engine} { \
-    }                                                                           \
-    u16 width() const {                                                         \
-        return context()->config().at("window_width").get<u16>();               \
-    }                                                                           \
-    u16 height() const {                                                        \
-        return context()->config().at("window_height").get<u16>();              \
-    }                                                                           \
-    Renderer* r;                                                                \
+#define TEST_BODY(test_name)                                                 \
+                                                                             \
+public:                                                                      \
+    DW_OBJECT(TEST_CLASS_NAME(test_name));                                   \
+    TEST_CLASS_NAME(test_name)                                               \
+    (Context * context, const Engine* engine)                                \
+        : Object{context}, r{context->module<Renderer>()}, engine_{engine} { \
+    }                                                                        \
+    u16 width() const {                                                      \
+        return context()->config().at("window_width").get<u16>();            \
+    }                                                                        \
+    u16 height() const {                                                     \
+        return context()->config().at("window_height").get<u16>();           \
+    }                                                                        \
+    Renderer* r;                                                             \
     const Engine* engine_
 #define TEST_IMPLEMENT_MAIN(test_name) DW_IMPLEMENT_MAIN(Example<TEST_CLASS_NAME(test_name)>)
 
@@ -128,7 +128,7 @@ TEST_CLASS(BasicVertexBuffer) {
     ProgramHandle program_;
 
     void start() {
-        subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
         auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/test.vs");
@@ -177,7 +177,7 @@ TEST_CLASS(BasicIndexBuffer) {
     ProgramHandle program_;
 
     void start() {
-        subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
         auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/test.vs");
@@ -222,7 +222,7 @@ TEST_CLASS(TransientIndexBuffer) {
     ProgramHandle program_;
 
     void start() {
-        subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
         auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/test.vs");
@@ -279,7 +279,7 @@ TEST_CLASS(Textured3DCube) {
     UniquePtr<Texture> texture_resource_;
 
     void start() {
-        subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
         auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/cube_textured.vs");
@@ -337,7 +337,7 @@ TEST_CLASS(PostProcessing) {
     FrameBufferHandle fb_handle_;
 
     void start() {
-        subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
         auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/cube_solid.vs");
@@ -422,7 +422,7 @@ TEST_CLASS(DeferredShading) {
         DW_OBJECT(PointLight);
 
         PointLight(Context* ctx, float radius, const Vec2& screen_size)
-            : Object{ctx}, r{subsystem<Renderer>()}, light_sphere_radius_{radius * 4} {
+            : Object{ctx}, r{module<Renderer>()}, light_sphere_radius_{radius * 4} {
             setPosition(Vec3::zero);
 
             // Load shaders.
@@ -444,7 +444,7 @@ TEST_CLASS(DeferredShading) {
         }
 
         ~PointLight() {
-            subsystem<Renderer>()->deleteProgram(program_);
+            module<Renderer>()->deleteProgram(program_);
         }
 
         void setPosition(const Vec3& position) {
@@ -488,7 +488,7 @@ TEST_CLASS(DeferredShading) {
     Vector<UniquePtr<PointLight>> point_lights;
 
     void start() {
-        subsystem<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
         auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/object_gbuffer.vs");
@@ -605,7 +605,7 @@ TEST_CLASS(MovingSphereHighLevel) {
     Entity* camera;
 
     void start() {
-        auto rc = subsystem<ResourceCache>();
+        auto rc = module<ResourceCache>();
         assert(rc);
         rc->addPath("base", "../media/base");
         rc->addPath("renderer-test", "../media/renderer-test");
@@ -619,7 +619,7 @@ TEST_CLASS(MovingSphereHighLevel) {
         renderable->setMaterial(material);
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
-        auto scene = subsystem<Universe>();
+        auto scene = module<SceneManager>();
         object = &scene->createEntity(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
                       .addComponent<RenderableComponent>(renderable);
 
@@ -632,12 +632,12 @@ TEST_CLASS(MovingSphereHighLevel) {
         static float angle = 0.0f;
         angle += engine_->frameTime();
         camera->transform()->position().x = sin(angle) * 30.0f;
-        subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+        module<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
     }
 
     void stop() {
-        subsystem<Universe>()->removeEntity(object);
-        subsystem<Universe>()->removeEntity(camera);
+        module<SceneManager>()->removeEntity(object);
+        module<SceneManager>()->removeEntity(camera);
     }
 };
 

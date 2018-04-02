@@ -5,10 +5,10 @@
 #pragma once
 
 #include "Component.h"
-#include "math/Defs.h"
+#include "core/io/InputStream.h"
+#include "core/io/OutputStream.h"
+#include "core/math/Defs.h"
 #include "scene/Position.h"
-#include "io/InputStream.h"
-#include "io/OutputStream.h"
 
 namespace dw {
 class Transform : public Component {

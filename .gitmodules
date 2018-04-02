@@ -46,3 +46,18 @@
 [submodule "src/external/yojimbo_sodium"]
 	path = src/external/yojimbo_sodium
 	url = https://github.com/jedisct1/libsodium.git
+[submodule "src/external/assimp"]
+	path = src/external/assimp
+	url = git@github.com:assimp/assimp.git
+[submodule "src/external/dawnengine-MathGeoLib"]
+	path = src/external/dawnengine-MathGeoLib
+	url = git@github.com:davedissian/dawnengine-MathGeoLib.git
+[submodule "src/external/MathGeoLib"]
+	path = src/external/MathGeoLib
+	url = git@github.com:davedissian/dawnengine-MathGeoLib.git
+[submodule "src/external/bullet"]
+	path = src/external/bullet
+	url = git@github.com:bulletphysics/bullet3.git
+[submodule "src/external/luajit"]
+	path = src/external/luajit
+	url = http://luajit.org/git/luajit-2.0.git

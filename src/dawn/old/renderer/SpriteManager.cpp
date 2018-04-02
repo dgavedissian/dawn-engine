@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "math/Rect.h"
+#include "core/mathRect.h"
 #include "renderer/SpriteManager.h"
 
 #define MIN_HARDWARE_BUFFER_SIZE 120

@@ -355,7 +355,7 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
             // Look up key.
             auto key_it = s_key_map.find(key);
             if (key_it == s_key_map.end()) {
-                ctx->subsystem<Logger>()->withObjectName("GLFW").warn("Unknown key code %s", key);
+                ctx->module<Logger>()->withObjectName("GLFW").warn("Unknown key code %s", key);
                 return;
             }
 
@@ -365,9 +365,9 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
             }
 
             if (action == GLFW_PRESS) {
-                ctx->subsystem<Input>()->_notifyKey(key_it->second, Modifier::None, true);
+                ctx->module<Input>()->_notifyKey(key_it->second, Modifier::None, true);
             } else if (action == GLFW_RELEASE) {
-                ctx->subsystem<Input>()->_notifyKey(key_it->second, Modifier::None, false);
+                ctx->module<Input>()->_notifyKey(key_it->second, Modifier::None, false);
             }
         });
     glfwSetCharCallback(window_, [](GLFWwindow* window, unsigned int c) {
@@ -377,29 +377,28 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
 #else
         std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
 #endif
-        ctx->subsystem<Input>()->_notifyCharInput(conv.to_bytes(static_cast<char32_t>(c)));
+        ctx->module<Input>()->_notifyCharInput(conv.to_bytes(static_cast<char32_t>(c)));
     });
     glfwSetMouseButtonCallback(window_, [](GLFWwindow* window, int button, int action, int mode) {
         auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
         auto mouse_button = s_mouse_button_map.find(button);
         if (mouse_button == s_mouse_button_map.end()) {
-            ctx->subsystem<Logger>()->withObjectName("GLFW").warn("Unknown mouse button %s",
-                                                                  button);
+            ctx->module<Logger>()->withObjectName("GLFW").warn("Unknown mouse button %s", button);
             return;
         }
         if (action == GLFW_PRESS) {
-            ctx->subsystem<Input>()->_notifyMouseButtonPress(mouse_button->second, true);
+            ctx->module<Input>()->_notifyMouseButtonPress(mouse_button->second, true);
         } else if (action == GLFW_RELEASE) {
-            ctx->subsystem<Input>()->_notifyMouseButtonPress(mouse_button->second, false);
+            ctx->module<Input>()->_notifyMouseButtonPress(mouse_button->second, false);
         }
     });
     glfwSetCursorPosCallback(window_, [](GLFWwindow* window, double x, double y) {
         auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
-        ctx->subsystem<Input>()->_notifyMouseMove({static_cast<int>(x), static_cast<int>(y)});
+        ctx->module<Input>()->_notifyMouseMove({static_cast<int>(x), static_cast<int>(y)});
     });
     glfwSetScrollCallback(window_, [](GLFWwindow* window, double xoffset, double yoffset) {
         auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
-        ctx->subsystem<Input>()->_notifyScroll(
+        ctx->module<Input>()->_notifyScroll(
             Vec2(static_cast<float>(xoffset), static_cast<float>(yoffset)));
     });
 

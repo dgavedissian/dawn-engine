@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "io/InputStream.h"
+#include "core/io/InputStream.h"
 #include "renderer/Mesh.h"
 #include "core/StringUtils.h"
 
@@ -18,7 +18,7 @@ namespace dw {
 namespace {
 class DawnAssimpLogStream : public Assimp::LogStream {
 public:
-    DawnAssimpLogStream(Context* ctx) : logger{ctx->subsystem<Logger>()} {
+    DawnAssimpLogStream(Context* ctx) : logger{ctx->module<Logger>()} {
     }
     ~DawnAssimpLogStream() = default;
 

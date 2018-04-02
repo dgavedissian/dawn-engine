@@ -84,7 +84,7 @@ View& Frame::view(uint view_index) {
 }
 
 Renderer::Renderer(Context* context)
-    : Subsystem(context),
+    : Module(context),
       use_render_thread_(false),
       is_first_frame_(true),
       shared_rt_should_exit_(false),
@@ -499,7 +499,7 @@ void Renderer::frame() {
         // If the rendering thread is doing nothing, print a warning and give up.
         if (shared_rt_finished_) {
             log().warn("Rendering thread has finished running. Sending shutdown signal.");
-            subsystem<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
+            module<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
             return;
         }
 
@@ -517,7 +517,7 @@ void Renderer::frame() {
             is_first_frame_ = false;
         }
         if (!renderFrame(submit_)) {
-            subsystem<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
+            module<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
             log().warn("Rendering failed. Sending shutdown signal.");
             return;
         }
@@ -527,7 +527,7 @@ void Renderer::frame() {
     shared_render_context_->processEvents();
     if (shared_render_context_->isWindowClosed()) {
         log().info("Window closed. Sending shutdown signal.");
-        subsystem<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
+        module<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
     }
 }
 

@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "net/NetData.h"
 #include "net/NetTransform.h"
-#include "physics/PhysicsSystem.h"
+#include "scene/PhysicsScene.h"
 
 namespace dw {
 NetTransformSyncSystem::NetTransformSyncSystem(Context* context) : System(context) {

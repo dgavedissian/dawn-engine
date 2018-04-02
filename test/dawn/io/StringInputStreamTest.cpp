@@ -9,7 +9,7 @@ class StringInputStreamTest : public ::testing::Test {
 public:
     void SetUp() override {
         context_ = new dw::Context("", "");
-        context_->addSubsystem<dw::Logger>();
+        context_->addModule<dw::Logger>();
     }
 
     void TearDown() override {}

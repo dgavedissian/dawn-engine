@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "math/Rect.h"
+#include "core/mathRect.h"
 
 namespace dw {
 

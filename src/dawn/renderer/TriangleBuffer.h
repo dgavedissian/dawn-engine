@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "math/Defs.h"
+#include "core/math/Defs.h"
 #include "renderer/CustomMeshRenderable.h"
 
 namespace dw {

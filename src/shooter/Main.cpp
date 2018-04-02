@@ -49,7 +49,7 @@ public:
     // NetGameMode
     void clientOnJoinServer() override {
         log().info("Client: connected to server.");
-        subsystem<NetSystem>()->sendSpawnRequest(
+        module<Networking>()->sendSpawnRequest(
             0,
             [this](Entity& entity) {
                 log().info("Received spawn response. Triggering callback.");
@@ -75,10 +75,10 @@ public:
     void onStart() override {
         NetGameMode::onStart();
 
-        subsystem<Universe>()->createStarSystem();
+        module<SceneManager>()->createStarSystem();
 
         // Random thing.
-        auto rc = subsystem<ResourceCache>();
+        auto rc = module<ResourceCache>();
         auto material = makeShared<Material>(
             context(), makeShared<Program>(context(), rc->get<VertexShader>("base:space/planet.vs"),
                                            rc->get<FragmentShader>("base:space/planet.fs")));
@@ -88,12 +88,12 @@ public:
         auto renderable =
             MeshBuilder(context()).texcoords(true).normals(true).createSphere(1000.0f);
         renderable->setMaterial(material);
-        subsystem<Universe>()
+        module<SceneManager>()
             ->createEntity(Position{4000.0f, 0.0f, 0.0f}, Quat::identity)
             .addComponent<RenderableComponent>(renderable);
 
         // Create a camera.
-        auto& camera = subsystem<Universe>()
+        auto& camera = module<SceneManager>()
                            ->createEntity(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
                            .addComponent<Camera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
@@ -106,7 +106,7 @@ public:
 
     void update(float dt) override {
         NetGameMode::update(dt);
-        for (auto ship : entity_pipeline_->ship_list_) {
+        for (auto& ship : entity_pipeline_->ship_list_) {
             ship->update(dt);
         }
         camera_controller->update(dt);
@@ -122,16 +122,16 @@ public:
     DW_OBJECT(Shooter);
 
     void init(int argc, char** argv) override {
-        auto rc = subsystem<ResourceCache>();
+        auto rc = module<ResourceCache>();
         assert(rc);
         rc->addPath("base", "../media/base");
         rc->addPath("shooter", "../media/shooter");
 
         auto entity_pipeline = makeUnique<ShooterEntityPipeline>(context());
         auto entity_pipeline_ptr = entity_pipeline.get();
-        subsystem<NetSystem>()->setEntityPipeline(std::move(entity_pipeline));
-        subsystem<SystemManager>()->addSystem<ShipEngineSystem>();
-        subsystem<GameFramework>()->setGameMode(
+        module<Networking>()->setEntityPipeline(std::move(entity_pipeline));
+        module<SceneManager>()->addSystem<ShipEngineSystem>();
+        module<GameplayModule>()->setGameMode(
             makeShared<ShooterGameMode>(context(), entity_pipeline_ptr));
     }
 
@@ -139,7 +139,7 @@ public:
     }
 
     void render(float) override {
-        subsystem<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
+        module<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
 
         // Calculate average FPS.
         float current_fps = 1.0 / engine_->frameTime();

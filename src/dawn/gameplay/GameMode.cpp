@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "gameplay/GameMode.h"
+#include "GameMode.h"
 
 namespace dw {
 GameMode::GameMode(Context* ctx) : Object(ctx) {

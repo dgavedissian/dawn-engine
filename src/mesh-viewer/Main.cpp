@@ -4,7 +4,7 @@
  */
 #include "DawnEngine.h"
 #include "scene/EntityManager.h"
-#include "scene/SystemManager.h"
+#include "scene/SceneManager.h"
 #include "renderer/MeshBuilder.h"
 #include "renderer/Program.h"
 #include "resource/ResourceCache.h"

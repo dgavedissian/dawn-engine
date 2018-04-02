@@ -13,33 +13,33 @@ Context::Context(const String& base_path, const String& pref_path)
 Context::~Context() {
 }
 
-Subsystem* Context::subsystem(StringHash subsystem_type) const {
-    auto it = subsystems_.find(subsystem_type);
-    if (it != subsystems_.end()) {
+Module* Context::module(StringHash module_type) const {
+    auto it = modules_.find(module_type);
+    if (it != modules_.end()) {
         return (*it).second.get();
     }
     return nullptr;
 }
 
-Subsystem* Context::addSubsystem(UniquePtr<Subsystem> subsystem) {
-    Subsystem* subsystem_ptr = subsystem.get();
-    subsystem_init_order_.emplace_back(subsystem->type());
-    subsystems_.emplace(subsystem->type(), std::move(subsystem));
+Module* Context::addModule(UniquePtr<Module> module) {
+    Module* subsystem_ptr = module.get();
+    module_init_order_.emplace_back(module->type());
+    modules_.emplace(module->type(), std::move(module));
     return subsystem_ptr;
 }
 
-void Context::removeSubsystem(StringHash subsystem_type) {
-    subsystems_.erase(subsystem_type);
-    subsystem_init_order_.erase(
-        std::find(subsystem_init_order_.begin(), subsystem_init_order_.end(), subsystem_type));
+void Context::removeModule(StringHash module_type) {
+    modules_.erase(module_type);
+    module_init_order_.erase(
+        std::find(module_init_order_.begin(), module_init_order_.end(), module_type));
 }
 
-void Context::clearSubsystems() {
-    for (auto it = subsystem_init_order_.rbegin(); it != subsystem_init_order_.rend(); ++it) {
-        subsystems_.erase(*it);
+void Context::clearModules() {
+    for (auto it = module_init_order_.rbegin(); it != module_init_order_.rend(); ++it) {
+        modules_.erase(*it);
     }
-    subsystem_init_order_.clear();
-    assert(subsystems_.empty());
+    module_init_order_.clear();
+    assert(modules_.empty());
 }
 
 Json& Context::config() {

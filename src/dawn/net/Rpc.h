@@ -5,6 +5,7 @@
 #pragma once
 
 #include "net/BitStream.h"
+#include "scene/Entity.h"
 
 namespace dw {
 class NetData;

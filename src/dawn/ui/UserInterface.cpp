@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "io/StringInputStream.h"
+#include "core/io/StringInputStream.h"
 #include "input/Input.h"
 #include "ui/Imgui.h"
 #include "ui/UserInterface.h"
@@ -11,7 +11,7 @@
 static_assert(sizeof(ImDrawIdx) == sizeof(dw::u16), "Only 16-bit ImGUI indices are supported.");
 
 namespace dw {
-UserInterface::UserInterface(Context* ctx) : Subsystem(ctx), mouse_wheel_(0.0f) {
+UserInterface::UserInterface(Context* ctx) : Module(ctx), mouse_wheel_(0.0f) {
     setDependencies<Renderer>();
     setOptionalDependencies<Input>();
 
@@ -23,7 +23,7 @@ UserInterface::UserInterface(Context* ctx) : Subsystem(ctx), mouse_wheel_(0.0f) 
     ImGui::SetCurrentContext(renderer_context_);
     renderer_io_ = &ImGui::GetIO();
 
-    renderer_ = subsystem<Renderer>();
+    renderer_ = module<Renderer>();
 
     // Initialise mouse state.
     for (bool& state : mouse_pressed_) {
@@ -161,7 +161,7 @@ void UserInterface::render() {
     drawGUI(ImGui::GetDrawData(), *renderer_io_);
 
     // Read input state and pass to imgui.
-    auto input = subsystem<Input>();
+    auto* input = module<Input>();
     if (input) {
         // Update mouse button state and reset.
         bool left_state =

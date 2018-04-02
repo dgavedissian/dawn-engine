@@ -153,12 +153,12 @@ void ShipEngines::onAddToEntity(Entity* parent) {
 
         glow_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
         glow_billboards_->material()->setTexture(
-            subsystem<ResourceCache>()->get<Texture>("shooter:engine/glow.png"), 0);
+            module<ResourceCache>()->get<Texture>("shooter:engine/glow.png"), 0);
         renderable_component->node->addChild(glow_billboards_);
 
         trail_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
         trail_billboards_->material()->setTexture(
-            subsystem<ResourceCache>()->get<Texture>("shooter:engine/trail.png"), 0);
+            module<ResourceCache>()->get<Texture>("shooter:engine/trail.png"), 0);
         trail_billboards_->setBillboardType(BillboardType::Directional);
         renderable_component->node->addChild(trail_billboards_);
     }
@@ -444,11 +444,11 @@ void ShipFlightComputer::update(float dt) {
 }
 
 Ship::Ship(Context* ctx)
-    : Ship(ctx, ctx->subsystem<Universe>()->reserveEntityId(), NetRole::Authority) {
+    : Ship(ctx, ctx->module<SceneManager>()->reserveEntityId(), NetRole::Authority) {
 }
 
 Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx), rb_(nullptr) {
-    auto rc = subsystem<ResourceCache>();
+    auto rc = module<ResourceCache>();
     assert(rc);
 
     material_ = makeShared<Material>(
@@ -462,7 +462,7 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
     sphere->setMaterial(material_);
 
     // Create ship entity.
-    auto universe = subsystem<Universe>();
+    auto universe = module<SceneManager>();
     ship_entity_ = &universe->createEntity(reserved_entity_id)
                         .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
                         .addComponent<RenderableComponent>(renderable)
@@ -519,7 +519,7 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
     // Initialise server-side details.
     if (role >= NetRole::Authority) {
         ship_entity_->addComponent<RigidBody>(
-            subsystem<PhysicsSystem>(), 10.0f,
+            module<SceneManager>()->physicsScene(), 10.0f,
             makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}));
         rb_ = ship_entity_->component<RigidBody>()->_rigidBody();
 
@@ -529,7 +529,7 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
 }
 
 void Ship::update(float dt) {
-    auto input = subsystem<Input>();
+    auto input = module<Input>();
 
     // auto& engines = *ship_entity_->component<ShipEngines>();
     auto& controls = *ship_entity_->component<ShipControls>();

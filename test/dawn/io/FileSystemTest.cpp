@@ -9,8 +9,8 @@ class FileSystemTest : public ::testing::Test {
 public:
     void SetUp() override {
         context_ = new dw::Context("", "");
-        context_->addSubsystem<dw::Logger>();
-        auto& fs = *context_->addSubsystem<dw::FileSystem>();
+        context_->addModule<dw::Logger>();
+        auto& fs = *context_->addModule<dw::FileSystem>();
     }
 
     void TearDown() override {}
@@ -20,9 +20,9 @@ protected:
 };
 
 TEST_F(FileSystemTest, FileDoesExist) {
-    EXPECT_TRUE(context_->subsystem<dw::FileSystem>()->fileExists("io/testfiles/a.txt"));
+    EXPECT_TRUE(context_->module<dw::FileSystem>()->fileExists("io/testfiles/a.txt"));
 }
 
 TEST_F(FileSystemTest, FileDoesNotExist) {
-    EXPECT_FALSE(context_->subsystem<dw::FileSystem>()->fileExists("io/testfiles/missing.txt"));
+    EXPECT_FALSE(context_->module<dw::FileSystem>()->fileExists("io/testfiles/missing.txt"));
 }

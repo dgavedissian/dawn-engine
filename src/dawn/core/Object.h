@@ -6,7 +6,7 @@
 
 #include "core/Context.h"
 #include "core/EventData.h"
-#include "math/StringHash.h"
+#include "core/math/StringHash.h"
 
 namespace dw {
 using Type = StringHash;
@@ -88,12 +88,12 @@ public:
 
     /// A convenient wrapper for context()->subsystem(type);
     /// @param Subsystem type. Either T::typeInfoStatic() or dw::Object::typeInfo()
-    virtual Subsystem* subsystemByType(const TypeInfo& subsystem_type) const;
+    virtual Module* moduleByType(const TypeInfo& subsystem_type) const;
 
-    /// A type safe wrapper for subsystem(T::typeInfoStatic()).
+    /// A type safe wrapper for moduleByType(T::typeInfoStatic()).
     /// @tparam T Subsystem type.
     /// @return Subsystem instance.
-    template <typename T> T* subsystem() const;
+    template <typename T> T* module() const;
 
     virtual Type type() const = 0;
     virtual String typeName() const = 0;
@@ -104,30 +104,30 @@ protected:
 };
 }  // namespace dw
 
-#include "core/Subsystem.h"
+#include "core/Module.h"
 #include "core/EventSystem.h"
 
 namespace dw {
 template <typename T, typename... Args> bool Object::triggerEvent(Args&&... args) const {
-    return context_->subsystem<EventSystem>()->triggerEvent(
+    return context_->module<EventSystem>()->triggerEvent(
         makeShared<T>(std::forward<Args>(args)...));
 }
 
 template <typename E> bool Object::addEventListener(const EventDelegate& delegate) {
-    if (context_->subsystem<EventSystem>()) {
-        return context_->subsystem<EventSystem>()->addListener(delegate, E::typeStatic());
+    if (context_->module<EventSystem>()) {
+        return context_->module<EventSystem>()->addListener(delegate, E::typeStatic());
     }
     return false;
 }
 
 template <typename E> bool Object::removeEventListener(const EventDelegate& delegate) {
-    if (context_->subsystem<EventSystem>()) {
-        return context_->subsystem<EventSystem>()->removeListener(delegate, E::typeStatic());
+    if (context_->module<EventSystem>()) {
+        return context_->module<EventSystem>()->removeListener(delegate, E::typeStatic());
     }
     return false;
 }
 
-template <typename T> T* Object::subsystem() const {
-    return static_cast<T*>(subsystemByType(T::typeInfoStatic()));
+template <typename T> T* Object::module() const {
+    return static_cast<T*>(moduleByType(T::typeInfoStatic()));
 }
 }  // namespace dw

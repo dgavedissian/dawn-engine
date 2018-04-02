@@ -23,7 +23,7 @@ void Material::setTexture(SharedPtr<Texture> texture, uint unit) {
 }
 
 void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_projection_matrix) {
-    Renderer* renderer = subsystem<Renderer>();
+    auto* renderer = module<Renderer>();
 
     // Bind render state.
     renderer->setStatePolygonMode(polygon_mode_);

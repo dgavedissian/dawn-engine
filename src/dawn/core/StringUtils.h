@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "math/Vec2i.h"
+#include "core/math/Vec2i.h"
 
 namespace dw {
 namespace str {

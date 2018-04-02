@@ -6,8 +6,8 @@
 
 #include "scene/Component.h"
 #include "scene/Entity.h"
-#include "io/InputStream.h"
-#include "io/OutputStream.h"
+#include "core/io/InputStream.h"
+#include "core/io/OutputStream.h"
 
 #include "net/BitStream.h"
 #include "net/NetRole.h"
@@ -64,6 +64,6 @@ private:
     NetRole role_;
     NetRole remote_role_;
 
-    friend class NetSystem;
+    friend class Networking;
 };
 }  // namespace dw

@@ -5,9 +5,9 @@
 #include "Common.h"
 #include "renderer/EntityRenderer.h"
 #include "renderer/Renderable.h"
-#include "scene/SystemManager.h"
+#include "scene/SceneManager.h"
 #include "scene/Transform.h"
-#include "physics/PhysicsSystem.h"
+#include "scene/PhysicsScene.h"
 #include "net/NetTransform.h"
 
 namespace dw {
@@ -36,7 +36,7 @@ Mat4 deriveTransform(Transform* transform, Transform* camera,
 EntityRenderer::EntityRenderer(Context* context) : System{context} {
     supportsComponents<RenderableComponent, Transform>();
     executesAfter<CameraEntitySystem, NetTransformSyncSystem>();
-    camera_entity_system_ = subsystem<SystemManager>()->addSystem<CameraEntitySystem>();
+    camera_entity_system_ = module<SceneManager>()->addSystem<CameraEntitySystem>();
 }
 
 void EntityRenderer::beginProcessing() {
@@ -57,7 +57,7 @@ void EntityRenderer::processEntity(Entity& entity, float) {
                 Vec3 velocity = rigid_body->_rigidBody()->getLinearVelocity() * interpolation;
                 model.Translate(velocity * model.RotatePart());
             }
-            renderable->node->drawSceneGraph(subsystem<Renderer>(), camera.view,
+            renderable->node->drawSceneGraph(module<Renderer>(), camera.view,
                                              camera.transform_component, model,
                                              camera.projection_matrix * view);
         });
@@ -72,7 +72,7 @@ void EntityRenderer::render(float interpolation) {
 
 EntityRenderer::CameraEntitySystem::CameraEntitySystem(Context* context) : System{context} {
     supportsComponents<Camera, Transform>();
-    executesAfter<PhysicsSystem::PhysicsComponentSystem>();
+    executesAfter<PhysicsScene::PhysicsComponentSystem>();
 }
 
 void EntityRenderer::CameraEntitySystem::beginProcessing() {

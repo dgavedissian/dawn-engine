@@ -12,7 +12,7 @@
 #endif
 
 #include <ShaderLang.h>
-#include <GlslangToSpv.h>
+#include <SPIRV/GlslangToSpv.h>
 
 // Re-enable warnings
 #if defined(DW_MSVC)

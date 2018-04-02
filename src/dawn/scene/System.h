@@ -4,17 +4,16 @@
  */
 #pragma once
 
-#include "ontology/System.hpp"
-#include "Entity.h"
+#include "scene/Entity.h"
 
 namespace dw {
-class SystemManager;
+class SceneManager;
 
 template <typename T> class OntologySystemAdapter : public Ontology::System {
 public:
     OntologySystemAdapter(UniquePtr<T>&& wrapped_system)
         : dt_{0.0f}, wrapped_system_{std::move(wrapped_system)} {
-        wrapped_system_->internalSetOntologyAdapter(this);
+        wrapped_system_->setOntologyAdapter_internal(this);
     }
 
     void initialise() override {
@@ -24,7 +23,7 @@ public:
         if (!first_iteration) {
             wrapped_system_->beginProcessing();
             // Hack.
-            dt_ = wrapped_system_->template subsystem<SystemManager>()->_lastDt();
+            dt_ = wrapped_system_->template module<SceneManager>()->lastDeltaTime_internal();
             first_iteration = true;
         }
         wrapped_system_->processEntity(*entity.getComponent<OntologyMetadata>().entity_ptr, dt_);
@@ -46,7 +45,7 @@ class DW_API System : public Object {
 public:
     DW_OBJECT(System)
 
-    System(Context* context) : Object{context}, ontology_system_{nullptr} {};
+    System(Context* context);
     virtual ~System() = default;
 
     /// Specifies a product of component types which constrains which entities are
@@ -73,18 +72,14 @@ public:
     }
 
     /// Called when processing begins.
-    virtual void beginProcessing() {
-    }
+    virtual void beginProcessing();
 
     /// Processes a single entity which matches the constraints set up by SupportsComponents.
     /// @param entity Entity to process.
     virtual void processEntity(Entity& entity, float dt) = 0;
 
     /// Internal.
-    void internalSetOntologyAdapter(Ontology::System* system) {
-        ontology_system_ = system;
-        ontology_system_->setTypeSets(supported_components_, depending_systems_);
-    }
+    void setOntologyAdapter_internal(Ontology::System* system);
 
 private:
     Ontology::TypeSet supported_components_;

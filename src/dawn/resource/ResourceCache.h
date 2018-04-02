@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "io/File.h"
+#include "core/io/File.h"
 #include "resource/Resource.h"
 
 namespace dw {
@@ -39,7 +39,7 @@ private:
     Path path_;
 };
 
-class DW_API ResourceCache : public Subsystem {
+class DW_API ResourceCache : public Module {
 public:
     DW_OBJECT(ResourceCache);
 
