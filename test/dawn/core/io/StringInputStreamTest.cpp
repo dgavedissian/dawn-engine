@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Testing.h"
-#include "io/StringInputStream.h"
+#include "core/io/StringInputStream.h"
 
 class StringInputStreamTest : public ::testing::Test {
 public:

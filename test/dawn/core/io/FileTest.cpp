@@ -3,14 +3,14 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Testing.h"
-#include "io/File.h"
+#include "core/io/File.h"
 
 class FileTest : public ::testing::Test {
 public:
     void SetUp() override {
         context_ = new dw::Context("", "");
         context_->addModule<dw::Logger>();
-        auto& fs = *context_->addModule<dw::FileSystem>();
+        context_->addModule<dw::FileSystem>();
     }
 
     void TearDown() override {}
@@ -20,7 +20,7 @@ protected:
 };
 
 TEST_F(FileTest, ReadByte) {
-    dw::File file(context_, "io/testfiles/data", dw::FileMode::Read);
+    dw::File file(context_, "core/io/testfiles/data", dw::FileMode::Read);
     dw::u32 data;
     dw::u32 bytes_read = file.readData(&data, sizeof(dw::u32));
     EXPECT_EQ(0x806f6f66, data);
@@ -29,12 +29,12 @@ TEST_F(FileTest, ReadByte) {
 }
 
 TEST_F(FileTest, ReadSingleLine) {
-    dw::File file(context_, "io/testfiles/a.txt", dw::FileMode::Read);
+    dw::File file(context_, "core/io/testfiles/a.txt", dw::FileMode::Read);
     EXPECT_EQ("test", dw::stream::read<dw::String>(file));
 }
 
 TEST_F(FileTest, ReadMultiLine) {
-    dw::File file(context_, "io/testfiles/b.txt", dw::FileMode::Read);
+    dw::File file(context_, "core/io/testfiles/b.txt", dw::FileMode::Read);
     EXPECT_EQ("line1\nline2\n", dw::stream::read<dw::String>(file));
 }
 

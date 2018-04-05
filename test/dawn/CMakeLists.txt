@@ -6,9 +6,9 @@ cmake_policy(SET CMP0054 NEW)
 cmake_policy(SET CMP0057 NEW)
 
 set(TEST_FILES
-    io/FileSystemTest.cpp
-    io/FileTest.cpp
-    io/StringInputStreamTest.cpp
+    core/io/FileSystemTest.cpp
+    core/io/FileTest.cpp
+    core/io/StringInputStreamTest.cpp
     Testing.h)
 
 add_executable(DawnTestRunner ${TEST_FILES})
