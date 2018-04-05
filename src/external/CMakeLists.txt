@@ -50,6 +50,7 @@ else()
 endif()
 ExternalProject_Add(Assimp-external
     PREFIX ${EXTERNAL_PREFIX}
+    # As we need to patch the source, we make a copy using URL instead.
     URL ${CMAKE_CURRENT_SOURCE_DIR}/assimp
     INSTALL_DIR ${EXTERNAL_INSTALL}
     PATCH_COMMAND ${ASSIMP_PATCH_COMMAND}
@@ -99,7 +100,7 @@ ExternalProject_Add(Bullet-external
         -DINSTALL_LIBS=1
         -DUSE_MSVC_RUNTIME_LIBRARY_DLL=1
 )
-add_library(Bullet STATIC IMPORTED GLOBAL)
+add_library(Bullet INTERFACE)
 add_dependencies(Bullet Bullet-external)
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/bullet)
 set_property(TARGET Bullet PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include/bullet)
@@ -112,10 +113,10 @@ if(WIN32)
 else()
 endif()
 set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
+    ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a
     ${EXTERNAL_INSTALL}/lib/libBulletCollision.a
-    ${EXTERNAL_INSTALL}/lib/libLinearMath.a)
-set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION
-    ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a)
+    ${EXTERNAL_INSTALL}/lib/libLinearMath.a
+    ${EXTERNAL_INSTALL}/lib/libBullet3Common.a)
 set(LIBS ${LIBS} Bullet)
 
 # MathGeoLib
