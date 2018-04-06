@@ -20,7 +20,7 @@ SceneManager::SceneManager(Context* ctx) : Module(ctx), entity_id_allocator_(1) 
                               .addComponent<RenderableComponent>(background_renderable_root_);
     background_entity_->transform()->setRelativeToCamera(true);
 
-    physics_scene_ = makeUnique<PhysicsScene>(ctx);
+    physics_scene_ = makeUnique<PhysicsScene>(ctx, this);
 }
 
 SceneManager::~SceneManager() {

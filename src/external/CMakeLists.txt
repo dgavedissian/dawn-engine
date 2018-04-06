@@ -69,10 +69,17 @@ add_library(Assimp INTERFACE)
 add_dependencies(Assimp Assimp-external)
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
 set_property(TARGET Assimp PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}assimp$<$<PLATFORM_ID:Windows>:-vc140-mt>$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-    ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/${CMAKE_STATIC_LIBRARY_PREFIX}IrrXML$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-    ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/${CMAKE_STATIC_LIBRARY_PREFIX}zlibstatic$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+if(MSVC)
+    set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt$<$<CONFIG:Debug>:_d>.lib
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/$<CONFIG>/IrrXML$<$<CONFIG:Debug>:_d>.lib
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/$<CONFIG>/zlibstatic$<$<CONFIG:Debug>:d>.lib)
+else()
+    set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/libassimp$<$<CONFIG:Debug>:_d>.a
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/libIrrXML$<$<CONFIG:Debug>:_d>.a
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/libzlibstatic$<$<CONFIG:Debug>:_d>.a)
+endif()
 set(LIBS ${LIBS} Assimp)
 
 # Bullet
@@ -138,36 +145,36 @@ set(LIBS ${LIBS} MathGeoLib)
 
 # Luajit
 if(MSVC)
-    set(LUAJIT_WORKING_DIRECTORY src)
-    set(LUAJIT_BUILD_COMMAND msvcbuild.bat static)
-    set(LUAJIT_INSTALL_COMMAND "")
+    set(LUAJIT_BUILD_COMMAND cd src COMMAND msvcbuild.bat static)
+    set(LUAJIT_INSTALL_COMMAND
+        ${CMAKE_COMMAND} -E copy
+            ${EXTERNAL_PREFIX}/src/Luajit-external-build/src/lua51.lib
+            ${EXTERNAL_INSTALL}/lib/luajit-5.1.lib)
 else()
-    set(LUAJIT_WORKING_DIRECTORY)
     set(LUAJIT_BUILD_COMMAND make PREFIX=${EXTERNAL_INSTALL} amalg)
     set(LUAJIT_INSTALL_COMMAND make PREFIX=${EXTERNAL_INSTALL} install)
 endif()
 ExternalProject_Add(Luajit-external
     PREFIX ${EXTERNAL_PREFIX}
     URL ${CMAKE_CURRENT_SOURCE_DIR}/luajit
-    CONFIGURE_COMMAND ""
-    BUILD_IN_SOURCE 1
-    WORKING_DIRECTORY ${LUAJIT_WORKING_DIRECTORY}
+    # This is needed to avoid nuking the build files every time the DOWNLOAD_COMMAND
+    # is run (and files are copied from external/luajit). This causes LJ to rebuild
+    # every time in VS without specifying this CONFIGURE_COMMAND.
+    CONFIGURE_COMMAND
+        ${CMAKE_COMMAND} -E copy_directory
+            ${EXTERNAL_PREFIX}/src/Luajit-external
+            ${EXTERNAL_PREFIX}/src/Luajit-external-build
+    UPDATE_COMMAND ""
     BUILD_COMMAND ${LUAJIT_BUILD_COMMAND}
     INSTALL_COMMAND ${LUAJIT_INSTALL_COMMAND}
-    UPDATE_COMMAND ""
     EXCLUDE_FROM_ALL 1
 )
 add_library(Luajit INTERFACE)
 add_dependencies(Luajit Luajit-external)
 file(MAKE_DIRECTORY ${EXTERNAL_PREFIX}/src/Luajit-external/src)
 set_property(TARGET Luajit PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PREFIX}/src/Luajit-external/src)
-if(WIN32)
-    set_property(TARGET Luajit PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_PREFIX}/src/Luajit-external/src/lua51.lib)
-else()
-    set_property(TARGET Luajit PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/libluajit-5.1.a)
-endif()
+set_property(TARGET Luajit PROPERTY INTERFACE_LINK_LIBRARIES
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(LIBS ${LIBS} Luajit)
 
 
@@ -223,7 +230,7 @@ ExternalProject_Add(glslang-external
     EXCLUDE_FROM_ALL 1
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DBUILD_TESTING=0
-        -DCMAKE_DEBUG_POSTFIX=_d
+        -DCMAKE_DEBUG_POSTFIX=d
         -DENABLE_GLSLANG_BINARIES=0
         -DENABLE_HLSL=0
 )
@@ -233,10 +240,10 @@ file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/glslang/Public)
 set_property(TARGET glslang PROPERTY INTERFACE_INCLUDE_DIRECTORIES
     ${EXTERNAL_INSTALL}/include/glslang/Public)
 set_property(TARGET glslang PROPERTY INTERFACE_LINK_LIBRARIES
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}SPIRV$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glslang$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}OGLCompiler$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}OSDependent$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}SPIRV$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glslang$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}OGLCompiler$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}OSDependent$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(LIBS ${LIBS} glslang)
 
 # googletest

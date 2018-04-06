@@ -26,7 +26,7 @@ void fromBulletTransform(const btTransform& source, Transform& dest) {
     dest.orientation() = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
 }
 }  // namespace
-PhysicsScene::PhysicsScene(Context* context) : Object(context) {
+PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr) : Object(context) {
     log().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
 
     broadphase_.reset(new btDbvtBroadphase());
@@ -43,7 +43,7 @@ PhysicsScene::PhysicsScene(Context* context) : Object(context) {
     // Register delegates.
     addEventListener<KeyEvent>(makeEventDelegate(this, &PhysicsScene::onKey));
 
-    module<SceneManager>()->addSystem<PhysicsComponentSystem>();
+    scene_mgr->addSystem<PhysicsComponentSystem>();
 }
 
 PhysicsScene::~PhysicsScene() {

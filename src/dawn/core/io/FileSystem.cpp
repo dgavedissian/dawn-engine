@@ -7,7 +7,7 @@
 #include "core/StringUtils.h"
 
 #if DW_PLATFORM == DW_WIN32
-#include "platform/Windows.h"
+#include "core/platform/Windows.h"
 #else
 #define MAX_PATH 256
 #include <unistd.h>

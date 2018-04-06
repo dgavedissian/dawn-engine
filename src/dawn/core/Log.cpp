@@ -14,7 +14,7 @@
 #include "Common.h"
 #include "core/Log.h"
 #if DW_PLATFORM == DW_WIN32
-#include "platform/Windows.h"
+#include "core/platform/Windows.h"
 #endif
 
 namespace dw {
