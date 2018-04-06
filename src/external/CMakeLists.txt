@@ -138,7 +138,7 @@ set(LIBS ${LIBS} MathGeoLib)
 
 # Luajit
 if(MSVC)
-    set(LUAJIT_BUILD_COMMAND msvcbuild.bat static)
+    set(LUAJIT_BUILD_COMMAND src/msvcbuild.bat static)
     set(LUAJIT_INSTALL_COMMAND "")
 else()
     set(LUAJIT_BUILD_COMMAND make PREFIX=${EXTERNAL_INSTALL} amalg)
