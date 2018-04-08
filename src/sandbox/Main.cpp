@@ -103,8 +103,9 @@ public:
         setupTerrainRenderable();
         custom_mesh_renderable_->setMaterial(material);
 
-        planet_ = &universe->createEntity(Position::origin, Quat::identity)
-                       .addComponent<RenderableComponent>(custom_mesh_renderable_);
+        planet_ =
+            &universe->createEntity(Planet::constexprTypeStatic(), Position::origin, Quat::identity)
+                 .addComponent<RenderableComponent>(custom_mesh_renderable_);
 
         // Kick off terrain update thread.
         terrain_update_thread_ = Thread([this]() {
@@ -531,7 +532,7 @@ public:
 
         // Create a camera.
         auto& camera = module<SceneManager>()
-                           ->createEntity(Position{0.0f, 0.0f, radius * 2}, Quat::identity)
+                           ->createEntity(0, Position{0.0f, 0.0f, radius * 2}, Quat::identity)
                            .addComponent<Camera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);
         camera_controller->possess(&camera);

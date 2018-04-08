@@ -44,11 +44,11 @@ int yojimbo_printf_function(const char* format, ...) {
 
 struct ClientSpawnRequestMessage : public yojimbo::Message {
     u32 request_id;
-    u32 metadata;
+    EntityType entity_type;
     bool authoritative_proxy;
 
     template <typename Stream> bool Serialize(Stream& stream) {
-        serialize_uint32(stream, metadata);
+        serialize_uint32(stream, entity_type);
         serialize_uint32(stream, request_id);
         serialize_bool(stream, authoritative_proxy);
         return true;
@@ -74,13 +74,13 @@ struct ClientRpcMessage : public yojimbo::Message {
 
 struct ServerCreateEntityMessage : public yojimbo::Message {
     EntityId entity_id;
-    u32 metadata;
+    EntityType entity_type;
     NetRole role;
     Vector<u8> data;
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint32(stream, entity_id);
-        serialize_uint32(stream, metadata);
+        serialize_uint32(stream, entity_type);
         auto role_byte = static_cast<u8>(role);
         serialize_bits(stream, role_byte, 8);
         role = static_cast<NetRole>(role_byte);
@@ -245,20 +245,25 @@ void Networking::update(float dt) {
                 switch (message->GetType()) {
                     case MT_ClientSpawnRequest: {
                         auto spawn_message = (ClientSpawnRequestMessage*)message;
-                        // Spawn entity using metadata.
+                        // Spawn entity using entity type.
                         EntityId entity_id = module<SceneManager>()->reserveEntityId();
-                        log().info(
-                            "Received spawn request, spawning Entity ID %s from metadata %s.",
-                            entity_id, spawn_message->metadata);
-                        Entity& entity = entity_pipeline_->createEntityFromMetadata(
-                            entity_id, spawn_message->metadata, NetRole::Authority);
-                        replicateEntity(entity,
-                                        spawn_message->authoritative_proxy ? client_index : -1);
+                        log().info("Received spawn request, spawning entity (id: %s) with type %s.",
+                                   entity_id, spawn_message->entity_type);
+                        Entity* entity = entity_pipeline_->createEntityFromType(
+                            entity_id, spawn_message->entity_type, NetRole::Authority);
+                        if (entity) {
+                            replicateEntity(*entity,
+                                            spawn_message->authoritative_proxy ? client_index : -1);
+                        }
 
                         // Send response.
                         auto response_message = (ServerSpawnResponseMessage*)server_->CreateMessage(
                             client_index, MT_ServerSpawnResponse);
-                        response_message->entity_id = entity.id() + 10000;
+                        if (entity) {
+                            response_message->entity_id = entity->id() + 10000;
+                        } else {
+                            response_message->entity_id = 0;
+                        }
                         response_message->request_id = spawn_message->request_id;
                         server_->SendMessage(client_index, 0, response_message);
                         break;
@@ -328,36 +333,42 @@ void Networking::update(float dt) {
                     auto create_entity_message = (ServerCreateEntityMessage*)message;
                     InputBitStream bs(create_entity_message->data);
                     EntityId entity_id = create_entity_message->entity_id;
-                    u32 metadata = create_entity_message->metadata;
+                    EntityType entity_type = create_entity_message->entity_type;
                     NetRole role = create_entity_message->role;
                     if (entity_pipeline_) {
-                        Entity& entity =
-                            entity_pipeline_->createEntityFromMetadata(entity_id, metadata, role);
-                        assert(entity.hasComponent<NetData>());
-                        entity.component<NetData>()->deserialise(bs);
-                        entity.component<NetData>()->role_ = role;
-                        entity.component<NetData>()->remote_role_ = NetRole::Authority;
-                        log().info("Created replicated entity %d at %d %d %d", entity_id,
-                                   entity.transform()->position().x,
-                                   entity.transform()->position().y,
-                                   entity.transform()->position().z);
+                        Entity* entity =
+                            entity_pipeline_->createEntityFromType(entity_id, entity_type, role);
+                        if (entity) {
+                            assert(entity->hasComponent<NetData>());
+                            entity->component<NetData>()->deserialise(bs);
+                            entity->component<NetData>()->role_ = role;
+                            entity->component<NetData>()->remote_role_ = NetRole::Authority;
+                            log().info("Created replicated entity %d at %d %d %d", entity_id,
+                                       entity->transform()->position().x,
+                                       entity->transform()->position().y,
+                                       entity->transform()->position().z);
 
-                        // If any spawn requests are waiting for an entity to be created, trigger
-                        // the callback and clear.
-                        if (pending_entity_spawns_.count(entity.id()) > 0) {
-                            auto it = outgoing_spawn_requests_.find(
-                                pending_entity_spawns_.at(entity.id()));
-                            if (it != outgoing_spawn_requests_.end()) {
-                                it->second(entity);
-                                outgoing_spawn_requests_.erase(it);
-                                pending_entity_spawns_.erase(entity.id());
-                            } else {
-                                log().error(
-                                    "Attempting to trigger an spawn request callback which no "
-                                    "longer exists. Entity ID: %s, Request ID: %s",
-                                    entity.id(), pending_entity_spawns_.at(entity.id()));
-                                pending_entity_spawns_.erase(entity.id());
+                            // If any spawn requests are waiting for an entity to be created,
+                            // trigger the callback and clear.
+                            if (pending_entity_spawns_.count(entity->id()) > 0) {
+                                auto it = outgoing_spawn_requests_.find(
+                                    pending_entity_spawns_.at(entity->id()));
+                                if (it != outgoing_spawn_requests_.end()) {
+                                    it->second(*entity);
+                                    outgoing_spawn_requests_.erase(it);
+                                    pending_entity_spawns_.erase(entity->id());
+                                } else {
+                                    log().error(
+                                        "Attempting to trigger an spawn request callback which no "
+                                        "longer exists. Entity ID: %s, Request ID: %s",
+                                        entity->id(), pending_entity_spawns_.at(entity->id()));
+                                    pending_entity_spawns_.erase(entity->id());
+                                }
                             }
+                        } else {
+                            log().error(
+                                "Failed to spawn an entity of type %s. %s returned nullptr.",
+                                entity_type, entity_pipeline_->typeName());
                         }
                     } else {
                         log().warn("Attempted to replicate entity, but no entity pipeline setup.");
@@ -378,23 +389,32 @@ void Networking::update(float dt) {
                 }
                 case MT_ServerSpawnResponse: {
                     auto spawn_message = (ServerSpawnResponseMessage*)message;
-                    Entity* entity = module<SceneManager>()->findEntity(spawn_message->entity_id);
-                    if (entity) {
-                        auto it = outgoing_spawn_requests_.find(spawn_message->request_id);
-                        if (it != outgoing_spawn_requests_.end()) {
-                            it->second(*entity);
-                            outgoing_spawn_requests_.erase(it);
-                        } else {
-                            log().warn(
-                                "Received spawn response for an unknown spawn request. Entity ID: "
-                                "%s, Request ID: %s",
-                                spawn_message->entity_id, spawn_message->request_id);
-                        }
+                    if (spawn_message->entity_id == 0) {
+                        // TODO: error
+                        // Failed to spawn entity on the server.
+                        log().warn("Failed to spawn entity on the server. Request ID: %s",
+                                   spawn_message->request_id);
                     } else {
-                        // Wait for the entity to be created.
-                        pending_entity_spawns_[spawn_message->entity_id] =
-                            spawn_message->request_id;
-                    };
+                        Entity* entity =
+                            module<SceneManager>()->findEntity(spawn_message->entity_id);
+                        if (entity) {
+                            auto it = outgoing_spawn_requests_.find(spawn_message->request_id);
+                            if (it != outgoing_spawn_requests_.end()) {
+                                it->second(*entity);
+                                outgoing_spawn_requests_.erase(it);
+                            } else {
+                                log().warn(
+                                    "Received spawn response for an unknown spawn request. Entity "
+                                    "ID: "
+                                    "%s, Request ID: %s",
+                                    spawn_message->entity_id, spawn_message->request_id);
+                            }
+                        } else {
+                            // Wait for the entity to be created.
+                            pending_entity_spawns_[spawn_message->entity_id] =
+                                spawn_message->request_id;
+                        };
+                    }
                     break;
                 }
                 default:
@@ -448,19 +468,19 @@ void Networking::replicateEntity(const Entity& entity, int authoritative_proxy_c
     }
 }
 
-void Networking::setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline) {
+void Networking::setEntityPipeline(UniquePtr<NetEntityPipeline> entity_pipeline) {
     entity_pipeline_ = std::move(entity_pipeline);
 }
 
-void Networking::sendSpawnRequest(u32 metadata, std::function<void(Entity&)> callback,
-                                  bool messaging_proxy) {
+void Networking::sendSpawnRequest(EntityType type, std::function<void(Entity&)> callback,
+                                  bool authoritative_proxy) {
     assert(isClient());
     assert(isConnected());
     outgoing_spawn_requests_[spawn_request_id_] = std::move(callback);
     auto message = (ClientSpawnRequestMessage*)client_->CreateMessage(MT_ClientSpawnRequest);
     message->request_id = spawn_request_id_;
-    message->metadata = metadata;
-    message->authoritative_proxy = messaging_proxy;
+    message->entity_type = type;
+    message->authoritative_proxy = authoritative_proxy;
     client_->SendMessage(0, message);
     spawn_request_id_++;
 }
@@ -485,18 +505,13 @@ void Networking::sendServerCreateEntity(int clientIndex, const Entity& entity,
                                         const OutputBitStream& properties, NetRole role) {
     assert(isServer());
 
-    u32 metadata = 0;
-    if (entity_pipeline_) {
-        metadata = entity_pipeline_->getEntityMetadata(entity);
-    }
-
     auto message =
         (ServerCreateEntityMessage*)server_->CreateMessage(clientIndex, MT_ServerCreateEntity);
     // TODO: Reserve entity ID which the client will have free.
     message->entity_id = entity.id() + 10000;
     message->role = role;
     message->data = properties.data();
-    message->metadata = metadata;
+    message->entity_type = entity.typeId();
     server_->SendMessage(clientIndex, 0, message);
 }
 

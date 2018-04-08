@@ -13,28 +13,29 @@
 
 using namespace dw;
 
-class ShooterEntityPipeline : public EntityPipeline {
+class ShooterEntityPipeline : public NetEntityPipeline {
 public:
     DW_OBJECT(ShooterEntityPipeline);
 
     Vector<SharedPtr<Ship>> ship_list_;
 
-    explicit ShooterEntityPipeline(Context* ctx) : EntityPipeline(ctx) {
+    explicit ShooterEntityPipeline(Context* ctx) : NetEntityPipeline(ctx) {
     }
 
     ~ShooterEntityPipeline() override = default;
 
-    u32 getEntityMetadata(const Entity& entity) override {
-        return 0;
-    }
-
-    Entity& createEntityFromMetadata(EntityId entity_id, u32 metadata, NetRole role) override {
-        assert(metadata == 0);  // only one entity type supported.
-        SharedPtr<Ship> ship = makeShared<Ship>(context(), entity_id, role);
-        Entity& entity = *ship->entity();
-        entity.component<ShipControls>()->ship = ship;
-        ship_list_.emplace_back(std::move(ship));
-        return entity;
+    Entity* createEntityFromType(EntityId entity_id, EntityType type, NetRole role) override {
+        switch (type) {
+            case Ship::constexprTypeStatic(): {
+                SharedPtr<Ship> ship = makeShared<Ship>(context(), entity_id, role);
+                Entity* entity = ship->entity();
+                entity->component<ShipControls>()->ship = ship;
+                ship_list_.emplace_back(std::move(ship));
+                return entity;
+            }
+            default:
+                return nullptr;
+        }
     }
 };
 
@@ -89,12 +90,12 @@ public:
             MeshBuilder(context()).texcoords(true).normals(true).createSphere(1000.0f);
         renderable->setMaterial(material);
         module<SceneManager>()
-            ->createEntity(Position{4000.0f, 0.0f, 0.0f}, Quat::identity)
+            ->createEntity(0, Position{4000.0f, 0.0f, 0.0f}, Quat::identity)
             .addComponent<RenderableComponent>(renderable);
 
         // Create a camera.
         auto& camera = module<SceneManager>()
-                           ->createEntity(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
+                           ->createEntity(0, Position{0.0f, 0.0f, 50.0f}, Quat::identity)
                            .addComponent<Camera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
         camera_controller->possess(&camera);

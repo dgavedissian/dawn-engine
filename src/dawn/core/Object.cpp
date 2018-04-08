@@ -9,7 +9,7 @@
 #endif
 
 namespace dw {
-TypeInfo::TypeInfo(const std::type_info& t) : type_name_{}, type_name_hash_{} {
+TypeInfo::TypeInfo(const std::type_info& t) : type_info_{t}, type_name_{} {
 #if defined(DW_GCC) || defined(DW_CLANG)
     int status = 0;
     char* demangled_name = abi::__cxa_demangle(t.name(), nullptr, nullptr, &status);
@@ -22,14 +22,13 @@ TypeInfo::TypeInfo(const std::type_info& t) : type_name_{}, type_name_hash_{} {
 #else
     type_name_ = t.name();
 #endif
-    type_name_hash_ = Hash(type_name_);
 }
 
 TypeInfo::~TypeInfo() {
 }
 
 Type TypeInfo::type() const {
-    return type_name_hash_;
+    return type_info_.hash_code();
 }
 
 String TypeInfo::typeName() const {
@@ -37,11 +36,11 @@ String TypeInfo::typeName() const {
 }
 
 bool TypeInfo::operator==(const TypeInfo& other) const {
-    return type_name_hash_ == other.type_name_hash_;
+    return type_info_ == other.type_info_;
 }
 
 bool TypeInfo::operator!=(const TypeInfo& other) const {
-    return !(*this == other);
+    return type_info_ != other.type_info_;
 }
 
 Object::Object(Context* context) : context_{context} {

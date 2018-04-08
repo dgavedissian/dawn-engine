@@ -620,11 +620,11 @@ TEST_CLASS(MovingSphereHighLevel) {
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
         auto scene = module<SceneManager>();
-        object = &scene->createEntity(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
+        object = &scene->createEntity(0, Position{0.0f, 0.0f, 0.0f}, Quat::identity)
                       .addComponent<RenderableComponent>(renderable);
 
         // Create a camera.
-        camera = &scene->createEntity(Position{0.0f, 0.0f, 50.0f}, Quat::identity)
+        camera = &scene->createEntity(1, Position{0.0f, 0.0f, 50.0f}, Quat::identity)
                       .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
     }
 

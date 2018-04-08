@@ -4,6 +4,8 @@
 set(SOURCE_FILES
     Main.cpp
     Ship.cpp
-    Ship.h)
+    Ship.h
+        ShipEngines.cpp
+        ShipEngines.h)
 
 add_game(Shooter "${SOURCE_FILES}")

@@ -6,9 +6,11 @@
 #include "Entity.h"
 
 namespace dw {
-Entity::Entity(Context* context, Ontology::EntityManager& entity_manager, EntityId id)
+Entity::Entity(Context* context, Ontology::EntityManager& entity_manager, EntityId id,
+               EntityType type)
     : Object{context},
       id_{id},
+      type_{type},
       internal_entity_mgr_{entity_manager},
       internal_entity_id_{entity_manager.createEntity("").getID()},
       transform_{nullptr} {
@@ -17,6 +19,10 @@ Entity::Entity(Context* context, Ontology::EntityManager& entity_manager, Entity
 
 EntityId Entity::id() const {
     return id_;
+}
+
+EntityType Entity::typeId() const {
+    return type_;
 }
 
 Transform* Entity::transform() const {

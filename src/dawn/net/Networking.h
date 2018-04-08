@@ -8,20 +8,9 @@
 
 #include "scene/Entity.h"
 #include "net/NetData.h"
+#include "net/NetEntityPipeline.h"
 
 namespace dw {
-// TODO: Move EntityPipeline elsewhere
-class DW_API EntityPipeline : public Object {
-public:
-    DW_OBJECT(EntityPipeline);
-
-    EntityPipeline(Context* ctx) : Object(ctx) {
-    }
-    virtual ~EntityPipeline() = default;
-    virtual u32 getEntityMetadata(const Entity& entity) = 0;
-    virtual Entity& createEntityFromMetadata(EntityId entity_id, u32 metadata, NetRole role) = 0;
-};
-
 enum class ConnectionState { Disconnected, Connecting, Connected };
 enum class NetMode { Server, Client };
 
@@ -57,11 +46,11 @@ public:
     // authoritative_proxy_client indicates a client which should receive the entity with Role =
     // AuthoritativeProxy. -1 for none.
     void replicateEntity(const Entity& entity, int authoritative_proxy_client = -1);
-    void setEntityPipeline(UniquePtr<EntityPipeline> entity_pipeline);
+    void setEntityPipeline(UniquePtr<NetEntityPipeline> entity_pipeline);
 
     // RPCs.
-    void sendSpawnRequest(u32 metadata, std::function<void(Entity&)> callback,
-                          bool messaging_proxy = false);
+    void sendSpawnRequest(EntityType type, std::function<void(Entity&)> callback,
+                          bool authoritative_proxy = false);
     void sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type, const Vector<u8>& payload);
 
 private:
@@ -72,7 +61,7 @@ private:
     UniquePtr<yojimbo::Client> client_;
     UniquePtr<yojimbo::Server> server_;
 
-    UniquePtr<EntityPipeline> entity_pipeline_;
+    UniquePtr<NetEntityPipeline> entity_pipeline_;
     HashSet<EntityId> replicated_entities_;
 
     // Client only.

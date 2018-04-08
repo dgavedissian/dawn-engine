@@ -16,7 +16,7 @@ SceneManager::SceneManager(Context* ctx) : Module(ctx), entity_id_allocator_(1) 
     root_node_ = makeShared<Transform>(Position::origin, Quat::identity, nullptr);
 
     background_renderable_root_ = makeShared<RenderableNode>();
-    background_entity_ = &createEntity(Position::origin, Quat::identity, nullptr)
+    background_entity_ = &createEntity(0, Position::origin, Quat::identity, nullptr)
                               .addComponent<RenderableComponent>(background_renderable_root_);
     background_entity_->transform()->setRelativeToCamera(true);
 
@@ -39,12 +39,13 @@ void SceneManager::createStarSystem() {
     background_renderable_root_->addChild(skybox);
 }
 
-Entity& SceneManager::createEntity() {
-    return createEntity(reserveEntityId());
+Entity& SceneManager::createEntity(EntityType type) {
+    return createEntity(type, reserveEntityId());
 }
 
-Entity& SceneManager::createEntity(const Position& p, const Quat& o, Entity* parent) {
-    Entity& e = createEntity();
+Entity& SceneManager::createEntity(EntityType type, const Position& p, const Quat& o,
+                                   Entity* parent) {
+    Entity& e = createEntity(type);
     if (parent) {
         e.addComponent<Transform>(p, o, *parent);
     } else {
@@ -53,13 +54,13 @@ Entity& SceneManager::createEntity(const Position& p, const Quat& o, Entity* par
     return e;
 }
 
-Entity& SceneManager::createEntity(const Position& p, const Quat& o) {
-    Entity& e = createEntity();
+Entity& SceneManager::createEntity(EntityType type, const Position& p, const Quat& o) {
+    Entity& e = createEntity(type);
     e.addComponent<Transform>(p, o, rootNode());
     return e;
 }
 
-Entity& SceneManager::createEntity(EntityId reserved_entity_id) {
+Entity& SceneManager::createEntity(EntityType type, EntityId reserved_entity_id) {
     // Add to entity lookup table if reserved from elsewhere (i.e. server).
     if (entity_lookup_table_.find(reserved_entity_id) == entity_lookup_table_.end()) {
         entity_lookup_table_[reserved_entity_id] = nullptr;
@@ -68,8 +69,8 @@ Entity& SceneManager::createEntity(EntityId reserved_entity_id) {
     // Look up slot and move new entity into it.
     auto entity_slot = entity_lookup_table_.find(reserved_entity_id);
     assert(entity_slot != entity_lookup_table_.end() && entity_slot->second == nullptr);
-    UniquePtr<Entity> entity =
-        makeUnique<Entity>(context(), ontology_world_.getEntityManager(), reserved_entity_id);
+    auto entity =
+        makeUnique<Entity>(context(), ontology_world_.getEntityManager(), reserved_entity_id, type);
     auto entity_ptr = entity.get();
     entity_slot->second = std::move(entity);
     return *entity_ptr;

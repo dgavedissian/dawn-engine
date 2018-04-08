@@ -71,6 +71,8 @@ set(SOURCE_FILES
     net/BitStream.h
     net/NetData.cpp
     net/NetData.h
+    net/NetEntityPipeline.cpp
+    net/NetEntityPipeline.h
     net/NetGameMode.cpp
     net/NetGameMode.h
     net/NetRole.h
@@ -186,8 +188,7 @@ set (SOURCE_FILES
         scene/ontology/src/System.cpp
         scene/ontology/src/SystemManager.cpp
         scene/ontology/src/Type.cpp
-        scene/ontology/src/World.cpp
-        scene/System.cpp)
+        scene/ontology/src/World.cpp)
 
 # Project
 set(BUILD_SHARED_LIBS OFF)

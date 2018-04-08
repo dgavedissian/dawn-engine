@@ -9,7 +9,7 @@
 #include "core/math/StringHash.h"
 
 namespace dw {
-using Type = StringHash;
+using Type = std::size_t;
 
 class DW_API TypeInfo {
 public:
@@ -23,8 +23,8 @@ public:
     bool operator!=(const TypeInfo& other) const;
 
 private:
+    const std::type_info& type_info_;
     String type_name_;
-    Type type_name_hash_;
 };
 }  // namespace dw
 
@@ -38,25 +38,28 @@ template <> struct hash<dw::TypeInfo> {
 };
 }  // namespace std
 
-#define DW_OBJECT(T)                                 \
-    virtual dw::Type type() const override {         \
-        return typeInfo().type();                    \
-    }                                                \
-    virtual dw::String typeName() const override {   \
-        return typeInfo().typeName();                \
-    }                                                \
-    virtual dw::TypeInfo typeInfo() const override { \
-        return typeInfoStatic();                     \
-    }                                                \
-    static dw::Type typeStatic() {                   \
-        return typeInfoStatic().type();              \
-    }                                                \
-    static dw::String typeNameStatic() {             \
-        return typeInfoStatic().typeName();          \
-    }                                                \
-    static const dw::TypeInfo& typeInfoStatic() {    \
-        static dw::TypeInfo ti(typeid(T));           \
-        return ti;                                   \
+#define DW_OBJECT(T)                                        \
+    virtual dw::Type type() const override {                \
+        return typeInfo().type();                           \
+    }                                                       \
+    virtual dw::String typeName() const override {          \
+        return typeInfo().typeName();                       \
+    }                                                       \
+    virtual dw::TypeInfo typeInfo() const override {        \
+        return typeInfoStatic();                            \
+    }                                                       \
+    static dw::Type typeStatic() {                          \
+        return typeInfoStatic().type();                     \
+    }                                                       \
+    static dw::String typeNameStatic() {                    \
+        return typeInfoStatic().typeName();                 \
+    }                                                       \
+    static const dw::TypeInfo& typeInfoStatic() {           \
+        static dw::TypeInfo ti(typeid(T));                  \
+        return ti;                                          \
+    }                                                       \
+    static constexpr dw::StringHash constexprTypeStatic() { \
+        return Hash(#T);                                    \
     }
 
 namespace dw {

@@ -43,25 +43,30 @@ public:
     template <typename T> void removeSystem();
 
     /// Creates a new empty entity.
+    /// @param type Entity type ID.
     /// @return A newly created entity.
-    Entity& createEntity();
+    Entity& createEntity(EntityType type);
 
     /// Creates a new entity with a transform component.
+    /// @param type Entity type ID.
     /// @param p Initial position.
     /// @param o Initial orientation.
     /// @param parent Parent entity.
     /// @return A newly created entity.
-    Entity& createEntity(const Position& p, const Quat& o, Entity* parent);
+    Entity& createEntity(EntityType type, const Position& p, const Quat& o, Entity* parent);
 
     /// Creates a new entity with a transform component.
+    /// @param type Entity type ID.
     /// @param p Initial position.
     /// @param o Initial orientation.
     /// @return A newly created entity.
-    Entity& createEntity(const Position& p, const Quat& o);
+    Entity& createEntity(EntityType type, const Position& p, const Quat& o);
 
     /// Creates a new empty entity with a previously reserved entity ID.
+    /// @param type Entity type ID.
+    /// @param reserved_entity_id Entity ID reserved by 'reserveEntityId()'.
     /// @return A newly created entity.
-    Entity& createEntity(EntityId reserved_entity_id);
+    Entity& createEntity(EntityType type, EntityId reserved_entity_id);
 
     /// Reserve a new entity ID.
     /// @return Unique unused entity ID.
