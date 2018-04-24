@@ -38,28 +38,25 @@ template <> struct hash<dw::TypeInfo> {
 };
 }  // namespace std
 
-#define DW_OBJECT(T)                                        \
-    virtual dw::Type type() const override {                \
-        return typeInfo().type();                           \
-    }                                                       \
-    virtual dw::String typeName() const override {          \
-        return typeInfo().typeName();                       \
-    }                                                       \
-    virtual dw::TypeInfo typeInfo() const override {        \
-        return typeInfoStatic();                            \
-    }                                                       \
-    static dw::Type typeStatic() {                          \
-        return typeInfoStatic().type();                     \
-    }                                                       \
-    static dw::String typeNameStatic() {                    \
-        return typeInfoStatic().typeName();                 \
-    }                                                       \
-    static const dw::TypeInfo& typeInfoStatic() {           \
-        static dw::TypeInfo ti(typeid(T));                  \
-        return ti;                                          \
-    }                                                       \
-    static constexpr dw::StringHash constexprTypeStatic() { \
-        return Hash(#T);                                    \
+#define DW_OBJECT(T)                                 \
+    virtual dw::Type type() const override {         \
+        return typeInfo().type();                    \
+    }                                                \
+    virtual dw::String typeName() const override {   \
+        return typeInfo().typeName();                \
+    }                                                \
+    virtual dw::TypeInfo typeInfo() const override { \
+        return typeInfoStatic();                     \
+    }                                                \
+    static dw::Type typeStatic() {                   \
+        return typeInfoStatic().type();              \
+    }                                                \
+    static dw::String typeNameStatic() {             \
+        return typeInfoStatic().typeName();          \
+    }                                                \
+    static const dw::TypeInfo& typeInfoStatic() {    \
+        static dw::TypeInfo ti(typeid(T));           \
+        return ti;                                   \
     }
 
 namespace dw {

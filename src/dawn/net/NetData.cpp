@@ -7,9 +7,12 @@
 #include "net/Networking.h"
 
 namespace dw {
+RepLayout::RepLayout() : next_rpc_id_(0) {
+}
+
 RepLayout::RepLayout(const RepPropertyList& property_list, const RpcBindingList& rpc_list)
     : property_list_(property_list), next_rpc_id_(0) {
-    for (auto rpc : rpc_list) {
+    for (auto& rpc : rpc_list) {
         rpc_map_[next_rpc_id_++] = rpc;
     }
 }
@@ -18,6 +21,7 @@ RepLayout RepLayout::operator+(const RepLayout& other) {
     RepLayout result;
     result.property_list_ = property_list_;
     result.rpc_map_ = rpc_map_;
+    result.next_rpc_id_ = next_rpc_id_;
     result += other;
     return result;
 }
@@ -39,7 +43,6 @@ void RepLayout::onAddToEntity(Entity& entity) {
         rpc.second->onAddToEntity(entity, rpc.first);
     }
 }
-
 NetData::NetData(RepLayout rep_layout)
     : entity_(nullptr),
       rep_layout_(std::move(rep_layout)),
@@ -65,20 +68,21 @@ void NetData::deserialise(InputStream& in) {
 }
 
 void NetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload) {
-    auto* netsystem = entity_->module<Networking>();
-    if (netsystem->isServer()) {
+    auto* net = entity_->module<Networking>();
+    if (net->isServer()) {
         receiveRpc(rpc_id, payload);
     } else {
-        netsystem->sendRpc(entity_->id(), rpc_id, type, payload);
+        net->sendRpc(entity_->id(), rpc_id, type, payload);
     }
 }
 
 void NetData::receiveRpc(RpcId rpc_id, const Vector<u8>& payload) {
     auto rpc_func = rep_layout_.rpc_map_.find(rpc_id);
-    if (rpc_func == rep_layout_.rpc_map_.end()) {
+    if (rpc_func != rep_layout_.rpc_map_.end()) {
+        (*rpc_func).second->receiveRpc(payload);
+    } else {
         entity_->log().warn("Received unregistered RPC with ID %s, ignoring.", rpc_id);
     }
-    (*rpc_func).second->receiveRpc(payload);
 }
 
 NetRole NetData::role() const {

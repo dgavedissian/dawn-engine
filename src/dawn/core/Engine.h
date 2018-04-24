@@ -37,6 +37,7 @@ private:
     bool initialised_;
     bool running_;
     bool save_config_on_exit_;
+    bool headless_;
 
     String game_name_;
     String game_version_;

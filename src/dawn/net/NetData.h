@@ -18,7 +18,7 @@ namespace dw {
 // Replication layout.
 class DW_API RepLayout {
 public:
-    RepLayout() = default;
+    RepLayout();
     RepLayout(const RepPropertyList& property_list, const RpcBindingList& rpc_list);
 
     RepLayout operator+(const RepLayout& other);

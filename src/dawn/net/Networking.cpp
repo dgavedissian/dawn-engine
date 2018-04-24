@@ -48,8 +48,8 @@ struct ClientSpawnRequestMessage : public yojimbo::Message {
     bool authoritative_proxy;
 
     template <typename Stream> bool Serialize(Stream& stream) {
-        serialize_uint32(stream, entity_type);
         serialize_uint32(stream, request_id);
+        serialize_uint32(stream, entity_type);
         serialize_bool(stream, authoritative_proxy);
         return true;
     }
@@ -63,7 +63,7 @@ struct ClientRpcMessage : public yojimbo::Message {
     Vector<u8> payload;
 
     template <typename Stream> bool Serialize(Stream& stream) {
-        serialize_uint32(stream, entity_id);
+        serialize_uint64(stream, entity_id);
         serialize_bits(stream, rpc_id, sizeof(RpcId) * 8);
         yojimbo_serialize_byte_array(stream, payload);
         return true;
@@ -79,7 +79,7 @@ struct ServerCreateEntityMessage : public yojimbo::Message {
     Vector<u8> data;
 
     template <typename Stream> bool Serialize(Stream& stream) {
-        serialize_uint32(stream, entity_id);
+        serialize_uint64(stream, entity_id);
         serialize_uint32(stream, entity_type);
         auto role_byte = static_cast<u8>(role);
         serialize_bits(stream, role_byte, 8);
@@ -96,7 +96,7 @@ struct ServerPropertyReplicationMessage : public yojimbo::Message {
     Vector<u8> data;
 
     template <typename Stream> bool Serialize(Stream& stream) {
-        serialize_uint32(stream, entity_id);
+        serialize_uint64(stream, entity_id);
         yojimbo_serialize_byte_array(stream, data);
         return true;
     }
@@ -108,7 +108,7 @@ struct ServerDestroyEntityMessage : public yojimbo::Message {
     EntityId entity_id;
 
     template <typename Stream> bool Serialize(Stream& stream) {
-        serialize_uint32(stream, entity_id);
+        serialize_uint64(stream, entity_id);
         return true;
     }
 
@@ -121,7 +121,7 @@ struct ServerSpawnResponseMessage : public yojimbo::Message {
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint32(stream, request_id);
-        serialize_uint32(stream, entity_id);
+        serialize_uint64(stream, entity_id);
         return true;
     }
 
@@ -155,7 +155,8 @@ Networking::Networking(Context* context)
       time_(100.0f),
       client_connection_state_(ConnectionState::Disconnected),
       client_(nullptr),
-      server_(nullptr) {
+      server_(nullptr),
+      spawn_request_id_(0) {
     setDependencies<SceneManager, SceneManager>();
 
     yojimbo_logger = module<Logger>();
@@ -380,8 +381,15 @@ void Networking::update(float dt) {
                     auto replication_message = (ServerPropertyReplicationMessage*)message;
                     InputBitStream bs(replication_message->data);
                     EntityId entity_id = replication_message->entity_id;
-                    Entity& entity = *module<SceneManager>()->findEntity(entity_id);
-                    entity.component<NetData>()->deserialise(bs);
+                    Entity* entity = module<SceneManager>()->findEntity(entity_id);
+                    if (entity) {
+                        entity->component<NetData>()->deserialise(bs);
+                    } else {
+                        log().warn(
+                            "Received replication update for entity %s which does not exist on "
+                            "this client. Ignoring.",
+                            entity_id);
+                    }
                     break;
                 }
                 case MT_ServerDestroyEntity: {

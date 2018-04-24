@@ -164,7 +164,7 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
 
     // Create ship entity.
     auto sm = module<SceneManager>();
-    ship_entity_ = &sm->createEntity(Ship::typeStatic(), reserved_entity_id)
+    ship_entity_ = &sm->createEntity(Hash("Ship"), reserved_entity_id)
                         .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
                         .addComponent<RenderableComponent>(renderable)
                         .addComponent<ShipEngines>(

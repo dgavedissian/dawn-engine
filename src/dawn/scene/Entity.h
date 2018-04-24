@@ -11,7 +11,7 @@
 
 namespace dw {
 /// Entity identifier.
-using EntityId = Ontology::Entity::ID;
+using EntityId = u64;
 using EntityType = u32;
 
 /// Entity object. Currently implemented as an Ontology::Entity wrapper.

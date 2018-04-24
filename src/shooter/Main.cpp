@@ -26,7 +26,7 @@ public:
 
     Entity* createEntityFromType(EntityId entity_id, EntityType type, NetRole role) override {
         switch (type) {
-            case Ship::constexprTypeStatic(): {
+            case Hash("Ship"): {
                 SharedPtr<Ship> ship = makeShared<Ship>(context(), entity_id, role);
                 Entity* entity = ship->entity();
                 entity->component<ShipControls>()->ship = ship;
@@ -51,7 +51,7 @@ public:
     void clientOnJoinServer() override {
         log().info("Client: connected to server.");
         module<Networking>()->sendSpawnRequest(
-            0,
+            Hash("Ship"),
             [this](Entity& entity) {
                 log().info("Received spawn response. Triggering callback.");
                 camera_controller->follow(&entity);

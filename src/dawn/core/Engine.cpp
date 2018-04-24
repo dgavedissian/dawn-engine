@@ -24,6 +24,7 @@ Engine::Engine(const String& game, const String& version)
       initialised_{false},
       running_{true},
       save_config_on_exit_{true},
+      headless_{false},
       game_name_{game},
       game_version_{version},
       frame_time_{0.0f},
@@ -90,6 +91,12 @@ void Engine::setup(int argc, char** argv) {
         }
     }
 
+    // Enable headless mode if the flag is passed.
+    if (flags.find("-headless") != flags.end()) {
+        headless_ = true;
+        log().info("Running in headless mode.");
+    }
+
     // Build window title.
     String window_title{game_name_};
     window_title += " ";
@@ -116,7 +123,7 @@ void Engine::setup(int argc, char** argv) {
 
     // Create the engine subsystems.
     auto* renderer = context_->addModule<Renderer>();
-    if (flags.find("-norenderer") == flags.end()) {
+    if (!headless_) {
         renderer->init(RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
                        context_->config().at("window_height").get<u16>(), window_title, true);
         context_->addModule<Input>();
