@@ -33,6 +33,12 @@ public:
     /// Access the frame time
     double frameTime() const;
 
+    /// Get the list of command line flags.
+    const Set<String>& flags() const;
+
+    /// Get the list of command line arguments.
+    const Map<String, String>& arguments() const;
+
 private:
     bool initialised_;
     bool running_;
@@ -47,6 +53,8 @@ private:
     // Configuration.
     String log_file_;
     String config_file_;
+    Set<String> flags_;
+    Map<String, String> arguments_;
 
     void printSystemInfo();
     String basePath() const;

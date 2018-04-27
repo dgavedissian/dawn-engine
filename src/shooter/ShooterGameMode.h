@@ -46,5 +46,7 @@ public:
 
 private:
   ShooterEntityPipeline* entity_pipeline_;
-  SharedPtr<ShipCameraController> camera_controller;
+  SharedPtr<ShipCameraController> camera_controller_;
+
+  SharedPtr<Ship> test_ship_;
 };

@@ -31,14 +31,14 @@ void ShooterGameMode::clientOnJoinServer() {
       Hash("Ship"),
       [this](Entity& entity) {
         log().info("Received spawn response. Triggering callback.");
-        camera_controller->follow(&entity);
+        camera_controller_->follow(&entity);
       },
-      /* messaging_proxy */ true);
+      /* authoritative_proxy */ true);
 }
 
 void ShooterGameMode::serverOnStart() {
-  // ship = makeShared<Ship>(context());
-  // camera_controller->follow(ship->entity());
+  test_ship_ = makeShared<Ship>(context());
+  test_ship_->entity()->transform()->position() = Position{0.0, 0.0, 300.0};
 }
 
 void ShooterGameMode::serverOnClientConnected() {
@@ -73,8 +73,8 @@ void ShooterGameMode::onStart() {
   auto& camera = module<SceneManager>()
       ->createEntity(0, Position{0.0f, 0.0f, 50.0f}, Quat::identity)
       .addComponent<Camera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
-  camera_controller = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
-  camera_controller->possess(&camera);
+  camera_controller_ = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
+  camera_controller_->possess(&camera);
 }
 
 void ShooterGameMode::onEnd() {
@@ -86,5 +86,5 @@ void ShooterGameMode::update(float dt) {
   for (auto& ship : entity_pipeline_->ship_list_) {
     ship->update(dt);
   }
-  camera_controller->update(dt);
+  camera_controller_->update(dt);
 }

@@ -5,7 +5,7 @@
 #include "DawnEngine.h"
 #include "renderer/MeshBuilder.h"
 #include "renderer/Mesh.h"
-
+#include "Projectile.h"
 #include "ShooterGameMode.h"
 
 using namespace dw;
@@ -24,6 +24,7 @@ public:
         auto entity_pipeline_ptr = entity_pipeline.get();
         module<Networking>()->setEntityPipeline(std::move(entity_pipeline));
         module<SceneManager>()->addSystem<ShipEngineSystem>();
+        module<SceneManager>()->addSystem<ProjectileSystem>();
         module<GameplayModule>()->setGameMode(
             makeShared<ShooterGameMode>(context(), entity_pipeline_ptr));
     }

@@ -41,21 +41,19 @@ void Engine::setup(int argc, char** argv) {
     assert(!initialised_);
 
     // Process command line arguments.
-    Set<String> flags;
-    Map<String, String> arguments;
     for (int i = 0; i < argc; i++) {
         if (argv[i][0] == '-') {
             // Look ahead to next arg. If flag then add this arg as flag, otherwise add argument
             // pair
             if (i < argc - 1) {
                 if (argv[i + 1][0] == '-') {
-                    flags.insert(String{argv[i]});
+                    flags_.insert(String{argv[i]});
                 } else {
-                    arguments[String{argv[i]}] = String{argv[i + 1]};
+                    arguments_[String{argv[i]}] = String{argv[i + 1]};
                     i++;  // skip argument value
                 }
             } else {
-                flags.insert(String{argv[i]});
+                flags_.insert(String{argv[i]});
             }
         }
     }
@@ -79,21 +77,21 @@ void Engine::setup(int argc, char** argv) {
     // Print info.
     log().info("Initialising engine " DW_VERSION_STR);
     printSystemInfo();
-    if (flags.size() > 0) {
+    if (flags_.size() > 0) {
         log().info("Flags:");
-        for (auto& flag : flags) {
+        for (auto& flag : flags_) {
             log().info("\t%s", flag);
         }
     }
-    if (arguments.size() > 0) {
+    if (arguments_.size() > 0) {
         log().info("Arguments:");
-        for (auto& arg : arguments) {
+        for (auto& arg : arguments_) {
             log().info("\t%s %s", arg.first, arg.second);
         }
     }
 
     // Enable headless mode if the flag is passed.
-    if (flags.find("-headless") != flags.end()) {
+    if (flags_.find("-headless") != flags_.end()) {
         headless_ = true;
         log().info("Running in headless mode.");
     }
@@ -138,11 +136,11 @@ void Engine::setup(int argc, char** argv) {
     context_->addModule<GameplayModule>();
 
     auto* net = context_->addModule<Networking>();
-    if (arguments.find("-host") != arguments.end()) {
-        net->listen(std::stoi(arguments["-host"]), 32);
-    } else if (arguments.find("-join") != arguments.end()) {
-        String ip = arguments["-join"];
-        u16 port = std::stoi(arguments["-p"]);
+    if (arguments_.find("-host") != arguments_.end()) {
+        net->listen(std::stoi(arguments_["-host"]), 32);
+    } else if (arguments_.find("-join") != arguments_.end()) {
+        String ip = arguments_["-join"];
+        u16 port = std::stoi(arguments_["-p"]);
         net->connect(ip, port);
     }
 
@@ -237,6 +235,14 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
 
 double Engine::frameTime() const {
     return frame_time_;
+}
+
+const Set<String> &Engine::flags() const {
+    return flags_;
+}
+
+const Map<String, String> &Engine::arguments() const {
+    return arguments_;
 }
 
 void Engine::printSystemInfo() {

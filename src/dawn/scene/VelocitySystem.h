@@ -9,6 +9,7 @@
 
 namespace dw {
 class VelocitySystem : public System {
+public:
   DW_OBJECT(VelocitySystem);
 
   explicit VelocitySystem(Context* ctx);
