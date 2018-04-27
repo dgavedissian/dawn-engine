@@ -18,7 +18,7 @@ void NetTransformSyncSystem::processEntity(Entity& entity, float dt) {
     NetTransformState& net_state = entity.component<NetTransform>()->transform_state;
     RigidBody* rigid_body = entity.component<RigidBody>();
 
-    if (role == NetRole::Authority) {
+    if (role >= NetRole::Authority) {
         // Copy position/orientation state from transform.
         const Position& current_position = transform.position();
         const Quat& current_orientation = transform.orientation();

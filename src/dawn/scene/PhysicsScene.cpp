@@ -48,6 +48,11 @@ PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr) : Object(c
 
 PhysicsScene::~PhysicsScene() {
     removeEventListener<KeyEvent>(makeEventDelegate(this, &PhysicsScene::onKey));
+    world_.reset();
+    solver_.reset();
+    dispatcher_.reset();
+    collision_config_.reset();
+    broadphase_.reset();
 }
 
 void PhysicsScene::update(float dt, Camera_OLD*) {
@@ -99,11 +104,15 @@ void PhysicsScene::onPhysicsTick(btDynamicsWorld* /*world*/, btScalar /*timestep
 }
 
 void PhysicsScene::addRigidBody(btRigidBody* rigid_body) {
-    world_->addRigidBody(rigid_body);
+    if (world_) {
+        world_->addRigidBody(rigid_body);
+    }
 }
 
 void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
-    world_->removeRigidBody(rigid_body);
+    if (world_) {
+        world_->removeRigidBody(rigid_body);
+    }
 }
 
 PhysicsScene::PhysicsComponentSystem::PhysicsComponentSystem(Context* context) : System(context) {
@@ -117,7 +126,10 @@ void PhysicsScene::PhysicsComponentSystem::processEntity(Entity& entity, float) 
 }
 
 RigidBody::RigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape)
-    : world_{world}, collision_shape_{std::move(collision_shape)}, mass_{mass} {
+    : world_{world},
+      rigid_body_{nullptr},
+      collision_shape_{std::move(collision_shape)},
+      mass_{mass} {
 }
 
 RigidBody::~RigidBody() {

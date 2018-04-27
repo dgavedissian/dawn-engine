@@ -12,17 +12,16 @@
 using namespace dw;
 
 struct Projectile : public Component {
-  Vec3 velocity;
-  float damage;
-  Colour colour;
+    Vec3 velocity;
+    float damage;
+    Colour colour;
 };
 
 class ProjectileSystem : public System {
 public:
-  DW_OBJECT(ProjectileSystem);
+    DW_OBJECT(ProjectileSystem);
 
-  explicit ProjectileSystem(Context* context);
+    explicit ProjectileSystem(Context* context);
 
-  void processEntity(Entity& entity, float dt) override;
-
+    void processEntity(Entity& entity, float dt) override;
 };

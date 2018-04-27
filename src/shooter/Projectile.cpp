@@ -5,9 +5,9 @@
 #include "Projectile.h"
 
 ProjectileSystem::ProjectileSystem(Context* context) : System(context) {
-  supportsComponents<Projectile, Transform>();
+    supportsComponents<Projectile, Transform>();
 }
 
-void ProjectileSystem::processEntity(Entity &entity, float dt) {
-  entity.component<Transform>()->position() += entity.component<Projectile>()->velocity * dt;
+void ProjectileSystem::processEntity(Entity& entity, float dt) {
+    entity.component<Transform>()->position() += entity.component<Projectile>()->velocity * dt;
 }

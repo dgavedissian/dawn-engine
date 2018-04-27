@@ -40,46 +40,7 @@ public:
     }
 };
 
-class ShipCameraController : public Object {
-public:
-    DW_OBJECT(ShipCameraController);
-
-    explicit ShipCameraController(Context* ctx, const Vec3& offset);
-    ~ShipCameraController() = default;
-
-    void follow(Entity* ship);
-    void possess(Entity* camera);
-
-    void update(float dt);
-
-private:
-    Entity* possessed_;
-    Entity* followed_;
-
-    Vec3 offset_;
-};
-
-class ShipFlightComputer : public Object {
-public:
-    DW_OBJECT(ShipFlightComputer);
-
-    ShipFlightComputer(Context* ctx, Ship* ship);
-
-    void setTargetLinearVelocity(const Vec3& target_linear_velocity);
-    void setTargetAngularVelocity(const Vec3& target_angular_velocity);
-
-    void update(float dt);
-
-private:
-    Ship* ship_;
-    Vec3 target_linear_velocity_;
-    Vec3 target_angular_velocity_;
-
-    Vec3 ship_acceleration_forwards_;
-    Vec3 ship_acceleration_backwards_;
-    Vec3 ship_angular_acceleration_forwards_;
-    Vec3 ship_angular_acceleration_backwards_;
-};
+class ShipFlightComputer;
 
 class Ship : public Object {
 public:

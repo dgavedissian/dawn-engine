@@ -103,9 +103,8 @@ public:
         setupTerrainRenderable();
         custom_mesh_renderable_->setMaterial(material);
 
-        planet_ =
-            &universe->createEntity(Hash("Planet"), Position::origin, Quat::identity)
-                 .addComponent<RenderableComponent>(custom_mesh_renderable_);
+        planet_ = &universe->createEntity(Hash("Planet"), Position::origin, Quat::identity)
+                       .addComponent<RenderableComponent>(custom_mesh_renderable_);
 
         // Kick off terrain update thread.
         terrain_update_thread_ = Thread([this]() {

@@ -9,6 +9,6 @@
 
 namespace dw {
 struct Velocity : public Component {
-  Vec3 velocity;
+    Vec3 velocity;
 };
 }  // namespace dw

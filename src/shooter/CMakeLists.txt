@@ -7,8 +7,12 @@ set(SOURCE_FILES
     Projectile.h
     Ship.cpp
     Ship.h
+    ShipCameraController.cpp
+    ShipCameraController.h
     ShipEngines.cpp
     ShipEngines.h
+    ShipFlightComputer.cpp
+    ShipFlightComputer.h
     ShooterGameMode.cpp
     ShooterGameMode.h)
 

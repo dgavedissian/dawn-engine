@@ -237,11 +237,11 @@ double Engine::frameTime() const {
     return frame_time_;
 }
 
-const Set<String> &Engine::flags() const {
+const Set<String>& Engine::flags() const {
     return flags_;
 }
 
-const Map<String, String> &Engine::arguments() const {
+const Map<String, String>& Engine::arguments() const {
     return arguments_;
 }
 

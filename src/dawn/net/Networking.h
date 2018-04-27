@@ -33,6 +33,12 @@ public:
     // Send/receive messages.
     void update(float dt);
 
+    // Server update.
+    void serverUpdate(float dt);
+
+    // Client update.
+    void clientUpdate(float dt);
+
     // Returns true if connected to a server as a client.
     bool isClient() const;
 

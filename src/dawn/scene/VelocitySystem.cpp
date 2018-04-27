@@ -6,11 +6,11 @@
 #include "VelocitySystem.h"
 
 namespace dw {
-VelocitySystem::VelocitySystem(Context *ctx) : System(ctx) {
-  supportsComponents<Velocity, Transform>();
+VelocitySystem::VelocitySystem(Context* ctx) : System(ctx) {
+    supportsComponents<Velocity, Transform>();
 }
 
-void VelocitySystem::processEntity(Entity &e, float dt) {
-  e.transform()->position() += e.component<Velocity>()->velocity * dt;
+void VelocitySystem::processEntity(Entity& e, float dt) {
+    e.transform()->position() += e.component<Velocity>()->velocity * dt;
 }
-} // namespace dw
+}  // namespace dw

@@ -8,6 +8,7 @@
 #include "renderer/MeshBuilder.h"
 #include "renderer/Mesh.h"
 
+#include "ShipCameraController.h"
 #include "Ship.h"
 
 #include "net/NetEntityPipeline.h"
@@ -17,36 +18,34 @@ using namespace dw;
 
 class ShooterEntityPipeline : public NetEntityPipeline {
 public:
-  DW_OBJECT(ShooterEntityPipeline);
+    DW_OBJECT(ShooterEntityPipeline);
 
-  Vector<SharedPtr<Ship>> ship_list_;
+    Vector<SharedPtr<Ship>> ship_list_;
 
-  explicit ShooterEntityPipeline(Context* ctx);
-  ~ShooterEntityPipeline() override = default;
+    explicit ShooterEntityPipeline(Context* ctx);
+    ~ShooterEntityPipeline() override = default;
 
-  Entity* createEntityFromType(EntityId entity_id, EntityType type, NetRole role) override;
+    Entity* createEntityFromType(EntityId entity_id, EntityType type, NetRole role) override;
 };
 
 class ShooterGameMode : public NetGameMode {
 public:
-  DW_OBJECT(ShooterGameMode);
+    DW_OBJECT(ShooterGameMode);
 
-  ShooterGameMode(Context* ctx, ShooterEntityPipeline* entity_pipeline);
+    ShooterGameMode(Context* ctx, ShooterEntityPipeline* entity_pipeline);
 
-  // NetGameMode
-  void clientOnJoinServer() override ;
-  void serverOnStart() override;
-  void serverOnClientConnected() override;
-  void serverOnClientDisconnected() override;
+    // NetGameMode
+    void clientOnJoinServer() override;
+    void serverOnStart() override;
+    void serverOnClientConnected() override;
+    void serverOnClientDisconnected() override;
 
-  // GameMode
-  void onStart() override;
-  void onEnd() override;
-  void update(float dt) override;
+    // GameMode
+    void onStart() override;
+    void onEnd() override;
+    void update(float dt) override;
 
 private:
-  ShooterEntityPipeline* entity_pipeline_;
-  SharedPtr<ShipCameraController> camera_controller_;
-
-  SharedPtr<Ship> test_ship_;
+    ShooterEntityPipeline* entity_pipeline_;
+    SharedPtr<ShipCameraController> camera_controller_;
 };

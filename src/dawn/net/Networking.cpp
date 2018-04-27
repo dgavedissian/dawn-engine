@@ -232,205 +232,209 @@ void Networking::update(float dt) {
     // const double replication_time = 1.0 / 20.0;  // 1 / replication rate in Hz
     time_ += dt;
     if (server_) {
-        server_->SendPackets();
-        server_->ReceivePackets();
-
-        // Process received messages.
-        for (int client_index = 0; client_index < server_->GetNumConnectedClients();
-             ++client_index) {
-            while (true) {
-                yojimbo::Message* message = server_->ReceiveMessage(client_index, 0);
-                if (!message) {
-                    break;
-                }
-                switch (message->GetType()) {
-                    case MT_ClientSpawnRequest: {
-                        auto spawn_message = (ClientSpawnRequestMessage*)message;
-                        // Spawn entity using entity type.
-                        EntityId entity_id = module<SceneManager>()->reserveEntityId();
-                        log().info("Received spawn request, spawning entity (id: %s) with type %s.",
-                                   entity_id, spawn_message->entity_type);
-                        Entity* entity = entity_pipeline_->createEntityFromType(
-                            entity_id, spawn_message->entity_type, NetRole::Authority);
-                        if (entity) {
-                            replicateEntity(*entity,
-                                            spawn_message->authoritative_proxy ? client_index : -1);
-                        }
-
-                        // Send response.
-                        auto response_message = (ServerSpawnResponseMessage*)server_->CreateMessage(
-                            client_index, MT_ServerSpawnResponse);
-                        if (entity) {
-                            response_message->entity_id = entity->id() + 10000;
-                        } else {
-                            response_message->entity_id = 0;
-                        }
-                        response_message->request_id = spawn_message->request_id;
-                        server_->SendMessage(client_index, 0, response_message);
-                        break;
-                    }
-                    case MT_ClientRpc: {
-                        auto rpc_message = (ClientRpcMessage*)message;
-                        EntityId entity_id = rpc_message->entity_id;
-                        Entity* entity = module<SceneManager>()->findEntity(entity_id);
-                        if (!entity) {
-                            log().error("Client RPC: Received from non-existent entity %d",
-                                        entity_id);
-                            break;
-                        }
-                        auto net_data = entity->component<NetData>();
-                        if (!net_data) {
-                            log().error("Client RPC: Entity %d has no NetData component.",
-                                        entity_id);
-                            break;
-                        }
-                        net_data->receiveRpc(rpc_message->rpc_id, rpc_message->payload);
-                        break;
-                    }
-                    default:
-                        log().warn("Unexpected message received on server: %d", message->GetType());
-                }
-            }
-        }
-
-        // Send replicated updates.
-        auto& em = *module<SceneManager>();
-        for (auto id : replicated_entities_) {
-            Entity& entity = *em.findEntity(id);
-            OutputBitStream properties;
-            entity.component<NetData>()->serialise(properties);
-            for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
-                sendServerPropertyReplication(i, entity, properties);
-            }
-        }
-
-        server_->AdvanceTime(time_);
+        serverUpdate(dt);
     } else if (client_) {
-        client_->SendPackets();
-        client_->ReceivePackets();
-        // Handle Connecting -> Connected transition.
-        if (client_connection_state_ == ConnectionState::Connecting && client_->IsConnected()) {
-            client_connection_state_ = ConnectionState::Connected;
-            triggerEvent<JoinServerEvent>();
-        }
-        // Handle Connecting -> Disconnected transition.
-        if (client_connection_state_ == ConnectionState::Connecting && client_->IsDisconnected()) {
-            client_connection_state_ = ConnectionState::Disconnected;
-            // TODO: Trigger 'on connection failed' event.
-        }
-        // Handle Connected -> Disconnected transition.
-        if (client_connection_state_ == ConnectionState::Connected && client_->IsDisconnected()) {
-            client_connection_state_ = ConnectionState ::Disconnected;
-            // TODO: Trigger 'on disconnect' event.
-        }
+        clientUpdate(dt);
+    }
+}
+
+void Networking::serverUpdate(float dt) {
+    server_->SendPackets();
+    server_->ReceivePackets();
+
+    // Process received messages.
+    for (int client_index = 0; client_index < server_->GetNumConnectedClients(); ++client_index) {
         while (true) {
-            yojimbo::Message* message = client_->ReceiveMessage(0);
+            yojimbo::Message* message = server_->ReceiveMessage(client_index, 0);
             if (!message) {
                 break;
             }
             switch (message->GetType()) {
-                case MT_ServerCreateEntity: {
-                    // TODO: Create EntitySpawnPipeline and move this code to there.
-                    auto create_entity_message = (ServerCreateEntityMessage*)message;
-                    InputBitStream bs(create_entity_message->data);
-                    EntityId entity_id = create_entity_message->entity_id;
-                    EntityType entity_type = create_entity_message->entity_type;
-                    NetRole role = create_entity_message->role;
-                    if (entity_pipeline_) {
-                        Entity* entity =
-                            entity_pipeline_->createEntityFromType(entity_id, entity_type, role);
-                        if (entity) {
-                            assert(entity->hasComponent<NetData>());
-                            entity->component<NetData>()->deserialise(bs);
-                            entity->component<NetData>()->role_ = role;
-                            entity->component<NetData>()->remote_role_ = NetRole::Authority;
-                            log().info("Created replicated entity %d at %d %d %d", entity_id,
-                                       entity->transform()->position().x,
-                                       entity->transform()->position().y,
-                                       entity->transform()->position().z);
+                case MT_ClientSpawnRequest: {
+                    auto spawn_message = (ClientSpawnRequestMessage*)message;
+                    // Spawn entity using entity type.
+                    EntityId entity_id = module<SceneManager>()->reserveEntityId();
+                    log().info("Received spawn request, spawning entity (id: %s) with type %s.",
+                               entity_id, spawn_message->entity_type);
+                    Entity* entity = entity_pipeline_->createEntityFromType(
+                        entity_id, spawn_message->entity_type, NetRole::Authority);
+                    if (entity) {
+                        replicateEntity(*entity,
+                                        spawn_message->authoritative_proxy ? client_index : -1);
+                    }
 
-                            // If any spawn requests are waiting for an entity to be created,
-                            // trigger the callback and clear.
-                            if (pending_entity_spawns_.count(entity->id()) > 0) {
-                                auto it = outgoing_spawn_requests_.find(
-                                    pending_entity_spawns_.at(entity->id()));
-                                if (it != outgoing_spawn_requests_.end()) {
-                                    it->second(*entity);
-                                    outgoing_spawn_requests_.erase(it);
-                                    pending_entity_spawns_.erase(entity->id());
-                                } else {
-                                    log().error(
-                                        "Attempting to trigger an spawn request callback which no "
-                                        "longer exists. Entity ID: %s, Request ID: %s",
-                                        entity->id(), pending_entity_spawns_.at(entity->id()));
-                                    pending_entity_spawns_.erase(entity->id());
-                                }
-                            }
-                        } else {
-                            log().error(
-                                "Failed to spawn an entity of type %s. %s returned nullptr.",
-                                entity_type, entity_pipeline_->typeName());
-                        }
+                    // Send response.
+                    auto response_message = (ServerSpawnResponseMessage*)server_->CreateMessage(
+                        client_index, MT_ServerSpawnResponse);
+                    if (entity) {
+                        response_message->entity_id = entity->id() + 10000;
                     } else {
-                        log().warn("Attempted to replicate entity, but no entity pipeline setup.");
+                        response_message->entity_id = 0;
+                    }
+                    response_message->request_id = spawn_message->request_id;
+                    server_->SendMessage(client_index, 0, response_message);
+                    break;
+                }
+                case MT_ClientRpc: {
+                    auto rpc_message = (ClientRpcMessage*)message;
+                    EntityId entity_id = rpc_message->entity_id;
+                    Entity* entity = module<SceneManager>()->findEntity(entity_id);
+                    if (!entity) {
+                        log().error("Client RPC: Received from non-existent entity %d", entity_id);
                         break;
                     }
-                    break;
-                }
-                case MT_ServerPropertyReplication: {
-                    auto replication_message = (ServerPropertyReplicationMessage*)message;
-                    InputBitStream bs(replication_message->data);
-                    EntityId entity_id = replication_message->entity_id;
-                    Entity* entity = module<SceneManager>()->findEntity(entity_id);
-                    if (entity) {
-                        entity->component<NetData>()->deserialise(bs);
-                    } else {
-                        log().warn(
-                            "Received replication update for entity %s which does not exist on "
-                            "this client. Ignoring.",
-                            entity_id);
+                    auto net_data = entity->component<NetData>();
+                    if (!net_data) {
+                        log().error("Client RPC: Entity %d has no NetData component.", entity_id);
+                        break;
                     }
-                    break;
-                }
-                case MT_ServerDestroyEntity: {
-                    break;
-                }
-                case MT_ServerSpawnResponse: {
-                    auto spawn_message = (ServerSpawnResponseMessage*)message;
-                    if (spawn_message->entity_id == 0) {
-                        // TODO: error
-                        // Failed to spawn entity on the server.
-                        log().warn("Failed to spawn entity on the server. Request ID: %s",
-                                   spawn_message->request_id);
-                    } else {
-                        Entity* entity =
-                            module<SceneManager>()->findEntity(spawn_message->entity_id);
-                        if (entity) {
-                            auto it = outgoing_spawn_requests_.find(spawn_message->request_id);
-                            if (it != outgoing_spawn_requests_.end()) {
-                                it->second(*entity);
-                                outgoing_spawn_requests_.erase(it);
-                            } else {
-                                log().warn(
-                                    "Received spawn response for an unknown spawn request. Entity "
-                                    "ID: "
-                                    "%s, Request ID: %s",
-                                    spawn_message->entity_id, spawn_message->request_id);
-                            }
-                        } else {
-                            // Wait for the entity to be created.
-                            pending_entity_spawns_[spawn_message->entity_id] =
-                                spawn_message->request_id;
-                        };
-                    }
+                    net_data->receiveRpc(rpc_message->rpc_id, rpc_message->payload);
                     break;
                 }
                 default:
-                    log().warn("Unexpected message received on client: %d", message->GetType());
+                    log().warn("Unexpected message received on server: %d", message->GetType());
             }
         }
-        client_->AdvanceTime(time_);
     }
+
+    // Send replicated updates.
+    auto& em = *module<SceneManager>();
+    for (auto id : replicated_entities_) {
+        Entity& entity = *em.findEntity(id);
+        OutputBitStream properties;
+        entity.component<NetData>()->serialise(properties);
+        for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
+            sendServerPropertyReplication(i, entity, properties);
+        }
+    }
+
+    server_->AdvanceTime(time_);
+}
+
+void Networking::clientUpdate(float dt) {
+    client_->SendPackets();
+    client_->ReceivePackets();
+
+    // Handle Connecting -> Connected transition.
+    if (client_connection_state_ == ConnectionState::Connecting && client_->IsConnected()) {
+        client_connection_state_ = ConnectionState::Connected;
+        triggerEvent<JoinServerEvent>();
+    }
+    // Handle Connecting -> Disconnected transition.
+    if (client_connection_state_ == ConnectionState::Connecting && client_->IsDisconnected()) {
+        client_connection_state_ = ConnectionState::Disconnected;
+        // TODO: Trigger 'on connection failed' event.
+    }
+    // Handle Connected -> Disconnected transition.
+    if (client_connection_state_ == ConnectionState::Connected && client_->IsDisconnected()) {
+        client_connection_state_ = ConnectionState ::Disconnected;
+        // TODO: Trigger 'on disconnect' event.
+    }
+    while (true) {
+        yojimbo::Message* message = client_->ReceiveMessage(0);
+        if (!message) {
+            break;
+        }
+        switch (message->GetType()) {
+            case MT_ServerCreateEntity: {
+                // TODO: Create EntitySpawnPipeline and move this code to there.
+                auto create_entity_message = (ServerCreateEntityMessage*)message;
+                InputBitStream bs(create_entity_message->data);
+                EntityId entity_id = create_entity_message->entity_id;
+                EntityType entity_type = create_entity_message->entity_type;
+                NetRole role = create_entity_message->role;
+                if (entity_pipeline_) {
+                    Entity* entity =
+                        entity_pipeline_->createEntityFromType(entity_id, entity_type, role);
+                    if (entity) {
+                        assert(entity->hasComponent<NetData>());
+                        entity->component<NetData>()->deserialise(bs);
+                        entity->component<NetData>()->role_ = role;
+                        entity->component<NetData>()->remote_role_ = NetRole::Authority;
+                        log().info("Created replicated entity %d at %d %d %d", entity_id,
+                                   entity->transform()->position().x,
+                                   entity->transform()->position().y,
+                                   entity->transform()->position().z);
+
+                        // If any spawn requests are waiting for an entity to be created,
+                        // trigger the callback and clear.
+                        if (pending_entity_spawns_.count(entity->id()) > 0) {
+                            auto it = outgoing_spawn_requests_.find(
+                                pending_entity_spawns_.at(entity->id()));
+                            if (it != outgoing_spawn_requests_.end()) {
+                                it->second(*entity);
+                                outgoing_spawn_requests_.erase(it);
+                                pending_entity_spawns_.erase(entity->id());
+                            } else {
+                                log().error(
+                                    "Attempting to trigger an spawn request callback which no "
+                                    "longer exists. Entity ID: %s, Request ID: %s",
+                                    entity->id(), pending_entity_spawns_.at(entity->id()));
+                                pending_entity_spawns_.erase(entity->id());
+                            }
+                        }
+                    } else {
+                        log().error("Failed to spawn an entity of type %s. %s returned nullptr.",
+                                    entity_type, entity_pipeline_->typeName());
+                    }
+                } else {
+                    log().warn("Attempted to replicate entity, but no entity pipeline setup.");
+                    break;
+                }
+                break;
+            }
+            case MT_ServerPropertyReplication: {
+                auto replication_message = (ServerPropertyReplicationMessage*)message;
+                InputBitStream bs(replication_message->data);
+                EntityId entity_id = replication_message->entity_id;
+                Entity* entity = module<SceneManager>()->findEntity(entity_id);
+                if (entity) {
+                    entity->component<NetData>()->deserialise(bs);
+                } else {
+                    log().warn(
+                        "Received replication update for entity %s which does not exist on "
+                        "this client. Ignoring.",
+                        entity_id);
+                }
+                break;
+            }
+            case MT_ServerDestroyEntity: {
+                break;
+            }
+            case MT_ServerSpawnResponse: {
+                auto spawn_message = (ServerSpawnResponseMessage*)message;
+                if (spawn_message->entity_id == 0) {
+                    // TODO: error
+                    // Failed to spawn entity on the server.
+                    log().warn("Failed to spawn entity on the server. Request ID: %s",
+                               spawn_message->request_id);
+                } else {
+                    Entity* entity = module<SceneManager>()->findEntity(spawn_message->entity_id);
+                    if (entity) {
+                        auto it = outgoing_spawn_requests_.find(spawn_message->request_id);
+                        if (it != outgoing_spawn_requests_.end()) {
+                            it->second(*entity);
+                            outgoing_spawn_requests_.erase(it);
+                        } else {
+                            log().warn(
+                                "Received spawn response for an unknown spawn request. Entity "
+                                "ID: "
+                                "%s, Request ID: %s",
+                                spawn_message->entity_id, spawn_message->request_id);
+                        }
+                    } else {
+                        // Wait for the entity to be created.
+                        pending_entity_spawns_[spawn_message->entity_id] =
+                            spawn_message->request_id;
+                    };
+                }
+                break;
+            }
+            default:
+                log().warn("Unexpected message received on client: %d", message->GetType());
+        }
+    }
+    client_->AdvanceTime(time_);
 }
 
 bool Networking::isClient() const {
@@ -539,6 +543,8 @@ yojimbo::MessageFactory* Networking::CreateMessageFactory(yojimbo::Allocator& al
 }
 
 void Networking::OnServerClientConnected(int clientIndex) {
+    log().info("Client ID %s connected.", clientIndex);
+
     // Send replicated entities to client.
     for (auto entity_id : replicated_entities_) {
         Entity* entity = module<SceneManager>()->findEntity(entity_id);
@@ -556,6 +562,8 @@ void Networking::OnServerClientConnected(int clientIndex) {
 }
 
 void Networking::OnServerClientDisconnected(int clientIndex) {
+    log().info("Client ID %s disconnected.", clientIndex);
+
     // Trigger event.
     triggerEvent<ServerClientDisconnectedEvent>(clientIndex);
 }

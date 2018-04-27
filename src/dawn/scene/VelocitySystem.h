@@ -10,9 +10,9 @@
 namespace dw {
 class VelocitySystem : public System {
 public:
-  DW_OBJECT(VelocitySystem);
+    DW_OBJECT(VelocitySystem);
 
-  explicit VelocitySystem(Context* ctx);
-  void processEntity(Entity& e, float dt) override;
+    explicit VelocitySystem(Context* ctx);
+    void processEntity(Entity& e, float dt) override;
 };
 }  // namespace dw
