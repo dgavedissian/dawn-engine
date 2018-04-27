@@ -147,6 +147,9 @@ set(SOURCE_FILES
     scene/System.h
     scene/Transform.cpp
     scene/Transform.h
+    scene/Velocity.h
+    scene/VelocitySystem.cpp
+    scene/VelocitySystem.h
     script/LuaState.cpp
     script/LuaState.h
     script/Sol.h

@@ -1,3 +1,7 @@
+/*
+ * Dawn Engine
+ * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+ */
 #include "DawnEngine.h"
 #include "scene/Transform.h"
 #include "net/NetData.h"

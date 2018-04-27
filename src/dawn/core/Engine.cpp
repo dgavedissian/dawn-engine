@@ -6,6 +6,7 @@
 #include "core/App.h"
 #include "core/Timer.h"
 #include "DawnEngine.h"
+#include "scene/VelocitySystem.h"
 
 // Required for getBasePath/getPrefPath.
 #if DW_PLATFORM == DW_WIN32
@@ -148,6 +149,7 @@ void Engine::setup(int argc, char** argv) {
     // Set up built in entity systems.
     auto& sm = *context_->module<SceneManager>();
     sm.addSystem<EntityRenderer>();
+    sm.addSystem<VelocitySystem>();
 
     // Set input viewport size
     /*

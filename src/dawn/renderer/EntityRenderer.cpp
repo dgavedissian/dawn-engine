@@ -8,6 +8,7 @@
 #include "scene/SceneManager.h"
 #include "scene/Transform.h"
 #include "scene/PhysicsScene.h"
+#include "scene/Velocity.h"
 #include "net/NetTransform.h"
 
 namespace dw {
@@ -52,10 +53,13 @@ void EntityRenderer::processEntity(Entity& entity, float) {
         render_operations_.push_back([this, &entity, camera, model, view](float interpolation) {
             auto* renderable = entity.component<RenderableComponent>();
             auto* rigid_body = entity.component<RigidBody>();
+            auto* velocity = entity.component<Velocity>();
             if (rigid_body) {
                 // Apply velocity to model matrix.
                 Vec3 velocity = rigid_body->_rigidBody()->getLinearVelocity() * interpolation;
                 model.Translate(velocity * model.RotatePart());
+            } else if (velocity) {
+                model.Translate(velocity->velocity * interpolation);
             }
             renderable->node->drawSceneGraph(module<Renderer>(), camera.view,
                                              camera.transform_component, model,
