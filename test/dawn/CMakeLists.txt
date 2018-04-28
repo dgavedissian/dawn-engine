@@ -1,5 +1,5 @@
 # Dawn Engine
-# Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
+# Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
 
 # Policies needed by gtest.
 cmake_policy(SET CMP0054 NEW)
