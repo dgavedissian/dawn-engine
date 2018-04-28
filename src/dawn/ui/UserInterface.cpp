@@ -15,8 +15,8 @@ UserInterface::UserInterface(Context* ctx) : Module(ctx), mouse_wheel_(0.0f) {
     setDependencies<Renderer>();
     setOptionalDependencies<Input>();
 
-    logic_context_ = ImGui::CreateContext(malloc, free);
-    renderer_context_ = ImGui::CreateContext(malloc, free);
+    logic_context_ = ImGui::CreateContext();
+    renderer_context_ = ImGui::CreateContext();
 
     ImGui::SetCurrentContext(logic_context_);
     logic_io_ = &ImGui::GetIO();
@@ -37,7 +37,6 @@ UserInterface::UserInterface(Context* ctx) : Module(ctx), mouse_wheel_(0.0f) {
         io.DisplaySize.y = renderer_->backbufferSize().y / renderer_->windowScale().y;
         io.DisplayFramebufferScale.x = renderer_->windowScale().x;
         io.DisplayFramebufferScale.y = renderer_->windowScale().y;
-        io.RenderDrawListsFn = nullptr;
         io.IniFilename = nullptr;
 
         // Load font texture atlas.

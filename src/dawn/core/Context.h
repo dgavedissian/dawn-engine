@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include "core/math/StringHash.h"
 #include "core/Collections.h"

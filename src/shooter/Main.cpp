@@ -60,7 +60,7 @@ public:
         // Display FPS information.
         ImGui::SetNextWindowPos({10, 10});
         ImGui::SetNextWindowSize({140, 40});
-        if (!ImGui::Begin("FPS", nullptr, {0, 0}, 0.5f,
+        if (!ImGui::Begin("FPS", nullptr,
                           ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
             ImGui::End();

@@ -89,7 +89,7 @@ void ShipFlightComputer::update(float dt) {
     // Display stats.
     ImGui::SetNextWindowPos({10, 200});
     ImGui::SetNextWindowSize({300, 120});
-    if (!ImGui::Begin("Ship Flight", nullptr, {0, 0}, 0.5f,
+    if (!ImGui::Begin("Ship Flight", nullptr,
                       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                           ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
         ImGui::End();

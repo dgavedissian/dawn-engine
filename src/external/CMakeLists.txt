@@ -255,12 +255,15 @@ add_library(imgui EXCLUDE_FROM_ALL
     imgui/imgui.cpp
     imgui/imgui_demo.cpp
     imgui/imgui_draw.cpp)
-target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
+target_include_directories(imgui PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/imgui
+        ${CMAKE_CURRENT_SOURCE_DIR}/imgui_config)
+target_compile_definitions(imgui PUBLIC -DIMGUI_USER_CONFIG=<dw_imconfig.h>)
 set(LIBS ${LIBS} imgui)
 
 # json
 add_library(json INTERFACE)
-target_include_directories(json INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/json/src)
+target_include_directories(json INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/json/include)
 set(LIBS ${LIBS} json)
 
 # optional-lite

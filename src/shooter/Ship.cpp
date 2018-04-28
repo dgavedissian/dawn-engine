@@ -166,7 +166,7 @@ void Ship::update(float dt) {
         // Display stats.
         ImGui::SetNextWindowPos({10, 50});
         ImGui::SetNextWindowSize({300, 60});
-        if (!ImGui::Begin("Ship", nullptr, {0, 0}, 0.5f,
+        if (!ImGui::Begin("Ship", nullptr,
                           ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
             ImGui::End();
