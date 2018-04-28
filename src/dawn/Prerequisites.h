@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "platform/Defines.h"
+#include "core/platform/Defines.h"
 
 // Mark this header as a system header
 #if defined(DW_GCC) || defined(DW_CLANG)

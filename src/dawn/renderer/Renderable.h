@@ -34,11 +34,13 @@ class DW_API RenderableNode {
 public:
     RenderableNode();
     RenderableNode(SharedPtr<Renderable> renderable);
-    RenderableNode(SharedPtr<Renderable> renderable, const Vec3& position, const Quat& orientation);
+    RenderableNode(SharedPtr<Renderable> renderable, const Vec3& position, const Quat& orientation,
+                   const Vec3& scale = Vec3::one);
     ~RenderableNode();
 
     void setPosition(const Vec3& position);
     void setOrientation(const Quat& orientation);
+    void setScale(const Vec3& scale);
 
     /// Add child.
     void addChild(SharedPtr<Renderable> renderable);

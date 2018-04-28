@@ -19,6 +19,9 @@ public:
     void destroyWindow() override;
     void processEvents() override;
     bool isWindowClosed() const override;
+    Vec2i windowSize() const override;
+    Vec2 windowScale() const override;
+    Vec2i backbufferSize() const override;
 
     // Command buffer processing. Executed on the render thread.
     void startRendering() override;

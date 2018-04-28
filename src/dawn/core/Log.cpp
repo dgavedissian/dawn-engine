@@ -14,7 +14,7 @@
 #include "Common.h"
 #include "core/Log.h"
 #if DW_PLATFORM == DW_WIN32
-#include "platform/Windows.h"
+#include "core/platform/Windows.h"
 #endif
 
 namespace dw {
@@ -41,7 +41,7 @@ public:
     }
 };
 
-Logger::Logger(Context* context) : Subsystem{context}, object_name_{"UNKNOWN"} {
+Logger::Logger(Context* context) : Module{context}, object_name_{"UNKNOWN"} {
     addLogMessageHandler(makeUnique<PlatformLogMessageHandler>());
 }
 

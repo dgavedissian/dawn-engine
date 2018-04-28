@@ -84,7 +84,7 @@ View& Frame::view(uint view_index) {
 }
 
 Renderer::Renderer(Context* context)
-    : Subsystem(context),
+    : Module(context),
       use_render_thread_(false),
       is_first_frame_(true),
       shared_rt_should_exit_(false),
@@ -499,7 +499,7 @@ void Renderer::frame() {
         // If the rendering thread is doing nothing, print a warning and give up.
         if (shared_rt_finished_) {
             log().warn("Rendering thread has finished running. Sending shutdown signal.");
-            subsystem<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
+            module<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
             return;
         }
 
@@ -517,7 +517,7 @@ void Renderer::frame() {
             is_first_frame_ = false;
         }
         if (!renderFrame(submit_)) {
-            subsystem<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
+            module<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
             log().warn("Rendering failed. Sending shutdown signal.");
             return;
         }
@@ -527,12 +527,20 @@ void Renderer::frame() {
     shared_render_context_->processEvents();
     if (shared_render_context_->isWindowClosed()) {
         log().info("Window closed. Sending shutdown signal.");
-        subsystem<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
+        module<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
     }
 }
 
-Vec2i Renderer::getBackbufferSize() const {
-    return Vec2i(width_, height_);
+Vec2i Renderer::windowSize() const {
+    return shared_render_context_->windowSize();
+}
+
+Vec2 Renderer::windowScale() const {
+    return shared_render_context_->windowScale();
+}
+
+Vec2i Renderer::backbufferSize() const {
+    return shared_render_context_->backbufferSize();
 }
 
 void Renderer::submitPreFrameCommand(RenderCommand&& command) {
@@ -607,7 +615,7 @@ bool Renderer::renderFrame(Frame* frame) {
     return true;
 }
 
-uint Renderer::getBackbufferView() const {
+uint Renderer::backbufferView() const {
     for (uint view_index = 0; view_index < submit_->views.size(); ++view_index) {
         if (submit_->views[view_index].frame_buffer.internal() == 0) {
             return view_index;

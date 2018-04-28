@@ -11,14 +11,16 @@
 
 namespace dw {
 /// Entity identifier.
-using EntityId = Ontology::Entity::ID;
+using EntityId = u64;
+using EntityType = u32;
 
 /// Entity object. Currently implemented as an Ontology::Entity wrapper.
 class Entity : public Object {
 public:
     DW_OBJECT(Entity);
 
-    explicit Entity(Context* context, Ontology::EntityManager& entity_manager, EntityId id);
+    explicit Entity(Context* context, Ontology::EntityManager& entity_manager, EntityId id,
+                    EntityType type);
     virtual ~Entity() = default;
 
     /// Accesses a component contained within this entity.
@@ -39,6 +41,9 @@ public:
     /// Returns the identifier of this entity.
     EntityId id() const;
 
+    /// Returns the type ID of this entity.
+    EntityType typeId() const;
+
     /// Shortcut for returning the transform component.
     Transform* transform() const;
 
@@ -46,6 +51,7 @@ private:
     Ontology::EntityManager& internal_entity_mgr_;
     Ontology::Entity::ID internal_entity_id_;
     EntityId id_;
+    EntityType type_;
 
     Ontology::Entity& entity() const {
         return internal_entity_mgr_.getEntity(internal_entity_id_);

@@ -9,16 +9,16 @@ namespace dw {
 VertexBuffer::VertexBuffer(Context* context, const void* data, uint size, uint vertex_count,
                            const VertexDecl& decl, BufferUsage usage)
     : Object{context}, vertex_count_{vertex_count} {
-    handle_ = context->subsystem<Renderer>()->createVertexBuffer(data, size, decl, usage);
+    handle_ = context->module<Renderer>()->createVertexBuffer(data, size, decl, usage);
 }
 
 VertexBuffer::~VertexBuffer() {
-    context_->subsystem<Renderer>()->deleteVertexBuffer(handle_);
+    context_->module<Renderer>()->deleteVertexBuffer(handle_);
 }
 
 void VertexBuffer::update(const void* data, uint size, uint vertex_count, uint offset) {
     vertex_count_ = vertex_count;
-    context_->subsystem<Renderer>()->updateVertexBuffer(handle_, data, size, offset);
+    context_->module<Renderer>()->updateVertexBuffer(handle_, data, size, offset);
 }
 
 VertexBufferHandle VertexBuffer::internalHandle() const {

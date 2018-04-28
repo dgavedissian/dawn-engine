@@ -5,7 +5,7 @@
 #pragma once
 
 #include "core/Option.h"
-#include "math/Defs.h"
+#include "core/math/Defs.h"
 #include "renderer/Program.h"
 #include "renderer/Texture.h"
 

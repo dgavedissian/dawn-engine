@@ -33,21 +33,26 @@ using uintptr = std::uintptr_t;
 using String = std::string;
 using StringStream = std::stringstream;
 
+// Function
+template <typename T> using Function = std::function<T>;
+
 // Smart pointers
-template <class T> using SharedPtr = std::shared_ptr<T>;
-template <class T> using WeakPtr = std::weak_ptr<T>;
-template <class T> using UniquePtr = std::unique_ptr<T>;
-template <class T> using EnableSharedFromThis = std::enable_shared_from_this<T>;
-template <class T, class... Args> inline SharedPtr<T> makeShared(Args&&... args) {
+template <typename T> using SharedPtr = std::shared_ptr<T>;
+template <typename T> using WeakPtr = std::weak_ptr<T>;
+template <typename T> using UniquePtr = std::unique_ptr<T>;
+template <typename T> using EnableSharedFromThis = std::enable_shared_from_this<T>;
+template <typename T, typename... Args> inline SharedPtr<T> makeShared(Args&&... args) {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
-template <class T, class... Args> inline UniquePtr<T> makeUnique(Args&&... args) {
+template <typename T, typename... Args> inline UniquePtr<T> makeUnique(Args&&... args) {
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
-template <class T1, class T2> inline SharedPtr<T1> staticPointerCast(const SharedPtr<T2>& other) {
+template <typename T1, typename T2>
+inline SharedPtr<T1> staticPointerCast(const SharedPtr<T2>& other) {
     return std::static_pointer_cast<T1, T2>(other);
 }
-template <class T1, class T2> inline SharedPtr<T1> dynamicPointerCast(const SharedPtr<T2>& other) {
+template <typename T1, typename T2>
+inline SharedPtr<T1> dynamicPointerCast(const SharedPtr<T2>& other) {
     return std::dynamic_pointer_cast<T1, T2>(other);
 }
 }  // namespace dw
@@ -66,6 +71,6 @@ template <class T1, class T2> inline SharedPtr<T1> dynamicPointerCast(const Shar
 #include "core/Context.h"
 #include "core/Exception.h"
 #include "core/Object.h"
-#include "core/Subsystem.h"
+#include "core/Module.h"
 #include "core/Log.h"
 #include "core/EventSystem.h"

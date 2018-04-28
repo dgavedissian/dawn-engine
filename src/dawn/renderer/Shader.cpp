@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "io/InputStream.h"
+#include "core/io/InputStream.h"
 #include "renderer/Shader.h"
 #include "renderer/GLSL.h"
 
@@ -166,13 +166,13 @@ bool Shader::beginLoad(const String&, InputStream& src) {
     }
 
     // Convert to SPIR-V and hand to renderer.
-    if (!subsystem<Renderer>()) {
+    if (!module<Renderer>()) {
         return false;
     }
     Vector<u32> spirv_out;
     glslang::GlslangToSpv(*program.getIntermediate(stage), spirv_out);
-    handle_ = subsystem<Renderer>()->createShader(type_, spirv_out.data(),
-                                                  spirv_out.size() * sizeof(u32));
+    handle_ =
+        module<Renderer>()->createShader(type_, spirv_out.data(), spirv_out.size() * sizeof(u32));
 
     return true;
 }

@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "io/StringInputStream.h"
+#include "core/io/StringInputStream.h"
 #include "renderer/BillboardSet.h"
 #include "renderer/Program.h"
 #include "renderer/Shader.h"

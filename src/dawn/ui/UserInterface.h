@@ -9,12 +9,17 @@
 #include "ui/Imgui.h"
 
 namespace dw {
-class DW_API UserInterface : public Subsystem {
+class DW_API UserInterface : public Module {
 public:
     DW_OBJECT(UserInterface);
 
     UserInterface(Context* ctx);
     ~UserInterface();
+
+    void beginTick();
+    void endTick();
+    void preRender();
+    void postRender();
 
     void update(float dt);
     void render();
@@ -23,14 +28,19 @@ private:
     Renderer* renderer_;
 
     // ImGui.
-    ImGuiIO& imgui_io_;
-    ImGuiStyle& imgui_style_;
+    ImGuiContext* logic_context_;
+    ImGuiContext* renderer_context_;
+    ImGuiIO* logic_io_;
+    ImGuiIO* renderer_io_;
     SharedPtr<Program> program_;
     VertexDecl vertex_decl_;
 
     // Input.
     float mouse_wheel_;
     bool mouse_pressed_[MouseButton::Count];
+
+    void forAllContexts(Function<void(ImGuiIO& io)> functor);
+    void drawGUI(ImDrawData* draw_data, ImGuiIO& io);
 
     // Callback handlers.
     void onKey(const KeyEvent& state);

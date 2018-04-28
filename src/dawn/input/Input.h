@@ -4,8 +4,8 @@
  */
 #pragma once
 
-#include "math/Vec2i.h"
-#include "math/Vec3i.h"
+#include "core/math/Vec2i.h"
+#include "core/math/Vec3i.h"
 
 namespace dw {
 
@@ -141,7 +141,7 @@ namespace MouseButton {
 enum Enum { Left = 0, Middle, Right, Count };
 }
 
-class DW_API Input : public Subsystem {
+class DW_API Input : public Module {
 public:
     DW_OBJECT(Input);
 

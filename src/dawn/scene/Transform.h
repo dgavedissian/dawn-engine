@@ -5,7 +5,9 @@
 #pragma once
 
 #include "Component.h"
-#include "math/Defs.h"
+#include "core/io/InputStream.h"
+#include "core/io/OutputStream.h"
+#include "core/math/Defs.h"
 #include "scene/Position.h"
 
 namespace dw {
@@ -32,6 +34,7 @@ public:
 private:
     Position position_;
     Quat orientation_;
+
     bool relative_to_camera_;
     Transform* parent_;
     Vector<Transform*> children_;

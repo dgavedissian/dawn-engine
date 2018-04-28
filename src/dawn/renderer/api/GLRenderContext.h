@@ -20,6 +20,9 @@ public:
     void destroyWindow() override;
     void processEvents() override;
     bool isWindowClosed() const override;
+    Vec2i windowSize() const override;
+    Vec2 windowScale() const override;
+    Vec2i backbufferSize() const override;
 
     // Command buffer processing. Executed on the render thread.
     void startRendering() override;
@@ -52,6 +55,7 @@ private:
     GLFWwindow* window_;
     u16 backbuffer_width_;
     u16 backbuffer_height_;
+    Vec2 window_scale_;
 
     GLuint vao_;
     VertexDecl current_vertex_decl;

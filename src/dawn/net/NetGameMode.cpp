@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "net/NetSystem.h"
+#include "net/Networking.h"
 #include "net/NetGameMode.h"
 
 namespace dw {
@@ -35,7 +35,7 @@ void NetGameMode::onStart() {
     addEventListener<ServerClientDisconnectedEvent>(
         makeEventDelegate(this, &NetGameMode::eventOnServerClientDisconnected));
 
-    if (subsystem<NetSystem>()->isServer()) {
+    if (module<Networking>()->isServer()) {
         serverOnStart();
         server_started_ = true;
     }
@@ -54,11 +54,11 @@ void NetGameMode::onEnd() {
 }
 
 void NetGameMode::update(float) {
-    if (subsystem<NetSystem>()->isServer() && !server_started_) {
+    if (module<Networking>()->isServer() && !server_started_) {
         serverOnStart();
         server_started_ = true;
     }
-    if (!subsystem<NetSystem>()->isServer() && server_started_) {
+    if (!module<Networking>()->isServer() && server_started_) {
         serverOnEnd();
         server_started_ = false;
     }
@@ -68,11 +68,11 @@ void NetGameMode::eventOnJoinServer(const JoinServerEvent&) {
     clientOnJoinServer();
 }
 
-void NetGameMode::eventOnServerClientConnected(const ServerClientConnectedEvent& e) {
+void NetGameMode::eventOnServerClientConnected(const ServerClientConnectedEvent&) {
     serverOnClientConnected();
 }
 
-void NetGameMode::eventOnServerClientDisconnected(const ServerClientDisconnectedEvent& e) {
+void NetGameMode::eventOnServerClientDisconnected(const ServerClientDisconnectedEvent&) {
     serverOnClientDisconnected();
 }
 

@@ -8,7 +8,7 @@
 namespace dw {
 
 Program::Program(Context* context, SharedPtr<VertexShader> vs, SharedPtr<FragmentShader> fs)
-    : Resource{context}, r{subsystem<Renderer>()}, vertex_shader_{vs}, fragment_shader_{fs} {
+    : Resource{context}, r{module<Renderer>()}, vertex_shader_{vs}, fragment_shader_{fs} {
     handle_ = r->createProgram();
     r->attachShader(handle_, vs->internalHandle());
     r->attachShader(handle_, fs->internalHandle());

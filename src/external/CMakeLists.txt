@@ -43,131 +43,138 @@ endif()
 # existence of the path. Therefore, we create the path beforehand.
 
 # Assimp
-ExternalProject_Add(Assimp_Build
+if(WIN32)
+    set(ASSIMP_PATCH_COMMAND)
+else()
+    set(ASSIMP_PATCH_COMMAND sed -e "/use_pkgconfig(UNZIP minizip)/s/^/#/g" -i CMakeLists.txt)
+endif()
+ExternalProject_Add(Assimp-external
     PREFIX ${EXTERNAL_PREFIX}
+    # As we need to patch the source, we make a copy using URL instead.
+    URL ${CMAKE_CURRENT_SOURCE_DIR}/assimp
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    URL https://github.com/assimp/assimp/archive/6b4e3177e836dfb05c7eb5e3347b15a9916eebe7.zip
-    URL_MD5 f7bb45ebbccdde3997be22e61fdb242b
+    PATCH_COMMAND ${ASSIMP_PATCH_COMMAND}
     UPDATE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
+    EXCLUDE_FROM_ALL 1
     CMAKE_ARGS ${EXTERNAL_ARGS}
         -DASSIMP_BUILD_ASSIMP_TOOLS=0
         -DASSIMP_BUILD_TESTS=0
         -DASSIMP_BUILD_ZLIB=1
         -DASSIMP_INSTALL_PDB=0
-        -DCMAKE_DEBUG_POSTFIX=d
+        -DCMAKE_DEBUG_POSTFIX=_d
 )
-set_target_properties(Assimp_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
-add_library(Assimp STATIC IMPORTED GLOBAL)
-add_dependencies(Assimp Assimp_Build)
+add_library(Assimp INTERFACE)
+add_dependencies(Assimp Assimp-external)
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
 set_property(TARGET Assimp PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-if(WIN32)
+if(MSVC)
     set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/$<CONFIG>/irrXML$<$<CONFIG:Debug>:d>.lib
-        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/$<CONFIG>/zlibstatic$<$<CONFIG:Debug>:d>.lib)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/assimp-vc140-mtd.lib)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt.lib)
+        ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt$<$<CONFIG:Debug>:_d>.lib
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/$<CONFIG>/IrrXML$<$<CONFIG:Debug>:_d>.lib
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/$<CONFIG>/zlibstatic$<$<CONFIG:Debug>:d>.lib)
 else()
     set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/irrXML/libIrrXML$<$<CONFIG:Debug>:d>.a
-        ${EXTERNAL_PREFIX}/src/Assimp_Build-build/contrib/zlib/libzlibstatic$<$<CONFIG:Debug>:d>.a)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/libassimpd.a)
-    set_property(TARGET Assimp PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libassimp.a)
-    message(STATUS ${CMAKE_BUILD_TYPE})
+        ${EXTERNAL_INSTALL}/lib/libassimp$<$<CONFIG:Debug>:_d>.a
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/libIrrXML$<$<CONFIG:Debug>:_d>.a
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/libzlibstatic$<$<CONFIG:Debug>:_d>.a)
 endif()
 set(LIBS ${LIBS} Assimp)
 
 # Bullet
-ExternalProject_Add(Bullet_Build
+ExternalProject_Add(Bullet-external
     PREFIX ${EXTERNAL_PREFIX}
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bullet
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    URL https://github.com/bulletphysics/bullet3/archive/2.86.zip
-    URL_MD5 8b57278946186e9792824069637bbc97
+    DOWNLOAD_COMMAND ""
     UPDATE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
+    EXCLUDE_FROM_ALL 1
     CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DBUILD_EXTRAS=0
         -DBUILD_BULLET2_DEMOS=0
         -DBUILD_BULLET3=0
+        -DBUILD_CLSOCKET=0
+        -DBUILD_CPU_DEMOS=0
+        -DBUILD_EXTRAS=0
+        -DBUILD_ENET=0
+        -DBUILD_PYBULLET=0
         -DBUILD_UNIT_TESTS=0
+        -DINSTALL_CMAKE_FILES=0
         -DINSTALL_LIBS=1
         -DUSE_MSVC_RUNTIME_LIBRARY_DLL=1
+        # Needed on Linux
+        -DCMAKE_RELWITHDEBINFO_POSTFIX=
+        -DCMAKE_DEBUG_POSTFIX=_d
 )
-set_target_properties(Bullet_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
-add_library(Bullet STATIC IMPORTED GLOBAL)
-add_dependencies(Bullet Bullet_Build)
+add_library(Bullet INTERFACE)
+add_dependencies(Bullet Bullet-external)
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/bullet)
-set_property(TARGET Bullet PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include/bullet)
-if(WIN32)
-    set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/BulletCollision$<$<CONFIG:Debug>:_Debug>.lib
-        ${EXTERNAL_INSTALL}/lib/LinearMath$<$<CONFIG:Debug>:_Debug>.lib)
-    set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/BulletDynamics_Debug.lib)
-    set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/BulletDynamics.lib)
-else()
-    set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/libBulletCollision.a
-        ${EXTERNAL_INSTALL}/lib/libLinearMath.a)
-    set_property(TARGET Bullet PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libBulletDynamics.a)
-endif()
+set_property(TARGET Bullet PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+    ${EXTERNAL_INSTALL}/include/bullet)
+set_property(TARGET Bullet PROPERTY INTERFACE_LINK_LIBRARIES
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletDynamics$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletCollision$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}LinearMath$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(LIBS ${LIBS} Bullet)
 
 # MathGeoLib
-ExternalProject_Add(MathGeoLib_Build
+ExternalProject_Add(MathGeoLib-external
     PREFIX ${EXTERNAL_PREFIX}
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/MathGeoLib
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    URL https://github.com/davedissian/dawnengine-MathGeoLib/archive/master.zip
-    URL_MD5 d1fd2ed6aa2284049234f377c6a6f1e9
+    DOWNLOAD_COMMAND ""
     UPDATE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
+    EXCLUDE_FROM_ALL 1
     CMAKE_ARGS ${EXTERNAL_ARGS}
+        -DCMAKE_DEBUG_POSTFIX=_d
+        -DMATH_TESTS_EXECUTABLE=0
+        -DVS_BUG=1
 )
-set_target_properties(MathGeoLib_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
-add_library(MathGeoLib STATIC IMPORTED GLOBAL)
-add_dependencies(MathGeoLib MathGeoLib_Build)
+add_library(MathGeoLib INTERFACE)
+add_dependencies(MathGeoLib MathGeoLib-external)
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/MathGeoLib)
-set_property(TARGET MathGeoLib PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include/MathGeoLib)
-if(WIN32)
-    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/MathGeoLib_d.lib)
-    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/MathGeoLib.lib)
-else()
-    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_INSTALL}/lib/libMathGeoLib_d.a)
-    set_property(TARGET MathGeoLib PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libMathGeoLib.a)
-endif()
+set_property(TARGET MathGeoLib PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+    ${EXTERNAL_INSTALL}/include/MathGeoLib)
+set_property(TARGET MathGeoLib PROPERTY INTERFACE_LINK_LIBRARIES
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}MathGeoLib$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(LIBS ${LIBS} MathGeoLib)
 
 # Luajit
-if (MSVC)
-    ExternalProject_Add(Luajit_Build
-        PREFIX ${EXTERNAL_PREFIX}
-        URL http://luajit.org/download/LuaJIT-2.1.0-beta2.zip
-        URL_MD5 b5d943c0174ca217736e2ddc2d9721c3
-        BINARY_DIR ${EXTERNAL_PREFIX}/src/Luajit_Build/src
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND msvcbuild.bat static
-        INSTALL_COMMAND ""
-        UPDATE_COMMAND ""
-    )
+if(MSVC)
+    set(LUAJIT_BUILD_COMMAND cd src COMMAND msvcbuild.bat static)
+    set(LUAJIT_INSTALL_COMMAND
+        ${CMAKE_COMMAND} -E copy
+            ${EXTERNAL_PREFIX}/src/Luajit-external-build/src/lua51.lib
+            ${EXTERNAL_INSTALL}/lib/luajit-5.1.lib)
 else()
-    ExternalProject_Add(Luajit_Build
-        PREFIX ${EXTERNAL_PREFIX}
-        URL http://luajit.org/download/LuaJIT-2.1.0-beta2.zip
-        URL_MD5 b5d943c0174ca217736e2ddc2d9721c3
-        BUILD_IN_SOURCE 1
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND make PREFIX=${EXTERNAL_INSTALL} amalg
-        INSTALL_COMMAND make PREFIX=${EXTERNAL_INSTALL} install
-        UPDATE_COMMAND ""
-    )
+    set(LUAJIT_BUILD_COMMAND make PREFIX=${EXTERNAL_INSTALL} amalg)
+    set(LUAJIT_INSTALL_COMMAND make PREFIX=${EXTERNAL_INSTALL} install)
 endif()
-set_target_properties(Luajit_Build PROPERTIES EXCLUDE_FROM_ALL TRUE)
-add_library(Luajit STATIC IMPORTED GLOBAL)
-add_dependencies(Luajit Luajit_Build)
-file(MAKE_DIRECTORY ${EXTERNAL_PREFIX}/src/Luajit_Build/src)
-set_property(TARGET Luajit PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PREFIX}/src/Luajit_Build/src)
-if(WIN32)
-    set_property(TARGET Luajit PROPERTY IMPORTED_LOCATION ${EXTERNAL_PREFIX}/src/Luajit_Build/src/lua51.lib)
-else()
-    set_property(TARGET Luajit PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libluajit-5.1.a)
-endif()
+ExternalProject_Add(Luajit-external
+    PREFIX ${EXTERNAL_PREFIX}
+    URL ${CMAKE_CURRENT_SOURCE_DIR}/luajit
+    # This is needed to avoid nuking the build files every time the DOWNLOAD_COMMAND
+    # is run (and files are copied from external/luajit). This causes LJ to rebuild
+    # every time in VS without specifying this CONFIGURE_COMMAND.
+    CONFIGURE_COMMAND
+        ${CMAKE_COMMAND} -E copy_directory
+            ${EXTERNAL_PREFIX}/src/Luajit-external
+            ${EXTERNAL_PREFIX}/src/Luajit-external-build
+    UPDATE_COMMAND ""
+    BUILD_COMMAND ${LUAJIT_BUILD_COMMAND}
+    INSTALL_COMMAND ${LUAJIT_INSTALL_COMMAND}
+    EXCLUDE_FROM_ALL 1
+)
+add_library(Luajit INTERFACE)
+add_dependencies(Luajit Luajit-external)
+file(MAKE_DIRECTORY ${EXTERNAL_PREFIX}/src/Luajit-external/src)
+set_property(TARGET Luajit PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PREFIX}/src/Luajit-external/src)
+set_property(TARGET Luajit PROPERTY INTERFACE_LINK_LIBRARIES
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(LIBS ${LIBS} Luajit)
 
 
@@ -206,15 +213,38 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 set(GLFW_USE_CHDIR OFF CACHE BOOL "" FORCE)
+set(USE_MSVC_RUNTIME_LIBRARY_DLL OFF CACHE BOOL "" FORCE)
 add_subdirectory(glfw EXCLUDE_FROM_ALL)
 target_include_directories(glfw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
 set(LIBS ${LIBS} glfw)
 
 # glslang
-set(SKIP_GLSLANG_INSTALL ON CACHE BOOL "" FORCE)
-add_subdirectory(glslang EXCLUDE_FROM_ALL)
-target_include_directories(glslang PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glslang/glslang/Public ${CMAKE_CURRENT_SOURCE_DIR}/glslang/SPIRV)
-set(LIBS ${LIBS} glslang SPIRV)
+ExternalProject_Add(glslang-external
+    PREFIX ${EXTERNAL_PREFIX}
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/glslang
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
+    EXCLUDE_FROM_ALL 1
+    CMAKE_ARGS ${EXTERNAL_ARGS}
+        -DBUILD_TESTING=0
+        -DCMAKE_DEBUG_POSTFIX=d
+        -DENABLE_GLSLANG_BINARIES=0
+        -DENABLE_HLSL=0
+)
+add_library(glslang INTERFACE)
+add_dependencies(glslang glslang-external)
+file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/glslang/Public)
+set_property(TARGET glslang PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+    ${EXTERNAL_INSTALL}/include/glslang/Public)
+set_property(TARGET glslang PROPERTY INTERFACE_LINK_LIBRARIES
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}SPIRV$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glslang$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}OGLCompiler$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}OSDependent$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(LIBS ${LIBS} glslang)
 
 # googletest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -244,9 +274,25 @@ target_include_directories(sol INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/sol2/single
 set(LIBS ${LIBS} sol)
 
 # SPIRV-Cross
-add_subdirectory(SPIRV-Cross EXCLUDE_FROM_ALL)
-#target_include_directories(glfw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
-set(LIBS ${LIBS} spirv-cross-glsl spirv-cross-hlsl spirv-cross-msl)
+ExternalProject_Add(SPIRVCross-external
+    PREFIX ${EXTERNAL_PREFIX}
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SPIRV-Cross
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
+    CMAKE_ARGS ${EXTERNAL_ARGS}
+        -DCMAKE_DEBUG_POSTFIX=_d
+)
+set_target_properties(SPIRVCross-external PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(SPIRVCross INTERFACE)
+add_dependencies(SPIRVCross SPIRVCross-external)
+set_property(TARGET SPIRVCross PROPERTY INTERFACE_LINK_LIBRARIES
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}spirv-cross-core$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}spirv-cross-glsl$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}spirv-cross-hlsl$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(LIBS ${LIBS} SPIRVCross)
 
 # stb
 add_library(stb INTERFACE)
@@ -264,60 +310,56 @@ target_include_directories(variant INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/variant
 set(LIBS ${LIBS} variant)
 
 # yojimbo_mbedtls
-ExternalProject_Add(yojimbo_mbedtls_build
+ExternalProject_Add(yojimbo_mbedtls-external
     PREFIX ${EXTERNAL_PREFIX}
-    INSTALL_DIR ${EXTERNAL_INSTALL}
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo_mbedtls
+    INSTALL_DIR ${EXTERNAL_INSTALL}
     DOWNLOAD_COMMAND ""
     BUILD_COMMAND ""
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config ${CMAKE_CFG_INTDIR}
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
     CMAKE_ARGS ${EXTERNAL_ARGS}
-    )
-set_target_properties(yojimbo_mbedtls_build PROPERTIES EXCLUDE_FROM_ALL TRUE)
-add_library(yojimbo_mbedtls STATIC IMPORTED GLOBAL)
-add_dependencies(yojimbo_mbedtls yojimbo_mbedtls_build)
+        -DCMAKE_DEBUG_POSTFIX=_d
+        -DENABLE_TESTING=0
+        -DENABLE_PROGRAMS=0
+)
+set_target_properties(yojimbo_mbedtls-external PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(yojimbo_mbedtls INTERFACE)
+add_dependencies(yojimbo_mbedtls yojimbo_mbedtls-external)
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
 set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-if(WIN32)
-    set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/mbedx509.lib
-        ${EXTERNAL_INSTALL}/lib/mbedcrypto.lib)
-    set_property(TARGET yojimbo_mbedtls PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/mbedtls.lib)
-else()
-    set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/libmbedx509.a
-        ${EXTERNAL_INSTALL}/lib/libmbedcrypto.a)
-    set_property(TARGET yojimbo_mbedtls PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libmbedtls.a)
-endif()
+set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mbedtls$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mbedx509$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mbedcrypto$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
 
 # yojimbo_sodium
 if (MSVC)
-    ExternalProject_Add(yojimbo_sodium_build
+    ExternalProject_Add(yojimbo_sodium-external
         PREFIX ${EXTERNAL_PREFIX}
         URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.15-msvc.zip
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
         UPDATE_COMMAND ""
-        )
+    )
 else()
-    ExternalProject_Add(yojimbo_sodium_build
+    ExternalProject_Add(yojimbo_sodium-external
         PREFIX ${EXTERNAL_PREFIX}
         URL ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo_sodium
         BUILD_IN_SOURCE 1
-        CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL}
+        CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no
         BUILD_COMMAND make
         INSTALL_COMMAND make install
         UPDATE_COMMAND ""
-        )
+    )
 endif()
-set_target_properties(yojimbo_sodium_build PROPERTIES EXCLUDE_FROM_ALL TRUE)
-add_library(yojimbo_sodium STATIC IMPORTED GLOBAL)
-add_dependencies(yojimbo_sodium yojimbo_sodium_build)
+set_target_properties(yojimbo_sodium-external PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(yojimbo_sodium INTERFACE)
+add_dependencies(yojimbo_sodium yojimbo_sodium-external)
 if(WIN32)
-    file(MAKE_DIRECTORY ${EXTERNAL_PREFIX}/src/yojimbo_sodium_build/include)
-    set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PREFIX}/src/yojimbo_sodium_build/include)
+    file(MAKE_DIRECTORY ${EXTERNAL_PREFIX}/src/yojimbo_sodium-external/include)
+    set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PREFIX}/src/yojimbo_sodium-external/include)
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(SODIUM_ARCH x64)
     elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -334,12 +376,12 @@ if(WIN32)
     else()
         message(FATAL_ERROR "Unsupported MSVC version: ${MSVC_VERSION}")
     endif()
-    set_property(TARGET yojimbo_sodium PROPERTY IMPORTED_LOCATION_DEBUG ${EXTERNAL_PREFIX}/src/yojimbo_sodium_build/${SODIUM_ARCH}/Debug/${SODIUM_MSVC}/static/libsodium.lib)
-    set_property(TARGET yojimbo_sodium PROPERTY IMPORTED_LOCATION ${EXTERNAL_PREFIX}/src/yojimbo_sodium_build/${SODIUM_ARCH}/Release/${SODIUM_MSVC}/static/libsodium.lib)
+    set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_LINK_LIBRARIES
+        ${EXTERNAL_PREFIX}/src/yojimbo_sodium-external/${SODIUM_ARCH}/$<CONFIG>/${SODIUM_MSVC}/static/libsodium.lib)
 else()
     file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
     set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-    set_property(TARGET yojimbo_sodium PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL}/lib/libsodium.a)
+    set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_LINK_LIBRARIES ${EXTERNAL_INSTALL}/lib/libsodium.a)
 endif()
 
 # yojimbo

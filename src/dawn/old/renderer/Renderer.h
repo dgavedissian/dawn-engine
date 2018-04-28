@@ -135,7 +135,7 @@ public:
         rl.push_back("fonts");
         rl.push_back("materials/deferred");
         rl.push_back("materials/explosions");
-        rl.push_back("materials/scene");
+        rl.push_back("materials/gameplay");
         rl.push_back("materials");
         rl.push_back("models");
         rl.push_back("scripts");

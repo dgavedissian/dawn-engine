@@ -1,6 +1,10 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
 cmake_minimum_required(VERSION 3.0)
+
+set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CFlagOverrides.cmake)
+set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CXXFlagOverrides.cmake)
+
 project(Dawn)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -29,11 +33,11 @@ include(Utilities)
 # Platform specific stuff
 ###############################################
 
-# Fix for "error C3859: virtual memory range for PCH exceeded" with MSVC
+# Workaround for 'warning C4577: 'noexcept' used with no exception handling mode specified;
+# termination on exception is not guaranteed. Specify /EHsc'
 if(MSVC)
-    #string(REGEX REPLACE "/Zm[0-9]+ " "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm500" CACHE STRING "" FORCE)
-endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+endif(MSVC)
 
 ###############################################
 # Helpful functions

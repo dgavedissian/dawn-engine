@@ -9,7 +9,7 @@
 namespace dw {
 
 // Manages the Lua virtual machine and provides some helper functions
-class DW_API LuaState : public Subsystem {
+class DW_API LuaState : public Module {
 public:
     DW_OBJECT(LuaState);
 

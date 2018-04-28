@@ -8,7 +8,7 @@
 
 namespace dw {
 EventSystem::EventSystem(Context* context)
-    : Subsystem(context), active_queue_(0), processing_events_(false) {
+    : Module(context), active_queue_(0), processing_events_(false) {
 }
 
 EventSystem::~EventSystem() {

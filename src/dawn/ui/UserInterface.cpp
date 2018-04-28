@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "io/StringInputStream.h"
+#include "core/io/StringInputStream.h"
 #include "input/Input.h"
 #include "ui/Imgui.h"
 #include "ui/UserInterface.h"
@@ -11,56 +11,65 @@
 static_assert(sizeof(ImDrawIdx) == sizeof(dw::u16), "Only 16-bit ImGUI indices are supported.");
 
 namespace dw {
-UserInterface::UserInterface(Context* ctx)
-    : Subsystem(ctx),
-      imgui_io_(ImGui::GetIO()),
-      imgui_style_(ImGui::GetStyle()),
-      mouse_wheel_(0.0f) {
+UserInterface::UserInterface(Context* ctx) : Module(ctx), mouse_wheel_(0.0f) {
     setDependencies<Renderer>();
     setOptionalDependencies<Input>();
 
-    renderer_ = subsystem<Renderer>();
+    logic_context_ = ImGui::CreateContext(malloc, free);
+    renderer_context_ = ImGui::CreateContext(malloc, free);
+
+    ImGui::SetCurrentContext(logic_context_);
+    logic_io_ = &ImGui::GetIO();
+    ImGui::SetCurrentContext(renderer_context_);
+    renderer_io_ = &ImGui::GetIO();
+
+    renderer_ = module<Renderer>();
 
     // Initialise mouse state.
     for (bool& state : mouse_pressed_) {
         state = false;
     }
 
-    // TODO: Resize this on screen size change.
-    // TODO: Fill others settings of the io structure later.
-    imgui_io_.DisplaySize.x = renderer_->getBackbufferSize().x;
-    imgui_io_.DisplaySize.y = renderer_->getBackbufferSize().y;
-    imgui_io_.RenderDrawListsFn = nullptr;
-    imgui_io_.IniFilename = nullptr;
+    forAllContexts([this](ImGuiIO& io) {
+        // TODO: Resize this on screen size change.
+        // TODO: Fill others settings of the io structure later.
+        io.DisplaySize.x = renderer_->backbufferSize().x / renderer_->windowScale().x;
+        io.DisplaySize.y = renderer_->backbufferSize().y / renderer_->windowScale().y;
+        io.DisplayFramebufferScale.x = renderer_->windowScale().x;
+        io.DisplayFramebufferScale.y = renderer_->windowScale().y;
+        io.RenderDrawListsFn = nullptr;
+        io.IniFilename = nullptr;
 
-    // Load font texture atlas.
-    unsigned char* pixels;
-    int width, height;
-    imgui_io_.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-    TextureHandle handle =
-        renderer_->createTexture2D(width, height, TextureFormat::RGBA8, pixels, width * height * 4);
-    imgui_io_.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(handle.internal()));
+        // Load font texture atlas.
+        unsigned char* pixels;
+        int width, height;
+        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+        TextureHandle handle =
+            renderer_->createTexture2D(static_cast<u16>(width), static_cast<u16>(height),
+                                       TextureFormat::RGBA8, pixels, width * height * 4);
+        io.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(handle.internal()));
 
-    // Set up key map.
-    imgui_io_.KeyMap[ImGuiKey_Tab] = Key::Tab;
-    imgui_io_.KeyMap[ImGuiKey_LeftArrow] = Key::Left;
-    imgui_io_.KeyMap[ImGuiKey_RightArrow] = Key::Right;
-    imgui_io_.KeyMap[ImGuiKey_UpArrow] = Key::Up;
-    imgui_io_.KeyMap[ImGuiKey_DownArrow] = Key::Down;
-    imgui_io_.KeyMap[ImGuiKey_PageUp] = Key::PageUp;
-    imgui_io_.KeyMap[ImGuiKey_PageDown] = Key::PageDown;
-    imgui_io_.KeyMap[ImGuiKey_Home] = Key::Home;
-    imgui_io_.KeyMap[ImGuiKey_End] = Key::End;
-    imgui_io_.KeyMap[ImGuiKey_Delete] = Key::Delete;
-    imgui_io_.KeyMap[ImGuiKey_Backspace] = Key::Backspace;
-    imgui_io_.KeyMap[ImGuiKey_Enter] = Key::Enter;
-    imgui_io_.KeyMap[ImGuiKey_Escape] = Key::Escape;
-    imgui_io_.KeyMap[ImGuiKey_A] = Key::A;
-    imgui_io_.KeyMap[ImGuiKey_C] = Key::C;
-    imgui_io_.KeyMap[ImGuiKey_V] = Key::V;
-    imgui_io_.KeyMap[ImGuiKey_X] = Key::X;
-    imgui_io_.KeyMap[ImGuiKey_Y] = Key::Y;
-    imgui_io_.KeyMap[ImGuiKey_Z] = Key::Z;
+        // Set up key map.
+        io.KeyMap[ImGuiKey_Tab] = Key::Tab;
+        io.KeyMap[ImGuiKey_LeftArrow] = Key::Left;
+        io.KeyMap[ImGuiKey_RightArrow] = Key::Right;
+        io.KeyMap[ImGuiKey_UpArrow] = Key::Up;
+        io.KeyMap[ImGuiKey_DownArrow] = Key::Down;
+        io.KeyMap[ImGuiKey_PageUp] = Key::PageUp;
+        io.KeyMap[ImGuiKey_PageDown] = Key::PageDown;
+        io.KeyMap[ImGuiKey_Home] = Key::Home;
+        io.KeyMap[ImGuiKey_End] = Key::End;
+        io.KeyMap[ImGuiKey_Delete] = Key::Delete;
+        io.KeyMap[ImGuiKey_Backspace] = Key::Backspace;
+        io.KeyMap[ImGuiKey_Enter] = Key::Enter;
+        io.KeyMap[ImGuiKey_Escape] = Key::Escape;
+        io.KeyMap[ImGuiKey_A] = Key::A;
+        io.KeyMap[ImGuiKey_C] = Key::C;
+        io.KeyMap[ImGuiKey_V] = Key::V;
+        io.KeyMap[ImGuiKey_X] = Key::X;
+        io.KeyMap[ImGuiKey_Y] = Key::Y;
+        io.KeyMap[ImGuiKey_Z] = Key::Z;
+    });
 
     // Set up renderer resources.
     vertex_decl_.begin()
@@ -109,9 +118,6 @@ UserInterface::UserInterface(Context* ctx)
     program_ = makeShared<Program>(context(), vertex_shader, fragment_shader);
     program_->setUniform<int>("ui_texture", 0);
 
-    // Begin a new frame.
-    ImGui::NewFrame();
-
     // Register delegates.
     addEventListener<KeyEvent>(makeEventDelegate(this, &UserInterface::onKey));
     addEventListener<CharInputEvent>(makeEventDelegate(this, &UserInterface::onCharInput));
@@ -126,19 +132,83 @@ UserInterface::~UserInterface() {
     removeEventListener<MouseScrollEvent>(makeEventDelegate(this, &UserInterface::onMouseScroll));
 }
 
+void UserInterface::beginTick() {
+    ImGui::SetCurrentContext(logic_context_);
+    ImGui::NewFrame();
+}
+
+void UserInterface::endTick() {
+    ImGui::Render();
+}
+
+void UserInterface::preRender() {
+    ImGui::SetCurrentContext(renderer_context_);
+    ImGui::NewFrame();
+}
+
+void UserInterface::postRender() {
+    ImGui::Render();
+}
+
 void UserInterface::update(float dt) {
-    imgui_io_.DeltaTime = dt;
+    forAllContexts([dt](ImGuiIO& io) { io.DeltaTime = dt; });
 }
 
 void UserInterface::render() {
-    // Generate ImGui render buffers and draw.
-    ImGui::Render();
-    auto draw_data = ImGui::GetDrawData();
+    ImGui::SetCurrentContext(logic_context_);
+    drawGUI(ImGui::GetDrawData(), *logic_io_);
+    ImGui::SetCurrentContext(renderer_context_);
+    drawGUI(ImGui::GetDrawData(), *renderer_io_);
+
+    // Read input state and pass to imgui.
+    auto* input = module<Input>();
+    if (input) {
+        // Update mouse button state and reset.
+        bool left_state =
+            mouse_pressed_[MouseButton::Left] || input->isMouseButtonDown(MouseButton::Left);
+        bool right_state =
+            mouse_pressed_[MouseButton::Right] || input->isMouseButtonDown(MouseButton::Right);
+        bool middle_state =
+            mouse_pressed_[MouseButton::Middle] || input->isMouseButtonDown(MouseButton::Middle);
+        for (bool& state : mouse_pressed_) {
+            state = false;
+        }
+
+        // Apply data to ImGui
+        forAllContexts([this, input, left_state, right_state, middle_state](ImGuiIO& io) {
+            // Mouse position and wheel.
+            const auto& mouse_position = input->mousePosition();
+            io.MousePos.x = mouse_position.x / io.DisplayFramebufferScale.x;
+            io.MousePos.y = mouse_position.y / io.DisplayFramebufferScale.y;
+            io.MouseWheel = mouse_wheel_;
+            mouse_wheel_ = 0.0f;
+
+            io.MouseDown[0] = left_state;
+            io.MouseDown[1] = right_state;
+            io.MouseDown[2] = middle_state;
+        });
+    }
+}
+
+void UserInterface::forAllContexts(Function<void(ImGuiIO& io)> functor) {
+    functor(*logic_io_);
+    functor(*renderer_io_);
+}
+
+void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) {
+    if (!draw_data) {
+        return;
+    }
+
+    // Give up if we have no draw surface.
+    if (io.DisplaySize.x == 0.0f || io.DisplaySize.y == 0.0f) {
+        return;
+    }
 
     // Setup projection matrix.
     Mat4 projection_matrix =
-        Mat4::OpenGLOrthoProjRH(-1.0f, 1.0f, imgui_io_.DisplaySize.x, imgui_io_.DisplaySize.y) *
-        Mat4::Translate(-imgui_io_.DisplaySize.x * 0.5f, imgui_io_.DisplaySize.y * 0.5f, 0.0f) *
+        Mat4::OpenGLOrthoProjRH(-1.0f, 1.0f, io.DisplaySize.x, io.DisplaySize.y) *
+        Mat4::Translate(-io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f, 0.0f) *
         Mat4::Scale(1.0f, -1.0f, 1.0f);
     program_->setUniform<Mat4>("projection_matrix", projection_matrix);
 
@@ -176,10 +246,13 @@ void UserInterface::render() {
                                                  BlendFunc::OneMinusSrcAlpha);
                 renderer_->setStateDisable(RenderState::CullFace);
                 renderer_->setStateDisable(RenderState::Depth);
-                renderer_->setScissor(static_cast<u16>(cmd->ClipRect.x),
-                                      static_cast<u16>(cmd->ClipRect.y),
-                                      static_cast<u16>(cmd->ClipRect.z - cmd->ClipRect.x),
-                                      static_cast<u16>(cmd->ClipRect.w - cmd->ClipRect.y));
+                renderer_->setScissor(
+                    static_cast<u16>(cmd->ClipRect.x * io.DisplayFramebufferScale.x),
+                    static_cast<u16>(cmd->ClipRect.y * io.DisplayFramebufferScale.y),
+                    static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) *
+                                     io.DisplayFramebufferScale.x),
+                    static_cast<u16>((cmd->ClipRect.w - cmd->ClipRect.y) *
+                                     io.DisplayFramebufferScale.y));
 
                 // Set resources.
                 renderer_->setTexture(TextureHandle{static_cast<TextureHandle::base_type>(
@@ -190,49 +263,26 @@ void UserInterface::render() {
 
                 // Draw.
                 program_->applyRendererState();
-                renderer_->submit(renderer_->getBackbufferView(), program_->internalHandle(),
+                renderer_->submit(renderer_->backbufferView(), program_->internalHandle(),
                                   cmd->ElemCount, offset);
             }
             offset += cmd->ElemCount;
         }
     }
-
-    // Read input state and pass to imgui.
-    auto input = subsystem<Input>();
-    if (input) {
-        // Mouse position and wheel.
-        const auto& mouse_position = input->mousePosition();
-        imgui_io_.MousePos.x = mouse_position.x;
-        imgui_io_.MousePos.y = mouse_position.y;
-        imgui_io_.MouseWheel = mouse_wheel_;
-        mouse_wheel_ = 0.0f;
-
-        // Pass mouse button state and reset.
-        imgui_io_.MouseDown[0] =
-            mouse_pressed_[MouseButton::Left] || input->isMouseButtonDown(MouseButton::Left);
-        imgui_io_.MouseDown[1] =
-            mouse_pressed_[MouseButton::Right] || input->isMouseButtonDown(MouseButton::Right);
-        imgui_io_.MouseDown[2] =
-            mouse_pressed_[MouseButton::Middle] || input->isMouseButtonDown(MouseButton::Middle);
-        for (bool& state : mouse_pressed_) {
-            state = false;
-        }
-    }
-
-    // Begin a new frame.
-    ImGui::NewFrame();
 }
 
 void UserInterface::onKey(const KeyEvent& state) {
-    imgui_io_.KeysDown[state.key] = state.down;
-    imgui_io_.KeyCtrl = imgui_io_.KeysDown[Key::LeftCtrl] || imgui_io_.KeysDown[Key::RightCtrl];
-    imgui_io_.KeyShift = imgui_io_.KeysDown[Key::LeftShift] || imgui_io_.KeysDown[Key::RightShift];
-    imgui_io_.KeyAlt = imgui_io_.KeysDown[Key::LeftAlt] || imgui_io_.KeysDown[Key::RightAlt];
-    imgui_io_.KeySuper = imgui_io_.KeysDown[Key::LeftSuper] || imgui_io_.KeysDown[Key::RightSuper];
+    forAllContexts([state](ImGuiIO& io) {
+        io.KeysDown[state.key] = state.down;
+        io.KeyCtrl = io.KeysDown[Key::LeftCtrl] || io.KeysDown[Key::RightCtrl];
+        io.KeyShift = io.KeysDown[Key::LeftShift] || io.KeysDown[Key::RightShift];
+        io.KeyAlt = io.KeysDown[Key::LeftAlt] || io.KeysDown[Key::RightAlt];
+        io.KeySuper = io.KeysDown[Key::LeftSuper] || io.KeysDown[Key::RightSuper];
+    });
 }
 
 void UserInterface::onCharInput(const CharInputEvent& text) {
-    imgui_io_.AddInputCharactersUTF8(text.text.c_str());
+    forAllContexts([text](ImGuiIO& io) { io.AddInputCharactersUTF8(text.text.c_str()); });
 }
 
 void UserInterface::onMouseButton(const MouseButtonEvent& mouse_button) {

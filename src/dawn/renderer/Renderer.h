@@ -7,8 +7,8 @@
 #include "core/Concurrency.h"
 #include "core/Handle.h"
 #include "core/Memory.h"
-#include "math/Colour.h"
-#include "math/Vec2i.h"
+#include "core/math/Colour.h"
+#include "core/math/Vec2i.h"
 #include "renderer/VertexDecl.h"
 
 #define MAX_TEXTURE_SAMPLERS 8
@@ -379,6 +379,9 @@ public:
     virtual void destroyWindow() = 0;
     virtual void processEvents() = 0;
     virtual bool isWindowClosed() const = 0;
+    virtual Vec2i windowSize() const = 0;
+    virtual Vec2 windowScale() const = 0;
+    virtual Vec2i backbufferSize() const = 0;
 
     // Command buffer processing. Executed on the render thread.
     virtual void startRendering() = 0;
@@ -389,7 +392,7 @@ public:
 
 // Low level renderer.
 // Based off: https://github.com/bkaradzic/bgfx/blob/master/src/bgfx_p.h#L2297
-class DW_API Renderer : public Subsystem {
+class DW_API Renderer : public Module {
 public:
     DW_OBJECT(Renderer)
 
@@ -491,11 +494,17 @@ public:
     /// Render a single frame.
     void frame();
 
+    /// Get the current window size.
+    Vec2i windowSize() const;
+
+    /// Get the current window scale.
+    Vec2 windowScale() const;
+
     /// Get the current backbuffer size.
-    Vec2i getBackbufferSize() const;
+    Vec2i backbufferSize() const;
 
     /// Get the view which corresponds to the backbuffer.
-    uint getBackbufferView() const;
+    uint backbufferView() const;
 
 private:
     u16 width_, height_;

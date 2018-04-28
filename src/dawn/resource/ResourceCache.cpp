@@ -3,8 +3,8 @@
  * Written by David Avedissian (c) 2012-2017 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "io/File.h"
-#include "io/FileSystem.h"
+#include "core/io/File.h"
+#include "core/io/FileSystem.h"
 #include "resource/ResourceCache.h"
 
 namespace dw {
@@ -31,14 +31,14 @@ ResourceFilesystemPath::ResourceFilesystemPath(Context* ctx, const Path& path)
 SharedPtr<InputStream> ResourceFilesystemPath::getFile(const ResourcePath& path_within_location) {
     Path full_path = path_ + path_within_location;
     log().info("Loading resource from filesystem at " + full_path);
-    if (subsystem<FileSystem>()->fileExists(full_path)) {
+    if (module<FileSystem>()->fileExists(full_path)) {
         return makeShared<File>(context(), full_path, FileMode::Read);
     } else {
         return nullptr;
     }
 }
 
-ResourceCache::ResourceCache(Context* context) : Subsystem(context) {
+ResourceCache::ResourceCache(Context* context) : Module(context) {
 }
 
 ResourceCache::~ResourceCache() {

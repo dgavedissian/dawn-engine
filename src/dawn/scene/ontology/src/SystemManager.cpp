@@ -100,6 +100,9 @@ TypeSet::iterator SystemManager::resolveDependencies(const std::type_info* node,
     for (const auto& edge : system->getDependingSystems()) {
         // handle depending on a non-registered system type
         const auto& edgeSystemIt = systemLookup.find(edge);
+        // DAVID: Patch to avoid crashes.
+        if (edgeSystemIt == systemLookup.end())
+            continue;
         ONTOLOGY_ASSERT(edgeSystemIt != systemLookup.end(), InvalidSystemException,
                         SystemManager::resolveDependencies,
                         std::string("System \"") + demangleTypeName(node->name()) +

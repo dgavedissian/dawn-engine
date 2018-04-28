@@ -4,8 +4,8 @@
  */
 #pragma once
 
-#include "io/InputStream.h"
-#include "io/OutputStream.h"
+#include "core/io/InputStream.h"
+#include "core/io/OutputStream.h"
 
 namespace dw {
 class DW_API InputBitStream : public InputStream {

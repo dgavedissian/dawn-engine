@@ -36,7 +36,7 @@ void CameraController::update(float dt) {
         return;
     }
 
-    auto input = subsystem<Input>();
+    auto input = module<Input>();
     float forward_acceleration = acceleration_ * (static_cast<float>(input->isKeyDown(Key::S)) -
                                                   static_cast<float>(input->isKeyDown(Key::W)));
     float right_acceleration = acceleration_ * (static_cast<float>(input->isKeyDown(Key::D)) -
@@ -66,7 +66,7 @@ void CameraController::onMouseMove(const MouseMoveEvent& m) {
         return;
     }
 
-    if (subsystem<Input>()->isMouseButtonDown(MouseButton::Left)) {
+    if (module<Input>()->isMouseButtonDown(MouseButton::Left)) {
         float units_to_radians = -0.003f;
         auto& orientation = possessed_->transform()->orientation();
         orientation = orientation * Quat::RotateX(m.offset.y * units_to_radians) *

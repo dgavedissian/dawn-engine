@@ -8,7 +8,7 @@
 
 namespace dw {
 Input::Input(Context* context)
-    : Subsystem(context),
+    : Module(context),
       viewport_size_(1280, 800),
       mouse_position_(0, 0),
       mouse_move_(0, 0),
