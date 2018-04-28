@@ -4,26 +4,26 @@
  */
 #pragma once
 
-#include "renderer/Renderer.h"
+#include "renderer/rhi/Renderer.h"
 
 namespace dw {
 class DW_API IndexBuffer : public Object {
 public:
     DW_OBJECT(IndexBuffer);
 
-    IndexBuffer(Context* context, const void* data, uint size, IndexBufferType type,
-                BufferUsage usage = BufferUsage::Static);
+    IndexBuffer(Context* context, const void* data, uint size, rhi::IndexBufferType type,
+                rhi::BufferUsage usage = rhi::BufferUsage::Static);
     ~IndexBuffer();
 
     // Will resize.
     void update(const void* data, uint size, uint offset);
 
-    IndexBufferHandle internalHandle() const;
+    rhi::IndexBufferHandle internalHandle() const;
     u32 indexCount() const;
 
 private:
-    IndexBufferHandle handle_;
-    IndexBufferType type_;
+    rhi::IndexBufferHandle handle_;
+    rhi::IndexBufferType type_;
     u32 index_count_;
 };
 }  // namespace dw

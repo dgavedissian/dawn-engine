@@ -5,7 +5,7 @@
 #pragma once
 
 namespace dw {
-
+namespace rhi {
 // Vertex Declaration.
 class DW_API VertexDecl {
 public:
@@ -41,5 +41,5 @@ private:
     friend class Renderer;
     friend class GLRenderContext;
 };
-
+}  // namespace rhi
 }  // namespace dw

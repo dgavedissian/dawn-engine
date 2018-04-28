@@ -12,7 +12,7 @@ class DW_API TriangleBuffer : public Object {
 public:
     DW_OBJECT(TriangleBuffer);
 
-    TriangleBuffer(Context* context);
+    TriangleBuffer(Context* ctx);
     ~TriangleBuffer();
 
     // Estimations.

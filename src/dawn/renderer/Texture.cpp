@@ -46,9 +46,9 @@ bool Texture::beginLoad(const String&, InputStream& src) {
     int width, height, bpp;
     byte* data = stbi_load_from_callbacks(&callbacks, reinterpret_cast<void*>(&src), &width,
                                           &height, &bpp, 4);
-    handle_ = module<Renderer>()->createTexture2D(static_cast<u16>(width), static_cast<u16>(height),
-                                                  TextureFormat::RGBA8, data,
-                                                  static_cast<u32>(width * height * 4));
+    handle_ = module<Renderer>()->rhi()->createTexture2D(
+        static_cast<u16>(width), static_cast<u16>(height), rhi::TextureFormat::RGBA8, data,
+        static_cast<u32>(width * height * 4));
     stbi_image_free(data);
     return true;
 }
@@ -56,7 +56,7 @@ bool Texture::beginLoad(const String&, InputStream& src) {
 void Texture::endLoad() {
 }
 
-TextureHandle Texture::internalHandle() const {
+rhi::TextureHandle Texture::internalHandle() const {
     return handle_;
 }
 }  // namespace dw

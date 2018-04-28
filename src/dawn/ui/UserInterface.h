@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/Renderer.h"
+#include "renderer/rhi/Renderer.h"
 #include "renderer/Program.h"
 #include "ui/Imgui.h"
 
@@ -25,7 +25,7 @@ public:
     void render();
 
 private:
-    Renderer* renderer_;
+    rhi::Renderer* rhi_;
 
     // ImGui.
     ImGuiContext* logic_context_;
@@ -33,7 +33,7 @@ private:
     ImGuiIO* logic_io_;
     ImGuiIO* renderer_io_;
     SharedPtr<Program> program_;
-    VertexDecl vertex_decl_;
+    rhi::VertexDecl vertex_decl_;
 
     // Input.
     float mouse_wheel_;

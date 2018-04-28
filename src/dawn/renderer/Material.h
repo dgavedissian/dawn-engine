@@ -17,7 +17,7 @@ public:
     Material(Context* context, SharedPtr<Program> program);
     ~Material();
 
-    void setPolygonMode(PolygonMode polygon_mode);
+    void setPolygonMode(rhi::PolygonMode polygon_mode);
 
     void setTexture(SharedPtr<Texture> texture, uint unit = 0);
 
@@ -32,6 +32,6 @@ public:
 private:
     SharedPtr<Program> program_;
 
-    PolygonMode polygon_mode_;
+    rhi::PolygonMode polygon_mode_;
 };
 }  // namespace dw

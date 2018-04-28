@@ -5,6 +5,8 @@
 #pragma once
 
 #include "renderer/Material.h"
+#include "renderer/Renderer.h"
+
 #include "scene/Component.h"
 #include "scene/Transform.h"
 

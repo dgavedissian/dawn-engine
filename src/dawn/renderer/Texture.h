@@ -18,9 +18,9 @@ public:
     bool beginLoad(const String& asset_name, InputStream& src) override;
     void endLoad() override;
 
-    TextureHandle internalHandle() const;
+    rhi::TextureHandle internalHandle() const;
 
 private:
-    TextureHandle handle_;
+    rhi::TextureHandle handle_;
 };
 }  // namespace dw

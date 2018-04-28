@@ -86,19 +86,22 @@ set(SOURCE_FILES
     net/Rpc.h
     net/Rpc.i.h
     net/Yojimbo.h
-    renderer/api/GL.h
-    renderer/api/GLRenderContext.cpp
-    renderer/api/GLRenderContext.h
-    renderer/api/NullRenderContext.cpp
-    renderer/api/NullRenderContext.h
+    renderer/rhi/GL.h
+    renderer/rhi/GLRenderContext.cpp
+    renderer/rhi/GLRenderContext.h
+    renderer/rhi/NullRenderContext.cpp
+    renderer/rhi/NullRenderContext.h
+    renderer/rhi/Renderer.cpp
+    renderer/rhi/Renderer.h
+    renderer/rhi/SPIRV.h
+    renderer/rhi/VertexDecl.cpp
+    renderer/rhi/VertexDecl.h
     renderer/BillboardSet.cpp
     renderer/BillboardSet.h
     renderer/Camera.cpp
     renderer/Camera.h
     renderer/CustomMeshRenderable.cpp
     renderer/CustomMeshRenderable.h
-    renderer/EntityRenderer.cpp
-    renderer/EntityRenderer.h
     renderer/GLSL.h
     renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h
@@ -116,7 +119,6 @@ set(SOURCE_FILES
     renderer/Renderer.h
     renderer/Shader.cpp
     renderer/Shader.h
-    renderer/SPIRV.h
     renderer/StbImage.h
     renderer/Texture.cpp
     renderer/Texture.h
@@ -124,8 +126,6 @@ set(SOURCE_FILES
     renderer/TriangleBuffer.h
     renderer/VertexBuffer.cpp
     renderer/VertexBuffer.h
-    renderer/VertexDecl.cpp
-    renderer/VertexDecl.h
     resource/Resource.cpp
     resource/Resource.h
     resource/ResourceCache.cpp
@@ -195,28 +195,28 @@ set (SOURCE_FILES
 
 # Project
 set(BUILD_SHARED_LIBS OFF)
-add_library(Dawn ${SOURCE_FILES})
-enable_cpp14(Dawn)
-enable_maximum_warnings(Dawn)
-set_output_dir(Dawn ${CMAKE_BINARY_DIR}/lib)
+add_library(DwCore ${SOURCE_FILES})
+enable_cpp14(DwCore)
+enable_maximum_warnings(DwCore)
+set_output_dir(DwCore ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)
-    set_target_properties(Dawn PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
+    set_target_properties(DwCore PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
 endif()
-target_include_directories(Dawn PUBLIC
+target_include_directories(DwCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
         scene/ontology/include)
 
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)
-get_target_property(LIB_DIR Dawn LIBRARY_OUTPUT_DIRECTORY)
+get_target_property(LIB_DIR DwCore LIBRARY_OUTPUT_DIRECTORY)
 if(APPLE AND BUILD_SHARED_LIBS)
-    set_target_properties(Dawn PROPERTIES FRAMEWORK TRUE)
+    set_target_properties(DwCore PROPERTIES FRAMEWORK TRUE)
 endif()
 
 # Random extras
 mirror_physical_directories(${SOURCE_FILES})
-set_target_properties(Dawn PROPERTIES DEBUG_POSTFIX _d)
+set_target_properties(DwCore PROPERTIES DEBUG_POSTFIX _d)
 
 # Add include dirs and libraries
-target_include_directories(Dawn PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
-target_link_libraries(Dawn ${LIBS})
+target_include_directories(DwCore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
+target_link_libraries(DwCore ${LIBS})

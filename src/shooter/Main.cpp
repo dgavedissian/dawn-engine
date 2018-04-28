@@ -33,7 +33,7 @@ public:
     }
 
     void render(float) override {
-        module<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
+        module<Renderer>()->rhi()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
 
         // Calculate average FPS.
         float current_fps = 1.0 / engine_->frameTime();

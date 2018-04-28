@@ -108,15 +108,15 @@ bool Mesh::beginLoad(const String& asset_name, InputStream& is) {
     }
 
     // Build GPU buffers.
-    VertexDecl decl;
+    rhi::VertexDecl decl;
     decl.begin()
-        .add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float)
-        .add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float)
+        .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
+        .add(rhi::VertexDecl::Attribute::Normal, 3, rhi::VertexDecl::AttributeType::Float)
         .end();
     vertex_buffer_ = makeShared<VertexBuffer>(
         context(), vertices.data(), vertices.size() * sizeof(Vertex), vertices.size(), decl);
-    index_buffer_ =
-        makeShared<IndexBuffer>(context(), indices.data(), indices.size(), IndexBufferType::U32);
+    index_buffer_ = makeShared<IndexBuffer>(context(), indices.data(), indices.size(),
+                                            rhi::IndexBufferType::U32);
     return true;
 }
 
@@ -126,12 +126,13 @@ void Mesh::endLoad() {
 void Mesh::draw(Renderer* renderer, uint view, Transform* camera, const Mat4& model_matrix,
                 const Mat4& view_projection_matrix) {
     u32 vertex_count = index_buffer_->indexCount();
-    renderer->setVertexBuffer(vertex_buffer_->internalHandle());
-    renderer->setIndexBuffer(index_buffer_->internalHandle());
+    auto rhi = renderer->rhi();
+    rhi->setVertexBuffer(vertex_buffer_->internalHandle());
+    rhi->setIndexBuffer(index_buffer_->internalHandle());
     // TODO: Move this common "render vertex/index buffer + material" code somewhere to avoid
     // duplication with CustomMeshRenderable.
     // TODO: Support unset material.
     material_->applyRendererState(model_matrix, view_projection_matrix);
-    renderer->submit(view, material_->program()->internalHandle(), vertex_count);
+    rhi->submit(view, material_->program()->internalHandle(), vertex_count);
 }
 }  // namespace dw

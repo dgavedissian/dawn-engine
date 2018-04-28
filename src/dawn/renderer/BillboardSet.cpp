@@ -53,14 +53,15 @@ BillboardSet::BillboardSet(Context* ctx, u32 particle_count, const Vec2& particl
     // Create vertex and index buffers.
     u32 vertex_count = particle_count * 4;
     u32 index_count = particle_count * 6;
-    VertexDecl decl;
+    rhi::VertexDecl decl;
     decl.begin()
-        .add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float)
-        .add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float)
+        .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
+        .add(rhi::VertexDecl::Attribute::TexCoord0, 2, rhi::VertexDecl::AttributeType::Float)
         .end();
     vb_ = makeShared<VertexBuffer>(ctx, nullptr, vertex_count * sizeof(ParticleVertex),
-                                   vertex_count, decl, BufferUsage::Dynamic);
-    ib_ = makeShared<IndexBuffer>(ctx, nullptr, index_count * sizeof(u32), IndexBufferType::U32);
+                                   vertex_count, decl, rhi::BufferUsage::Dynamic);
+    ib_ =
+        makeShared<IndexBuffer>(ctx, nullptr, index_count * sizeof(u32), rhi::IndexBufferType::U32);
 
     // Initialise data stores.
     resize(particle_count);
@@ -116,15 +117,16 @@ void BillboardSet::draw(Renderer* renderer, uint view, Transform* camera, const 
                         const Mat4& view_projection_matrix) {
     update(camera);
 
-    renderer->setVertexBuffer(vb_->internalHandle());
-    renderer->setIndexBuffer(ib_->internalHandle());
-    renderer->setStateEnable(RenderState::Blending);
-    renderer->setStateBlendEquation(BlendEquation::Add, BlendFunc::SrcAlpha,
-                                    BlendFunc::OneMinusSrcAlpha);
-    renderer->setDepthWrite(false);
+    auto rhi = renderer->rhi();
+    rhi->setVertexBuffer(vb_->internalHandle());
+    rhi->setIndexBuffer(ib_->internalHandle());
+    rhi->setStateEnable(rhi::RenderState::Blending);
+    rhi->setStateBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::SrcAlpha,
+                               rhi::BlendFunc::OneMinusSrcAlpha);
+    rhi->setDepthWrite(false);
     material_->setUniform("mvp_matrix", view_projection_matrix);
     material_->program()->applyRendererState();
-    renderer->submit(view, material_->program()->internalHandle(), particles_.size() * 6);
+    rhi->submit(view, material_->program()->internalHandle(), particles_.size() * 6);
 }
 
 void BillboardSet::update(Transform* camera_transform) {

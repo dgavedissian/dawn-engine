@@ -7,7 +7,7 @@
 #include "input/Input.h"
 #include "deferred/DeferredShadingManager.h"
 #include "scene/Camera.h"
-#include "renderer/Renderer.h"
+#include "renderer/api/Renderer.h"
 
 #if DW_PLATFORM == DW_MAC_OSX
 #include "OSXGetNSView.h"

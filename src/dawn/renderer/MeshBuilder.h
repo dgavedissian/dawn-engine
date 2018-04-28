@@ -11,7 +11,7 @@ class DW_API MeshBuilder : public Object {
 public:
     DW_OBJECT(MeshBuilder);
 
-    MeshBuilder(Context* context);
+    MeshBuilder(Context* ctx);
     ~MeshBuilder();
 
     MeshBuilder& normals(bool normals);

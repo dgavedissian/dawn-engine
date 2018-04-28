@@ -7,14 +7,14 @@
 
 namespace dw {
 
-Material::Material(Context* context, SharedPtr<Program> program)
-    : Object{context}, program_{program}, polygon_mode_{PolygonMode::Fill} {
+Material::Material(Context* ctx, SharedPtr<Program> program)
+    : Object{ctx}, program_{program}, polygon_mode_{rhi::PolygonMode::Fill} {
 }
 
 Material::~Material() {
 }
 
-void Material::setPolygonMode(PolygonMode polygon_mode) {
+void Material::setPolygonMode(rhi::PolygonMode polygon_mode) {
     polygon_mode_ = polygon_mode;
 }
 
@@ -23,7 +23,7 @@ void Material::setTexture(SharedPtr<Texture> texture, uint unit) {
 }
 
 void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_projection_matrix) {
-    auto* renderer = module<Renderer>();
+    auto* renderer = module<Renderer>()->rhi();
 
     // Bind render state.
     renderer->setStatePolygonMode(polygon_mode_);

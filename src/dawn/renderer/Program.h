@@ -7,13 +7,14 @@
 #include "core/math/Defs.h"
 #include "renderer/Shader.h"
 #include "renderer/Texture.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
 class DW_API Program : public Resource {
 public:
     DW_OBJECT(Program);
 
-    Program(Context* context, SharedPtr<VertexShader> vs, SharedPtr<FragmentShader> fs);
+    Program(Context* ctx, SharedPtr<VertexShader> vs, SharedPtr<FragmentShader> fs);
     ~Program();
 
     bool beginLoad(const String& asset_name, InputStream& src) override;
@@ -27,15 +28,15 @@ public:
 
     void applyRendererState();
 
-    ProgramHandle internalHandle() const;
+    rhi::ProgramHandle internalHandle() const;
 
 private:
-    Renderer* r;
+    rhi::Renderer* r;
     SharedPtr<Shader> vertex_shader_;
     SharedPtr<Shader> fragment_shader_;
     Array<SharedPtr<Texture>, 8> texture_units_;
-    HashMap<String, UniformData> uniforms_;
+    HashMap<String, rhi::UniformData> uniforms_;
 
-    ProgramHandle handle_;
+    rhi::ProgramHandle handle_;
 };
 }  // namespace dw

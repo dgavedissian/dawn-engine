@@ -4,8 +4,8 @@
  */
 #include "Common.h"
 #include "core/StringUtils.h"
-#include "renderer/SPIRV.h"
-#include "renderer/api/GLRenderContext.h"
+#include "SPIRV.h"
+#include "renderer/rhi/GLRenderContext.h"
 #include "input/Input.h"
 
 #include <locale>
@@ -23,6 +23,7 @@
     }
 
 namespace dw {
+namespace rhi {
 namespace {
 // Buffer usage.
 GLenum mapBufferUsage(BufferUsage usage) {
@@ -961,4 +962,5 @@ void GLRenderContext::setupVertexArrayAttributes(const VertexDecl& decl, uint vb
         attrib_counter++;
     }
 }
+}  // namespace rhi
 }  // namespace dw

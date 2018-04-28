@@ -4,9 +4,10 @@
  */
 #pragma once
 
-#include "renderer/Renderer.h"
+#include "Renderer.h"
 
 namespace dw {
+namespace rhi {
 class DW_API NullRenderContext : public RenderContext {
 public:
     DW_OBJECT(NullRenderContext);
@@ -31,5 +32,5 @@ public:
 
 private:
 };
-
+}  // namespace rhi
 }  // namespace dw

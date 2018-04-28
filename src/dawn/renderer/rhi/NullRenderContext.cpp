@@ -3,9 +3,10 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "renderer/api/NullRenderContext.h"
+#include "renderer/rhi/NullRenderContext.h"
 
 namespace dw {
+namespace rhi {
 NullRenderContext::NullRenderContext(Context* ctx) : RenderContext(ctx) {
 }
 
@@ -49,5 +50,5 @@ void NullRenderContext::processCommandList(Vector<RenderCommand>&) {
 bool NullRenderContext::frame(const Frame*) {
     return true;
 }
-
+}  // namespace rhi
 }  // namespace dw

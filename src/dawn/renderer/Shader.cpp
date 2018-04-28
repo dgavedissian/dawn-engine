@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "core/io/InputStream.h"
 #include "renderer/Shader.h"
-#include "renderer/GLSL.h"
+#include "GLSL.h"
 
 namespace {
 class GlslangInitialiser {
@@ -118,7 +118,7 @@ void initResourcesGLSL(TBuiltInResource& resources) {
 }  // namespace
 
 namespace dw {
-Shader::Shader(Context* context, ShaderStage type) : Resource{context}, type_{type} {
+Shader::Shader(Context* context, rhi::ShaderStage type) : Resource{context}, type_{type} {
 }
 
 bool Shader::beginLoad(const String&, InputStream& src) {
@@ -131,13 +131,13 @@ bool Shader::beginLoad(const String&, InputStream& src) {
     // Parse GLSL code.
     EShLanguage stage = EShLangVertex;
     switch (type_) {
-        case ShaderStage::Vertex:
+        case rhi::ShaderStage::Vertex:
             stage = EShLangVertex;
             break;
-        case ShaderStage::Geometry:
+        case rhi::ShaderStage::Geometry:
             stage = EShLangGeometry;
             break;
-        case ShaderStage::Fragment:
+        case rhi::ShaderStage::Fragment:
             stage = EShLangFragment;
             break;
         default:
@@ -171,8 +171,8 @@ bool Shader::beginLoad(const String&, InputStream& src) {
     }
     Vector<u32> spirv_out;
     glslang::GlslangToSpv(*program.getIntermediate(stage), spirv_out);
-    handle_ =
-        module<Renderer>()->createShader(type_, spirv_out.data(), spirv_out.size() * sizeof(u32));
+    handle_ = module<Renderer>()->rhi()->createShader(type_, spirv_out.data(),
+                                                      spirv_out.size() * sizeof(u32));
 
     return true;
 }
@@ -180,7 +180,7 @@ bool Shader::beginLoad(const String&, InputStream& src) {
 void Shader::endLoad() {
 }
 
-ShaderHandle Shader::internalHandle() const {
+rhi::ShaderHandle Shader::internalHandle() const {
     return handle_;
 }
 }  // namespace dw

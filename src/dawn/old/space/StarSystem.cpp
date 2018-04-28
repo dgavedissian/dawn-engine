@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "renderer/Renderer.h"
+#include "renderer/api/Renderer.h"
 #include "renderer/deferred/DeferredShadingManager.h"
 #include "script/LuaState.h"
 #include "StarSystem.h"

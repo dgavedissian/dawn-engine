@@ -8,6 +8,7 @@
 #include "renderer/VertexBuffer.h"
 #include "renderer/IndexBuffer.h"
 #include "resource/Resource.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
 class DW_API Mesh : public Resource, public Renderable {

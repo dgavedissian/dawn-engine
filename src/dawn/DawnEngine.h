@@ -20,7 +20,6 @@
 #include "net/Networking.h"
 #include "input/Input.h"
 #include "renderer/CustomMeshRenderable.h"
-#include "renderer/EntityRenderer.h"
 #include "renderer/Renderer.h"
 #include "resource/ResourceCache.h"
 #include "scene/SceneManager.h"

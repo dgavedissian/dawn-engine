@@ -8,8 +8,7 @@
 #include "renderer/MeshBuilder.h"
 
 namespace dw {
-MeshBuilder::MeshBuilder(Context* context)
-    : Object{context}, with_normals_{false}, with_texcoords_{false} {
+MeshBuilder::MeshBuilder(Context* ctx) : Object{ctx}, with_normals_{false}, with_texcoords_{false} {
 }
 
 MeshBuilder::~MeshBuilder() {

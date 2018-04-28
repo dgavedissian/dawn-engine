@@ -12,17 +12,17 @@ public:
     DW_OBJECT(VertexBuffer);
 
     VertexBuffer(Context* context, const void* data, uint size, uint vertex_count,
-                 const VertexDecl& decl, BufferUsage usage = BufferUsage::Static);
+                 const rhi::VertexDecl& decl, rhi::BufferUsage usage = rhi::BufferUsage::Static);
     ~VertexBuffer();
 
     // Will resize.
     void update(const void* data, uint size, uint vertex_count, uint offset);
 
-    VertexBufferHandle internalHandle() const;
+    rhi::VertexBufferHandle internalHandle() const;
     u32 vertexCount() const;
 
 private:
-    VertexBufferHandle handle_;
+    rhi::VertexBufferHandle handle_;
     u32 vertex_count_;
 };
 }  // namespace dw

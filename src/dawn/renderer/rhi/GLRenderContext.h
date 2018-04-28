@@ -4,10 +4,11 @@
  */
 #pragma once
 
-#include "renderer/Renderer.h"
-#include "renderer/api/GL.h"
+#include "Renderer.h"
+#include "renderer/rhi/GL.h"
 
 namespace dw {
+namespace rhi {
 class DW_API GLRenderContext : public RenderContext {
 public:
     DW_OBJECT(GLRenderContext);
@@ -100,4 +101,5 @@ private:
     // Helper functions.
     void setupVertexArrayAttributes(const VertexDecl& decl, uint vb_offset);
 };
+}  // namespace rhi
 }  // namespace dw

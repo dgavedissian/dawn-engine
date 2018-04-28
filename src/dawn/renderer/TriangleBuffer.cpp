@@ -8,8 +8,8 @@
 #include "renderer/TriangleBuffer.h"
 
 namespace dw {
-TriangleBuffer::TriangleBuffer(Context* context)
-    : Object{context}, contains_normals_{false}, contains_texcoords_{false} {
+TriangleBuffer::TriangleBuffer(Context* ctx)
+    : Object{ctx}, contains_normals_{false}, contains_texcoords_{false} {
 }
 
 TriangleBuffer::~TriangleBuffer() {
@@ -34,24 +34,26 @@ SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
     // Set up vertex data.
     const void* data;
     uint size;
-    VertexDecl decl;
+    rhi::VertexDecl decl;
     if (contains_normals_ && contains_texcoords_) {
         data = vertices_.data();
         size = static_cast<uint>(vertices_.size()) * sizeof(Vertex);
         decl.begin()
-            .add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float)
-            .add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float)
-            .add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float)
+            .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
+            .add(rhi::VertexDecl::Attribute::Normal, 3, rhi::VertexDecl::AttributeType::Float)
+            .add(rhi::VertexDecl::Attribute::TexCoord0, 2, rhi::VertexDecl::AttributeType::Float)
             .end();
     } else {
-        // Build VertexDecl.
+        // Build rhi::VertexDecl.
         decl.begin();
-        decl.add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float);
+        decl.add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float);
         if (contains_normals_) {
-            decl.add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float, true);
+            decl.add(rhi::VertexDecl::Attribute::Normal, 3, rhi::VertexDecl::AttributeType::Float,
+                     true);
         }
         if (contains_texcoords_) {
-            decl.add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float);
+            decl.add(rhi::VertexDecl::Attribute::TexCoord0, 2,
+                     rhi::VertexDecl::AttributeType::Float);
         }
         decl.end();
 
@@ -86,7 +88,7 @@ SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
     auto custom_mesh = makeShared<CustomMeshRenderable>(
         context_, makeShared<VertexBuffer>(context_, data, size, vertices_.size(), decl),
         makeShared<IndexBuffer>(context_, indices_.data(), indices_.size() * sizeof(u32),
-                                IndexBufferType::U32));
+                                rhi::IndexBufferType::U32));
 
     // Delete packed buffer.
     if (!contains_normals_ || !contains_texcoords_) {

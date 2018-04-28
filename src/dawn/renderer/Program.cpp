@@ -7,8 +7,8 @@
 
 namespace dw {
 
-Program::Program(Context* context, SharedPtr<VertexShader> vs, SharedPtr<FragmentShader> fs)
-    : Resource{context}, r{module<Renderer>()}, vertex_shader_{vs}, fragment_shader_{fs} {
+Program::Program(Context* ctx, SharedPtr<VertexShader> vs, SharedPtr<FragmentShader> fs)
+    : Resource{ctx}, r{module<Renderer>()->rhi()}, vertex_shader_{vs}, fragment_shader_{fs} {
     handle_ = r->createProgram();
     r->attachShader(handle_, vs->internalHandle());
     r->attachShader(handle_, fs->internalHandle());
@@ -30,7 +30,7 @@ void Program::setTextureUnit(SharedPtr<Texture> texture, uint unit) {
     texture_units_[unit] = texture;
 }
 
-ProgramHandle Program::internalHandle() const {
+rhi::ProgramHandle Program::internalHandle() const {
     return handle_;
 }
 

@@ -13,7 +13,7 @@ class DW_API CustomMeshRenderable : public Object, public Renderable {
 public:
     DW_OBJECT(CustomMeshRenderable);
 
-    CustomMeshRenderable(Context* context, SharedPtr<VertexBuffer> vertex_buffer,
+    CustomMeshRenderable(Context* ctx, SharedPtr<VertexBuffer> vertex_buffer,
                          SharedPtr<IndexBuffer> index_buffer);
     ~CustomMeshRenderable();
 

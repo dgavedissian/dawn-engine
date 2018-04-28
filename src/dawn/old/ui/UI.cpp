@@ -4,7 +4,7 @@
  */
 #include "Common.h"
 #include "input/Input.h"
-#include "renderer/Renderer.h"
+#include "renderer/api/Renderer.h"
 #include "UI.h"
 
 #include "RocketInterface.h"

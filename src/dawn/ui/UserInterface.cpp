@@ -23,7 +23,7 @@ UserInterface::UserInterface(Context* ctx) : Module(ctx), mouse_wheel_(0.0f) {
     ImGui::SetCurrentContext(renderer_context_);
     renderer_io_ = &ImGui::GetIO();
 
-    renderer_ = module<Renderer>();
+    rhi_ = module<Renderer>()->rhi();
 
     // Initialise mouse state.
     for (bool& state : mouse_pressed_) {
@@ -33,19 +33,19 @@ UserInterface::UserInterface(Context* ctx) : Module(ctx), mouse_wheel_(0.0f) {
     forAllContexts([this](ImGuiIO& io) {
         // TODO: Resize this on screen size change.
         // TODO: Fill others settings of the io structure later.
-        io.DisplaySize.x = renderer_->backbufferSize().x / renderer_->windowScale().x;
-        io.DisplaySize.y = renderer_->backbufferSize().y / renderer_->windowScale().y;
-        io.DisplayFramebufferScale.x = renderer_->windowScale().x;
-        io.DisplayFramebufferScale.y = renderer_->windowScale().y;
+        io.DisplaySize.x = rhi_->backbufferSize().x / rhi_->windowScale().x;
+        io.DisplaySize.y = rhi_->backbufferSize().y / rhi_->windowScale().y;
+        io.DisplayFramebufferScale.x = rhi_->windowScale().x;
+        io.DisplayFramebufferScale.y = rhi_->windowScale().y;
         io.IniFilename = nullptr;
 
         // Load font texture atlas.
         unsigned char* pixels;
         int width, height;
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-        TextureHandle handle =
-            renderer_->createTexture2D(static_cast<u16>(width), static_cast<u16>(height),
-                                       TextureFormat::RGBA8, pixels, width * height * 4);
+        rhi::TextureHandle handle =
+            rhi_->createTexture2D(static_cast<u16>(width), static_cast<u16>(height),
+                                  rhi::TextureFormat::RGBA8, pixels, width * height * 4);
         io.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(handle.internal()));
 
         // Set up key map.
@@ -72,9 +72,9 @@ UserInterface::UserInterface(Context* ctx) : Module(ctx), mouse_wheel_(0.0f) {
 
     // Set up renderer resources.
     vertex_decl_.begin()
-        .add(VertexDecl::Attribute::Position, 2, VertexDecl::AttributeType::Float)
-        .add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float)
-        .add(VertexDecl::Attribute::Colour, 4, VertexDecl::AttributeType::Uint8, true)
+        .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
+        .add(rhi::VertexDecl::Attribute::TexCoord0, 2, rhi::VertexDecl::AttributeType::Float)
+        .add(rhi::VertexDecl::Attribute::Colour, 4, rhi::VertexDecl::AttributeType::Uint8, true)
         .end();
     auto vertex_shader_src = StringInputStream{R"(
         #version 330 core
@@ -217,19 +217,19 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) {
         // Update GPU buffers.
         auto& vtx_buffer = cmd_list->VtxBuffer;
         auto& idx_buffer = cmd_list->IdxBuffer;
-        auto tvb = renderer_->allocTransientVertexBuffer(vtx_buffer.Size, vertex_decl_);
-        if (tvb == TransientVertexBufferHandle::invalid) {
+        auto tvb = rhi_->allocTransientVertexBuffer(vtx_buffer.Size, vertex_decl_);
+        if (tvb == rhi::TransientVertexBufferHandle::invalid) {
             log().warn("Failed to allocate transient vertex buffer for ImGui");
             continue;
         }
-        auto tib = renderer_->allocTransientIndexBuffer(idx_buffer.Size);
-        if (tib == TransientIndexBufferHandle::invalid) {
+        auto tib = rhi_->allocTransientIndexBuffer(idx_buffer.Size);
+        if (tib == rhi::TransientIndexBufferHandle::invalid) {
             log().warn("Failed to allocate transient index buffer for ImGui");
             continue;
         }
-        memcpy(renderer_->getTransientVertexBufferData(tvb), vtx_buffer.Data,
+        memcpy(rhi_->getTransientVertexBufferData(tvb), vtx_buffer.Data,
                vtx_buffer.Size * sizeof(ImDrawVert));
-        memcpy(renderer_->getTransientIndexBufferData(tib), idx_buffer.Data,
+        memcpy(rhi_->getTransientIndexBufferData(tib), idx_buffer.Data,
                idx_buffer.Size * sizeof(ImDrawIdx));
 
         // Execute draw commands.
@@ -240,12 +240,12 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) {
                 cmd->UserCallback(cmd_list, cmd);
             } else {
                 // Set render state.
-                renderer_->setStateEnable(RenderState::Blending);
-                renderer_->setStateBlendEquation(BlendEquation::Add, BlendFunc::SrcAlpha,
-                                                 BlendFunc::OneMinusSrcAlpha);
-                renderer_->setStateDisable(RenderState::CullFace);
-                renderer_->setStateDisable(RenderState::Depth);
-                renderer_->setScissor(
+                rhi_->setStateEnable(rhi::RenderState::Blending);
+                rhi_->setStateBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::SrcAlpha,
+                                            rhi::BlendFunc::OneMinusSrcAlpha);
+                rhi_->setStateDisable(rhi::RenderState::CullFace);
+                rhi_->setStateDisable(rhi::RenderState::Depth);
+                rhi_->setScissor(
                     static_cast<u16>(cmd->ClipRect.x * io.DisplayFramebufferScale.x),
                     static_cast<u16>(cmd->ClipRect.y * io.DisplayFramebufferScale.y),
                     static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) *
@@ -254,15 +254,15 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) {
                                      io.DisplayFramebufferScale.y));
 
                 // Set resources.
-                renderer_->setTexture(TextureHandle{static_cast<TextureHandle::base_type>(
+                rhi_->setTexture(rhi::TextureHandle{static_cast<rhi::TextureHandle::base_type>(
                                           reinterpret_cast<uintptr>(cmd->TextureId))},
                                       0);
-                renderer_->setVertexBuffer(tvb);
-                renderer_->setIndexBuffer(tib);
+                rhi_->setVertexBuffer(tvb);
+                rhi_->setIndexBuffer(tib);
 
                 // Draw.
                 program_->applyRendererState();
-                renderer_->submit(renderer_->backbufferView(), program_->internalHandle(),
+                rhi_->submit(rhi_->backbufferView(), program_->internalHandle(),
                                   cmd->ElemCount, offset);
             }
             offset += cmd->ElemCount;

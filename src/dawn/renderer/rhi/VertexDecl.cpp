@@ -3,10 +3,11 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "renderer/VertexDecl.h"
+#include "VertexDecl.h"
 
 namespace dw {
-dw::VertexDecl::VertexDecl() : stride_{0} {
+namespace rhi {
+VertexDecl::VertexDecl() : stride_{0} {
 }
 
 VertexDecl& VertexDecl::begin() {
@@ -68,5 +69,5 @@ u16 VertexDecl::attributeTypeSize(AttributeType type) {
             return 0;
     }
 }
+}  // namespace rhi
 }  // namespace dw
-   // namespace dw

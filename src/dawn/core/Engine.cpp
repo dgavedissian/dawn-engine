@@ -123,11 +123,11 @@ void Engine::setup(int argc, char** argv) {
     // Create the engine subsystems.
     auto* renderer = context_->addModule<Renderer>();
     if (!headless_) {
-        renderer->init(RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
+        renderer->rhi()->init(rhi::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
                        context_->config().at("window_height").get<u16>(), window_title, true);
         context_->addModule<Input>();
     } else {
-        renderer->init(RendererType::Null, context_->config().at("window_width").get<u16>(),
+        renderer->rhi()->init(rhi::RendererType::Null, context_->config().at("window_width").get<u16>(),
                        context_->config().at("window_height").get<u16>(), window_title, false);
     }
     context_->addModule<UserInterface>();
