@@ -14,7 +14,7 @@ set(TEST_FILES
 add_executable(DawnTestRunner ${TEST_FILES})
 mirror_physical_directories(${TEST_FILES})
 enable_cpp14(DawnTestRunner)
-target_link_libraries(DawnTestRunner Dawn gtest gtest_main)
+target_link_libraries(DawnTestRunner DwCore gtest gtest_main)
 target_include_directories(DawnTestRunner SYSTEM PRIVATE . ${CMAKE_SOURCE_DIR}/src/dawn ${INCLUDE_DIRS})
 
 include(GoogleTest)

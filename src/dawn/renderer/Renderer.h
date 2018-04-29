@@ -17,6 +17,9 @@ public:
     Renderer(Context* ctx);
     ~Renderer();
 
+    /// Update scene graph.
+    void updateSceneGraph();
+
     /// Render the scene to the RHI.
     void renderScene(float interpolation);
 
@@ -29,7 +32,7 @@ public:
 private:
     UniquePtr<rhi::Renderer> rhi_;
 
-    class DW_API EntityRenderer : public System {
+    class EntityRenderer : public System {
     public:
         DW_OBJECT(EntityRenderer);
 
@@ -44,27 +47,28 @@ private:
         void render(float interpolation);
 
     private:
-        class DW_API CameraEntitySystem : public System {
-        public:
-            DW_OBJECT(CameraEntitySystem);
-
-            CameraEntitySystem(Context* context);
-            ~CameraEntitySystem() = default;
-
-            void beginProcessing() override;
-            void processEntity(Entity& entity, float dt) override;
-
-            struct CameraState {
-                uint view;
-                Transform* transform_component;
-                Mat4 projection_matrix;
-            };
-            Vector<CameraState> cameras;
-        };
-        CameraEntitySystem* camera_entity_system_;
         HashMap<Transform*, Mat4> world_transform_cache_;
         Vector<RenderOperation> render_operations_;
     };
+
+    class CameraEntitySystem : public System {
+    public:
+        DW_OBJECT(CameraEntitySystem);
+
+        CameraEntitySystem(Context* context);
+        ~CameraEntitySystem() = default;
+
+        void beginProcessing() override;
+        void processEntity(Entity& entity, float dt) override;
+
+        struct CameraState {
+            uint view;
+            Transform* transform_component;
+            Mat4 projection_matrix;
+        };
+        Vector<CameraState> cameras;
+    };
+    CameraEntitySystem* camera_entity_system_;
 
     EntityRenderer* entity_renderer_;
 };

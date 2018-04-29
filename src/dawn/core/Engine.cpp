@@ -379,6 +379,9 @@ void Engine::update(float dt) {
     // Update gameplay systems.
     context_->module<SceneManager>()->update(dt);
 
+    // Update renderer scene graph.
+    context_->module<Renderer>()->updateSceneGraph();
+
     // Update user interface.
     context_->module<UserInterface>()->update(dt);
 }

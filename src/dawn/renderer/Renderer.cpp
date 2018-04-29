@@ -37,9 +37,17 @@ Mat4 deriveTransform(Transform* transform, Transform* camera,
 Renderer::Renderer(Context* ctx) : Module(ctx) {
     rhi_ = makeUnique<rhi::Renderer>(ctx);
     entity_renderer_ = module<SceneManager>()->addSystem<EntityRenderer>();
+    camera_entity_system_ = module<SceneManager>()->addSystem<CameraEntitySystem>();
 }
 
 Renderer::~Renderer() {
+}
+
+void Renderer::updateSceneGraph() {
+    // Recalculate view matrices.
+
+    // Recalculate all model matrices (for each camera view).
+    // TODO.
 }
 
 void Renderer::renderScene(float interpolation) {
@@ -57,7 +65,6 @@ rhi::Renderer* Renderer::rhi() const {
 Renderer::EntityRenderer::EntityRenderer(Context* context) : System{context} {
     supportsComponents<RenderableComponent, Transform>();
     executesAfter<CameraEntitySystem, NetTransformSyncSystem>();
-    camera_entity_system_ = module<SceneManager>()->addSystem<CameraEntitySystem>();
 }
 
 void Renderer::EntityRenderer::beginProcessing() {
@@ -66,7 +73,7 @@ void Renderer::EntityRenderer::beginProcessing() {
 }
 
 void Renderer::EntityRenderer::processEntity(Entity& entity, float) {
-    for (auto camera : camera_entity_system_->cameras) {
+    for (auto camera : module<Renderer>()->camera_entity_system_->cameras) {
         Mat4 view = camera.transform_component->modelMatrix(Position::origin).Inverted();
         Mat4 model =
             deriveTransform(entity.transform(), camera.transform_component, world_transform_cache_);
@@ -94,17 +101,16 @@ void Renderer::EntityRenderer::render(float interpolation) {
     }
 }
 
-Renderer::EntityRenderer::CameraEntitySystem::CameraEntitySystem(Context* context)
-    : System{context} {
+Renderer::CameraEntitySystem::CameraEntitySystem(Context* context) : System{context} {
     supportsComponents<Camera, Transform>();
     executesAfter<PhysicsScene::PhysicsComponentSystem>();
 }
 
-void Renderer::EntityRenderer::CameraEntitySystem::beginProcessing() {
+void Renderer::CameraEntitySystem::beginProcessing() {
     cameras.clear();
 }
 
-void Renderer::EntityRenderer::CameraEntitySystem::processEntity(Entity& entity, float) {
+void Renderer::CameraEntitySystem::processEntity(Entity& entity, float) {
     cameras.emplace_back(
         CameraState{0, entity.transform(), entity.component<Camera>()->projection_matrix});
 }

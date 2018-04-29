@@ -66,21 +66,21 @@ private:
 
 #define TEST_CLASS_NAME(test_name) test_name##Test
 #define TEST_CLASS(test_name) class TEST_CLASS_NAME(test_name) : public Object
-#define TEST_BODY(test_name)                                                 \
-                                                                             \
-public:                                                                      \
-    DW_OBJECT(TEST_CLASS_NAME(test_name));                                   \
-    TEST_CLASS_NAME(test_name)                                               \
-    (Context * context, const Engine* engine)                                \
-        : Object{context}, r{context->module<Renderer>()}, engine_{engine} { \
-    }                                                                        \
-    u16 width() const {                                                      \
-        return context()->config().at("window_width").get<u16>();            \
-    }                                                                        \
-    u16 height() const {                                                     \
-        return context()->config().at("window_height").get<u16>();           \
-    }                                                                        \
-    Renderer* r;                                                             \
+#define TEST_BODY(test_name)                                                        \
+                                                                                    \
+public:                                                                             \
+    DW_OBJECT(TEST_CLASS_NAME(test_name));                                          \
+    TEST_CLASS_NAME(test_name)                                                      \
+    (Context * context, const Engine* engine)                                       \
+        : Object{context}, r{context->module<Renderer>()->rhi()}, engine_{engine} { \
+    }                                                                               \
+    u16 width() const {                                                             \
+        return context()->config().at("window_width").get<u16>();                   \
+    }                                                                               \
+    u16 height() const {                                                            \
+        return context()->config().at("window_height").get<u16>();                  \
+    }                                                                               \
+    rhi::Renderer* r;                                                               \
     const Engine* engine_
 #define TEST_IMPLEMENT_MAIN(test_name) DW_IMPLEMENT_MAIN(Example<TEST_CLASS_NAME(test_name)>)
 
@@ -93,7 +93,7 @@ Mat4 createProjMatrix(float n, float f, float fov_y, float aspect) {
     return Mat4::OpenGLPerspProjRH(n, f, h, v);
 }
 
-uint createFullscreenQuad(Renderer* r, VertexBufferHandle& vb) {
+uint createFullscreenQuad(rhi::Renderer* r, rhi::VertexBufferHandle& vb) {
     // clang-format off
     float vertices[] = {
     	// Position   | UV
@@ -101,16 +101,16 @@ uint createFullscreenQuad(Renderer* r, VertexBufferHandle& vb) {
     	3.0f,  -1.0f, 2.0f, 0.0f,
     	-1.0f,  3.0f, 0.0f, 2.0f};
     // clang-format on
-    VertexDecl decl;
+    rhi::VertexDecl decl;
     decl.begin()
-        .add(VertexDecl::Attribute::Position, 2, VertexDecl::AttributeType::Float)
-        .add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float)
+        .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
+        .add(rhi::VertexDecl::Attribute::TexCoord0, 2, rhi::VertexDecl::AttributeType::Float)
         .end();
     vb = r->createVertexBuffer(vertices, sizeof(vertices), decl);
     return 3;
 }
 
-ShaderHandle loadShader(Context* ctx, ShaderStage type, const String& source_file) {
+rhi::ShaderHandle loadShader(Context* ctx, rhi::ShaderStage type, const String& source_file) {
     static Vector<SharedPtr<Shader>> shader_map;
     SharedPtr<Shader> shader = makeShared<Shader>(ctx, type);
     File file{ctx, source_file};
@@ -124,15 +124,15 @@ ShaderHandle loadShader(Context* ctx, ShaderStage type, const String& source_fil
 TEST_CLASS(BasicVertexBuffer) {
     TEST_BODY(BasicVertexBuffer);
 
-    VertexBufferHandle vb_;
-    ProgramHandle program_;
+    rhi::VertexBufferHandle vb_;
+    rhi::ProgramHandle program_;
 
     void start() {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/test.vs");
-        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/test.fs");
+        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
+        auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/test.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -149,10 +149,10 @@ TEST_CLASS(BasicVertexBuffer) {
             {-0.5f, -0.5f, 0xff00ff00},  // Vertex 2: Green
             {0.5f, -0.5f, 0xffff0000}    // Vertex 3: Blue
         };
-        VertexDecl decl;
+        rhi::VertexDecl decl;
         decl.begin()
-            .add(VertexDecl::Attribute::Position, 2, VertexDecl::AttributeType::Float)
-            .add(VertexDecl::Attribute::Colour, 4, VertexDecl::AttributeType::Uint8, true)
+            .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
+            .add(rhi::VertexDecl::Attribute::Colour, 4, rhi::VertexDecl::AttributeType::Uint8, true)
             .end();
         vb_ = r->createVertexBuffer(vertices, sizeof(vertices), decl);
     }
@@ -172,16 +172,16 @@ TEST_CLASS(BasicVertexBuffer) {
 TEST_CLASS(BasicIndexBuffer) {
     TEST_BODY(BasicIndexBuffer);
 
-    VertexBufferHandle vb_;
-    IndexBufferHandle ib_;
-    ProgramHandle program_;
+    rhi::VertexBufferHandle vb_;
+    rhi::IndexBufferHandle ib_;
+    rhi::ProgramHandle program_;
 
     void start() {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/test.vs");
-        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/test.fs");
+        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
+        auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/test.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -193,15 +193,15 @@ TEST_CLASS(BasicIndexBuffer) {
             0.5f,  -0.5f, 0.0f, 0.0f, 1.0f,  // Bottom-right
             -0.5f, -0.5f, 1.0f, 1.0f, 1.0f   // Bottom-left
         };
-        VertexDecl decl;
+        rhi::VertexDecl decl;
         decl.begin()
-            .add(VertexDecl::Attribute::Position, 2, VertexDecl::AttributeType::Float)
-            .add(VertexDecl::Attribute::Colour, 3, VertexDecl::AttributeType::Float)
+            .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
+            .add(rhi::VertexDecl::Attribute::Colour, 3, rhi::VertexDecl::AttributeType::Float)
             .end();
         vb_ = r->createVertexBuffer(vertices, sizeof(vertices), decl);
 
         u32 elements[] = {0, 2, 1, 2, 0, 3};
-        ib_ = r->createIndexBuffer(elements, sizeof(elements), IndexBufferType::U32);
+        ib_ = r->createIndexBuffer(elements, sizeof(elements), rhi::IndexBufferType::U32);
     }
 
     void render() {
@@ -219,14 +219,14 @@ TEST_CLASS(BasicIndexBuffer) {
 TEST_CLASS(TransientIndexBuffer) {
     TEST_BODY(TransientIndexBuffer);
 
-    ProgramHandle program_;
+    rhi::ProgramHandle program_;
 
     void start() {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/test.vs");
-        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/test.fs");
+        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
+        auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/test.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -245,10 +245,10 @@ TEST_CLASS(TransientIndexBuffer) {
             0.5f * size_multiplier,  -0.5f * size_multiplier, 0.0f, 0.0f, 1.0f,  // Bottom-right
             -0.5f * size_multiplier, -0.5f * size_multiplier, 1.0f, 1.0f, 1.0f   // Bottom-left
         };
-        VertexDecl decl;
+        rhi::VertexDecl decl;
         decl.begin()
-            .add(VertexDecl::Attribute::Position, 2, VertexDecl::AttributeType::Float)
-            .add(VertexDecl::Attribute::Colour, 3, VertexDecl::AttributeType::Float)
+            .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
+            .add(rhi::VertexDecl::Attribute::Colour, 3, rhi::VertexDecl::AttributeType::Float)
             .end();
         auto tvb = r->allocTransientVertexBuffer(sizeof(vertices) / decl.stride(), decl);
         float* vertex_data = (float*)r->getTransientVertexBufferData(tvb);
@@ -273,7 +273,7 @@ TEST_CLASS(Textured3DCube) {
     TEST_BODY(Textured3DCube);
 
     SharedPtr<CustomMeshRenderable> box_;
-    ProgramHandle program_;
+    rhi::ProgramHandle program_;
 
     // Uses the higher level wrapper which provides loading from files.
     UniquePtr<Texture> texture_resource_;
@@ -282,8 +282,9 @@ TEST_CLASS(Textured3DCube) {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/cube_textured.vs");
-        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/cube_textured.fs");
+        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/cube_textured.vs");
+        auto fs =
+            util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/cube_textured.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -330,18 +331,18 @@ TEST_CLASS(PostProcessing) {
     TEST_BODY(PostProcessing);
 
     SharedPtr<CustomMeshRenderable> box_;
-    ProgramHandle box_program_;
+    rhi::ProgramHandle box_program_;
 
-    VertexBufferHandle fsq_vb_;
-    ProgramHandle post_process_;
-    FrameBufferHandle fb_handle_;
+    rhi::VertexBufferHandle fsq_vb_;
+    rhi::ProgramHandle post_process_;
+    rhi::FrameBufferHandle fb_handle_;
 
     void start() {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/cube_solid.vs");
-        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/cube_solid.fs");
+        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/cube_solid.vs");
+        auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/cube_solid.fs");
         box_program_ = r->createProgram();
         r->attachShader(box_program_, vs);
         r->attachShader(box_program_, fs);
@@ -354,11 +355,13 @@ TEST_CLASS(PostProcessing) {
         util::createFullscreenQuad(r, fsq_vb_);
 
         // Set up frame buffer.
-        fb_handle_ = r->createFrameBuffer(1280, 800, TextureFormat::RGB8);
+        fb_handle_ = r->createFrameBuffer(1280, 800, rhi::TextureFormat::RGB8);
 
         // Load post process shader.
-        auto pp_vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/post_process.vs");
-        auto pp_fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/post_process.fs");
+        auto pp_vs =
+            util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/post_process.vs");
+        auto pp_fs =
+            util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/post_process.fs");
         post_process_ = r->createProgram();
         r->attachShader(post_process_, pp_vs);
         r->attachShader(post_process_, pp_fs);
@@ -383,7 +386,7 @@ TEST_CLASS(PostProcessing) {
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
         r->setViewFrameBuffer(0, fb_handle_);
         r->setViewClear(1, {0.0f, 0.2f, 0.0f, 1.0f});
-        r->setViewFrameBuffer(1, FrameBufferHandle{0});
+        r->setViewFrameBuffer(1, rhi::FrameBufferHandle{0});
 
         // Set vertex buffer and submit.
         r->setVertexBuffer(box_->vertexBuffer()->internalHandle());
@@ -407,28 +410,29 @@ TEST_CLASS(DeferredShading) {
     TEST_BODY(DeferredShading);
 
     SharedPtr<CustomMeshRenderable> ground_;
-    ProgramHandle cube_program_;
+    rhi::ProgramHandle cube_program_;
 
     // Uses the higher level wrapper which provides loading from files.
     UniquePtr<Texture> texture_resource_;
 
-    ProgramHandle post_process_;
+    rhi::ProgramHandle post_process_;
 
-    VertexBufferHandle fsq_vb_;
-    FrameBufferHandle gbuffer_;
+    rhi::VertexBufferHandle fsq_vb_;
+    rhi::FrameBufferHandle gbuffer_;
 
     class PointLight : public Object {
     public:
         DW_OBJECT(PointLight);
 
         PointLight(Context* ctx, float radius, const Vec2& screen_size)
-            : Object{ctx}, r{module<Renderer>()}, light_sphere_radius_{radius * 4} {
+            : Object{ctx}, r{module<Renderer>()->rhi()}, light_sphere_radius_{radius * 4} {
             setPosition(Vec3::zero);
 
             // Load shaders.
-            auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/light_pass.vs");
-            auto fs =
-                util::loadShader(context(), ShaderStage::Fragment, "shaders/point_light_pass.fs");
+            auto vs =
+                util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/light_pass.vs");
+            auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment,
+                                       "shaders/point_light_pass.fs");
             program_ = r->createProgram();
             r->attachShader(program_, vs);
             r->attachShader(program_, fs);
@@ -444,7 +448,7 @@ TEST_CLASS(DeferredShading) {
         }
 
         ~PointLight() {
-            module<Renderer>()->deleteProgram(program_);
+            r->deleteProgram(program_);
         }
 
         void setPosition(const Vec3& position) {
@@ -458,13 +462,14 @@ TEST_CLASS(DeferredShading) {
             // Invert culling when inside the light sphere.
             Vec3 view_space_position = (view_matrix * Vec4(position_, 1.0f)).xyz();
             if (view_space_position.LengthSq() < (light_sphere_radius_ * light_sphere_radius_)) {
-                r->setStateCullFrontFace(CullFrontFace::CW);
+                r->setStateCullFrontFace(rhi::CullFrontFace::CW);
             }
 
             // Disable depth, and enable blending.
-            r->setStateDisable(RenderState::Depth);
-            r->setStateEnable(RenderState::Blending);
-            r->setStateBlendEquation(BlendEquation::Add, BlendFunc::One, BlendFunc::One);
+            r->setStateDisable(rhi::RenderState::Depth);
+            r->setStateEnable(rhi::RenderState::Blending);
+            r->setStateBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::One,
+                                     rhi::BlendFunc::One);
 
             // Draw sphere.
             r->setVertexBuffer(sphere_->vertexBuffer()->internalHandle());
@@ -475,9 +480,9 @@ TEST_CLASS(DeferredShading) {
         }
 
     private:
-        Renderer* r;
+        rhi::Renderer* r;
         SharedPtr<CustomMeshRenderable> sphere_;
-        ProgramHandle program_;
+        rhi::ProgramHandle program_;
 
         Vec3 position_;
         Mat4 model_;
@@ -491,8 +496,10 @@ TEST_CLASS(DeferredShading) {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/object_gbuffer.vs");
-        auto fs = util::loadShader(context(), ShaderStage::Fragment, "shaders/object_gbuffer.fs");
+        auto vs =
+            util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/object_gbuffer.vs");
+        auto fs =
+            util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/object_gbuffer.fs");
         cube_program_ = r->createProgram();
         r->attachShader(cube_program_, vs);
         r->attachShader(cube_program_, fs);
@@ -514,15 +521,16 @@ TEST_CLASS(DeferredShading) {
         util::createFullscreenQuad(r, fsq_vb_);
 
         // Set up frame buffer.
-        auto format = TextureFormat::RGBA32F;
+        auto format = rhi::TextureFormat::RGBA32F;
         gbuffer_ =
             r->createFrameBuffer({r->createTexture2D(width(), height(), format, nullptr, 0),
                                   r->createTexture2D(width(), height(), format, nullptr, 0),
                                   r->createTexture2D(width(), height(), format, nullptr, 0)});
 
         // Load post process shader.
-        auto pp_vs = util::loadShader(context(), ShaderStage::Vertex, "shaders/post_process.vs");
-        auto pp_fs = util::loadShader(context(), ShaderStage::Fragment,
+        auto pp_vs =
+            util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/post_process.vs");
+        auto pp_fs = util::loadShader(context(), rhi::ShaderStage::Fragment,
                                       "shaders/deferred_ambient_light_pass.fs");
         post_process_ = r->createProgram();
         r->attachShader(post_process_, pp_vs);
@@ -550,7 +558,7 @@ TEST_CLASS(DeferredShading) {
         r->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
         r->setViewFrameBuffer(0, gbuffer_);
         r->setViewClear(1, {0.0f, 0.0f, 0.0f, 1.0f});
-        r->setViewFrameBuffer(1, FrameBufferHandle{0});
+        r->setViewFrameBuffer(1, rhi::FrameBufferHandle{0});
 
         // Calculate matrices.
         Mat4 model = Mat4::Translate(Vec3{0.0f, -10.0f, 0.0f}).ToFloat4x4() *
@@ -632,7 +640,7 @@ TEST_CLASS(MovingSphereHighLevel) {
         static float angle = 0.0f;
         angle += engine_->frameTime();
         camera->transform()->position().x = sin(angle) * 30.0f;
-        module<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+        r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
     }
 
     void stop() {

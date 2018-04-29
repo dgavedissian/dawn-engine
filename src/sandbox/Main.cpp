@@ -36,12 +36,13 @@ public:
         Vec3 p;
         Vec3 n;
         Vec2 tc;
-        static VertexDecl createDecl() {
-            return VertexDecl{}
+        static rhi::VertexDecl createDecl() {
+            return rhi::VertexDecl{}
                 .begin()
-                .add(VertexDecl::Attribute::Position, 3, VertexDecl::AttributeType::Float)
-                .add(VertexDecl::Attribute::Normal, 3, VertexDecl::AttributeType::Float)
-                .add(VertexDecl::Attribute::TexCoord0, 2, VertexDecl::AttributeType::Float)
+                .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
+                .add(rhi::VertexDecl::Attribute::Normal, 3, rhi::VertexDecl::AttributeType::Float)
+                .add(rhi::VertexDecl::Attribute::TexCoord0, 2,
+                     rhi::VertexDecl::AttributeType::Float)
                 .end();
         }
     };
@@ -97,7 +98,7 @@ public:
         material->setTexture(rc->get<Texture>("base:space/planet.jpg"));
         material->setUniform("light_direction", Vec3{1.0f, 0.0f, 0.0f});
         material->setUniform("surface_sampler", 0);
-        material->setPolygonMode(PolygonMode::Wireframe);
+        material->setPolygonMode(rhi::PolygonMode::Wireframe);
 
         // Set up renderable.
         setupTerrainRenderable();
@@ -241,9 +242,9 @@ private:
             context(),
             makeShared<VertexBuffer>(context(), nullptr,
                                      default_vertex_count * vertex_decl.stride(),
-                                     default_vertex_count, vertex_decl, BufferUsage::Dynamic),
+                                     default_vertex_count, vertex_decl, rhi::BufferUsage::Dynamic),
             makeShared<IndexBuffer>(context(), nullptr, default_index_count * sizeof(u32),
-                                    IndexBufferType::U32, BufferUsage::Dynamic));
+                                    rhi::IndexBufferType::U32, rhi::BufferUsage::Dynamic));
 
         // Setup patches.
         float offset = math::Sqrt((radius_ * radius_) / 3.0f);
@@ -552,7 +553,7 @@ public:
     }
 
     void render(float) override {
-        module<Renderer>()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+        module<Renderer>()->rhi()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
 
         // Calculate average FPS.
         float current_fps = 1.0 / engine_->frameTime();
@@ -579,7 +580,7 @@ public:
         // Display FPS information.
         ImGui::SetNextWindowPos({10, 10});
         ImGui::SetNextWindowSize({140, 40});
-        if (!ImGui::Begin("FPS", nullptr, {0, 0}, 0.5f,
+        if (!ImGui::Begin("FPS", nullptr,
                           ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
             ImGui::End();
