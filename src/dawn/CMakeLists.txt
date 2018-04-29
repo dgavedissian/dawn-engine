@@ -31,6 +31,9 @@ set(SOURCE_FILES
     core/math/Vec4i.h
     core/platform/Defines.h
     core/platform/Windows.h
+    core/script/LuaState.cpp
+    core/script/LuaState.h
+    core/script/Sol.h
     core/App.cpp
     core/App.h
     core/Collections.h
@@ -150,9 +153,6 @@ set(SOURCE_FILES
     scene/Velocity.h
     scene/VelocitySystem.cpp
     scene/VelocitySystem.h
-    script/LuaState.cpp
-    script/LuaState.h
-    script/Sol.h
     ui/Imgui.h
     ui/UserInterface.cpp
     ui/UserInterface.h

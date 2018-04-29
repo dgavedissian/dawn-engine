@@ -13,6 +13,7 @@
 #include "core/math/Vec3i.h"
 #include "core/math/Vec4i.h"
 #include "core/io/FileSystem.h"
+#include "core/script/LuaState.h"
 #include "core/StringUtils.h"
 #include "core/App.h"
 #include "core/Engine.h"
@@ -23,5 +24,4 @@
 #include "renderer/Renderer.h"
 #include "resource/ResourceCache.h"
 #include "scene/SceneManager.h"
-#include "script/LuaState.h"
 #include "ui/UserInterface.h"

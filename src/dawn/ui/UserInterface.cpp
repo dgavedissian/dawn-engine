@@ -245,25 +245,24 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) {
                                             rhi::BlendFunc::OneMinusSrcAlpha);
                 rhi_->setStateDisable(rhi::RenderState::CullFace);
                 rhi_->setStateDisable(rhi::RenderState::Depth);
-                rhi_->setScissor(
-                    static_cast<u16>(cmd->ClipRect.x * io.DisplayFramebufferScale.x),
-                    static_cast<u16>(cmd->ClipRect.y * io.DisplayFramebufferScale.y),
-                    static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) *
-                                     io.DisplayFramebufferScale.x),
-                    static_cast<u16>((cmd->ClipRect.w - cmd->ClipRect.y) *
-                                     io.DisplayFramebufferScale.y));
+                rhi_->setScissor(static_cast<u16>(cmd->ClipRect.x * io.DisplayFramebufferScale.x),
+                                 static_cast<u16>(cmd->ClipRect.y * io.DisplayFramebufferScale.y),
+                                 static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) *
+                                                  io.DisplayFramebufferScale.x),
+                                 static_cast<u16>((cmd->ClipRect.w - cmd->ClipRect.y) *
+                                                  io.DisplayFramebufferScale.y));
 
                 // Set resources.
                 rhi_->setTexture(rhi::TextureHandle{static_cast<rhi::TextureHandle::base_type>(
-                                          reinterpret_cast<uintptr>(cmd->TextureId))},
-                                      0);
+                                     reinterpret_cast<uintptr>(cmd->TextureId))},
+                                 0);
                 rhi_->setVertexBuffer(tvb);
                 rhi_->setIndexBuffer(tib);
 
                 // Draw.
                 program_->applyRendererState();
-                rhi_->submit(rhi_->backbufferView(), program_->internalHandle(),
-                                  cmd->ElemCount, offset);
+                rhi_->submit(rhi_->backbufferView(), program_->internalHandle(), cmd->ElemCount,
+                             offset);
             }
             offset += cmd->ElemCount;
         }

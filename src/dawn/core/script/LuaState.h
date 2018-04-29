@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "script/Sol.h"
+#include "Sol.h"
 
 namespace dw {
 

@@ -121,18 +121,20 @@ void Engine::setup(int argc, char** argv) {
     // TODO(David): bind engine services to lua?
 
     // Create the engine subsystems.
+    context_->addModule<SceneManager>();
     auto* renderer = context_->addModule<Renderer>();
     if (!headless_) {
-        renderer->rhi()->init(rhi::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
-                       context_->config().at("window_height").get<u16>(), window_title, true);
+        renderer->rhi()->init(
+            rhi::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
+            context_->config().at("window_height").get<u16>(), window_title, true);
         context_->addModule<Input>();
     } else {
-        renderer->rhi()->init(rhi::RendererType::Null, context_->config().at("window_width").get<u16>(),
-                       context_->config().at("window_height").get<u16>(), window_title, false);
+        renderer->rhi()->init(
+            rhi::RendererType::Null, context_->config().at("window_width").get<u16>(),
+            context_->config().at("window_height").get<u16>(), window_title, false);
     }
     context_->addModule<UserInterface>();
     context_->addModule<ResourceCache>();
-    context_->addModule<SceneManager>();
     context_->addModule<GameplayModule>();
 
     auto* net = context_->addModule<Networking>();
@@ -146,7 +148,6 @@ void Engine::setup(int argc, char** argv) {
 
     // Set up built in entity systems.
     auto& sm = *context_->module<SceneManager>();
-    sm.addSystem<EntityRenderer>();
     sm.addSystem<VelocitySystem>();
 
     // Set input viewport size
@@ -224,7 +225,7 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         // Render a frame.
         float interpolation = accumulated_time / time_per_update;
         preRender(nullptr);
-        context_->module<SceneManager>()->getSystem<EntityRenderer>()->render(interpolation);
+        context_->module<Renderer>()->renderScene(interpolation);
         render_callback(interpolation);
         postRender();
         context_->module<Renderer>()->frame();
