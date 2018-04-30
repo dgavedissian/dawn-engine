@@ -120,6 +120,8 @@ set(SOURCE_FILES
     renderer/Renderable.cpp
     renderer/Renderer.cpp
     renderer/Renderer.h
+    renderer/SceneNode.h
+    renderer/SceneNode.cpp
     renderer/Shader.cpp
     renderer/Shader.h
     renderer/StbImage.h
@@ -195,28 +197,28 @@ set (SOURCE_FILES
 
 # Project
 set(BUILD_SHARED_LIBS OFF)
-add_library(DwCore ${SOURCE_FILES})
-enable_cpp14(DwCore)
-enable_maximum_warnings(DwCore)
-set_output_dir(DwCore ${CMAKE_BINARY_DIR}/lib)
+add_library(DwEngine ${SOURCE_FILES})
+enable_cpp14(DwEngine)
+enable_maximum_warnings(DwEngine)
+set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)
-    set_target_properties(DwCore PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
+    set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
 endif()
-target_include_directories(DwCore PUBLIC
+target_include_directories(DwEngine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
         scene/ontology/include)
 
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)
-get_target_property(LIB_DIR DwCore LIBRARY_OUTPUT_DIRECTORY)
+get_target_property(LIB_DIR DwEngine LIBRARY_OUTPUT_DIRECTORY)
 if(APPLE AND BUILD_SHARED_LIBS)
-    set_target_properties(DwCore PROPERTIES FRAMEWORK TRUE)
+    set_target_properties(DwEngine PROPERTIES FRAMEWORK TRUE)
 endif()
 
 # Random extras
 mirror_physical_directories(${SOURCE_FILES})
-set_target_properties(DwCore PROPERTIES DEBUG_POSTFIX _d)
+set_target_properties(DwEngine PROPERTIES DEBUG_POSTFIX _d)
 
 # Add include dirs and libraries
-target_include_directories(DwCore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
-target_link_libraries(DwCore ${LIBS})
+target_include_directories(DwEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
+target_link_libraries(DwEngine ${LIBS})

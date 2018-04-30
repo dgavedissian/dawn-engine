@@ -13,9 +13,7 @@ namespace dw {
 SceneManager::SceneManager(Context* ctx) : Module(ctx), entity_id_allocator_(1) {
     setDependencies<ResourceCache>();
 
-    root_node_ = makeShared<Transform>(Position::origin, Quat::identity, nullptr);
-
-    background_renderable_root_ = makeShared<RenderableNode>();
+    background_renderable_root_ = makeShared<SceneNode>();
     background_entity_ = &createEntity(0, Position::origin, Quat::identity, nullptr)
                               .addComponent<RenderableComponent>(background_renderable_root_);
     background_entity_->transform()->setRelativeToCamera(true);
@@ -47,7 +45,7 @@ Entity& SceneManager::createEntity(EntityType type, const Position& p, const Qua
                                    Entity* parent) {
     Entity& e = createEntity(type);
     if (parent) {
-        e.addComponent<Transform>(p, o, *parent);
+        e.addComponent<Transform>(p, o, parent->transform());
     } else {
         e.addComponent<Transform>(p, o, nullptr);
     }
@@ -55,9 +53,7 @@ Entity& SceneManager::createEntity(EntityType type, const Position& p, const Qua
 }
 
 Entity& SceneManager::createEntity(EntityType type, const Position& p, const Quat& o) {
-    Entity& e = createEntity(type);
-    e.addComponent<Transform>(p, o, rootNode());
-    return e;
+    return createEntity(type, p, o, nullptr);
 }
 
 Entity& SceneManager::createEntity(EntityType type, EntityId reserved_entity_id) {
@@ -102,10 +98,6 @@ void SceneManager::update(float dt) {
     last_dt_ = dt;
     physics_scene_->update(dt, nullptr);
     ontology_world_.update();
-}
-
-Transform* SceneManager::rootNode() const {
-    return root_node_.get();
 }
 
 PhysicsScene* SceneManager::physicsScene() const {

@@ -74,9 +74,9 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
                                                    {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
                                                    {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
     auto node = ship_entity_->component<RenderableComponent>()->node;
-    node->addChild(makeShared<RenderableNode>(sphere, Vec3{8.0f, 0.0f, 0.0f}, Quat::identity));
-    node->addChild(makeShared<RenderableNode>(sphere, Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity,
-                                              Vec3{-1.0f, 1.0f, 1.0f}));
+    node->addChild(makeShared<SceneNode>(sphere, Vec3{8.0f, 0.0f, 0.0f}, Quat::identity));
+    node->addChild(makeShared<SceneNode>(sphere, Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity,
+                                         Vec3{-1.0f, 1.0f, 1.0f}));
 
     // Networking.
     ship_entity_->addComponent<NetTransform>();
@@ -183,23 +183,23 @@ void Ship::update(float dt) {
 void Ship::fireMovementThrusters(const Vec3& power) {
     Vec3 total_force = ship_entity_->component<ShipEngines>()->fireMovementEngines(power);
     rb_->activate();
-    rb_->applyCentralForce(ship_entity_->transform()->orientation() * total_force);
+    rb_->applyCentralForce(ship_entity_->transform()->orientation * total_force);
 }
 
 void Ship::fireRotationalThrusters(const Vec3& power) {
     Vec3 total_torque = ship_entity_->component<ShipEngines>()->fireRotationalEngines(power);
     rb_->activate();
-    rb_->applyTorque(ship_entity_->transform()->orientation() * total_torque);
+    rb_->applyTorque(ship_entity_->transform()->orientation * total_torque);
 }
 
 Vec3 Ship::angularVelocity() const {
-    Quat inv_rotation = ship_entity_->transform()->orientation();
+    Quat inv_rotation = ship_entity_->transform()->orientation;
     inv_rotation.InverseAndNormalize();
     return inv_rotation * Vec3{rb_->getAngularVelocity()};
 }
 
 Vec3 Ship::localVelocity() const {
-    Quat inv_rotation = ship_entity_->transform()->orientation();
+    Quat inv_rotation = ship_entity_->transform()->orientation;
     inv_rotation.InverseAndNormalize();
     return inv_rotation * Vec3{rb_->getLinearVelocity()};
 }

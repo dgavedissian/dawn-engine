@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/Renderable.h"
+#include "renderer/SceneNode.h"
 #include "scene/Entity.h"
 #include "scene/Transform.h"
 
@@ -88,9 +88,6 @@ public:
     /// @param dt Time elapsed
     void update(float dt);
 
-    /// Returns the root node in the scene graph.
-    Transform* rootNode() const;
-
     /// Returns the physics scene.
     PhysicsScene* physicsScene() const;
 
@@ -103,8 +100,7 @@ private:
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
     EntityId entity_id_allocator_;
 
-    SharedPtr<Transform> root_node_;
-    SharedPtr<RenderableNode> background_renderable_root_;
+    SharedPtr<SceneNode> background_renderable_root_;
     Entity* background_entity_;
 
     UniquePtr<PhysicsScene> physics_scene_;

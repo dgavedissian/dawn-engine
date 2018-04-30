@@ -5,6 +5,7 @@
 #include "Common.h"
 #include "renderer/Renderer.h"
 #include "renderer/Renderable.h"
+#include "renderer/SceneNode.h"
 #include "scene/SceneManager.h"
 #include "scene/Transform.h"
 #include "scene/PhysicsScene.h"
@@ -19,7 +20,7 @@ Mat4 deriveTransform(Transform* transform, Transform* camera,
     auto cached_transform = transform_cache.find(transform);
     if (cached_transform == transform_cache.end()) {
         // Calculate transform relative to parent.
-        Mat4 model = transform->modelMatrix(camera->position());
+        Mat4 model = transform->modelMatrix(camera->position);
 
         // Derive world transform recursively.
         if (transform->parent()) {

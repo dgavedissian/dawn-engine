@@ -10,12 +10,8 @@ namespace dw {
 Transform::Transform(const Position& p, const Quat& o) : Transform(p, o, nullptr) {
 }
 
-Transform::Transform(const Position& p, const Quat& o, Entity& parent_entity)
-    : Transform(p, o, parent_entity.component<Transform>()) {
-}
-
 Transform::Transform(const Position& p, const Quat& o, Transform* parent)
-    : position_(p), orientation_(o), relative_to_camera_(false), parent_(nullptr) {
+    : position(p), orientation(o), relative_to_camera_(false), parent_(nullptr) {
     attachTo(parent);
 }
 
@@ -23,29 +19,13 @@ void Transform::setRelativeToCamera(bool relative_to_camera) {
     relative_to_camera_ = relative_to_camera;
 }
 
-Position& Transform::position() {
-    return position_;
-}
-
-const Position& Transform::position() const {
-    return position_;
-}
-
-Quat& Transform::orientation() {
-    return orientation_;
-}
-
-const Quat& Transform::orientation() const {
-    return orientation_;
-}
-
 Mat4 Transform::modelMatrix(const Position& camera_position) const {
     Position origin = relative_to_camera_ ? -camera_position : Position::origin;
-    return Mat4::Translate(position().getRelativeTo(origin)).ToFloat4x4() *
-           Mat4::FromQuat(orientation());
+    return Mat4::Translate(position.getRelativeTo(origin)).ToFloat4x4() *
+           Mat4::FromQuat(orientation);
 }
 
-Transform* Transform::parent() {
+Transform* Transform::parent() const {
     return parent_;
 }
 

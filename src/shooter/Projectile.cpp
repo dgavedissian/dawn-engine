@@ -9,5 +9,5 @@ ProjectileSystem::ProjectileSystem(Context* context) : System(context) {
 }
 
 void ProjectileSystem::processEntity(Entity& entity, float dt) {
-    entity.component<Transform>()->position() += entity.component<Projectile>()->velocity * dt;
+    entity.component<Transform>()->position += entity.component<Projectile>()->velocity * dt;
 }

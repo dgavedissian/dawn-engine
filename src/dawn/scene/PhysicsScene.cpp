@@ -11,19 +11,19 @@
 namespace dw {
 namespace {
 btTransform toBulletTransform(Transform& xform) {
-    btQuaternion quat{xform.orientation().x, xform.orientation().y, xform.orientation().z,
-                      xform.orientation().w};
+    btQuaternion quat{xform.orientation.x, xform.orientation.y, xform.orientation.z,
+                      xform.orientation.w};
     return btTransform(
-        quat, {static_cast<btScalar>(xform.position().x), static_cast<btScalar>(xform.position().y),
-               static_cast<btScalar>(xform.position().z)});
+        quat, {static_cast<btScalar>(xform.position.x), static_cast<btScalar>(xform.position.y),
+               static_cast<btScalar>(xform.position.z)});
 }
 
 void fromBulletTransform(const btTransform& source, Transform& dest) {
     btQuaternion rotation;
     source.getBasis().getRotation(rotation);
-    dest.position() =
+    dest.position =
         Position{source.getOrigin().x(), source.getOrigin().y(), source.getOrigin().z()};
-    dest.orientation() = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
+    dest.orientation = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
 }
 }  // namespace
 PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr) : Object(context) {

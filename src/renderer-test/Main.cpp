@@ -639,7 +639,7 @@ TEST_CLASS(MovingSphereHighLevel) {
     void render() {
         static float angle = 0.0f;
         angle += engine_->frameTime();
-        camera->transform()->position().x = sin(angle) * 30.0f;
+        camera->transform()->position.x = sin(angle) * 30.0f;
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
     }
 

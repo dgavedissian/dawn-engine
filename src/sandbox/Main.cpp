@@ -137,7 +137,7 @@ public:
     }
 
     Position& position() const {
-        return planet_->transform()->position();
+        return planet_->transform()->position;
     }
 
     float radius() const {
@@ -148,8 +148,8 @@ public:
         // Update camera position data.
         {
             LockGuard<Mutex> camera_position_lock{t_input_lock_};
-            t_camera_position_ = camera_->transform()->position();
-            t_planet_position_ = planet_->transform()->position();
+            t_camera_position_ = camera_->transform()->position;
+            t_planet_position_ = planet_->transform()->position;
         }
 
         // If we have any new terrain data ready, upload to GPU.
@@ -543,7 +543,7 @@ public:
 
     void update(float dt) override {
         // Calculate distance to planet and adjust acceleration accordingly.
-        auto& a = camera_controller->possessed()->transform()->position();
+        auto& a = camera_controller->possessed()->transform()->position;
         auto& b = planet_->position();
         float altitude = a.getRelativeTo(b).Length() - planet_->radius();
         camera_controller->setAcceleration(altitude);

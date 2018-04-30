@@ -61,13 +61,13 @@ function(add_game GAME_NAME SOURCE_FILES)
     enable_maximum_warnings(${GAME_NAME})
 
     # Add include directories
-    get_target_property(DAWN_INCLUDE_DIRS DwCore INCLUDE_DIRECTORIES)
+    get_target_property(DAWN_INCLUDE_DIRS DwEngine INCLUDE_DIRECTORIES)
     target_include_directories(${GAME_NAME} PRIVATE
         ${DAWN_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR})
 
     # Add libraries
-    target_link_libraries(${GAME_NAME} DwCore)
+    target_link_libraries(${GAME_NAME} DwEngine)
     set_output_dir(${GAME_NAME} ${OUT_DIR})
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
 
@@ -89,7 +89,7 @@ function(add_game GAME_NAME SOURCE_FILES)
     endif()
 
     # Copy over shared library dependencies
-    get_target_property(LIB_DIR DwCore LIBRARY_OUTPUT_DIRECTORY)
+    get_target_property(LIB_DIR DwEngine LIBRARY_OUTPUT_DIRECTORY)
     if(APPLE)
         #set(BUNDLE_DIR ${CMAKE_SOURCE_DIR}/bin/${GAME_NAME}.app)
         #set(FRAMEWORKS_DIR ${BUNDLE_DIR}/Contents/Frameworks)

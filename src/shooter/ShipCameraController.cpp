@@ -25,15 +25,15 @@ void ShipCameraController::update(float dt) {
         return;
     }
 
-    possessed_transform->orientation() = followed_transform->orientation();
-    possessed_transform->position() =
-        followed_transform->position() + followed_transform->orientation() * offset_;
+    possessed_transform->orientation = followed_transform->orientation;
+    possessed_transform->position =
+        followed_transform->position + followed_transform->orientation * offset_;
 
     // Follow behind.
     if (followed_->hasComponent<RigidBody>()) {
         Vec3 velocity = followed_->component<RigidBody>()->_rigidBody()->getLinearVelocity();
         float timestep = 1.0f / 60.0f;
         float scale = 3.0f;
-        possessed_transform->position() -= velocity * timestep * scale;
+        possessed_transform->position -= velocity * timestep * scale;
     }
 }

@@ -11,6 +11,6 @@ VelocitySystem::VelocitySystem(Context* ctx) : System(ctx) {
 }
 
 void VelocitySystem::processEntity(Entity& e, float dt) {
-    e.transform()->position() += e.component<Velocity>()->velocity * dt;
+    e.transform()->position += e.component<Velocity>()->velocity * dt;
 }
 }  // namespace dw

@@ -157,12 +157,12 @@ void BillboardSet::update(Transform* camera_transform) {
 
 void BillboardSet::calculateAxes(Transform* camera_transform, const ParticleData& data,
                                  Vec3& axis_x, Vec3& axis_y) {
-    Vec3 to_eye = camera_transform->position().getRelativeTo(Position(data.position)).Normalized();
+    Vec3 to_eye = camera_transform->position.getRelativeTo(Position(data.position)).Normalized();
 
     // Point.
     switch (type_) {
         case BillboardType::Point:
-            axis_x = to_eye.Cross(camera_transform->orientation() * Vec3::unitY);
+            axis_x = to_eye.Cross(camera_transform->orientation * Vec3::unitY);
             axis_y = to_eye.Cross(axis_x);
             break;
 
