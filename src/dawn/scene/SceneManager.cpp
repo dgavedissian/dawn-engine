@@ -45,9 +45,9 @@ Entity& SceneManager::createEntity(EntityType type, const Position& p, const Qua
                                    Entity* parent) {
     Entity& e = createEntity(type);
     if (parent) {
-        e.addComponent<Transform>(p, o, parent->transform());
+        e.addComponent<TransformComponent>(p, o, parent->transform());
     } else {
-        e.addComponent<Transform>(p, o, nullptr);
+        e.addComponent<TransformComponent>(p, o, nullptr);
     }
     return e;
 }

@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "scene/Position.h"
+#include "core/Position.h"
 #include "scene/System.h"
 #include "input/Input.h"
 

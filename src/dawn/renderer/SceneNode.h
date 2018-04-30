@@ -9,7 +9,7 @@
 #include "renderer/Renderable.h"
 
 #include "scene/Component.h"
-#include "scene/Transform.h"
+#include "scene/TransformComponent.h"
 
 namespace dw {
 class DW_API SceneNode {
@@ -31,8 +31,8 @@ public:
     void addChild(SharedPtr<SceneNode> child);
 
     /// Calls renderable_->draw(...) on renderable renders children.
-    void drawSceneGraph(Renderer* renderer, uint view, Transform* camera, const Mat4& model_matrix,
-                        const Mat4& view_projection_matrix);
+    void drawSceneGraph(Renderer* renderer, uint view, TransformComponent* camera,
+                        const Mat4& model_matrix, const Mat4& view_projection_matrix);
 
     /// Gets the renderable
     Renderable* renderable() const;

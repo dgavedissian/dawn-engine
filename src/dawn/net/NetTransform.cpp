@@ -9,12 +9,12 @@
 
 namespace dw {
 NetTransformSyncSystem::NetTransformSyncSystem(Context* context) : System(context) {
-    supportsComponents<Transform, NetTransform, NetData>();
+    supportsComponents<TransformComponent, NetTransform, NetData>();
 }
 
 void NetTransformSyncSystem::processEntity(Entity& entity, float dt) {
     NetRole role = entity.component<NetData>()->role();
-    Transform& transform = *entity.component<Transform>();
+    TransformComponent& transform = *entity.component<TransformComponent>();
     NetTransformState& net_state = entity.component<NetTransform>()->transform_state;
     RigidBody* rigid_body = entity.component<RigidBody>();
 

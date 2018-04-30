@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
-#include "scene/Transform.h"
+#include "scene/TransformComponent.h"
 #include "net/NetData.h"
 #include "net/NetTransform.h"
 #include "ShipEngines.h"
@@ -252,11 +252,11 @@ Vec3 ShipEngines::currentRotationalPower() {
 }
 
 ShipEngineSystem::ShipEngineSystem(Context* ctx) : System(ctx) {
-    supportsComponents<Transform, ShipEngines>();
+    supportsComponents<TransformComponent, ShipEngines>();
 }
 
 void ShipEngineSystem::processEntity(Entity& entity, float dt) {
-    auto& transform = *entity.component<Transform>();
+    auto& transform = *entity.component<TransformComponent>();
     auto& ship_engines = *entity.component<ShipEngines>();
 
     auto& engines = ship_engines.engine_data_;

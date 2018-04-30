@@ -7,7 +7,7 @@
 
 namespace dw {
 VelocitySystem::VelocitySystem(Context* ctx) : System(ctx) {
-    supportsComponents<Velocity, Transform>();
+    supportsComponents<Velocity, TransformComponent>();
 }
 
 void VelocitySystem::processEntity(Entity& e, float dt) {

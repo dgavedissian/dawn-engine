@@ -9,7 +9,7 @@
 #include "core/io/OutputStream.h"
 #include "scene/Component.h"
 #include "scene/System.h"
-#include "scene/Position.h"
+#include "core/Position.h"
 #include "net/NetData.h"
 
 namespace dw {

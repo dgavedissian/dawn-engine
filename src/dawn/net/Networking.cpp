@@ -352,8 +352,7 @@ void Networking::clientUpdate(float dt) {
                         entity->component<NetData>()->role_ = role;
                         entity->component<NetData>()->remote_role_ = NetRole::Authority;
                         log().info("Created replicated entity %d at %d %d %d", entity_id,
-                                   entity->transform()->position.x,
-                                   entity->transform()->position.y,
+                                   entity->transform()->position.x, entity->transform()->position.y,
                                    entity->transform()->position.z);
 
                         // If any spawn requests are waiting for an entity to be created,

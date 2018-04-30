@@ -25,7 +25,7 @@ public:
     void setParticleSize(u32 particle_id, const Vec2& size);
     void setParticleDirection(u32 particle_id, const Vec3& direction);
 
-    void draw(Renderer* renderer, uint view, Transform* camera, const Mat4&,
+    void draw(Renderer* renderer, uint view, TransformComponent* camera, const Mat4&,
               const Mat4& view_projection_matrix) override;
 
 private:
@@ -48,8 +48,8 @@ private:
     SharedPtr<VertexBuffer> vb_;
     SharedPtr<IndexBuffer> ib_;
 
-    void update(Transform* camera_transform);
-    void calculateAxes(Transform* camera_transform, const ParticleData& data, Vec3& axis_x,
+    void update(TransformComponent* camera_transform);
+    void calculateAxes(TransformComponent* camera_transform, const ParticleData& data, Vec3& axis_x,
                        Vec3& axis_y);
 };
 }  // namespace dw

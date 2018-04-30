@@ -55,7 +55,7 @@ void SceneNode::addChild(SharedPtr<SceneNode> child) {
     children_.push_back(child);
 }
 
-void SceneNode::drawSceneGraph(Renderer* renderer, uint view, Transform* camera,
+void SceneNode::drawSceneGraph(Renderer* renderer, uint view, TransformComponent* camera,
                                const Mat4& model_matrix, const Mat4& view_projection_matrix) {
     Mat4 world_model_matrix = model_matrix * local_offset_;
     if (renderable_) {

@@ -10,7 +10,7 @@
 
 namespace dw {
 namespace {
-btTransform toBulletTransform(Transform& xform) {
+btTransform toBulletTransform(TransformComponent& xform) {
     btQuaternion quat{xform.orientation.x, xform.orientation.y, xform.orientation.z,
                       xform.orientation.w};
     return btTransform(
@@ -18,7 +18,7 @@ btTransform toBulletTransform(Transform& xform) {
                static_cast<btScalar>(xform.position.z)});
 }
 
-void fromBulletTransform(const btTransform& source, Transform& dest) {
+void fromBulletTransform(const btTransform& source, TransformComponent& dest) {
     btQuaternion rotation;
     source.getBasis().getRotation(rotation);
     dest.position =
@@ -116,11 +116,11 @@ void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
 }
 
 PhysicsScene::PhysicsComponentSystem::PhysicsComponentSystem(Context* context) : System(context) {
-    supportsComponents<Transform, RigidBody>();
+    supportsComponents<TransformComponent, RigidBody>();
 }
 
 void PhysicsScene::PhysicsComponentSystem::processEntity(Entity& entity, float) {
-    auto t = entity.component<Transform>();
+    auto t = entity.component<TransformComponent>();
     auto rb = entity.component<RigidBody>()->rigid_body_.get();
     fromBulletTransform(rb->getWorldTransform(), *t);
 }

@@ -7,15 +7,15 @@
 #include "renderer/Renderable.h"
 #include "renderer/SceneNode.h"
 #include "scene/SceneManager.h"
-#include "scene/Transform.h"
+#include "scene/TransformComponent.h"
 #include "scene/PhysicsScene.h"
 #include "scene/Velocity.h"
 #include "net/NetTransform.h"
 
 namespace dw {
 namespace {
-Mat4 deriveTransform(Transform* transform, Transform* camera,
-                     HashMap<Transform*, Mat4>& transform_cache) {
+Mat4 deriveTransform(TransformComponent* transform, TransformComponent* camera,
+                     HashMap<TransformComponent*, Mat4>& transform_cache) {
     // If this world transform hasn't been cached yet.
     auto cached_transform = transform_cache.find(transform);
     if (cached_transform == transform_cache.end()) {
@@ -64,7 +64,7 @@ rhi::Renderer* Renderer::rhi() const {
 }
 
 Renderer::EntityRenderer::EntityRenderer(Context* context) : System{context} {
-    supportsComponents<RenderableComponent, Transform>();
+    supportsComponents<RenderableComponent, TransformComponent>();
     executesAfter<CameraEntitySystem, NetTransformSyncSystem>();
 }
 
@@ -103,7 +103,7 @@ void Renderer::EntityRenderer::render(float interpolation) {
 }
 
 Renderer::CameraEntitySystem::CameraEntitySystem(Context* context) : System{context} {
-    supportsComponents<Camera, Transform>();
+    supportsComponents<Camera, TransformComponent>();
     executesAfter<PhysicsScene::PhysicsComponentSystem>();
 }
 

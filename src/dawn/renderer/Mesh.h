@@ -21,7 +21,7 @@ public:
     bool beginLoad(const String& asset_name, InputStream& src) override;
     void endLoad() override;
 
-    void draw(Renderer* renderer, uint view, Transform* camera, const Mat4& model_matrix,
+    void draw(Renderer* renderer, uint view, TransformComponent* camera, const Mat4& model_matrix,
               const Mat4& view_projection_matrix) override;
 
 private:

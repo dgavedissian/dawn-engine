@@ -19,8 +19,8 @@ void ShipCameraController::update(float dt) {
     if (!possessed_ || !followed_) {
         return;
     }
-    Transform* possessed_transform = possessed_->transform();
-    Transform* followed_transform = followed_->transform();
+    TransformComponent* possessed_transform = possessed_->transform();
+    TransformComponent* followed_transform = followed_->transform();
     if (!possessed_transform || !followed_transform) {
         return;
     }

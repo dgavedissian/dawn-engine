@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "scene/Position.h"
+#include "core/Position.h"
 
 namespace dw {
 class DW_API InputStream {

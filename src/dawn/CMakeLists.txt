@@ -59,6 +59,8 @@ set(SOURCE_FILES
     core/Object.cpp
     core/Object.h
     core/Option.h
+    core/Position.cpp
+    core/Position.h
     core/Preprocessor.h
     core/StringUtils.cpp
     core/StringUtils.h
@@ -127,6 +129,8 @@ set(SOURCE_FILES
     renderer/StbImage.h
     renderer/Texture.cpp
     renderer/Texture.h
+    renderer/Transform.cpp
+    renderer/Transform.h
     renderer/TriangleBuffer.cpp
     renderer/TriangleBuffer.h
     renderer/VertexBuffer.cpp
@@ -144,14 +148,12 @@ set(SOURCE_FILES
     scene/Entity.h
     scene/PhysicsScene.cpp
     scene/PhysicsScene.h
-    scene/Position.cpp
-    scene/Position.h
     scene/SceneManager.cpp
     scene/SceneManager.h
     scene/System.cpp
     scene/System.h
-    scene/Transform.cpp
-    scene/Transform.h
+        scene/TransformComponent.cpp
+        scene/TransformComponent.h
     scene/Velocity.h
     scene/VelocitySystem.cpp
     scene/VelocitySystem.h

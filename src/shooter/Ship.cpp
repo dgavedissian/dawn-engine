@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
-#include "scene/Transform.h"
+#include "scene/TransformComponent.h"
 #include "net/NetData.h"
 #include "net/NetTransform.h"
 #include "Ship.h"
@@ -31,48 +31,49 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
 
     // Create ship entity.
     auto sm = module<SceneManager>();
-    ship_entity_ = &sm->createEntity(Hash("Ship"), reserved_entity_id)
-                        .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
-                        .addComponent<RenderableComponent>(renderable)
-                        .addComponent<ShipEngines>(
-                            context(),
-                            Vector<ShipEngineData>{// 4 on back.
-                                                   {{0.0f, 0.0f, -400.0f}, {5.0f, 0.0f, 15.0f}},
-                                                   {{0.0f, 0.0f, -400.0f}, {3.0f, 0.0f, 15.0f}},
-                                                   {{0.0f, 0.0f, -400.0f}, {-3.0f, 0.0f, 15.0f}},
-                                                   {{0.0f, 0.0f, -400.0f}, {-5.0f, 0.0f, 15.0f}},
-                                                   // 2 on front.
-                                                   {{0.0f, 0.0f, 400.0f}, {5.0f, 0.0f, -12.0f}},
-                                                   {{0.0f, 0.0f, 400.0f}, {-5.0f, 0.0f, -12.0f}},
-                                                   // 2 on each side
-                                                   {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, 8.0f}},
-                                                   {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, -8.0f}},
-                                                   {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, 8.0f}},
-                                                   {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, -8.0f}},
-                                                   // 2 above and below
-                                                   {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, 8.0f}},
-                                                   {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, -8.0f}},
-                                                   {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, 8.0f}},
-                                                   {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, -8.0f}}},
-                            Vector<ShipEngineData>{// 4 on right, 4 on left
-                                                   {{-35.0f, 0.0f, 0.0f}, {5.0f, 2.0f, 10.0f}},
-                                                   {{-35.0f, 0.0f, 0.0f}, {5.0f, -2.0f, 10.0f}},
-                                                   {{-35.0f, 0.0f, 0.0f}, {5.0f, 2.0f, -10.0f}},
-                                                   {{-35.0f, 0.0f, 0.0f}, {5.0f, -2.0f, -10.0f}},
-                                                   {{35.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, 10.0f}},
-                                                   {{35.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, 10.0f}},
-                                                   {{35.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, -10.0f}},
-                                                   {{35.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, -10.0f}},
+    ship_entity_ =
+        &sm->createEntity(Hash("Ship"), reserved_entity_id)
+             .addComponent<TransformComponent>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
+             .addComponent<RenderableComponent>(renderable)
+             .addComponent<ShipEngines>(
+                 context(),
+                 Vector<ShipEngineData>{// 4 on back.
+                                        {{0.0f, 0.0f, -400.0f}, {5.0f, 0.0f, 15.0f}},
+                                        {{0.0f, 0.0f, -400.0f}, {3.0f, 0.0f, 15.0f}},
+                                        {{0.0f, 0.0f, -400.0f}, {-3.0f, 0.0f, 15.0f}},
+                                        {{0.0f, 0.0f, -400.0f}, {-5.0f, 0.0f, 15.0f}},
+                                        // 2 on front.
+                                        {{0.0f, 0.0f, 400.0f}, {5.0f, 0.0f, -12.0f}},
+                                        {{0.0f, 0.0f, 400.0f}, {-5.0f, 0.0f, -12.0f}},
+                                        // 2 on each side
+                                        {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, 8.0f}},
+                                        {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, -8.0f}},
+                                        {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, 8.0f}},
+                                        {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, -8.0f}},
+                                        // 2 above and below
+                                        {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, 8.0f}},
+                                        {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, -8.0f}},
+                                        {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, 8.0f}},
+                                        {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, -8.0f}}},
+                 Vector<ShipEngineData>{// 4 on right, 4 on left
+                                        {{-35.0f, 0.0f, 0.0f}, {5.0f, 2.0f, 10.0f}},
+                                        {{-35.0f, 0.0f, 0.0f}, {5.0f, -2.0f, 10.0f}},
+                                        {{-35.0f, 0.0f, 0.0f}, {5.0f, 2.0f, -10.0f}},
+                                        {{-35.0f, 0.0f, 0.0f}, {5.0f, -2.0f, -10.0f}},
+                                        {{35.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, 10.0f}},
+                                        {{35.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, 10.0f}},
+                                        {{35.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, -10.0f}},
+                                        {{35.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, -10.0f}},
 
-                                                   // 4 on top, 4 on bottom.
-                                                   {{0.0f, -35.0f, 0.0f}, {2.0f, 5.0f, 10.0f}},
-                                                   {{0.0f, -35.0f, 0.0f}, {-2.0f, 5.0f, 10.0f}},
-                                                   {{0.0f, -35.0f, 0.0f}, {2.0f, 5.0f, -10.0f}},
-                                                   {{0.0f, -35.0f, 0.0f}, {-2.0f, 5.0f, -10.0f}},
-                                                   {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
-                                                   {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
-                                                   {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
-                                                   {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
+                                        // 4 on top, 4 on bottom.
+                                        {{0.0f, -35.0f, 0.0f}, {2.0f, 5.0f, 10.0f}},
+                                        {{0.0f, -35.0f, 0.0f}, {-2.0f, 5.0f, 10.0f}},
+                                        {{0.0f, -35.0f, 0.0f}, {2.0f, 5.0f, -10.0f}},
+                                        {{0.0f, -35.0f, 0.0f}, {-2.0f, 5.0f, -10.0f}},
+                                        {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
+                                        {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
+                                        {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
+                                        {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
     auto node = ship_entity_->component<RenderableComponent>()->node;
     node->addChild(makeShared<SceneNode>(sphere, Vec3{8.0f, 0.0f, 0.0f}, Quat::identity));
     node->addChild(makeShared<SceneNode>(sphere, Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity,

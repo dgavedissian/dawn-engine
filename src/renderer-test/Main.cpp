@@ -5,7 +5,7 @@
 #include "DawnEngine.h"
 #include "renderer/MeshBuilder.h"
 #include "core/Timer.h"
-#include "scene/Transform.h"
+#include "scene/TransformComponent.h"
 
 using namespace dw;
 

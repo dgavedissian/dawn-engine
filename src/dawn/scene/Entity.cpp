@@ -25,7 +25,7 @@ EntityType Entity::typeId() const {
     return type_;
 }
 
-Transform* Entity::transform() const {
-    return component<Transform>();
+TransformComponent* Entity::transform() const {
+    return component<TransformComponent>();
 }
 }  // namespace dw

@@ -7,7 +7,7 @@
 #include "renderer/Camera.h"
 #include "renderer/rhi/Renderer.h"
 #include "scene/System.h"
-#include "scene/Transform.h"
+#include "scene/TransformComponent.h"
 
 namespace dw {
 using RenderOperation = Function<void(float)>;
@@ -47,7 +47,7 @@ private:
         void render(float interpolation);
 
     private:
-        HashMap<Transform*, Mat4> world_transform_cache_;
+        HashMap<TransformComponent*, Mat4> world_transform_cache_;
         Vector<RenderOperation> render_operations_;
     };
 
@@ -63,7 +63,7 @@ private:
 
         struct CameraState {
             uint view;
-            Transform* transform_component;
+            TransformComponent* transform_component;
             Mat4 projection_matrix;
         };
         Vector<CameraState> cameras;

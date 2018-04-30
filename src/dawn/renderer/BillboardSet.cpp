@@ -113,7 +113,7 @@ void BillboardSet::setParticleDirection(u32 particle_id, const Vec3& direction) 
     particles_[particle_id].direction = direction.Normalized();
 }
 
-void BillboardSet::draw(Renderer* renderer, uint view, Transform* camera, const Mat4&,
+void BillboardSet::draw(Renderer* renderer, uint view, TransformComponent* camera, const Mat4&,
                         const Mat4& view_projection_matrix) {
     update(camera);
 
@@ -129,7 +129,7 @@ void BillboardSet::draw(Renderer* renderer, uint view, Transform* camera, const 
     rhi->submit(view, material_->program()->internalHandle(), particles_.size() * 6);
 }
 
-void BillboardSet::update(Transform* camera_transform) {
+void BillboardSet::update(TransformComponent* camera_transform) {
     // Generate vertex data.
     for (auto& p : particles_) {
         Vec3 axis_x, axis_y;
@@ -155,7 +155,7 @@ void BillboardSet::update(Transform* camera_transform) {
     vertex_data_.clear();
 }
 
-void BillboardSet::calculateAxes(Transform* camera_transform, const ParticleData& data,
+void BillboardSet::calculateAxes(TransformComponent* camera_transform, const ParticleData& data,
                                  Vec3& axis_x, Vec3& axis_y) {
     Vec3 to_eye = camera_transform->position.getRelativeTo(Position(data.position)).Normalized();
 

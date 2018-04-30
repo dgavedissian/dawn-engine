@@ -123,7 +123,7 @@ bool Mesh::beginLoad(const String& asset_name, InputStream& is) {
 void Mesh::endLoad() {
 }
 
-void Mesh::draw(Renderer* renderer, uint view, Transform* camera, const Mat4& model_matrix,
+void Mesh::draw(Renderer* renderer, uint view, TransformComponent* camera, const Mat4& model_matrix,
                 const Mat4& view_projection_matrix) {
     u32 vertex_count = index_buffer_->indexCount();
     auto rhi = renderer->rhi();

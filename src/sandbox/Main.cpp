@@ -9,7 +9,7 @@
 #include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
 #include "scene/CameraController.h"
-#include "scene/Transform.h"
+#include "scene/TransformComponent.h"
 #include "scene/SceneManager.h"
 #include "renderer/BillboardSet.h"
 #include "renderer/Mesh.h"

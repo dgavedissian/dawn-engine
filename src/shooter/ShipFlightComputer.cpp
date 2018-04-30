@@ -1,5 +1,5 @@
 #include "DawnEngine.h"
-#include "scene/Transform.h"
+#include "scene/TransformComponent.h"
 #include "net/NetData.h"
 #include "net/NetTransform.h"
 #include "ShipFlightComputer.h"
