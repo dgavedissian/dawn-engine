@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/rhi/Renderer.h"
+#include "renderer/rhi/RHIRenderer.h"
 
 namespace dw {
 class DW_API IndexBuffer : public Object {

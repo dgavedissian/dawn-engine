@@ -35,7 +35,7 @@ Mat4 deriveTransform(Transform* transform, Transform* camera,
 }  // namespace
 
 Renderer::Renderer(Context* ctx) : Module(ctx) {
-    rhi_ = makeUnique<rhi::Renderer>(ctx);
+    rhi_ = makeUnique<rhi::RHIRenderer>(ctx);
     entity_renderer_ = module<SceneManager>()->addSystem<EntityRenderer>();
     camera_entity_system_ = module<SceneManager>()->addSystem<CameraEntitySystem>();
 }
@@ -58,7 +58,7 @@ void Renderer::frame() {
     rhi_->frame();
 }
 
-rhi::Renderer* Renderer::rhi() const {
+rhi::RHIRenderer* Renderer::rhi() const {
     return rhi_.get();
 }
 

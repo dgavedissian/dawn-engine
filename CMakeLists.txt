@@ -21,7 +21,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # Limit configuration types
 set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug)
 
-
 ###############################################
 # Utilities
 ###############################################
@@ -43,7 +42,23 @@ endif(MSVC)
 # Helpful functions
 ###############################################
 
-function(add_game GAME_NAME SOURCE_FILES)
+function(add_dawn_executable GAME_NAME)
+    cmake_parse_arguments(
+        TARGET # prefix of output variables
+        "" # list of names of the boolean arguments (only defined ones will be true)
+        "" # list of names of mono-valued arguments
+        "SRCS;RESOURCE_PKGS" # list of names of multi-valued arguments (output variables are lists)
+        ${ARGN} # arguments of the function to parse, here we take the all original ones
+    )
+
+    # Append base resource package.
+    # TODO(David): Support base dir when executing this script from _outside_ this CMake file.
+    set(TARGET_RESOURCE_PKGS ${CMAKE_SOURCE_DIR}/media/base ${TARGET_RESOURCE_PKGS})
+
+    message(STATUS "add_dawn_executable: Adding ${GAME_NAME}.")
+    message(STATUS "add_dawn_executable:   Sources: ${TARGET_SRCS}")
+    message(STATUS "add_dawn_executable:   Resources: ${TARGET_RESOURCE_PKGS}")
+
     set(OUT_DIR ${CMAKE_SOURCE_DIR}/bin)
 
     # Executable type
@@ -54,7 +69,7 @@ function(add_game GAME_NAME SOURCE_FILES)
     endif()
 
     # Add executable
-    add_executable(${GAME_NAME} ${TYPE} ${SOURCE_FILES})
+    add_executable(${GAME_NAME} ${TYPE} ${TARGET_SRCS})
 
     # Compile in C++14 mode
     enable_cpp14(${GAME_NAME})
@@ -68,8 +83,22 @@ function(add_game GAME_NAME SOURCE_FILES)
 
     # Add libraries
     target_link_libraries(${GAME_NAME} DwCore)
+
     set_output_dir(${GAME_NAME} ${OUT_DIR})
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
+    if(EMSCRIPTEN)
+        set_target_properties(${GAME_NAME} PROPERTIES SUFFIX .html)
+        set(link_flags "-s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=256MB")
+        if(DW_ENABLE_WASM)
+            set(link_flags ${LINK_FLAGS} -s WASM=1)
+        endif()
+        # Include resources.
+        foreach (resource ${TARGET_RESOURCE_PKGS})
+            get_filename_component(resource_name ${resource} NAME)
+            set(link_flags "${link_flags} --preload-file ${resource}@/media/${resource_name}")
+        endforeach ()
+        set_target_properties(${GAME_NAME} PROPERTIES LINK_FLAGS ${link_flags})
+    endif()
 
     # Currently, Dawn can only be linked dynamically
     #set_target_properties(${GAME_NAME} PROPERTIES COMPILE_FLAGS "-DDW_DLL")

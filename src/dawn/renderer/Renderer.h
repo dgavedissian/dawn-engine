@@ -5,7 +5,7 @@
 #pragma once
 
 #include "renderer/Camera.h"
-#include "renderer/rhi/Renderer.h"
+#include "renderer/rhi/RHIRenderer.h"
 #include "scene/System.h"
 #include "scene/Transform.h"
 
@@ -27,10 +27,10 @@ public:
     void frame();
 
     /// Get the renderer hardware interface.
-    rhi::Renderer* rhi() const;
+    rhi::RHIRenderer* rhi() const;
 
 private:
-    UniquePtr<rhi::Renderer> rhi_;
+    UniquePtr<rhi::RHIRenderer> rhi_;
 
     class EntityRenderer : public System {
     public:

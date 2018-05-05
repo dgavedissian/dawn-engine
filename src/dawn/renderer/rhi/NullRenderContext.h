@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "Renderer.h"
+#include "RHIRenderer.h"
 
 namespace dw {
 namespace rhi {

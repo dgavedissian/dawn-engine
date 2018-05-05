@@ -37,15 +37,15 @@
 #include <type_traits>
 
 //
-// External Libraries
+// Platform headers
 //
+#ifdef DW_EMSCRIPTEN
+#include <emscripten.h>
+#endif
 
 //
-// Bundled Libraries
+// External libraries
 //
-
-// imgui
-//#include "imgui.h"
 
 // Re-enable warnings
 #if defined(DW_MSVC)

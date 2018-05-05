@@ -122,11 +122,16 @@ void Engine::setup(int argc, char** argv) {
 
     // Create the engine subsystems.
     context_->addModule<SceneManager>();
+
     auto* renderer = context_->addModule<Renderer>();
     if (!headless_) {
+        bool use_multithreading = true;
+#ifdef DW_EMSCRIPTEN
+        use_multithreading = false;
+#endif
         renderer->rhi()->init(
             rhi::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
-            context_->config().at("window_height").get<u16>(), window_title, true);
+            context_->config().at("window_height").get<u16>(), window_title, use_multithreading);
         context_->addModule<Input>();
     } else {
         renderer->rhi()->init(
@@ -207,7 +212,7 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
     float time_per_update = 1.0f / 60.0f;
     time::TimePoint previous_time = time::beginTiming();
     double accumulated_time = 0.0;
-    while (running_) {
+    auto main_loop = [&] {
         time::TimePoint current_time = time::beginTiming();
         frame_time_ = time::elapsed(previous_time, current_time);
         previous_time = current_time;
@@ -229,7 +234,18 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         render_callback(interpolation);
         postRender();
         context_->module<Renderer>()->frame();
+    };
+
+#ifdef DW_EMSCRIPTEN
+    // void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infinite_loop);
+    emscripten_set_main_loop_arg([](void* arg) {
+        (*reinterpret_cast<decltype(main_loop)*>(arg))();
+    }, reinterpret_cast<void*>(&main_loop), 0, 1);
+#else
+    while (running_) {
+        main_loop();
     }
+#endif
 
     context_->module<GameplayModule>()->setGameMode(nullptr);
 }
@@ -340,6 +356,7 @@ String Engine::basePath() const {
     str_path += "../../../";
     return str_path;
 #elif DW_PLATFORM == DW_LINUX
+#ifndef DW_EMSCRIPTEN
     String executable_path;
 
     // Is a Linux-style /proc filesystem available?
@@ -358,6 +375,10 @@ String Engine::basePath() const {
     auto len = executable_path.find_last_of('/');
     executable_path = executable_path.substr(0, len);
     return executable_path;
+#else
+    // Use root directory for emscripten.
+    return "/";
+#endif
 #endif
 }
 

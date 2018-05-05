@@ -31,7 +31,7 @@ public:
     rhi::ProgramHandle internalHandle() const;
 
 private:
-    rhi::Renderer* r;
+    rhi::RHIRenderer* r;
     SharedPtr<Shader> vertex_shader_;
     SharedPtr<Shader> fragment_shader_;
     Array<SharedPtr<Texture>, 8> texture_units_;

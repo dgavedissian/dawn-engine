@@ -11,6 +11,20 @@
 #include <locale>
 #include <codecvt>
 
+/**
+ * GLRenderContext. A render context implementation which targets GL 3.3 on desktop platforms, GLES 3.0 on mobile
+ * platforms (Apple A7 and above (iPhone 5s and above), Android 4.3 and above), and WebGL 2 on HTML5.
+ */
+
+#define DW_GL_330 1
+#define DW_GLES_300 2
+
+#ifndef DW_EMSCRIPTEN
+#define DW_GL_VERSION DW_GL_330
+#else
+#define DW_GL_VERSION DW_GLES_300
+#endif
+
 #define GL_CHECK() __CHECK(__FILE__, __LINE__)
 #define __CHECK(FILE, LINE)                                                        \
     {                                                                              \
@@ -317,21 +331,33 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
 
     // Initialise GLFW.
     log().info("GLFW Version: %s", glfwGetVersionString());
+#if DW_PLATFORM == DW_MACOS
+    glfwInitHint(GLFW_COCOA_CHDIR_RESOURCES, GLFW_FALSE);
+#endif
     if (!glfwInit()) {
         // TODO: report error correctly.
         throw Exception{"Failed to initialise GLFW."};
     }
+#if DW_GL_VERSION == DW_GL_330
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+#elif !defined(DW_EMSCRIPTEN)
+#error Unsupported: GLES 3.0 on non Web platform.
+#endif
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     // Select monitor.
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
     // Get DPI settings.
+#ifndef DW_EMSCRIPTEN
     glfwGetMonitorContentScale(monitor, &window_scale_.x, &window_scale_.y);
+#else
+    // Unsupported in emscripten.
+    window_scale_ = {1.0f, 1.0f};
+#endif
 
     // Create the window.
     window_ = glfwCreateWindow(width * window_scale_.x, height * window_scale_.y, title.c_str(),
@@ -403,11 +429,14 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
             Vec2(static_cast<float>(xoffset), static_cast<float>(yoffset)));
     });
 
-    // Initialise GL extensions.
-    if (gl3wInit() != 0) {
+    // Note: Emscripten statically links all GL functions.
+#ifndef DW_EMSCRIPTEN
+    // Initialise GL function pointers.
+    if (!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress)) {
         // TODO: Handle error properly.
-        throw Exception{"gl3wInit failed."};
+        throw Exception{"gladLoadGLES2Loader failed."};
     }
+#endif
 
     // Print GL information.
     log().info("OpenGL: %s - GLSL: %s", glGetString(GL_VERSION),
@@ -535,8 +564,8 @@ bool GLRenderContext::frame(const Frame* frame) {
                 glFrontFace(current->cull_front_face == CullFrontFace::CCW ? GL_CCW : GL_CW);
             }
             if (!previous || previous->polygon_mode != current->polygon_mode) {
-                glPolygonMode(GL_FRONT_AND_BACK,
-                              current->polygon_mode == PolygonMode::Fill ? GL_FILL : GL_LINE);
+                /*glPolygonMode(GL_FRONT_AND_BACK,
+                              current->polygon_mode == PolygonMode::Fill ? GL_FILL : GL_LINE);*/
             }
             if (!previous || previous->depth_enabled != current->depth_enabled) {
                 if (current->depth_enabled) {
@@ -767,20 +796,28 @@ void GLRenderContext::operator()(const cmd::CreateShader& c) {
 
     // Compile to GLSL, ready to give to GL driver.
     spirv_cross::CompilerGLSL::Options options;
+#if DW_GL_VERSION == DW_GL_330
     options.version = 330;
     options.es = false;
+#elif DW_GL_VERSION == DW_GLES_300
+    options.version = 300;
+    options.es = true;
+#else
+#error "Unsupported DW_GL_VERSION"
+#endif
     glsl_out.set_options(options);
     String source = glsl_out.compile();
 
-    // Postprocess the GLSL to remove the 4.2 extension, which doesn't exist on macOS.
+    // Postprocess the GLSL to remove a GL 4.2 extension, which doesn't exist on macOS.
+#if DW_PLATFORM == DW_MACOS
     source = str::replace(source, "#extension GL_ARB_shading_language_420pack : require",
                           "#extension GL_ARB_shading_language_420pack : disable");
-    // log().debug("Decompiled GLSL from SPIR-V: %s", source);
+#endif
+    //log().debug("Decompiled GLSL from SPIR-V: %s", source);
 
     // Compile shader.
     static HashMap<ShaderStage, GLenum> shader_type_map = {
         {ShaderStage::Vertex, GL_VERTEX_SHADER},
-        {ShaderStage::Geometry, GL_GEOMETRY_SHADER},
         {ShaderStage::Fragment, GL_FRAGMENT_SHADER}};
     GLuint shader = glCreateShader(shader_type_map.at(c.stage));
     if (shader == 0) {

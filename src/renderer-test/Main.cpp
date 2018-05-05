@@ -80,7 +80,7 @@ public:                                                                         
     u16 height() const {                                                            \
         return context()->config().at("window_height").get<u16>();                  \
     }                                                                               \
-    rhi::Renderer* r;                                                               \
+    rhi::RHIRenderer* r;                                                            \
     const Engine* engine_
 #define TEST_IMPLEMENT_MAIN(test_name) DW_IMPLEMENT_MAIN(Example<TEST_CLASS_NAME(test_name)>)
 
@@ -93,7 +93,7 @@ Mat4 createProjMatrix(float n, float f, float fov_y, float aspect) {
     return Mat4::OpenGLPerspProjRH(n, f, h, v);
 }
 
-uint createFullscreenQuad(rhi::Renderer* r, rhi::VertexBufferHandle& vb) {
+uint createFullscreenQuad(rhi::RHIRenderer* r, rhi::VertexBufferHandle& vb) {
     // clang-format off
     float vertices[] = {
     	// Position   | UV
@@ -480,7 +480,7 @@ TEST_CLASS(DeferredShading) {
         }
 
     private:
-        rhi::Renderer* r;
+        rhi::RHIRenderer* r;
         SharedPtr<CustomMeshRenderable> sphere_;
         rhi::ProgramHandle program_;
 

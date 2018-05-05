@@ -45,8 +45,14 @@ ResourceCache::~ResourceCache() {
 }
 
 void ResourceCache::addPath(const String& package, const Path& path) {
+#ifndef DW_EMSCRIPTEN
+    const auto& real_path = path;
+#else
+    // TODO(David): Don't hard code resource paths in this way.
+    const auto& real_path = "/media/" + package;
+#endif
     resource_packages_.emplace(
-        makePair(package, makeUnique<ResourceFilesystemPath>(context(), path)));
+        makePair(package, makeUnique<ResourceFilesystemPath>(context(), real_path)));
 }
 
 void ResourceCache::addPackage(const String& package, UniquePtr<ResourcePackage> file) {
