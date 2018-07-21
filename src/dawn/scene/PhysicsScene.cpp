@@ -22,7 +22,7 @@ void fromBulletTransform(const btTransform& source, TransformComponent& dest) {
     btQuaternion rotation;
     source.getBasis().getRotation(rotation);
     dest.position =
-        Position{source.getOrigin().x(), source.getOrigin().y(), source.getOrigin().z()};
+        LargePosition{source.getOrigin().x(), source.getOrigin().y(), source.getOrigin().z()};
     dest.orientation = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
 }
 }  // namespace
@@ -60,7 +60,7 @@ void PhysicsScene::update(float dt, Camera_OLD*) {
     // mDebugDrawer->step();
 }
 
-bool PhysicsScene::rayQuery(const Position& start, const Position& end, Camera_OLD* camera,
+bool PhysicsScene::rayQuery(const LargePosition& start, const LargePosition& end, Camera_OLD* camera,
                             PhysicsRaycastResult& result) {
     // Make sure this is done in camera-space
     btVector3 start_cs = start.toCameraSpace(camera);
@@ -73,7 +73,7 @@ bool PhysicsScene::rayQuery(const Position& start, const Position& end, Camera_O
         world_->rayTest(start_cs, end_cs, raycast);
 
         // Fill the result structure
-        result.position = Position::fromCameraSpace(camera, raycast.m_hitPointWorld);
+        result.position = LargePosition::fromCameraSpace(camera, raycast.m_hitPointWorld);
         result.normal = raycast.m_hitNormalWorld;
         result.hit = raycast.hasHit();
 

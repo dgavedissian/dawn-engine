@@ -33,7 +33,7 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
     auto sm = module<SceneManager>();
     ship_entity_ =
         &sm->createEntity(Hash("Ship"), reserved_entity_id)
-             .addComponent<TransformComponent>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
+             .addComponent<TransformComponent>(LargePosition{0.0f, 0.0f, 0.0f}, Quat::identity)
              .addComponent<RenderableComponent>(renderable)
              .addComponent<ShipEngines>(
                  context(),

@@ -104,7 +104,7 @@ public:
         setupTerrainRenderable();
         custom_mesh_renderable_->setMaterial(material);
 
-        planet_ = &universe->createEntity(Hash("Planet"), Position::origin, Quat::identity)
+        planet_ = &universe->createEntity(Hash("Planet"), LargePosition::origin, Quat::identity)
                        .addComponent<RenderableComponent>(custom_mesh_renderable_);
 
         // Kick off terrain update thread.
@@ -112,8 +112,8 @@ public:
             while (run_update_thread_.load()) {
                 // Calculate offset and update patches.
                 t_input_lock_.lock();
-                Position camera_position = t_camera_position_;
-                Position planet_position = t_planet_position_;
+                LargePosition camera_position = t_camera_position_;
+                LargePosition planet_position = t_planet_position_;
                 t_input_lock_.unlock();
                 updateTerrain(camera_position.getRelativeTo(planet_position));
 
@@ -136,7 +136,7 @@ public:
         terrain_update_thread_.join();
     }
 
-    Position& position() const {
+    LargePosition& position() const {
         return planet_->transform()->position;
     }
 
@@ -175,8 +175,8 @@ private:
 
     // Update thread data.
     // INPUTS
-    Position t_camera_position_;
-    Position t_planet_position_;
+    LargePosition t_camera_position_;
+    LargePosition t_planet_position_;
     Mutex t_input_lock_;
     // OUTPUTS
     Vector<PlanetTerrainPatch::Vertex> t_output_vertices_;
@@ -532,7 +532,7 @@ public:
 
         // Create a camera.
         auto& camera = module<SceneManager>()
-                           ->createEntity(0, Position{0.0f, 0.0f, radius * 2}, Quat::identity)
+                           ->createEntity(0, LargePosition{0.0f, 0.0f, radius * 2}, Quat::identity)
                            .addComponent<Camera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);
         camera_controller->possess(&camera);

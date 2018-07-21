@@ -75,7 +75,7 @@ void Renderer::EntityRenderer::beginProcessing() {
 
 void Renderer::EntityRenderer::processEntity(Entity& entity, float) {
     for (auto camera : module<Renderer>()->camera_entity_system_->cameras) {
-        Mat4 view = camera.transform_component->modelMatrix(Position::origin).Inverted();
+        Mat4 view = camera.transform_component->modelMatrix(LargePosition::origin).Inverted();
         Mat4 model =
             deriveTransform(entity.transform(), camera.transform_component, world_transform_cache_);
         render_operations_.push_back([this, &entity, camera, model, view](float interpolation) {

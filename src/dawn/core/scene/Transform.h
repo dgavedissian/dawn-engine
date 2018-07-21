@@ -8,60 +8,60 @@
 #include "core/io/InputStream.h"
 #include "core/io/OutputStream.h"
 #include "core/math/Defs.h"
-#include "core/Position.h"
+#include "core/scene/LargePosition.h"
 
 namespace dw {
-class LocalTransform;
+class Transform;
 
-class Transform {
+class LargeTransform {
 public:
-    Transform(const Position& p, const Quat& o, const Vec3& s);
+    LargeTransform(const LargePosition& p, const Quat& o, const Vec3& s);
 
     void setRelativeToCamera(bool relative_to_camera);
 
     /// Model matrices only make sense if they're relative to a position.
-    Mat4 modelMatrix(const Position& camera_position) const;
+    Mat4 modelMatrix(const LargePosition& camera_position) const;
 
-    Transform* parent() const;
+    LargeTransform* parent() const;
 
+    void addChild(LargeTransform* child);
     void addChild(Transform* child);
-    void addChild(LocalTransform* child);
 
     // Transform data.
-    Position position;
+    LargePosition position;
     Quat orientation;
     Vec3 scale;
 
 private:
     bool relative_to_camera_;
-    Transform* parent_;
-    Vector<Transform*> children_;
-    Vector<LocalTransform*> lt_children_;
-    byte depth_;
-
-    void detachFromParent();
-
-    friend class LocalTransform;
-};
-
-class LocalTransform {
-public:
-    LocalTransform(const Vec3& p, const Quat& o, const Vec3& s);
-
-    Vec3 position;
-    Quat orientation;
-    Vec3 scale;
-
-    void addChild(LocalTransform* child);
-
-private:
-    LocalTransform* lt_parent_;
-    Transform* t_parent_;
-    Vector<LocalTransform*> children_;
+    LargeTransform* parent_;
+    Vector<LargeTransform*> children_;
+    Vector<Transform*> lt_children_;
     byte depth_;
 
     void detachFromParent();
 
     friend class Transform;
+};
+
+class Transform {
+public:
+    Transform(const Vec3& p, const Quat& o, const Vec3& s);
+
+    Vec3 position;
+    Quat orientation;
+    Vec3 scale;
+
+    void addChild(Transform* child);
+
+private:
+    Transform* lt_parent_;
+    LargeTransform* t_parent_;
+    Vector<Transform*> children_;
+    byte depth_;
+
+    void detachFromParent();
+
+    friend class LargeTransform;
 };
 }  // namespace dw

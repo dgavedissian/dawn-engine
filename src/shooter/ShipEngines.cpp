@@ -269,33 +269,33 @@ void ShipEngineSystem::processEntity(Entity& entity, float dt) {
             float engine_glow_size = 4.0f * engines[i].activity();
             ship_engines.glow_billboards_->setParticlePosition(
                 particle,
-                Vec3{transform.modelMatrix(Position::origin) * Vec4{engines[i].offset(), 1.0f}});
+                Vec3{transform.modelMatrix(LargePosition::origin) * Vec4{engines[i].offset(), 1.0f}});
             ship_engines.glow_billboards_->setParticleSize(particle,
                                                            {engine_glow_size, engine_glow_size});
             ship_engines.trail_billboards_->setParticlePosition(
                 particle,
-                Vec3{transform.modelMatrix(Position::origin) * Vec4{engines[i].offset(), 1.0f}});
+                Vec3{transform.modelMatrix(LargePosition::origin) * Vec4{engines[i].offset(), 1.0f}});
             ship_engines.trail_billboards_->setParticleSize(
                 particle, {engine_glow_size * 0.5f, engine_glow_size * 6.0f});
             ship_engines.trail_billboards_->setParticleDirection(
-                particle, Vec3{transform.modelMatrix(Position::origin) *
+                particle, Vec3{transform.modelMatrix(LargePosition::origin) *
                                Vec4{-engines[i].force().Normalized(), 0.0f}});
         }
         for (size_t i = 0; i < nav_engines.size(); i++) {
             int particle = i + engines.size();
             float engine_glow_size = 2.0f * nav_engines[i].activity();
             ship_engines.glow_billboards_->setParticlePosition(
-                particle, Vec3{transform.modelMatrix(Position::origin) *
+                particle, Vec3{transform.modelMatrix(LargePosition::origin) *
                                Vec4{nav_engines[i].offset(), 1.0f}});
             ship_engines.glow_billboards_->setParticleSize(particle,
                                                            {engine_glow_size, engine_glow_size});
             ship_engines.trail_billboards_->setParticlePosition(
-                particle, Vec3{transform.modelMatrix(Position::origin) *
+                particle, Vec3{transform.modelMatrix(LargePosition::origin) *
                                Vec4{nav_engines[i].offset(), 1.0f}});
             ship_engines.trail_billboards_->setParticleSize(
                 particle, {engine_glow_size * 0.25f, engine_glow_size * 3.0f});
             ship_engines.trail_billboards_->setParticleDirection(
-                particle, Vec3{transform.modelMatrix(Position::origin) *
+                particle, Vec3{transform.modelMatrix(LargePosition::origin) *
                                Vec4{-nav_engines[i].force().Normalized(), 0.0f}});
         }
     }

@@ -9,12 +9,12 @@
 #include "core/io/OutputStream.h"
 #include "scene/Component.h"
 #include "scene/System.h"
-#include "core/Position.h"
+#include "core/scene/LargePosition.h"
 #include "net/NetData.h"
 
 namespace dw {
 struct NetTransformState {
-    Position position;
+    LargePosition position;
     Vec3 velocity;
     Vec3 acceleration;
     Quat orientation;
@@ -22,7 +22,7 @@ struct NetTransformState {
     Vec3 angular_acceleration;
 
     NetTransformState()
-        : position(Position::origin),
+        : position(LargePosition::origin),
           velocity(Vec3::zero),
           acceleration(Vec3::zero),
           orientation(Quat::identity),

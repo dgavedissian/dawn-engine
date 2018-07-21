@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "core/Position.h"
+#include "core/scene/LargePosition.h"
 #include "scene/System.h"
 #include "input/Input.h"
 
@@ -20,7 +20,7 @@ class Camera_OLD;
 // TODO: merge this with RendererRaycastResult
 struct DW_API PhysicsRaycastResult {
     RigidEntity* body;
-    Position position;
+    LargePosition position;
     Vec3 normal;
     bool hit;
 };
@@ -37,7 +37,7 @@ public:
     void update(float dt, Camera_OLD* camera);
 
     // Performs a raycast query
-    bool rayQuery(const Position& start, const Position& end, Camera_OLD* camera,
+    bool rayQuery(const LargePosition& start, const LargePosition& end, Camera_OLD* camera,
                   PhysicsRaycastResult& result);
 
     // System for updating RigidBody components.

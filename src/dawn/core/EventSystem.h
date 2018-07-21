@@ -7,55 +7,6 @@
 #include "core/EventData.h"
 #include "core/Preprocessor.h"
 
-// Event definition generator macro.
-#define DEFINE_EMPTY_EVENT(event_name)         \
-    struct event_name : public dw::EventData { \
-        event_name() = default;                \
-        static dw::EventType typeStatic() {    \
-            return Hash(#event_name);          \
-        }                                      \
-        dw::EventType type() const override {  \
-            return Hash(#event_name);          \
-        }                                      \
-        dw::String name() const override {     \
-            return #event_name;                \
-        }                                      \
-    }
-#define DEFINE_EVENT(event_name, ...)                                                    \
-    struct event_name : public dw::EventData {                                           \
-        event_name(EVENT_CTOR_ARGS(__VA_ARGS__)) : EVENT_INITIALISER_LIST(__VA_ARGS__) { \
-        }                                                                                \
-        static dw::EventType typeStatic() {                                              \
-            return Hash(#event_name);                                                    \
-        }                                                                                \
-        dw::EventType type() const override {                                            \
-            return Hash(#event_name);                                                    \
-        }                                                                                \
-        dw::String name() const override {                                               \
-            return #event_name;                                                          \
-        }                                                                                \
-        EVENT_DATA_FIELDS(__VA_ARGS__)                                                   \
-    }
-#define EVENT_CTOR_ARGS(...) CALL_OVERLOAD(EVENT_CTOR_ARGS, __VA_ARGS__)
-#define EVENT_CTOR_ARGS2(type1, name1) const type1& name1
-#define EVENT_CTOR_ARGS4(type1, name1, type2, name2) const type1 &name1, const type2 &name2
-#define EVENT_CTOR_ARGS6(type1, name1, type2, name2, type3, name3) \
-    const type1 &name1, const type2 &name2, const type3 &name3
-#define EVENT_INITIALISER_LIST(...) CALL_OVERLOAD(EVENT_INITIALISER_LIST, __VA_ARGS__)
-#define EVENT_INITIALISER_LIST2(type1, name1) name1(name1)
-#define EVENT_INITIALISER_LIST4(type1, name1, type2, name2) name1(name1), name2(name2)
-#define EVENT_INITIALISER_LIST6(type1, name1, type2, name2, type3, name3) \
-    name1(name1), name2(name2), name3(name3)
-#define EVENT_DATA_FIELDS(...) CALL_OVERLOAD(EVENT_DATA_FIELDS, __VA_ARGS__)
-#define EVENT_DATA_FIELDS2(type1, name1) type1 name1;
-#define EVENT_DATA_FIELDS4(type1, name1, type2, name2) \
-    type1 name1;                                       \
-    type2 name2;
-#define EVENT_DATA_FIELDS6(type1, name1, type2, name2, type3, name3) \
-    type1 name1;                                                     \
-    type2 name2;                                                     \
-    type3 name3;
-
 namespace dw {
 #define EVENTSYSTEM_NUM_QUEUES 2
 

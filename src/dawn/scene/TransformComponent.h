@@ -8,25 +8,25 @@
 #include "core/io/InputStream.h"
 #include "core/io/OutputStream.h"
 #include "core/math/Defs.h"
-#include "core/Position.h"
+#include "core/scene/LargePosition.h"
 
 namespace dw {
 class TransformComponent : public Component {
 public:
-    TransformComponent(const Position& p, const Quat& o);
-    TransformComponent(const Position& p, const Quat& o, TransformComponent* parent);
+    TransformComponent(const LargePosition& p, const Quat& o);
+    TransformComponent(const LargePosition& p, const Quat& o, TransformComponent* parent);
 
     void setRelativeToCamera(bool relative_to_camera);
 
     /// Model matrices only make sense if they're relative to a position.
-    Mat4 modelMatrix(const Position& camera_position) const;
+    Mat4 modelMatrix(const LargePosition& camera_position) const;
 
     TransformComponent* parent() const;
 
     void attachTo(TransformComponent* new_parent);
 
     // Transform.
-    Position position;
+    LargePosition position;
     Quat orientation;
 
 private:

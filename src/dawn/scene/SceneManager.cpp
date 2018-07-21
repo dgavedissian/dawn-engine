@@ -14,7 +14,7 @@ SceneManager::SceneManager(Context* ctx) : Module(ctx), entity_id_allocator_(1) 
     setDependencies<ResourceCache>();
 
     background_renderable_root_ = makeShared<SceneNode>();
-    background_entity_ = &createEntity(0, Position::origin, Quat::identity, nullptr)
+    background_entity_ = &createEntity(0, LargePosition::origin, Quat::identity, nullptr)
                               .addComponent<RenderableComponent>(background_renderable_root_);
     background_entity_->transform()->setRelativeToCamera(true);
 
@@ -41,7 +41,7 @@ Entity& SceneManager::createEntity(EntityType type) {
     return createEntity(type, reserveEntityId());
 }
 
-Entity& SceneManager::createEntity(EntityType type, const Position& p, const Quat& o,
+Entity& SceneManager::createEntity(EntityType type, const LargePosition& p, const Quat& o,
                                    Entity* parent) {
     Entity& e = createEntity(type);
     if (parent) {
@@ -52,7 +52,7 @@ Entity& SceneManager::createEntity(EntityType type, const Position& p, const Qua
     return e;
 }
 
-Entity& SceneManager::createEntity(EntityType type, const Position& p, const Quat& o) {
+Entity& SceneManager::createEntity(EntityType type, const LargePosition& p, const Quat& o) {
     return createEntity(type, p, o, nullptr);
 }
 

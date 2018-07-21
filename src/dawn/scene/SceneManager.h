@@ -53,14 +53,14 @@ public:
     /// @param o Initial orientation.
     /// @param parent Parent entity.
     /// @return A newly created entity.
-    Entity& createEntity(EntityType type, const Position& p, const Quat& o, Entity* parent);
+    Entity& createEntity(EntityType type, const LargePosition& p, const Quat& o, Entity* parent);
 
     /// Creates a new entity with a transform component.
     /// @param type Entity type ID.
     /// @param p Initial position.
     /// @param o Initial orientation.
     /// @return A newly created entity.
-    Entity& createEntity(EntityType type, const Position& p, const Quat& o);
+    Entity& createEntity(EntityType type, const LargePosition& p, const Quat& o);
 
     /// Creates a new empty entity with a previously reserved entity ID.
     /// @param type Entity type ID.

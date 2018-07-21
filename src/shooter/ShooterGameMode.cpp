@@ -64,12 +64,12 @@ void ShooterGameMode::onStart() {
     auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(1000.0f);
     renderable->setMaterial(material);
     module<SceneManager>()
-        ->createEntity(0, Position{4000.0f, 0.0f, 0.0f}, Quat::identity)
+        ->createEntity(0, LargePosition{4000.0f, 0.0f, 0.0f}, Quat::identity)
         .addComponent<RenderableComponent>(renderable);
 
     // Create a camera.
     auto& camera = module<SceneManager>()
-                       ->createEntity(0, Position{0.0f, 0.0f, 50.0f}, Quat::identity)
+                       ->createEntity(0, LargePosition{0.0f, 0.0f, 50.0f}, Quat::identity)
                        .addComponent<Camera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
     camera_controller_ = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
     camera_controller_->possess(&camera);

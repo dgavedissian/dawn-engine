@@ -31,6 +31,13 @@ set(SOURCE_FILES
     core/math/Vec4i.h
     core/platform/Defines.h
     core/platform/Windows.h
+    core/scene/LargePosition.cpp
+    core/scene/LargePosition.h
+    core/scene/SceneGraph.cpp
+    core/scene/SceneGraph.i.h
+    core/scene/SceneGraph.h
+    core/scene/Transform.cpp
+    core/scene/Transform.h
     core/script/LuaState.cpp
     core/script/LuaState.h
     core/script/Sol.h
@@ -59,13 +66,12 @@ set(SOURCE_FILES
     core/Object.cpp
     core/Object.h
     core/Option.h
-    core/Position.cpp
-    core/Position.h
     core/Preprocessor.h
     core/StringUtils.cpp
     core/StringUtils.h
     core/Timer.cpp
     core/Timer.h
+    core/Type.h
     gameplay/GameMode.cpp
     gameplay/GameMode.h
     gameplay/GameplayModule.cpp
@@ -129,8 +135,6 @@ set(SOURCE_FILES
     renderer/StbImage.h
     renderer/Texture.cpp
     renderer/Texture.h
-    renderer/Transform.cpp
-    renderer/Transform.h
     renderer/TriangleBuffer.cpp
     renderer/TriangleBuffer.h
     renderer/VertexBuffer.cpp

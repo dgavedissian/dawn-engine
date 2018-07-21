@@ -6,11 +6,11 @@
 #include "scene/TransformComponent.h"
 
 namespace dw {
-TransformComponent::TransformComponent(const Position& p, const Quat& o)
+TransformComponent::TransformComponent(const LargePosition& p, const Quat& o)
     : TransformComponent(p, o, nullptr) {
 }
 
-TransformComponent::TransformComponent(const Position& p, const Quat& o, TransformComponent* parent)
+TransformComponent::TransformComponent(const LargePosition& p, const Quat& o, TransformComponent* parent)
     : position(p), orientation(o), relative_to_camera_(false), parent_(nullptr) {
     attachTo(parent);
 }
@@ -19,8 +19,8 @@ void TransformComponent::setRelativeToCamera(bool relative_to_camera) {
     relative_to_camera_ = relative_to_camera;
 }
 
-Mat4 TransformComponent::modelMatrix(const Position& camera_position) const {
-    Position origin = relative_to_camera_ ? -camera_position : Position::origin;
+Mat4 TransformComponent::modelMatrix(const LargePosition& camera_position) const {
+    LargePosition origin = relative_to_camera_ ? -camera_position : LargePosition::origin;
     return Mat4::Translate(position.getRelativeTo(origin)).ToFloat4x4() *
            Mat4::FromQuat(orientation);
 }
