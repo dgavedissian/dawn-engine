@@ -533,7 +533,7 @@ public:
         // Create a camera.
         auto& camera = module<SceneManager>()
                            ->createEntity(0, LargePosition{0.0f, 0.0f, radius * 2}, Quat::identity)
-                           .addComponent<Camera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
+                           .addComponent<CCamera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);
         camera_controller->possess(&camera);
 

@@ -3,10 +3,10 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
-#include "scene/C_Transform.h"
+#include "scene/CTransform.h"
 #include "net/NetData.h"
-#include "net/NetTransform.h"
-#include "ShipEngines.h"
+#include "net/CNetTransform.h"
+#include "CShipEngines.h"
 
 using namespace dw;
 
@@ -61,7 +61,7 @@ bool ShipEngineInstance::isForwards() const {
     return forwards_;
 }
 
-C_ShipEngines::C_ShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_engines,
+CShipEngines::CShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_engines,
                              const Vector<ShipEngineData>& nav_engines)
     : Object(ctx),
       engine_data_(movement_engines),
@@ -114,10 +114,10 @@ C_ShipEngines::C_ShipEngines(Context* ctx, const Vector<ShipEngineData>& movemen
     }
 }
 
-void C_ShipEngines::onAddToEntity(Entity* parent) {
+void CShipEngines::onAddToEntity(Entity* parent) {
     // Initialise engine particles.
-    auto* transform = parent->component<C_Transform>();
-    auto* ship_scene_node = transform ? transform->node.get<LargeSceneNodeR*>() : nullptr;
+    auto* transform = parent->component<CTransform>();
+    auto* ship_scene_node = transform ? transform->scene_node.get<LargeSceneNodeR*>() : nullptr;
     if (ship_scene_node) {
         size_t total_engines = engine_data_.size() + nav_engine_data_.size();
 
@@ -134,7 +134,7 @@ void C_ShipEngines::onAddToEntity(Entity* parent) {
     }
 }
 
-void C_ShipEngines::calculateMaxMovementForce(Vec3& pos_force, Vec3& neg_force) {
+void CShipEngines::calculateMaxMovementForce(Vec3& pos_force, Vec3& neg_force) {
     pos_force = {0.0f, 0.0f, 0.0f};
     neg_force = {0.0f, 0.0f, 0.0f};
     for (size_t i = 0; i < movement_engines_.size(); ++i) {
@@ -148,7 +148,7 @@ void C_ShipEngines::calculateMaxMovementForce(Vec3& pos_force, Vec3& neg_force) 
     }
 }
 
-Vec3 C_ShipEngines::fireMovementEngines(const Vec3& power) {
+Vec3 CShipEngines::fireMovementEngines(const Vec3& power) {
     Vec3 total_force{0.0f, 0.0f, 0.0f};
     for (size_t i = 0; i < movement_engines_.size(); ++i) {
         bool forwards = power[i] > 0.0f;
@@ -166,7 +166,7 @@ Vec3 C_ShipEngines::fireMovementEngines(const Vec3& power) {
     return total_force;
 }
 
-void C_ShipEngines::calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticlockwise) const {
+void CShipEngines::calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticlockwise) const {
     // Pitch - X axis.
     // Yaw - Y axis.
     // Roll - Z axis.
@@ -183,7 +183,7 @@ void C_ShipEngines::calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticloc
     }
 }
 
-Vec3 C_ShipEngines::calculateRotationalTorque(const Vec3& power) const {
+Vec3 CShipEngines::calculateRotationalTorque(const Vec3& power) const {
     Vec3 total_torque{0.0f, 0.0f, 0.0f};
     for (size_t i = 0; i < navigation_engines_.size(); ++i) {
         bool forwards = power[i] > 0;
@@ -196,7 +196,7 @@ Vec3 C_ShipEngines::calculateRotationalTorque(const Vec3& power) const {
     return total_torque;
 }
 
-Vec3 C_ShipEngines::fireRotationalEngines(const Vec3& power) {
+Vec3 CShipEngines::fireRotationalEngines(const Vec3& power) {
     Vec3 total_torque{0.0f, 0.0f, 0.0f};
     for (size_t i = 0; i < navigation_engines_.size(); ++i) {
         bool forwards = power[i] > 0;
@@ -214,7 +214,7 @@ Vec3 C_ShipEngines::fireRotationalEngines(const Vec3& power) {
     return total_torque;
 }
 
-Vec3 C_ShipEngines::convertToPower(const Vec3& force, const Vec3& max_pos_force,
+Vec3 CShipEngines::convertToPower(const Vec3& force, const Vec3& max_pos_force,
                                    const Vec3& max_neg_force) {
     auto single_element_to_power = [](float force, float max_pos_force,
                                       float max_neg_force) -> float {
@@ -232,39 +232,39 @@ Vec3 C_ShipEngines::convertToPower(const Vec3& force, const Vec3& max_pos_force,
     };
 }
 
-void C_ShipEngines::rep_setCurrentMovementPower(const Vec3& power) {
+void CShipEngines::rep_setCurrentMovementPower(const Vec3& power) {
     fireMovementEngines(power);
 }
 
-void C_ShipEngines::rep_setCurrentRotationalPower(const Vec3& power) {
+void CShipEngines::rep_setCurrentRotationalPower(const Vec3& power) {
     fireRotationalEngines(power);
 }
 
-Vec3 C_ShipEngines::currentMovementPower() {
+Vec3 CShipEngines::currentMovementPower() {
     Vec3 current = current_movement_power_;
     current_movement_power_ = Vec3::zero;
     return current;
 }
 
-Vec3 C_ShipEngines::currentRotationalPower() {
+Vec3 CShipEngines::currentRotationalPower() {
     Vec3 current = current_rotational_power_;
     current_rotational_power_ = Vec3::zero;
     return current;
 }
 
-S_ShipEngine::S_ShipEngine(Context* ctx) : System(ctx) {
-    supportsComponents<C_Transform, C_ShipEngines>();
+SShipEngines::SShipEngines(Context* ctx) : System(ctx) {
+    supportsComponents<CTransform, CShipEngines>();
 }
 
-void S_ShipEngine::processEntity(Entity& entity, float dt) {
-    auto& transform = *entity.component<C_Transform>();
-    auto& ship_engines = *entity.component<C_ShipEngines>();
+void SShipEngines::processEntity(Entity& entity, float dt) {
+    auto& transform = *entity.component<CTransform>();
+    auto& ship_engines = *entity.component<CShipEngines>();
 
     auto& engines = ship_engines.engine_data_;
     auto& nav_engines = ship_engines.nav_engine_data_;
 
     Mat4 model =
-        transform.node.get<LargeSceneNodeR*>()->calculateModelMatrix(LargePosition::origin);
+        transform.scene_node.get<LargeSceneNodeR*>()->calculateModelMatrix(LargePosition::origin);
 
     // Update particles.
     if (ship_engines.glow_billboards_) {

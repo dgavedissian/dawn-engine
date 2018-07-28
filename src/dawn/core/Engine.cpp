@@ -6,7 +6,7 @@
 #include "core/App.h"
 #include "core/Timer.h"
 #include "DawnEngine.h"
-#include "scene/S_LinearMotion.h"
+#include "scene/SLinearMotion.h"
 
 // Required for getBasePath/getPrefPath.
 #if DW_PLATFORM == DW_WIN32
@@ -148,7 +148,7 @@ void Engine::setup(int argc, char** argv) {
 
     // Set up built in entity systems.
     auto& sm = *context_->module<SceneManager>();
-    sm.addSystem<S_LinearMotion>();
+    sm.addSystem<SLinearMotion>();
 
     // Set input viewport size
     /*

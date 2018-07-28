@@ -13,7 +13,7 @@ Entity* ShooterEntityPipeline::createEntityFromType(EntityId entity_id, EntityTy
         case Hash("Ship"): {
             SharedPtr<Ship> ship = makeShared<Ship>(context(), entity_id, role);
             Entity* entity = ship->entity();
-            entity->component<ShipControls>()->ship = ship;
+            entity->component<CShipControls>()->ship = ship;
             ship_list_.emplace_back(std::move(ship));
             return entity;
         }
@@ -69,7 +69,7 @@ void ShooterGameMode::onStart() {
     // Create a camera.
     auto& camera = module<SceneManager>()
                        ->createEntity(0, LargePosition{0.0f, 0.0f, 50.0f}, Quat::identity)
-                       .addComponent<Camera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
+                       .addComponent<CCamera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
     camera_controller_ = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
     camera_controller_->possess(&camera);
 

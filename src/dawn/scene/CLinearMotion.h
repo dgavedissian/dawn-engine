@@ -8,7 +8,7 @@
 #include "core/math/Defs.h"
 
 namespace dw {
-struct C_LinearMotion : public Component {
+struct CLinearMotion : public Component {
     Vec3 velocity;
 };
 }  // namespace dw

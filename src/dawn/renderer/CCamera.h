@@ -8,8 +8,8 @@
 #include "scene/Component.h"
 
 namespace dw {
-struct DW_API Camera : public Component {
-    Camera(float near, float far, float fov_y, float aspect);
+struct DW_API CCamera : public Component {
+    CCamera(float near, float far, float fov_y, float aspect);
 
     float near;
     float far;

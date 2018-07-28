@@ -7,7 +7,7 @@
 #include "ontology/Entity.hpp"
 
 #include "Component.h"
-#include "scene/C_Transform.h"
+#include "scene/CTransform.h"
 
 namespace dw {
 /// Entity identifier.
@@ -45,7 +45,7 @@ public:
     EntityType typeId() const;
 
     /// Shortcut for returning the transform component.
-    C_Transform* transform() const;
+    CTransform* transform() const;
 
 private:
     Ontology::EntityManager& internal_entity_mgr_;
@@ -57,7 +57,7 @@ private:
         return internal_entity_mgr_.getEntity(internal_entity_id_);
     }
 
-    C_Transform* transform_;
+    CTransform* transform_;
 };
 
 template <typename T> T* Entity::component() const {

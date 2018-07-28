@@ -3,9 +3,9 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
-#include "scene/C_Transform.h"
+#include "scene/CTransform.h"
 #include "net/NetData.h"
-#include "net/NetTransform.h"
+#include "net/CNetTransform.h"
 #include "Ship.h"
 #include "ShipFlightComputer.h"
 
@@ -34,8 +34,8 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role)
     auto sm = module<SceneManager>();
     ship_entity_ =
         &sm->createEntity(Hash("Ship"), reserved_entity_id)
-             .addComponent<C_Transform>(module<Renderer>()->rootNode().newLargeChild(), renderable)
-             .addComponent<C_ShipEngines>(
+             .addComponent<CTransform>(module<Renderer>()->rootNode().newLargeChild(), renderable)
+             .addComponent<CShipEngines>(
                  context(),
                  Vector<ShipEngineData>{// 4 on back.
                                         {{0.0f, 0.0f, -400.0f}, {5.0f, 0.0f, 15.0f}},
@@ -74,17 +74,17 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role)
                                         {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
                                         {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
                                         {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
-    auto* node = ship_entity_->component<C_Transform>()->node.get<LargeSceneNodeR*>();
-    node->newChild(Vec3{8.0f, 0.0f, 0.0f}, Quat::identity)->data.renderable = sphere;
-    node->newChild(Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity, Vec3{-1.0f, 1.0f, 1.0f})
+    auto& node = ship_entity_->component<CTransform>()->largeNode();
+    node.newChild(Vec3{8.0f, 0.0f, 0.0f}, Quat::identity)->data.renderable = sphere;
+    node.newChild(Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity, Vec3{-1.0f, 1.0f, 1.0f})
         ->data.renderable = sphere;
 
     // Networking.
-    ship_entity_->addComponent<NetTransform>();
-    ship_entity_->addComponent<ShipControls>();
+    ship_entity_->addComponent<CNetTransform>();
+    ship_entity_->addComponent<CShipControls>();
     if (role != NetRole::None) {
         ship_entity_->addComponent<NetData>(
-            RepLayout::build<NetTransform, C_ShipEngines, ShipControls>());
+            RepLayout::build<CNetTransform, CShipEngines, CShipControls>());
     }
 
     // Initialise server-side details.
@@ -102,8 +102,8 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role)
 void Ship::update(float dt) {
     auto input = module<Input>();
 
-    // auto& engines = *ship_entity_->component<C_ShipEngines>();
-    auto& controls = *ship_entity_->component<ShipControls>();
+    // auto& engines = *ship_entity_->component<CShipEngines>();
+    auto& controls = *ship_entity_->component<CShipControls>();
     auto net_data = ship_entity_->component<NetData>();
 
     if (!net_data || net_data->role() == NetRole::AuthoritativeProxy) {
@@ -182,25 +182,25 @@ void Ship::update(float dt) {
 }
 
 void Ship::fireMovementThrusters(const Vec3& power) {
-    Vec3 total_force = ship_entity_->component<C_ShipEngines>()->fireMovementEngines(power);
+    Vec3 total_force = ship_entity_->component<CShipEngines>()->fireMovementEngines(power);
     rb_->activate();
-    rb_->applyCentralForce(ship_entity_->transform()->orientation * total_force);
+    rb_->applyCentralForce(ship_entity_->transform()->largeNode().orientation * total_force);
 }
 
 void Ship::fireRotationalThrusters(const Vec3& power) {
-    Vec3 total_torque = ship_entity_->component<C_ShipEngines>()->fireRotationalEngines(power);
+    Vec3 total_torque = ship_entity_->component<CShipEngines>()->fireRotationalEngines(power);
     rb_->activate();
-    rb_->applyTorque(ship_entity_->transform()->orientation * total_torque);
+    rb_->applyTorque(ship_entity_->transform()->largeNode().orientation * total_torque);
 }
 
 Vec3 Ship::angularVelocity() const {
-    Quat inv_rotation = ship_entity_->transform()->orientation;
+    Quat inv_rotation = ship_entity_->transform()->largeNode().orientation;
     inv_rotation.InverseAndNormalize();
     return inv_rotation * Vec3{rb_->getAngularVelocity()};
 }
 
 Vec3 Ship::localVelocity() const {
-    Quat inv_rotation = ship_entity_->transform()->orientation;
+    Quat inv_rotation = ship_entity_->transform()->largeNode().orientation;
     inv_rotation.InverseAndNormalize();
     return inv_rotation * Vec3{rb_->getLinearVelocity()};
 }

@@ -1,7 +1,7 @@
 #include "DawnEngine.h"
-#include "scene/C_Transform.h"
+#include "scene/CTransform.h"
 #include "net/NetData.h"
-#include "net/NetTransform.h"
+#include "net/CNetTransform.h"
 #include "ShipFlightComputer.h"
 #include "Ship.h"
 
@@ -12,7 +12,7 @@ ShipFlightComputer::ShipFlightComputer(Context* ctx, Ship* ship)
       ship_{ship},
       target_linear_velocity_{Vec3::zero},
       target_angular_velocity_{Vec3::zero} {
-    auto engines = ship->entity()->component<C_ShipEngines>();
+    auto engines = ship->entity()->component<CShipEngines>();
     auto rb = ship->entity()->component<RigidBody>();
 
     Vec3 pos_force, neg_force;
@@ -74,12 +74,12 @@ void ShipFlightComputer::update(float dt) {
                                    timestep;
 
     // Apply.
-    Vec3 movement_power{C_ShipEngines::convertToPower(
+    Vec3 movement_power{CShipEngines::convertToPower(
         movement_acceleration, ship_acceleration_forwards_, ship_acceleration_backwards_)};
     if (movement_acceleration.Length() > 0.01f) {
         ship_->fireMovementThrusters(movement_power);
     }
-    Vec3 angular_power{C_ShipEngines::convertToPower(rotational_acceleration,
+    Vec3 angular_power{CShipEngines::convertToPower(rotational_acceleration,
                                                      ship_angular_acceleration_forwards_,
                                                      ship_angular_acceleration_backwards_)};
     if (rotational_acceleration.Length() > 0.01f) {

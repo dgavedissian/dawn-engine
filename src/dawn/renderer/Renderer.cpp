@@ -7,10 +7,10 @@
 #include "renderer/Renderable.h"
 #include "renderer/SceneNode.h"
 #include "scene/SceneManager.h"
-#include "scene/C_Transform.h"
+#include "scene/CTransform.h"
 #include "scene/PhysicsScene.h"
-#include "scene/C_LinearMotion.h"
-#include "net/NetTransform.h"
+#include "scene/CLinearMotion.h"
+#include "net/CNetTransform.h"
 
 namespace dw {
 Renderer::Renderer(Context* ctx) : Module(ctx) {
@@ -103,62 +103,21 @@ SceneNodeR& Renderer::rootBackgroundNode() {
 
 void Renderer::setupEntitySystems(SceneManager* scene_manager) {
     // entity_renderer_ = module<SceneManager>()->addSystem<EntityRenderer>();
-    camera_entity_system_ = scene_manager->addSystem<CameraEntitySystem>();
+    camera_entity_system_ = scene_manager->addSystem<SCamera>();
 }
 
-/*
-Renderer::EntityRenderer::EntityRenderer(Context* context) : System{context} {
-    supportsComponents<RenderableComponent, C_Transform>();
-    executesAfter<CameraEntitySystem, NetTransformSyncSystem>();
-}
-
-void Renderer::EntityRenderer::beginProcessing() {
-    world_transform_cache_.clear();
-    render_operations_per_camera_.clear();
-}
-
-void Renderer::EntityRenderer::processEntity(Entity& entity, float) {
-    for (auto camera : module<Renderer>()->camera_entity_system_->cameras) {
-        Mat4 view = camera.transform_component->modelMatrix(LargePosition::origin).Inverted();
-        Mat4 model =
-            deriveTransform(entity.transform(), camera.transform_component, world_transform_cache_);
-        render_operations_per_camera_.push_back([this, &entity, camera, model, view](float interpolation) {
-            auto* renderable = entity.component<RenderableComponent>();
-            auto* rigid_body = entity.component<RigidBody>();
-            auto* velocity = entity.component<Velocity>();
-            if (rigid_body) {
-                // Apply velocity to model matrix.
-                Vec3 velocity = rigid_body->_rigidBody()->getLinearVelocity() * interpolation;
-                model.Translate(velocity * model.RotatePart());
-            } else if (velocity) {
-                model.Translate(velocity->velocity * interpolation);
-            }
-            renderable->node->drawSceneGraph(module<Renderer>(), camera.view,
-                                             camera.transform_component, model,
-                                             camera.projection_matrix * view);
-        });
-    }
-}
-
-void Renderer::EntityRenderer::render(float interpolation) {
-    for (auto& op : render_operations_per_camera_) {
-        op(interpolation);
-    }
-}
-*/
-
-Renderer::CameraEntitySystem::CameraEntitySystem(Context* context) : System{context} {
-    supportsComponents<Camera, C_Transform>();
+Renderer::SCamera::SCamera(Context* context) : System{context} {
+    supportsComponents<CCamera, CTransform>();
     executesAfter<PhysicsScene::PhysicsComponentSystem>();
 }
 
-void Renderer::CameraEntitySystem::beginProcessing() {
+void Renderer::SCamera::beginProcessing() {
     cameras.clear();
 }
 
-void Renderer::CameraEntitySystem::processEntity(Entity& entity, float) {
-    cameras.emplace_back(CameraState{0, entity.transform()->node.get<LargeSceneNodeR*>(),
-                                     entity.component<Camera>()->projection_matrix});
+void Renderer::SCamera::processEntity(Entity& entity, float) {
+    cameras.emplace_back(CameraState{0, entity.transform()->scene_node.get<LargeSceneNodeR*>(),
+                                     entity.component<CCamera>()->projection_matrix});
 }
 
 void Renderer::updateTransformCache(Mat4 large_base_world, int camera_id, SceneNodeR* node,

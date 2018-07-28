@@ -67,21 +67,21 @@ template <> inline void write<NetTransformState>(OutputStream& s, const NetTrans
 }
 }  // namespace stream
 
-class NetTransform : public Component {
+class CNetTransform : public Component {
 public:
     NetTransformState transform_state;
 
     static RepLayout repLayout() {
-        return {{RepProperty::bind<NetTransform>(&NetTransform::transform_state)}, {}};
+        return {{RepProperty::bind<CNetTransform>(&CNetTransform::transform_state)}, {}};
     }
 };
 
-class NetTransformSyncSystem : public System {
+class SNetTransformSync : public System {
 public:
-    DW_OBJECT(NetTransformSyncSystem);
+    DW_OBJECT(SNetTransformSync);
 
-    NetTransformSyncSystem(Context* context);
-    ~NetTransformSyncSystem() = default;
+    SNetTransformSync(Context* context);
+    ~SNetTransformSync() = default;
 
     void processEntity(Entity& entity, float dt) override;
 };

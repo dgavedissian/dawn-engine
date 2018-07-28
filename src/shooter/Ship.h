@@ -10,13 +10,13 @@
 #include "renderer/Mesh.h"
 #include "core/math/Defs.h"
 #include "core/Delegate.h"
-#include "ShipEngines.h"
+#include "CShipEngines.h"
 
 using namespace dw;
 
 class Ship;
 
-class ShipControls : public Component {
+class CShipControls : public Component {
 public:
     WeakPtr<Ship> ship;
     ClientRpc<Vec3> setLinearVelocity;
@@ -33,10 +33,10 @@ public:
 
     static RepLayout repLayout() {
         return {{},
-                {Rpc::bind<ShipControls>(&ShipControls::setLinearVelocity,
-                                         &ShipControls::setLinearVelocityImpl),
-                 Rpc::bind<ShipControls>(&ShipControls::setAngularVelocity,
-                                         &ShipControls::setAngularVelocityImpl)}};
+                {Rpc::bind<CShipControls>(&CShipControls::setLinearVelocity,
+                                         &CShipControls::setLinearVelocityImpl),
+                 Rpc::bind<CShipControls>(&CShipControls::setAngularVelocity,
+                                         &CShipControls::setAngularVelocityImpl)}};
     }
 };
 

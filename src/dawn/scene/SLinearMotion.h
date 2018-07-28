@@ -4,15 +4,15 @@
  */
 #pragma once
 
-#include "scene/C_LinearMotion.h"
+#include "scene/CLinearMotion.h"
 #include "scene/System.h"
 
 namespace dw {
-class S_LinearMotion : public System {
+class SLinearMotion : public System {
 public:
-    DW_OBJECT(S_LinearMotion);
+    DW_OBJECT(SLinearMotion);
 
-    explicit S_LinearMotion(Context* ctx);
+    explicit SLinearMotion(Context* ctx);
     void processEntity(Entity& e, float dt) override;
 };
 }  // namespace dw

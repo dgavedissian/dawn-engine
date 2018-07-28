@@ -80,6 +80,8 @@ set(SOURCE_FILES
     input/Input.h
     net/BitStream.cpp
     net/BitStream.h
+    net/CNetTransform.cpp
+    net/CNetTransform.h
     net/NetData.cpp
     net/NetData.h
     net/NetEntityPipeline.cpp
@@ -87,8 +89,6 @@ set(SOURCE_FILES
     net/NetGameMode.cpp
     net/NetGameMode.h
     net/NetRole.h
-    net/NetTransform.cpp
-    net/NetTransform.h
     net/Networking.cpp
     net/Networking.h
     net/RepProperty.h
@@ -109,8 +109,8 @@ set(SOURCE_FILES
     renderer/rhi/VertexDecl.h
     renderer/BillboardSet.cpp
     renderer/BillboardSet.h
-    renderer/Camera.cpp
-    renderer/Camera.h
+    renderer/CCamera.cpp
+    renderer/CCamera.h
     renderer/CustomMeshRenderable.cpp
     renderer/CustomMeshRenderable.h
     renderer/GLSL.h
@@ -143,9 +143,9 @@ set(SOURCE_FILES
     resource/ResourceCache.cpp
     resource/ResourceCache.h
     scene/BulletDynamics.h
-    scene/C_LinearMotion.h
-    scene/C_Transform.cpp
-    scene/C_Transform.h
+    scene/CLinearMotion.h
+    scene/CTransform.cpp
+    scene/CTransform.h
     scene/CameraController.cpp
     scene/CameraController.h
     scene/Component.cpp
@@ -154,8 +154,8 @@ set(SOURCE_FILES
     scene/Entity.h
     scene/PhysicsScene.cpp
     scene/PhysicsScene.h
-    scene/S_LinearMotion.cpp
-    scene/S_LinearMotion.h
+    scene/SLinearMotion.cpp
+    scene/SLinearMotion.h
     scene/SceneManager.cpp
     scene/SceneManager.h
     scene/System.cpp

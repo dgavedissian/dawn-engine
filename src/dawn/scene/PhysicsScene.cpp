@@ -10,20 +10,20 @@
 
 namespace dw {
 namespace {
-btTransform toBulletTransform(C_Transform& xform) {
-    btQuaternion quat{xform.orientation.x, xform.orientation.y, xform.orientation.z,
-                      xform.orientation.w};
+btTransform toBulletTransform(CTransform& xform) {
+    btQuaternion quat{xform.orientation().x, xform.orientation().y, xform.orientation().z,
+                      xform.orientation().w};
     return btTransform(
-        quat, {static_cast<btScalar>(xform.position.x), static_cast<btScalar>(xform.position.y),
-               static_cast<btScalar>(xform.position.z)});
+        quat, {static_cast<btScalar>(xform.largeNode().position.x), static_cast<btScalar>(xform.largeNode().position.y),
+               static_cast<btScalar>(xform.largeNode().position.z)});
 }
 
-void fromBulletTransform(const btTransform& source, C_Transform& dest) {
+void fromBulletTransform(const btTransform& source, CTransform& dest) {
     btQuaternion rotation;
     source.getBasis().getRotation(rotation);
-    dest.position =
+    dest.largeNode().position =
         LargePosition{source.getOrigin().x(), source.getOrigin().y(), source.getOrigin().z()};
-    dest.orientation = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
+    dest.orientation() = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
 }
 }  // namespace
 PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr) : Object(context) {
@@ -116,11 +116,11 @@ void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
 }
 
 PhysicsScene::PhysicsComponentSystem::PhysicsComponentSystem(Context* context) : System(context) {
-    supportsComponents<C_Transform, RigidBody>();
+    supportsComponents<CTransform, RigidBody>();
 }
 
 void PhysicsScene::PhysicsComponentSystem::processEntity(Entity& entity, float) {
-    auto t = entity.component<C_Transform>();
+    auto t = entity.component<CTransform>();
     auto rb = entity.component<RigidBody>()->rigid_body_.get();
     fromBulletTransform(rb->getWorldTransform(), *t);
 }

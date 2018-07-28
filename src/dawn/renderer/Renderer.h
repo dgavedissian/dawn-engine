@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/Camera.h"
+#include "renderer/CCamera.h"
 #include "renderer/rhi/Renderer.h"
 #include "scene/System.h"
 #include "core/scene/SceneGraph.h"
@@ -17,7 +17,6 @@ struct RenderOperation {
     Mat4 model;
 };
 }  // namespace detail
-// using RenderOperation = Function<void(float)>;
 
 class DW_API Renderer : public Module {
 public:
@@ -51,34 +50,12 @@ private:
 
     SceneGraph<detail::RendererSceneNodeData> scene_graph_;
 
-    /*
-    class EntityRenderer : public System {
+    class SCamera : public System {
     public:
-        DW_OBJECT(EntityRenderer);
+        DW_OBJECT(SCamera);
 
-        EntityRenderer(Context* context);
-        ~EntityRenderer() = default;
-
-        void beginProcessing() override;
-        void processEntity(Entity& entity, float dt) override;
-
-        // Called during rendering, with an interpolation factor used to extrapolate the last state
-        // of the world.
-        void render(float interpolation);
-
-    private:
-        HashMap<C_Transform*, Mat4> world_transform_cache_;
-        Vector<RenderOperation> render_operations_per_camera_;
-    };
-    EntityRenderer* entity_renderer_;
-    */
-
-    class CameraEntitySystem : public System {
-    public:
-        DW_OBJECT(CameraEntitySystem);
-
-        CameraEntitySystem(Context* context);
-        ~CameraEntitySystem() = default;
+        SCamera(Context* context);
+        ~SCamera() = default;
 
         void beginProcessing() override;
         void processEntity(Entity& entity, float dt) override;
@@ -92,7 +69,7 @@ private:
         Vector<CameraState> cameras;
     };
 
-    CameraEntitySystem* camera_entity_system_;
+    SCamera* camera_entity_system_;
 
     Vector<Mat4> view_proj_matrices_per_camera_;
     Vector<HashMap<LargeSceneNodeR*, Mat4>> large_model_matrices_per_camera_;

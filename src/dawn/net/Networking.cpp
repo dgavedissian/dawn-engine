@@ -9,7 +9,7 @@
 #include "scene/SceneManager.h"
 #include "net/BitStream.h"
 #include "net/NetData.h"
-#include "net/NetTransform.h"
+#include "net/CNetTransform.h"
 
 namespace dw {
 namespace {
@@ -164,12 +164,12 @@ Networking::Networking(Context* context)
     yojimbo_log_level(YOJIMBO_LOG_LEVEL_INFO);
     yojimbo_set_printf_function(yojimbo_printf_function);
 
-    // Set up NetTransformSyncSystem.
-    module<SceneManager>()->addSystem<NetTransformSyncSystem>();
+    // Set up SNetTransformSync.
+    module<SceneManager>()->addSystem<SNetTransformSync>();
 }
 
 Networking::~Networking() {
-    module<SceneManager>()->removeSystem<NetTransformSyncSystem>();
+    module<SceneManager>()->removeSystem<SNetTransformSync>();
     ShutdownYojimbo();
 }
 
@@ -352,8 +352,8 @@ void Networking::clientUpdate(float) {
                         entity->component<NetData>()->role_ = role;
                         entity->component<NetData>()->remote_role_ = NetRole::Authority;
                         log().info("Created replicated entity %d at %d %d %d", entity_id,
-                                   entity->transform()->position.x, entity->transform()->position.y,
-                                   entity->transform()->position.z);
+                                   entity->transform()->largeNode().position.x, entity->transform()->largeNode().position.y,
+                                   entity->transform()->largeNode().position.z);
 
                         // If any spawn requests are waiting for an entity to be created,
                         // trigger the callback and clear.

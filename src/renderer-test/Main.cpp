@@ -5,7 +5,7 @@
 #include "DawnEngine.h"
 #include "renderer/MeshBuilder.h"
 #include "core/Timer.h"
-#include "scene/C_Transform.h"
+#include "scene/CTransform.h"
 
 using namespace dw;
 
@@ -632,13 +632,13 @@ TEST_CLASS(MovingSphereHighLevel) {
 
         // Create a camera.
         camera = &scene->createEntity(1, LargePosition{0.0f, 0.0f, 50.0f}, Quat::identity)
-                      .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+                      .addComponent<CCamera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
     }
 
     void render() {
         static float angle = 0.0f;
         angle += engine_->frameTime();
-        camera->transform()->node.get<LargeSceneNodeR*>()->position.x = sin(angle) * 30.0f;
+        camera->transform()->largeNode().position.x = sin(angle) * 30.0f;
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
     }
 

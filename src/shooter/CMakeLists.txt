@@ -3,14 +3,14 @@
 
 set(SOURCE_FILES
     Main.cpp
-    Projectile.cpp
-    Projectile.h
+    CProjectile.cpp
+    CProjectile.h
+    CShipEngines.cpp
+    CShipEngines.h
     Ship.cpp
     Ship.h
     ShipCameraController.cpp
     ShipCameraController.h
-    ShipEngines.cpp
-    ShipEngines.h
     ShipFlightComputer.cpp
     ShipFlightComputer.h
     ShooterGameMode.cpp

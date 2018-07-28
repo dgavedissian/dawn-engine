@@ -19,21 +19,21 @@ void ShipCameraController::update(float dt) {
     if (!possessed_ || !followed_) {
         return;
     }
-    C_Transform* possessed_transform = possessed_->transform();
-    C_Transform* followed_transform = followed_->transform();
+    CTransform* possessed_transform = possessed_->transform();
+    CTransform* followed_transform = followed_->transform();
     if (!possessed_transform || !followed_transform) {
         return;
     }
 
-    possessed_transform->orientation = followed_transform->orientation;
-    possessed_transform->position =
-        followed_transform->position + followed_transform->orientation * offset_;
+    possessed_transform->largeNode().orientation = followed_transform->largeNode().orientation;
+    possessed_transform->largeNode().position =
+        followed_transform->largeNode().position + followed_transform->largeNode().orientation * offset_;
 
     // Follow behind.
     if (followed_->hasComponent<RigidBody>()) {
         Vec3 velocity = followed_->component<RigidBody>()->_rigidBody()->getLinearVelocity();
         float timestep = 1.0f / 60.0f;
         float scale = 3.0f;
-        possessed_transform->position -= velocity * timestep * scale;
+        possessed_transform->largeNode().position -= velocity * timestep * scale;
     }
 }

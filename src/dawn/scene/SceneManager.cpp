@@ -46,11 +46,11 @@ Entity& SceneManager::createEntity(EntityType type, const LargePosition& p, cons
                                    SharedPtr<Renderable> renderable, Entity* parent) {
     Entity& e = createEntity(type);
     if (parent) {
-        e.addComponent<C_Transform>(
-            parent->transform()->node.get<LargeSceneNodeR*>()->newLargeChild(p, o),
+        e.addComponent<CTransform>(
+            parent->transform()->scene_node.get<LargeSceneNodeR*>()->newLargeChild(p, o),
             renderable);
     } else {
-        e.addComponent<C_Transform>(module<Renderer>()->rootNode().newLargeChild(p, o), renderable);
+        e.addComponent<CTransform>(module<Renderer>()->rootNode().newLargeChild(p, o), renderable);
     }
     return e;
 }
