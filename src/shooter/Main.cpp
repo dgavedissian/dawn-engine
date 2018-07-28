@@ -23,7 +23,7 @@ public:
         auto entity_pipeline = makeUnique<ShooterEntityPipeline>(context());
         auto entity_pipeline_ptr = entity_pipeline.get();
         module<Networking>()->setEntityPipeline(std::move(entity_pipeline));
-        module<SceneManager>()->addSystem<ShipEngineSystem>();
+        module<SceneManager>()->addSystem<S_ShipEngine>();
         module<SceneManager>()->addSystem<ProjectileSystem>();
         module<GameplayModule>()->setGameMode(
             makeShared<ShooterGameMode>(context(), entity_pipeline_ptr));

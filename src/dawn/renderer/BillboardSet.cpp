@@ -7,6 +7,7 @@
 #include "renderer/BillboardSet.h"
 #include "renderer/Program.h"
 #include "renderer/Shader.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
 BillboardSet::BillboardSet(Context* ctx, u32 particle_count, const Vec2& particle_size)
@@ -51,8 +52,8 @@ BillboardSet::BillboardSet(Context* ctx, u32 particle_count, const Vec2& particl
     material_->setUniform<int>("billboard_texture", 0);
 
     // Create vertex and index buffers.
-    u32 vertex_count = particle_count * 4;
-    u32 index_count = particle_count * 6;
+    uint vertex_count = static_cast<uint>(particle_count) * 4;
+    uint index_count = static_cast<uint>(particle_count) * 6;
     rhi::VertexDecl decl;
     decl.begin()
         .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
@@ -91,7 +92,7 @@ void BillboardSet::resize(u32 particle_count) {
         index_data_[i * 6 + 4] = start_vertex + 2;
         index_data_[i * 6 + 5] = start_vertex + 3;
     }
-    ib_->update(index_data_.data(), index_data_.size() * sizeof(u32), 0);
+    ib_->update(index_data_.data(), static_cast<uint>(index_data_.size()) * sizeof(u32), 0);
 }
 
 void BillboardSet::setBillboardType(BillboardType type) {
@@ -113,7 +114,7 @@ void BillboardSet::setParticleDirection(u32 particle_id, const Vec3& direction) 
     particles_[particle_id].direction = direction.Normalized();
 }
 
-void BillboardSet::draw(Renderer* renderer, uint view, TransformComponent* camera, const Mat4&,
+void BillboardSet::draw(Renderer* renderer, uint view, LargeSceneNodeR* camera, const Mat4&,
                         const Mat4& view_projection_matrix) {
     update(camera);
 
@@ -126,10 +127,11 @@ void BillboardSet::draw(Renderer* renderer, uint view, TransformComponent* camer
     rhi->setDepthWrite(false);
     material_->setUniform("mvp_matrix", view_projection_matrix);
     material_->program()->applyRendererState();
-    rhi->submit(view, material_->program()->internalHandle(), particles_.size() * 6);
+    rhi->submit(view, material_->program()->internalHandle(),
+                static_cast<uint>(particles_.size()) * 6);
 }
 
-void BillboardSet::update(TransformComponent* camera_transform) {
+void BillboardSet::update(LargeSceneNodeR* camera_transform) {
     // Generate vertex data.
     for (auto& p : particles_) {
         Vec3 axis_x, axis_y;
@@ -150,14 +152,16 @@ void BillboardSet::update(TransformComponent* camera_transform) {
     }
 
     // Update vertex buffer.
-    vb_->update(vertex_data_.data(), vertex_data_.size() * sizeof(ParticleVertex),
+    vb_->update(vertex_data_.data(),
+                static_cast<uint>(vertex_data_.size()) * sizeof(ParticleVertex),
                 vertex_data_.size(), 0);
     vertex_data_.clear();
 }
 
-void BillboardSet::calculateAxes(TransformComponent* camera_transform, const ParticleData& data,
+void BillboardSet::calculateAxes(LargeSceneNodeR* camera_transform, const ParticleData& data,
                                  Vec3& axis_x, Vec3& axis_y) {
-    Vec3 to_eye = camera_transform->position.getRelativeTo(LargePosition(data.position)).Normalized();
+    Vec3 to_eye =
+        camera_transform->position.getRelativeTo(LargePosition(data.position)).Normalized();
 
     // Point.
     switch (type_) {

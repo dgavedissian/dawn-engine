@@ -17,7 +17,7 @@ public:
                          SharedPtr<IndexBuffer> index_buffer);
     ~CustomMeshRenderable();
 
-    void draw(Renderer* renderer, uint view, TransformComponent* camera, const Mat4& model_matrix,
+    void draw(Renderer* renderer, uint view, LargeSceneNodeR* camera, const Mat4& model_matrix,
               const Mat4& view_projection_matrix) override;
 
     VertexBuffer* vertexBuffer() const;

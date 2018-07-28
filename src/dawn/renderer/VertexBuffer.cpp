@@ -4,6 +4,7 @@
  */
 #include "Common.h"
 #include "renderer/VertexBuffer.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
 VertexBuffer::VertexBuffer(Context* context, const void* data, uint size, uint vertex_count,

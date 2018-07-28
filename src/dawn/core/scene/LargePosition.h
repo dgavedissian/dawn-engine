@@ -7,9 +7,6 @@
 #include "core/math/Defs.h"
 
 namespace dw {
-
-class Camera_OLD;
-
 // A location in the game world, represented as a vector of doubles
 // Size: 24 bytes
 class DW_API LargePosition {
@@ -19,14 +16,14 @@ public:
     explicit LargePosition(const Vec3& vector);
     LargePosition(const LargePosition& other);
 
-    // Get relative position from a point
+    // Get "local" position relative to a large position.
     Vec3 getRelativeTo(const LargePosition& point) const;
 
     // Convert to camera space from world space
-    Vec3 toCameraSpace(Camera_OLD* camera) const;
+    Vec3 toCameraSpace(const LargePosition& camera_position) const;
 
     // Convert to world space from camera space
-    static LargePosition fromCameraSpace(Camera_OLD* camera, const Vec3& cameraSpace);
+    static LargePosition fromCameraSpace(const LargePosition& camera_position, const Vec3& point);
 
     // Operators
     bool operator==(const LargePosition& other) const;
@@ -63,8 +60,8 @@ inline LargePosition lerp(const LargePosition& a, const LargePosition& b, float 
 
 // Estimate the position to fire at to hit a moving target given a position, speed, target position
 // and target velocity
-inline LargePosition estimateHit(const LargePosition& position, float speed, const LargePosition& targetPosition,
-                            const Vec3& targetVelocity) {
+inline LargePosition estimateHit(const LargePosition& position, float speed,
+                                 const LargePosition& targetPosition, const Vec3& targetVelocity) {
     Vec3 toTarget = targetPosition.getRelativeTo(position);
 
     // Here we're solving a quadratic

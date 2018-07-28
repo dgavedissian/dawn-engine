@@ -5,6 +5,7 @@
 #pragma once
 
 #include "core/scene/LargePosition.h"
+#include "renderer/SceneNode.h"
 #include "scene/System.h"
 #include "input/Input.h"
 
@@ -14,7 +15,6 @@
 namespace dw {
 class Renderer;
 class RigidEntity;
-class Camera_OLD;
 
 // Structure to hold the result of a raycast
 // TODO: merge this with RendererRaycastResult
@@ -34,10 +34,10 @@ public:
     ~PhysicsScene();
 
     // Takes a step of dt seconds in the simulation
-    void update(float dt, Camera_OLD* camera);
+    void update(float dt, LargeSceneNodeR* camera);
 
     // Performs a raycast query
-    bool rayQuery(const LargePosition& start, const LargePosition& end, Camera_OLD* camera,
+    bool rayQuery(const LargePosition& start, const LargePosition& end, LargeSceneNodeR* camera,
                   PhysicsRaycastResult& result);
 
     // System for updating RigidBody components.

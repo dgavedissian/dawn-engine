@@ -8,7 +8,7 @@
 #include "renderer/VertexBuffer.h"
 #include "renderer/IndexBuffer.h"
 #include "resource/Resource.h"
-#include "renderer/Renderer.h"
+#include "renderer/rhi/Renderer.h"
 
 namespace dw {
 class DW_API Mesh : public Resource, public Renderable {
@@ -21,7 +21,7 @@ public:
     bool beginLoad(const String& asset_name, InputStream& src) override;
     void endLoad() override;
 
-    void draw(Renderer* renderer, uint view, TransformComponent* camera, const Mat4& model_matrix,
+    void draw(Renderer* renderer, uint view, LargeSceneNodeR* camera, const Mat4& model_matrix,
               const Mat4& view_projection_matrix) override;
 
 private:

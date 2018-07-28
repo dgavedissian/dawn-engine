@@ -33,11 +33,11 @@ set(SOURCE_FILES
     core/platform/Windows.h
     core/scene/LargePosition.cpp
     core/scene/LargePosition.h
-    core/scene/SceneGraph.cpp
     core/scene/SceneGraph.i.h
     core/scene/SceneGraph.h
-    core/scene/Transform.cpp
-    core/scene/Transform.h
+    core/scene/SceneNode.cpp
+    core/scene/SceneNode.i.h
+    core/scene/SceneNode.h
     core/script/LuaState.cpp
     core/script/LuaState.h
     core/script/Sol.h
@@ -129,7 +129,6 @@ set(SOURCE_FILES
     renderer/Renderer.cpp
     renderer/Renderer.h
     renderer/SceneNode.h
-    renderer/SceneNode.cpp
     renderer/Shader.cpp
     renderer/Shader.h
     renderer/StbImage.h
@@ -144,6 +143,9 @@ set(SOURCE_FILES
     resource/ResourceCache.cpp
     resource/ResourceCache.h
     scene/BulletDynamics.h
+    scene/C_LinearMotion.h
+    scene/C_Transform.cpp
+    scene/C_Transform.h
     scene/CameraController.cpp
     scene/CameraController.h
     scene/Component.cpp
@@ -152,15 +154,12 @@ set(SOURCE_FILES
     scene/Entity.h
     scene/PhysicsScene.cpp
     scene/PhysicsScene.h
+    scene/S_LinearMotion.cpp
+    scene/S_LinearMotion.h
     scene/SceneManager.cpp
     scene/SceneManager.h
     scene/System.cpp
     scene/System.h
-        scene/TransformComponent.cpp
-        scene/TransformComponent.h
-    scene/Velocity.h
-    scene/VelocitySystem.cpp
-    scene/VelocitySystem.h
     ui/Imgui.h
     ui/UserInterface.cpp
     ui/UserInterface.h

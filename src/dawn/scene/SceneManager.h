@@ -6,7 +6,7 @@
 
 #include "renderer/SceneNode.h"
 #include "scene/Entity.h"
-#include "scene/TransformComponent.h"
+#include "scene/C_Transform.h"
 
 #include <ontology/World.hpp>
 #include <ontology/SystemManager.hpp>
@@ -51,16 +51,11 @@ public:
     /// @param type Entity type ID.
     /// @param p Initial position.
     /// @param o Initial orientation.
-    /// @param parent Parent entity.
+    /// @param renderable Renderable attach to this entity. Can be null.
+    /// @param parent Parent entity. Can be null.
     /// @return A newly created entity.
-    Entity& createEntity(EntityType type, const LargePosition& p, const Quat& o, Entity* parent);
-
-    /// Creates a new entity with a transform component.
-    /// @param type Entity type ID.
-    /// @param p Initial position.
-    /// @param o Initial orientation.
-    /// @return A newly created entity.
-    Entity& createEntity(EntityType type, const LargePosition& p, const Quat& o);
+    Entity& createEntity(EntityType type, const LargePosition& p, const Quat& o,
+                         SharedPtr<Renderable> renderable = nullptr, Entity* parent = nullptr);
 
     /// Creates a new empty entity with a previously reserved entity ID.
     /// @param type Entity type ID.
@@ -100,8 +95,7 @@ private:
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
     EntityId entity_id_allocator_;
 
-    SharedPtr<SceneNode> background_renderable_root_;
-    Entity* background_entity_;
+    SceneNodeR* background_scene_node_;
 
     UniquePtr<PhysicsScene> physics_scene_;
 };

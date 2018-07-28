@@ -6,6 +6,7 @@
 #include "core/io/InputStream.h"
 #include "renderer/Shader.h"
 #include "GLSL.h"
+#include "renderer/Renderer.h"
 
 namespace {
 class GlslangInitialiser {

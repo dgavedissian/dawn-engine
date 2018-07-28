@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
-#include "scene/TransformComponent.h"
+#include "scene/C_Transform.h"
 #include "net/NetData.h"
 #include "net/NetTransform.h"
 #include "ShipEngines.h"
@@ -61,8 +61,8 @@ bool ShipEngineInstance::isForwards() const {
     return forwards_;
 }
 
-ShipEngines::ShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_engines,
-                         const Vector<ShipEngineData>& nav_engines)
+C_ShipEngines::C_ShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_engines,
+                             const Vector<ShipEngineData>& nav_engines)
     : Object(ctx),
       engine_data_(movement_engines),
       nav_engine_data_(nav_engines),
@@ -114,26 +114,27 @@ ShipEngines::ShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_en
     }
 }
 
-void ShipEngines::onAddToEntity(Entity* parent) {
+void C_ShipEngines::onAddToEntity(Entity* parent) {
     // Initialise engine particles.
-    auto* renderable_component = parent->component<RenderableComponent>();
-    if (renderable_component) {
+    auto* transform = parent->component<C_Transform>();
+    auto* ship_scene_node = transform ? transform->node.get<LargeSceneNodeR*>() : nullptr;
+    if (ship_scene_node) {
         size_t total_engines = engine_data_.size() + nav_engine_data_.size();
 
         glow_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
         glow_billboards_->material()->setTexture(
             module<ResourceCache>()->get<Texture>("shooter:engine/glow.png"), 0);
-        renderable_component->node->addChild(glow_billboards_);
+        ship_scene_node->newChild()->data.renderable = glow_billboards_;
 
         trail_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
         trail_billboards_->material()->setTexture(
             module<ResourceCache>()->get<Texture>("shooter:engine/trail.png"), 0);
         trail_billboards_->setBillboardType(BillboardType::Directional);
-        renderable_component->node->addChild(trail_billboards_);
+        ship_scene_node->newChild()->data.renderable = trail_billboards_;
     }
 }
 
-void ShipEngines::calculateMaxMovementForce(Vec3& pos_force, Vec3& neg_force) {
+void C_ShipEngines::calculateMaxMovementForce(Vec3& pos_force, Vec3& neg_force) {
     pos_force = {0.0f, 0.0f, 0.0f};
     neg_force = {0.0f, 0.0f, 0.0f};
     for (size_t i = 0; i < movement_engines_.size(); ++i) {
@@ -147,7 +148,7 @@ void ShipEngines::calculateMaxMovementForce(Vec3& pos_force, Vec3& neg_force) {
     }
 }
 
-Vec3 ShipEngines::fireMovementEngines(const Vec3& power) {
+Vec3 C_ShipEngines::fireMovementEngines(const Vec3& power) {
     Vec3 total_force{0.0f, 0.0f, 0.0f};
     for (size_t i = 0; i < movement_engines_.size(); ++i) {
         bool forwards = power[i] > 0.0f;
@@ -165,7 +166,7 @@ Vec3 ShipEngines::fireMovementEngines(const Vec3& power) {
     return total_force;
 }
 
-void ShipEngines::calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticlockwise) const {
+void C_ShipEngines::calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticlockwise) const {
     // Pitch - X axis.
     // Yaw - Y axis.
     // Roll - Z axis.
@@ -182,7 +183,7 @@ void ShipEngines::calculateMaxRotationalTorque(Vec3& clockwise, Vec3& anticlockw
     }
 }
 
-Vec3 ShipEngines::calculateRotationalTorque(const Vec3& power) const {
+Vec3 C_ShipEngines::calculateRotationalTorque(const Vec3& power) const {
     Vec3 total_torque{0.0f, 0.0f, 0.0f};
     for (size_t i = 0; i < navigation_engines_.size(); ++i) {
         bool forwards = power[i] > 0;
@@ -195,7 +196,7 @@ Vec3 ShipEngines::calculateRotationalTorque(const Vec3& power) const {
     return total_torque;
 }
 
-Vec3 ShipEngines::fireRotationalEngines(const Vec3& power) {
+Vec3 C_ShipEngines::fireRotationalEngines(const Vec3& power) {
     Vec3 total_torque{0.0f, 0.0f, 0.0f};
     for (size_t i = 0; i < navigation_engines_.size(); ++i) {
         bool forwards = power[i] > 0;
@@ -213,8 +214,8 @@ Vec3 ShipEngines::fireRotationalEngines(const Vec3& power) {
     return total_torque;
 }
 
-Vec3 ShipEngines::convertToPower(const Vec3& force, const Vec3& max_pos_force,
-                                 const Vec3& max_neg_force) {
+Vec3 C_ShipEngines::convertToPower(const Vec3& force, const Vec3& max_pos_force,
+                                   const Vec3& max_neg_force) {
     auto single_element_to_power = [](float force, float max_pos_force,
                                       float max_neg_force) -> float {
         if (force > 0.0f) {
@@ -231,36 +232,39 @@ Vec3 ShipEngines::convertToPower(const Vec3& force, const Vec3& max_pos_force,
     };
 }
 
-void ShipEngines::rep_setCurrentMovementPower(const Vec3& power) {
+void C_ShipEngines::rep_setCurrentMovementPower(const Vec3& power) {
     fireMovementEngines(power);
 }
 
-void ShipEngines::rep_setCurrentRotationalPower(const Vec3& power) {
+void C_ShipEngines::rep_setCurrentRotationalPower(const Vec3& power) {
     fireRotationalEngines(power);
 }
 
-Vec3 ShipEngines::currentMovementPower() {
+Vec3 C_ShipEngines::currentMovementPower() {
     Vec3 current = current_movement_power_;
     current_movement_power_ = Vec3::zero;
     return current;
 }
 
-Vec3 ShipEngines::currentRotationalPower() {
+Vec3 C_ShipEngines::currentRotationalPower() {
     Vec3 current = current_rotational_power_;
     current_rotational_power_ = Vec3::zero;
     return current;
 }
 
-ShipEngineSystem::ShipEngineSystem(Context* ctx) : System(ctx) {
-    supportsComponents<TransformComponent, ShipEngines>();
+S_ShipEngine::S_ShipEngine(Context* ctx) : System(ctx) {
+    supportsComponents<C_Transform, C_ShipEngines>();
 }
 
-void ShipEngineSystem::processEntity(Entity& entity, float dt) {
-    auto& transform = *entity.component<TransformComponent>();
-    auto& ship_engines = *entity.component<ShipEngines>();
+void S_ShipEngine::processEntity(Entity& entity, float dt) {
+    auto& transform = *entity.component<C_Transform>();
+    auto& ship_engines = *entity.component<C_ShipEngines>();
 
     auto& engines = ship_engines.engine_data_;
     auto& nav_engines = ship_engines.nav_engine_data_;
+
+    Mat4 model =
+        transform.node.get<LargeSceneNodeR*>()->calculateModelMatrix(LargePosition::origin);
 
     // Update particles.
     if (ship_engines.glow_billboards_) {
@@ -268,35 +272,29 @@ void ShipEngineSystem::processEntity(Entity& entity, float dt) {
             int particle = i;
             float engine_glow_size = 4.0f * engines[i].activity();
             ship_engines.glow_billboards_->setParticlePosition(
-                particle,
-                Vec3{transform.modelMatrix(LargePosition::origin) * Vec4{engines[i].offset(), 1.0f}});
+                particle, Vec3{model * Vec4{engines[i].offset(), 1.0f}});
             ship_engines.glow_billboards_->setParticleSize(particle,
                                                            {engine_glow_size, engine_glow_size});
             ship_engines.trail_billboards_->setParticlePosition(
-                particle,
-                Vec3{transform.modelMatrix(LargePosition::origin) * Vec4{engines[i].offset(), 1.0f}});
+                particle, Vec3{model * Vec4{engines[i].offset(), 1.0f}});
             ship_engines.trail_billboards_->setParticleSize(
                 particle, {engine_glow_size * 0.5f, engine_glow_size * 6.0f});
             ship_engines.trail_billboards_->setParticleDirection(
-                particle, Vec3{transform.modelMatrix(LargePosition::origin) *
-                               Vec4{-engines[i].force().Normalized(), 0.0f}});
+                particle, Vec3{model * Vec4{-engines[i].force().Normalized(), 0.0f}});
         }
         for (size_t i = 0; i < nav_engines.size(); i++) {
             int particle = i + engines.size();
             float engine_glow_size = 2.0f * nav_engines[i].activity();
             ship_engines.glow_billboards_->setParticlePosition(
-                particle, Vec3{transform.modelMatrix(LargePosition::origin) *
-                               Vec4{nav_engines[i].offset(), 1.0f}});
+                particle, Vec3{model * Vec4{nav_engines[i].offset(), 1.0f}});
             ship_engines.glow_billboards_->setParticleSize(particle,
                                                            {engine_glow_size, engine_glow_size});
             ship_engines.trail_billboards_->setParticlePosition(
-                particle, Vec3{transform.modelMatrix(LargePosition::origin) *
-                               Vec4{nav_engines[i].offset(), 1.0f}});
+                particle, Vec3{model * Vec4{nav_engines[i].offset(), 1.0f}});
             ship_engines.trail_billboards_->setParticleSize(
                 particle, {engine_glow_size * 0.25f, engine_glow_size * 3.0f});
             ship_engines.trail_billboards_->setParticleDirection(
-                particle, Vec3{transform.modelMatrix(LargePosition::origin) *
-                               Vec4{-nav_engines[i].force().Normalized(), 0.0f}});
+                particle, Vec3{model * Vec4{-nav_engines[i].force().Normalized(), 0.0f}});
         }
     }
 

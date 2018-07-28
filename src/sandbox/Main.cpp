@@ -310,7 +310,7 @@ private:
     friend class PlanetTerrainPatch;
 };
 
-// Careful to value-initialize children_ and edge_ in the initialiser list by giving them an
+// Careful to value-initialize large_children_ and edge_ in the initialiser list by giving them an
 // empty initializer ({}).
 PlanetTerrainPatch::PlanetTerrainPatch(Planet* planet, PlanetTerrainPatch* parent,
                                        const Array<Vec3, 4>& corners, int level)

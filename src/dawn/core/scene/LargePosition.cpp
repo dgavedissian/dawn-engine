@@ -31,16 +31,13 @@ Vec3 LargePosition::getRelativeTo(const LargePosition& point) const {
                 static_cast<float>(delta.z));
 }
 
-Vec3 LargePosition::toCameraSpace(Camera_OLD* camera) const {
-    // TODO(David): stub
-    return getRelativeTo(*this);
-    // return getRelativeTo(camera->getPosition());
+Vec3 LargePosition::toCameraSpace(const LargePosition& camera_position) const {
+    return getRelativeTo(camera_position);
 }
 
-LargePosition LargePosition::fromCameraSpace(Camera_OLD* camera, const Vec3& cameraSpace) {
-    // TODO(David): stub
-    return LargePosition(cameraSpace);
-    // return camera->getPosition() + cameraSpace;
+LargePosition LargePosition::fromCameraSpace(const LargePosition& camera_position,
+                                             const Vec3& point) {
+    return camera_position + point;
 }
 
 bool LargePosition::operator==(const LargePosition& other) const {
@@ -59,7 +56,8 @@ LargePosition& LargePosition::operator=(const LargePosition& other) {
 }
 
 LargePosition& LargePosition::operator=(const Vec3& other) {
-    return *this = LargePosition(other);
+    *this = LargePosition(other);
+    return *this;
 }
 
 LargePosition& LargePosition::operator+=(const LargePosition& other) {

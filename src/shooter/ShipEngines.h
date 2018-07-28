@@ -48,12 +48,12 @@ private:
     bool forwards_;
 };
 
-class ShipEngines : public Component, public Object {
+class C_ShipEngines : public Component, public Object {
 public:
-    DW_OBJECT(ShipEngines);
+    DW_OBJECT(C_ShipEngines);
 
-    ShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_engines,
-                const Vector<ShipEngineData>& nav_engines);
+    C_ShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_engines,
+                  const Vector<ShipEngineData>& nav_engines);
 
     void onAddToEntity(Entity* parent) override;
 
@@ -73,10 +73,10 @@ public:
 
     // Replication layout.
     static RepLayout repLayout() {
-        return {{RepProperty::bind<ShipEngines>(&ShipEngines::currentMovementPower,
-                                                &ShipEngines::rep_setCurrentMovementPower),
-                 RepProperty::bind<ShipEngines>(&ShipEngines::currentRotationalPower,
-                                                &ShipEngines::rep_setCurrentRotationalPower)},
+        return {{RepProperty::bind<C_ShipEngines>(&C_ShipEngines::currentMovementPower,
+                                                  &C_ShipEngines::rep_setCurrentMovementPower),
+                 RepProperty::bind<C_ShipEngines>(&C_ShipEngines::currentRotationalPower,
+                                                  &C_ShipEngines::rep_setCurrentRotationalPower)},
                 {}};
     }
 
@@ -101,14 +101,14 @@ private:
     Vec3 currentMovementPower();
     Vec3 currentRotationalPower();
 
-    friend class ShipEngineSystem;
+    friend class S_ShipEngine;
 };
 
-class ShipEngineSystem : public System {
+class S_ShipEngine : public System {
 public:
-    DW_OBJECT(ShipEngineSystem);
+    DW_OBJECT(S_ShipEngine);
 
-    explicit ShipEngineSystem(Context* ctx);
+    explicit S_ShipEngine(Context* ctx);
 
     void processEntity(Entity& entity, float dt) override;
 };

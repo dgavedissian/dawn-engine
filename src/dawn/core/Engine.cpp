@@ -6,7 +6,7 @@
 #include "core/App.h"
 #include "core/Timer.h"
 #include "DawnEngine.h"
-#include "scene/VelocitySystem.h"
+#include "scene/S_LinearMotion.h"
 
 // Required for getBasePath/getPrefPath.
 #if DW_PLATFORM == DW_WIN32
@@ -121,7 +121,6 @@ void Engine::setup(int argc, char** argv) {
     // TODO(David): bind engine services to lua?
 
     // Create the engine subsystems.
-    context_->addModule<SceneManager>();
     auto* renderer = context_->addModule<Renderer>();
     if (!headless_) {
         renderer->rhi()->init(
@@ -136,6 +135,7 @@ void Engine::setup(int argc, char** argv) {
     context_->addModule<UserInterface>();
     context_->addModule<ResourceCache>();
     context_->addModule<GameplayModule>();
+    context_->addModule<SceneManager>();
 
     auto* net = context_->addModule<Networking>();
     if (arguments_.find("-host") != arguments_.end()) {
@@ -148,7 +148,7 @@ void Engine::setup(int argc, char** argv) {
 
     // Set up built in entity systems.
     auto& sm = *context_->module<SceneManager>();
-    sm.addSystem<VelocitySystem>();
+    sm.addSystem<S_LinearMotion>();
 
     // Set input viewport size
     /*

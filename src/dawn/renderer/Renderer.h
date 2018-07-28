@@ -7,13 +7,22 @@
 #include "renderer/Camera.h"
 #include "renderer/rhi/Renderer.h"
 #include "scene/System.h"
-#include "scene/TransformComponent.h"
+#include "core/scene/SceneGraph.h"
+#include "renderer/Renderable.h"
 
 namespace dw {
-using RenderOperation = Function<void(float)>;
+namespace detail {
+struct RenderOperation {
+    Renderable* renderable;
+    Mat4 model;
+};
+}  // namespace detail
+// using RenderOperation = Function<void(float)>;
 
 class DW_API Renderer : public Module {
 public:
+    DW_OBJECT(Renderer);
+
     Renderer(Context* ctx);
     ~Renderer();
 
@@ -29,9 +38,20 @@ public:
     /// Get the renderer hardware interface.
     rhi::Renderer* rhi() const;
 
+    /// Get the root scene node.
+    LargeSceneNodeR& rootNode();
+
+    /// Get the root camera scene node.
+    SceneNodeR& rootBackgroundNode();
+
+    void setupEntitySystems(SceneManager* scene_manager);
+
 private:
     UniquePtr<rhi::Renderer> rhi_;
 
+    SceneGraph<detail::RendererSceneNodeData> scene_graph_;
+
+    /*
     class EntityRenderer : public System {
     public:
         DW_OBJECT(EntityRenderer);
@@ -47,9 +67,11 @@ private:
         void render(float interpolation);
 
     private:
-        HashMap<TransformComponent*, Mat4> world_transform_cache_;
-        Vector<RenderOperation> render_operations_;
+        HashMap<C_Transform*, Mat4> world_transform_cache_;
+        Vector<RenderOperation> render_operations_per_camera_;
     };
+    EntityRenderer* entity_renderer_;
+    */
 
     class CameraEntitySystem : public System {
     public:
@@ -63,13 +85,21 @@ private:
 
         struct CameraState {
             uint view;
-            TransformComponent* transform_component;
+            LargeSceneNodeR* scene_node;
             Mat4 projection_matrix;
         };
+
         Vector<CameraState> cameras;
     };
+
     CameraEntitySystem* camera_entity_system_;
 
-    EntityRenderer* entity_renderer_;
+    Vector<Mat4> view_proj_matrices_per_camera_;
+    Vector<HashMap<LargeSceneNodeR*, Mat4>> large_model_matrices_per_camera_;
+    HashMap<SceneNodeR*, Mat4> world_transform_cache_;
+    Vector<Vector<detail::RenderOperation>> render_operations_per_camera_;
+
+    void updateTransformCache(Mat4 large_base_world, int camera_id, SceneNodeR* node,
+                              const Mat4& parent, bool dirty);
 };
 }  // namespace dw

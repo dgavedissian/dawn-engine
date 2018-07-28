@@ -7,16 +7,17 @@
 #include "scene/SceneManager.h"
 #include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
+#include "renderer/Renderer.h"
 #include "PhysicsScene.h"
 
 namespace dw {
-SceneManager::SceneManager(Context* ctx) : Module(ctx), entity_id_allocator_(1) {
-    setDependencies<ResourceCache>();
+SceneManager::SceneManager(Context* ctx)
+    : Module(ctx), entity_id_allocator_(1), last_dt_(0.0f), background_scene_node_(nullptr) {
+    setDependencies<ResourceCache, Renderer>();
 
-    background_renderable_root_ = makeShared<SceneNode>();
-    background_entity_ = &createEntity(0, LargePosition::origin, Quat::identity, nullptr)
-                              .addComponent<RenderableComponent>(background_renderable_root_);
-    background_entity_->transform()->setRelativeToCamera(true);
+    module<Renderer>()->setupEntitySystems(this);
+
+    background_scene_node_ = module<Renderer>()->rootBackgroundNode().newChild();
 
     physics_scene_ = makeUnique<PhysicsScene>(ctx, this);
 }
@@ -34,7 +35,7 @@ void SceneManager::createStarSystem() {
     background_material->setUniform<int>("starfield_sampler", 0);
     auto skybox = MeshBuilder{context()}.normals(false).texcoords(true).createBox(-10000.0f);
     skybox->setMaterial(background_material);
-    background_renderable_root_->addChild(skybox);
+    background_scene_node_->data.renderable = skybox;
 }
 
 Entity& SceneManager::createEntity(EntityType type) {
@@ -42,18 +43,16 @@ Entity& SceneManager::createEntity(EntityType type) {
 }
 
 Entity& SceneManager::createEntity(EntityType type, const LargePosition& p, const Quat& o,
-                                   Entity* parent) {
+                                   SharedPtr<Renderable> renderable, Entity* parent) {
     Entity& e = createEntity(type);
     if (parent) {
-        e.addComponent<TransformComponent>(p, o, parent->transform());
+        e.addComponent<C_Transform>(
+            parent->transform()->node.get<LargeSceneNodeR*>()->newLargeChild(p, o),
+            renderable);
     } else {
-        e.addComponent<TransformComponent>(p, o, nullptr);
+        e.addComponent<C_Transform>(module<Renderer>()->rootNode().newLargeChild(p, o), renderable);
     }
     return e;
-}
-
-Entity& SceneManager::createEntity(EntityType type, const LargePosition& p, const Quat& o) {
-    return createEntity(type, p, o, nullptr);
 }
 
 Entity& SceneManager::createEntity(EntityType type, EntityId reserved_entity_id) {

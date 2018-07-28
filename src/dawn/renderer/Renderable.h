@@ -5,12 +5,11 @@
 #pragma once
 
 #include "renderer/Material.h"
-#include "renderer/Renderer.h"
-
-#include "scene/Component.h"
-#include "scene/TransformComponent.h"
+#include "renderer/SceneNode.h"
 
 namespace dw {
+class DW_API Renderer;
+
 class DW_API Renderable {
 public:
     Renderable();
@@ -25,7 +24,7 @@ public:
     void setMaterial(SharedPtr<Material> material);
 
     /// Draws this renderable to the specified view.
-    virtual void draw(Renderer* renderer, uint view, TransformComponent* camera,
+    virtual void draw(Renderer* renderer, uint view, LargeSceneNodeR* camera,
                       const Mat4& model_matrix, const Mat4& view_projection_matrix) = 0;
 
 protected:

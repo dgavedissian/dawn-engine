@@ -5,7 +5,7 @@
 #pragma once
 
 #include "resource/Resource.h"
-#include "renderer/Renderer.h"
+#include "renderer/rhi/Renderer.h"
 
 namespace dw {
 class DW_API Shader : public Resource {

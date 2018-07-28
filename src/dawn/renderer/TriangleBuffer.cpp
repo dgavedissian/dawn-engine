@@ -58,7 +58,7 @@ SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
         decl.end();
 
         // Build packed buffer based on parameters.
-        size = vertices_.size() * decl.stride();
+        size = static_cast<u16>(vertices_.size()) * decl.stride();
         uint stride =
             decl.stride() / sizeof(float);  // convert stride in bytes to stride in floats.
         float* packed_data = new float[vertices_.size() * decl.stride()];

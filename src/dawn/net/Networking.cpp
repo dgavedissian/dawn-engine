@@ -238,7 +238,7 @@ void Networking::update(float dt) {
     }
 }
 
-void Networking::serverUpdate(float dt) {
+void Networking::serverUpdate(float) {
     server_->SendPackets();
     server_->ReceivePackets();
 
@@ -311,7 +311,7 @@ void Networking::serverUpdate(float dt) {
     server_->AdvanceTime(time_);
 }
 
-void Networking::clientUpdate(float dt) {
+void Networking::clientUpdate(float) {
     client_->SendPackets();
     client_->ReceivePackets();
 

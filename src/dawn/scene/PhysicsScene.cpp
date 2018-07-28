@@ -10,7 +10,7 @@
 
 namespace dw {
 namespace {
-btTransform toBulletTransform(TransformComponent& xform) {
+btTransform toBulletTransform(C_Transform& xform) {
     btQuaternion quat{xform.orientation.x, xform.orientation.y, xform.orientation.z,
                       xform.orientation.w};
     return btTransform(
@@ -18,7 +18,7 @@ btTransform toBulletTransform(TransformComponent& xform) {
                static_cast<btScalar>(xform.position.z)});
 }
 
-void fromBulletTransform(const btTransform& source, TransformComponent& dest) {
+void fromBulletTransform(const btTransform& source, C_Transform& dest) {
     btQuaternion rotation;
     source.getBasis().getRotation(rotation);
     dest.position =
@@ -55,16 +55,16 @@ PhysicsScene::~PhysicsScene() {
     broadphase_.reset();
 }
 
-void PhysicsScene::update(float dt, Camera_OLD*) {
+void PhysicsScene::update(float dt, LargeSceneNodeR*) {
     world_->stepSimulation(dt, 5);
     // mDebugDrawer->step();
 }
 
-bool PhysicsScene::rayQuery(const LargePosition& start, const LargePosition& end, Camera_OLD* camera,
-                            PhysicsRaycastResult& result) {
+bool PhysicsScene::rayQuery(const LargePosition& start, const LargePosition& end,
+                            LargeSceneNodeR* camera, PhysicsRaycastResult& result) {
     // Make sure this is done in camera-space
-    btVector3 start_cs = start.toCameraSpace(camera);
-    btVector3 end_cs = end.toCameraSpace(camera);
+    btVector3 start_cs = start.toCameraSpace(camera->position);
+    btVector3 end_cs = end.toCameraSpace(camera->position);
 
     // Ensure that the direction can be normalised
     btVector3 delta = end_cs - start_cs;
@@ -73,7 +73,7 @@ bool PhysicsScene::rayQuery(const LargePosition& start, const LargePosition& end
         world_->rayTest(start_cs, end_cs, raycast);
 
         // Fill the result structure
-        result.position = LargePosition::fromCameraSpace(camera, raycast.m_hitPointWorld);
+        result.position = LargePosition::fromCameraSpace(camera->position, raycast.m_hitPointWorld);
         result.normal = raycast.m_hitNormalWorld;
         result.hit = raycast.hasHit();
 
@@ -116,11 +116,11 @@ void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
 }
 
 PhysicsScene::PhysicsComponentSystem::PhysicsComponentSystem(Context* context) : System(context) {
-    supportsComponents<TransformComponent, RigidBody>();
+    supportsComponents<C_Transform, RigidBody>();
 }
 
 void PhysicsScene::PhysicsComponentSystem::processEntity(Entity& entity, float) {
-    auto t = entity.component<TransformComponent>();
+    auto t = entity.component<C_Transform>();
     auto rb = entity.component<RigidBody>()->rigid_body_.get();
     fromBulletTransform(rb->getWorldTransform(), *t);
 }

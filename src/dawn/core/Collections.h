@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <set>
 #include <unordered_set>
+#include <deque>
 
 #if DW_PLATFORM == DW_WIN32
 #pragma warning(push)
@@ -47,6 +48,7 @@ template <typename T> using HashFunction = std::hash<T>;
 template <typename T, int N> using Array = std::array<T, N>;
 template <typename T> using Vector = std::vector<T>;
 template <typename T> using List = std::list<T>;
+template <typename T> using Deque = std::deque<T>;
 template <typename K, typename T> using Map = std::map<K, T>;
 template <typename K, typename T> using HashMap = std::unordered_map<K, T, HashFunction<K>>;
 template <typename K> using Set = std::set<K>;

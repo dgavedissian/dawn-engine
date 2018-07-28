@@ -7,7 +7,7 @@
 #include "core/math/Defs.h"
 #include "renderer/Shader.h"
 #include "renderer/Texture.h"
-#include "renderer/Renderer.h"
+#include "renderer/rhi/Renderer.h"
 
 namespace dw {
 class DW_API Program : public Resource {

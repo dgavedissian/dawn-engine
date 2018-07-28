@@ -63,9 +63,8 @@ void ShooterGameMode::onStart() {
     material->setUniform("surface_sampler", 0);
     auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(1000.0f);
     renderable->setMaterial(material);
-    module<SceneManager>()
-        ->createEntity(0, LargePosition{4000.0f, 0.0f, 0.0f}, Quat::identity)
-        .addComponent<RenderableComponent>(renderable);
+    //module<SceneManager>()->createEntity(0, LargePosition{4000.0f, 0.0f, 0.0f}, Quat::identity,
+    //                                     renderable);
 
     // Create a camera.
     auto& camera = module<SceneManager>()
@@ -83,6 +82,7 @@ void ShooterGameMode::onStart() {
     }
 
     // Spawn a test ship.
+    /*
     auto test_ship = makeShared<Ship>(context());
     auto rb = test_ship->entity()->component<RigidBody>()->_rigidBody();
     btTransform xform = rb->getWorldTransform();
@@ -90,6 +90,7 @@ void ShooterGameMode::onStart() {
     rb->setWorldTransform(xform);
     // test_ship->entity()->transform()->position() = Position{0.0, 0.0, 200.0};
     entity_pipeline_->ship_list_.emplace_back(test_ship);
+    */
 }
 
 void ShooterGameMode::onEnd() {

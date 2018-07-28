@@ -5,7 +5,7 @@
 #include "DawnEngine.h"
 #include "renderer/MeshBuilder.h"
 #include "core/Timer.h"
-#include "scene/TransformComponent.h"
+#include "scene/C_Transform.h"
 
 using namespace dw;
 
@@ -628,8 +628,7 @@ TEST_CLASS(MovingSphereHighLevel) {
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
         auto scene = module<SceneManager>();
-        object = &scene->createEntity(0, LargePosition{0.0f, 0.0f, 0.0f}, Quat::identity)
-                      .addComponent<RenderableComponent>(renderable);
+        object = &scene->createEntity(0, LargePosition{0.0f, 0.0f, 0.0f}, Quat::identity, renderable);
 
         // Create a camera.
         camera = &scene->createEntity(1, LargePosition{0.0f, 0.0f, 50.0f}, Quat::identity)
@@ -639,7 +638,7 @@ TEST_CLASS(MovingSphereHighLevel) {
     void render() {
         static float angle = 0.0f;
         angle += engine_->frameTime();
-        camera->transform()->position.x = sin(angle) * 30.0f;
+        camera->transform()->node.get<LargeSceneNodeR*>()->position.x = sin(angle) * 30.0f;
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
     }
 

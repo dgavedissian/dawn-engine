@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
-#include "scene/TransformComponent.h"
+#include "scene/C_Transform.h"
 #include "net/NetData.h"
 #include "net/NetTransform.h"
 #include "Ship.h"
@@ -15,7 +15,8 @@ Ship::Ship(Context* ctx)
     : Ship(ctx, ctx->module<SceneManager>()->reserveEntityId(), NetRole::Authority) {
 }
 
-Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx), rb_(nullptr) {
+Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role)
+    : Object(ctx), rb_(nullptr), ship_entity_(nullptr) {
     auto rc = module<ResourceCache>();
     assert(rc);
 
@@ -33,9 +34,8 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
     auto sm = module<SceneManager>();
     ship_entity_ =
         &sm->createEntity(Hash("Ship"), reserved_entity_id)
-             .addComponent<TransformComponent>(LargePosition{0.0f, 0.0f, 0.0f}, Quat::identity)
-             .addComponent<RenderableComponent>(renderable)
-             .addComponent<ShipEngines>(
+             .addComponent<C_Transform>(module<Renderer>()->rootNode().newLargeChild(), renderable)
+             .addComponent<C_ShipEngines>(
                  context(),
                  Vector<ShipEngineData>{// 4 on back.
                                         {{0.0f, 0.0f, -400.0f}, {5.0f, 0.0f, 15.0f}},
@@ -74,17 +74,17 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
                                         {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
                                         {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
                                         {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
-    auto node = ship_entity_->component<RenderableComponent>()->node;
-    node->addChild(makeShared<SceneNode>(sphere, Vec3{8.0f, 0.0f, 0.0f}, Quat::identity));
-    node->addChild(makeShared<SceneNode>(sphere, Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity,
-                                         Vec3{-1.0f, 1.0f, 1.0f}));
+    auto* node = ship_entity_->component<C_Transform>()->node.get<LargeSceneNodeR*>();
+    node->newChild(Vec3{8.0f, 0.0f, 0.0f}, Quat::identity)->data.renderable = sphere;
+    node->newChild(Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity, Vec3{-1.0f, 1.0f, 1.0f})
+        ->data.renderable = sphere;
 
     // Networking.
     ship_entity_->addComponent<NetTransform>();
     ship_entity_->addComponent<ShipControls>();
     if (role != NetRole::None) {
         ship_entity_->addComponent<NetData>(
-            RepLayout::build<NetTransform, ShipEngines, ShipControls>());
+            RepLayout::build<NetTransform, C_ShipEngines, ShipControls>());
     }
 
     // Initialise server-side details.
@@ -102,7 +102,7 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
 void Ship::update(float dt) {
     auto input = module<Input>();
 
-    // auto& engines = *ship_entity_->component<ShipEngines>();
+    // auto& engines = *ship_entity_->component<C_ShipEngines>();
     auto& controls = *ship_entity_->component<ShipControls>();
     auto net_data = ship_entity_->component<NetData>();
 
@@ -182,13 +182,13 @@ void Ship::update(float dt) {
 }
 
 void Ship::fireMovementThrusters(const Vec3& power) {
-    Vec3 total_force = ship_entity_->component<ShipEngines>()->fireMovementEngines(power);
+    Vec3 total_force = ship_entity_->component<C_ShipEngines>()->fireMovementEngines(power);
     rb_->activate();
     rb_->applyCentralForce(ship_entity_->transform()->orientation * total_force);
 }
 
 void Ship::fireRotationalThrusters(const Vec3& power) {
-    Vec3 total_torque = ship_entity_->component<ShipEngines>()->fireRotationalEngines(power);
+    Vec3 total_torque = ship_entity_->component<C_ShipEngines>()->fireRotationalEngines(power);
     rb_->activate();
     rb_->applyTorque(ship_entity_->transform()->orientation * total_torque);
 }
