@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "core/scene/LargePosition.h"
+#include "renderer/SystemPosition.h"
 
 namespace dw {
 class DW_API InputStream {
@@ -59,7 +59,7 @@ public:
         read(v.z);
     }
 
-    virtual void read(LargePosition& p) {
+    virtual void read(SystemPosition& p) {
         read(p.x);
         read(p.y);
         read(p.z);

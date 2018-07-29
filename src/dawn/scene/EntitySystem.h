@@ -41,18 +41,18 @@ private:
     UniquePtr<T> wrapped_system_;
 };
 
-class DW_API System : public Object {
+class DW_API EntitySystem : public Object {
 public:
-    DW_OBJECT(System)
+    DW_OBJECT(EntitySystem)
 
-    System(Context* context);
-    virtual ~System() = default;
+    EntitySystem(Context* context);
+    virtual ~EntitySystem() = default;
 
     /// Specifies a product of component types which constrains which entities are
     ///        received which is processed by this system.
     /// @tparam T List of component types.
     /// @return This system.
-    template <typename... T> System& supportsComponents() {
+    template <typename... T> EntitySystem& supportsComponents() {
         if (ontology_system_) {
             ontology_system_->supportsComponents<T...>();
         }
@@ -63,7 +63,7 @@ public:
     /// Specifies a list of systems which this system depends on.
     /// @tparam T List of system types.
     /// @return This system.
-    template <typename... T> System& executesAfter() {
+    template <typename... T> EntitySystem& executesAfter() {
         if (ontology_system_) {
             ontology_system_->executesAfter<OntologySystemAdapter<T>...>();
         }

@@ -6,8 +6,8 @@
 
 #include "renderer/CCamera.h"
 #include "renderer/rhi/Renderer.h"
-#include "scene/System.h"
-#include "core/scene/SceneGraph.h"
+#include "scene/EntitySystem.h"
+#include "renderer/SceneGraph.h"
 #include "renderer/Renderable.h"
 
 namespace dw {
@@ -37,46 +37,50 @@ public:
     /// Get the renderer hardware interface.
     rhi::Renderer* rhi() const;
 
+    /// Get the scene graph
+    SceneGraph& sceneGraph();
+
     /// Get the root scene node.
-    LargeSceneNodeR& rootNode();
+    SystemNode& rootNode();
 
     /// Get the root camera scene node.
-    SceneNodeR& rootBackgroundNode();
+    Node& rootBackgroundNode();
 
     void setupEntitySystems(SceneManager* scene_manager);
 
 private:
     UniquePtr<rhi::Renderer> rhi_;
 
-    SceneGraph<detail::RendererSceneNodeData> scene_graph_;
+    SceneGraph scene_graph_;
 
-    class SCamera : public System {
-    public:
-        DW_OBJECT(SCamera);
-
-        SCamera(Context* context);
-        ~SCamera() = default;
-
-        void beginProcessing() override;
-        void processEntity(Entity& entity, float dt) override;
-
-        struct CameraState {
-            uint view;
-            LargeSceneNodeR* scene_node;
-            Mat4 projection_matrix;
-        };
-
-        Vector<CameraState> cameras;
-    };
+    class SCamera;
 
     SCamera* camera_entity_system_;
 
     Vector<Mat4> view_proj_matrices_per_camera_;
-    Vector<HashMap<LargeSceneNodeR*, Mat4>> large_model_matrices_per_camera_;
-    HashMap<SceneNodeR*, Mat4> world_transform_cache_;
+    Vector<HashMap<SystemNode*, Mat4>> system_model_matrices_per_frame_;
+    HashMap<Node*, Mat4> model_matrix_cache_;
     Vector<Vector<detail::RenderOperation>> render_operations_per_camera_;
 
-    void updateTransformCache(Mat4 large_base_world, int camera_id, SceneNodeR* node,
-                              const Mat4& parent, bool dirty);
+    void renderTree(Node* node, const Mat4& frame_model_matrix, const Mat4& parent, bool dirty);
+};
+
+class Renderer::SCamera : public EntitySystem {
+public:
+    DW_OBJECT(SCamera);
+
+    SCamera(Context* context);
+    ~SCamera() = default;
+
+    void beginProcessing() override;
+    void processEntity(Entity& entity, float dt) override;
+
+    struct CameraState {
+        uint view;
+        Node* scene_node;
+        Mat4 projection_matrix;
+    };
+
+    Vector<CameraState> cameras;
 };
 }  // namespace dw

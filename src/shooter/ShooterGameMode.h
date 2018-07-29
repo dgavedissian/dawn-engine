@@ -20,6 +20,7 @@ class ShooterEntityPipeline : public NetEntityPipeline {
 public:
     DW_OBJECT(ShooterEntityPipeline);
 
+    Frame* frame_;
     Vector<SharedPtr<Ship>> ship_list_;
 
     explicit ShooterEntityPipeline(Context* ctx);

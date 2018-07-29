@@ -29,6 +29,8 @@ Engine::Engine(const String& game, const String& version)
       game_name_{game},
       game_version_{version},
       frame_time_{0.0f},
+      frames_per_second_{0},
+      frame_counter_(0),
       log_file_{"engine.log"},
       config_file_{"engine.cfg"} {
 }
@@ -66,7 +68,7 @@ void Engine::setup(int argc, char** argv) {
 
     // Initialise logging.
     context_->addModule<Logger>();
-// TODO(david): Add a file logger to prefPath + log_file_
+    // TODO(david): Add a file logger to prefPath + log_file_
 #ifdef DW_DEBUG
     log().warn("NOTE: This is a debug build!");
 #endif
@@ -125,7 +127,7 @@ void Engine::setup(int argc, char** argv) {
     if (!headless_) {
         renderer->rhi()->init(
             rhi::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
-            context_->config().at("window_height").get<u16>(), window_title, true);
+            context_->config().at("window_height").get<u16>(), window_title, false);
         context_->addModule<Input>();
     } else {
         renderer->rhi()->init(
@@ -206,6 +208,7 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
     // Start the main loop.
     float time_per_update = 1.0f / 60.0f;
     time::TimePoint previous_time = time::beginTiming();
+    time::TimePoint last_fps_update = time::beginTiming();
     double accumulated_time = 0.0;
     while (running_) {
         time::TimePoint current_time = time::beginTiming();
@@ -229,6 +232,15 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         render_callback(interpolation);
         postRender();
         context_->module<Renderer>()->frame();
+
+        // Update frame counter.
+        frame_counter_++;
+        current_time = time::beginTiming();
+        if (time::elapsed(last_fps_update, current_time) > 1.0) {
+            last_fps_update = current_time;
+            frames_per_second_ = frame_counter_;
+            frame_counter_ = 0;
+        }
     }
 
     context_->module<GameplayModule>()->setGameMode(nullptr);
@@ -236,6 +248,10 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
 
 double Engine::frameTime() const {
     return frame_time_;
+}
+
+int Engine::framesPerSecond() const {
+    return frames_per_second_;
 }
 
 const Set<String>& Engine::flags() const {
@@ -261,7 +277,8 @@ void Engine::printSystemInfo() {
 }
 
 #if DW_PLATFORM == DW_LINUX
-static String readSymLink(const String& path) {
+namespace {
+String readSymLink(const String& path) {
     char* retval = nullptr;
     size_t len = 64;
     ssize_t rc;
@@ -287,6 +304,7 @@ static String readSymLink(const String& path) {
     delete[] retval;
     return {};
 }
+}  // namespace
 #endif
 
 String Engine::basePath() const {

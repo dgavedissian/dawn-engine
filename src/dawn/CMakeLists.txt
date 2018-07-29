@@ -31,13 +31,6 @@ set(SOURCE_FILES
     core/math/Vec4i.h
     core/platform/Defines.h
     core/platform/Windows.h
-    core/scene/LargePosition.cpp
-    core/scene/LargePosition.h
-    core/scene/SceneGraph.i.h
-    core/scene/SceneGraph.h
-    core/scene/SceneNode.cpp
-    core/scene/SceneNode.i.h
-    core/scene/SceneNode.h
     core/script/LuaState.cpp
     core/script/LuaState.h
     core/script/Sol.h
@@ -122,16 +115,21 @@ set(SOURCE_FILES
     renderer/Mesh.h
     renderer/MeshBuilder.cpp
     renderer/MeshBuilder.h
+    renderer/Node.cpp
+    renderer/Node.h
     renderer/Program.cpp
     renderer/Program.h
     renderer/Renderable.h
     renderer/Renderable.cpp
     renderer/Renderer.cpp
     renderer/Renderer.h
-    renderer/SceneNode.h
+    renderer/SceneGraph.cpp
+    renderer/SceneGraph.h
     renderer/Shader.cpp
     renderer/Shader.h
     renderer/StbImage.h
+    renderer/SystemPosition.cpp
+    renderer/SystemPosition.h
     renderer/Texture.cpp
     renderer/Texture.h
     renderer/TriangleBuffer.cpp
@@ -152,14 +150,14 @@ set(SOURCE_FILES
     scene/Component.h
     scene/Entity.cpp
     scene/Entity.h
+    scene/EntitySystem.cpp
+    scene/EntitySystem.h
     scene/PhysicsScene.cpp
     scene/PhysicsScene.h
     scene/SLinearMotion.cpp
     scene/SLinearMotion.h
     scene/SceneManager.cpp
     scene/SceneManager.h
-    scene/System.cpp
-    scene/System.h
     ui/Imgui.h
     ui/UserInterface.cpp
     ui/UserInterface.h

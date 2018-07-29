@@ -4,14 +4,14 @@
  */
 #pragma once
 
-#include "renderer/SceneNode.h"
+#include "renderer/Node.h"
 #include "scene/Entity.h"
 #include "scene/CTransform.h"
 
 #include <ontology/World.hpp>
 #include <ontology/SystemManager.hpp>
 
-#include "scene/System.h"
+#include "scene/EntitySystem.h"
 #include "scene/PhysicsScene.h"
 
 namespace dw {
@@ -51,11 +51,21 @@ public:
     /// @param type Entity type ID.
     /// @param p Initial position.
     /// @param o Initial orientation.
-    /// @param renderable Renderable attach to this entity. Can be null.
-    /// @param parent Parent entity. Can be null.
+    /// @param frame Frame to spawn the entity in.
+    /// @param renderable Renderable attached to this entity. Can be null.
     /// @return A newly created entity.
-    Entity& createEntity(EntityType type, const LargePosition& p, const Quat& o,
-                         SharedPtr<Renderable> renderable = nullptr, Entity* parent = nullptr);
+    Entity& createEntity(EntityType type, const Vec3& p, const Quat& o, Frame& frame,
+                         SharedPtr<Renderable> renderable = nullptr);
+
+    /// Creates a new entity with a transform component.
+    /// @param type Entity type ID.
+    /// @param p Initial position.
+    /// @param o Initial orientation.
+    /// @param parent Parent entity.
+    /// @param renderable Renderable attached to this entity. Can be null.
+    /// @return A newly created entity.
+    Entity& createEntity(EntityType type, const Vec3& p, const Quat& o, Entity& parent,
+                         SharedPtr<Renderable> renderable = nullptr);
 
     /// Creates a new empty entity with a previously reserved entity ID.
     /// @param type Entity type ID.
@@ -95,7 +105,7 @@ private:
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
     EntityId entity_id_allocator_;
 
-    SceneNodeR* background_scene_node_;
+    Node* background_scene_node_;
 
     UniquePtr<PhysicsScene> physics_scene_;
 };

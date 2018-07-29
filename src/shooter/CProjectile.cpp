@@ -4,10 +4,10 @@
  */
 #include "CProjectile.h"
 
-SProjectile::SProjectile(Context* context) : System(context) {
+SProjectile::SProjectile(Context* context) : EntitySystem(context) {
     supportsComponents<CProjectile, CTransform>();
 }
 
 void SProjectile::processEntity(Entity& entity, float dt) {
-    entity.component<CTransform>()->largeNode().position += entity.component<CProjectile>()->velocity * dt;
+    entity.transform()->position += entity.component<CProjectile>()->velocity * dt;
 }

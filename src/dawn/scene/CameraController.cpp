@@ -52,13 +52,13 @@ void CameraController::update(float dt) {
     velocity_.y = damp(velocity_.y, 0.0f, 0.99f, dt);
     velocity_.z = damp(velocity_.z, 0.0f, 0.99f, dt);
     roll_velocity_ = damp(roll_velocity_, 0.0f, 0.99f, dt);
-    velocity_ += possessed_->transform()->orientation() *
+    velocity_ += possessed_->transform()->orientation *
                  Vec3{right_acceleration, 0.0f, forward_acceleration} * dt;
     roll_velocity_ += roll_acceleration * dt;
 
-    possessed_->transform()->orientation() =
-        possessed_->transform()->orientation() * Quat::RotateZ(roll_velocity_ * dt);
-    possessed_->transform()->move(velocity_ * dt);
+    possessed_->transform()->orientation =
+        possessed_->transform()->orientation * Quat::RotateZ(roll_velocity_ * dt);
+    possessed_->transform()->position += velocity_ * dt;
 }
 
 void CameraController::onMouseMove(const MouseMoveEvent& m) {
@@ -68,7 +68,7 @@ void CameraController::onMouseMove(const MouseMoveEvent& m) {
 
     if (module<Input>()->isMouseButtonDown(MouseButton::Left)) {
         float units_to_radians = -0.003f;
-        auto& orientation = possessed_->transform()->orientation();
+        auto& orientation = possessed_->transform()->orientation;
         orientation = orientation * Quat::RotateX(m.offset.y * units_to_radians) *
                       Quat::RotateY(m.offset.x * units_to_radians);
         orientation.Normalize();

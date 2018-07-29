@@ -44,8 +44,13 @@ public:
     /// Returns the type ID of this entity.
     EntityType typeId() const;
 
-    /// Shortcut for returning the transform component.
-    CTransform* transform() const;
+    /// Shortcut for returning the transform stored inside the scene node of the transform
+    /// component.
+    detail::Transform* transform();
+
+    /// Shortcut for returning the transform stored inside the scene node of the transform
+    /// component.
+    const detail::Transform* transform() const;
 
 private:
     Ontology::EntityManager& internal_entity_mgr_;
@@ -56,8 +61,6 @@ private:
     Ontology::Entity& entity() const {
         return internal_entity_mgr_.getEntity(internal_entity_id_);
     }
-
-    CTransform* transform_;
 };
 
 template <typename T> T* Entity::component() const {

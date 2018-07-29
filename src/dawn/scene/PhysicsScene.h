@@ -4,9 +4,9 @@
  */
 #pragma once
 
-#include "core/scene/LargePosition.h"
-#include "renderer/SceneNode.h"
-#include "scene/System.h"
+#include "renderer/SystemPosition.h"
+#include "renderer/Node.h"
+#include "scene/EntitySystem.h"
 #include "input/Input.h"
 
 // Bullet
@@ -20,7 +20,7 @@ class RigidEntity;
 // TODO: merge this with RendererRaycastResult
 struct DW_API PhysicsRaycastResult {
     RigidEntity* body;
-    LargePosition position;
+    SystemPosition position;
     Vec3 normal;
     bool hit;
 };
@@ -34,14 +34,14 @@ public:
     ~PhysicsScene();
 
     // Takes a step of dt seconds in the simulation
-    void update(float dt, LargeSceneNodeR* camera);
+    void update(float dt, SystemNode* camera);
 
     // Performs a raycast query
-    bool rayQuery(const LargePosition& start, const LargePosition& end, LargeSceneNodeR* camera,
+    bool rayQuery(const SystemPosition& start, const SystemPosition& end, SystemNode* camera,
                   PhysicsRaycastResult& result);
 
-    // System for updating RigidBody components.
-    class PhysicsComponentSystem : public System {
+    // EntitySystem for updating RigidBody components.
+    class PhysicsComponentSystem : public EntitySystem {
     public:
         DW_OBJECT(PhysicsComponentSystem);
 

@@ -5,10 +5,10 @@
 #pragma once
 
 #include "scene/CLinearMotion.h"
-#include "scene/System.h"
+#include "scene/EntitySystem.h"
 
 namespace dw {
-class SLinearMotion : public System {
+class SLinearMotion : public EntitySystem {
 public:
     DW_OBJECT(SLinearMotion);
 

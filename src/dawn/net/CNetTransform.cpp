@@ -8,7 +8,7 @@
 #include "scene/PhysicsScene.h"
 
 namespace dw {
-SNetTransformSync::SNetTransformSync(Context* context) : System(context) {
+SNetTransformSync::SNetTransformSync(Context* context) : EntitySystem(context) {
     supportsComponents<CTransform, CNetTransform, NetData>();
 }
 
@@ -35,14 +35,15 @@ void SNetTransformSync::processEntity(Entity& entity, float dt) {
                                              rigid_body->_rigidBody()->getTotalTorque() *
                                              inv_physics_timestep;
         } else {
-            net_state.velocity = transform.largeNode().position.getRelativeTo(net_state.position) / inv_dt;
+            net_state.velocity =
+                (transform.node->transform().position - net_state.position) / inv_dt;
             net_state.angular_velocity = Vec3::zero;
             net_state.angular_acceleration = Vec3::zero;
         }
 
         // Apply new state.
-        net_state.position = transform.largeNode().position;
-        net_state.orientation = transform.orientation();
+        net_state.position = transform.node->transform().position;
+        net_state.orientation = transform.node->transform().orientation;
     } else {
         /*
 // Update transform and integrate velocities.
@@ -59,8 +60,9 @@ new_orientation.w += dt * 0.5f * integrated_delta_rotation.w;
 new_orientation.Normalize();
 transform.orientation() = new_orientation;
         */
-        transform.largeNode().position = net_state.position;
-        transform.orientation() = net_state.orientation;
+        auto& xform = transform.node->transform();
+        xform.position = net_state.position;
+        xform.orientation = net_state.orientation;
     }
 }
 }  // namespace dw

@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "core/scene/LargePosition.h"
+#include "renderer/SystemPosition.h"
 
 namespace dw {
 
@@ -42,7 +42,7 @@ public:
         write(v.z);
     }
 
-    virtual void write(const LargePosition& p) {
+    virtual void write(const SystemPosition& p) {
         write(p.x);
         write(p.y);
         write(p.z);

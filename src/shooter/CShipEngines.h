@@ -53,7 +53,7 @@ public:
     DW_OBJECT(CShipEngines);
 
     CShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_engines,
-                  const Vector<ShipEngineData>& nav_engines);
+                 const Vector<ShipEngineData>& nav_engines);
 
     void onAddToEntity(Entity* parent) override;
 
@@ -74,9 +74,9 @@ public:
     // Replication layout.
     static RepLayout repLayout() {
         return {{RepProperty::bind<CShipEngines>(&CShipEngines::currentMovementPower,
-                                                  &CShipEngines::rep_setCurrentMovementPower),
+                                                 &CShipEngines::rep_setCurrentMovementPower),
                  RepProperty::bind<CShipEngines>(&CShipEngines::currentRotationalPower,
-                                                  &CShipEngines::rep_setCurrentRotationalPower)},
+                                                 &CShipEngines::rep_setCurrentRotationalPower)},
                 {}};
     }
 
@@ -104,7 +104,7 @@ private:
     friend class SShipEngines;
 };
 
-class SShipEngines : public System {
+class SShipEngines : public EntitySystem {
 public:
     DW_OBJECT(SShipEngines);
 

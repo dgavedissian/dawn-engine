@@ -42,6 +42,11 @@ int yojimbo_printf_function(const char* format, ...) {
         serialize_bytes(stream, bytes.data(), size); \
     }
 
+#ifdef DW_MSVC
+#pragma warning(push)
+#pragma warning(disable : 4127)
+#endif
+
 struct ClientSpawnRequestMessage : public yojimbo::Message {
     u32 request_id;
     EntityType entity_type;
@@ -64,7 +69,9 @@ struct ClientRpcMessage : public yojimbo::Message {
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint64(stream, entity_id);
-        serialize_bits(stream, rpc_id, sizeof(RpcId) * 8);
+        auto rpc_id_raw = static_cast<u32>(rpc_id);
+        serialize_bits(stream, rpc_id_raw, sizeof(RpcId) * 8);
+        rpc_id = static_cast<RpcId>(rpc_id_raw);
         yojimbo_serialize_byte_array(stream, payload);
         return true;
     }
@@ -81,9 +88,9 @@ struct ServerCreateEntityMessage : public yojimbo::Message {
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint64(stream, entity_id);
         serialize_uint32(stream, entity_type);
-        auto role_byte = static_cast<u8>(role);
-        serialize_bits(stream, role_byte, 8);
-        role = static_cast<NetRole>(role_byte);
+        auto role_raw = static_cast<u32>(role);
+        serialize_bits(stream, role_raw, 8);
+        role = static_cast<NetRole>(role_raw);
         yojimbo_serialize_byte_array(stream, data);
         return true;
     }
@@ -147,6 +154,10 @@ YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerPropertyReplication, ServerPropertyReplica
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerDestroyEntity, ServerDestroyEntityMessage);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerSpawnResponse, ServerSpawnResponseMessage);
 YOJIMBO_MESSAGE_FACTORY_FINISH();
+
+#ifdef DW_MSVC
+#pragma warning(pop)
+#endif
 }  // namespace
 
 Networking::Networking(Context* context)
@@ -352,8 +363,8 @@ void Networking::clientUpdate(float) {
                         entity->component<NetData>()->role_ = role;
                         entity->component<NetData>()->remote_role_ = NetRole::Authority;
                         log().info("Created replicated entity %d at %d %d %d", entity_id,
-                                   entity->transform()->largeNode().position.x, entity->transform()->largeNode().position.y,
-                                   entity->transform()->largeNode().position.z);
+                                   entity->transform()->position.x, entity->transform()->position.y,
+                                   entity->transform()->position.z);
 
                         // If any spawn requests are waiting for an entity to be created,
                         // trigger the callback and clear.

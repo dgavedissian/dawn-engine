@@ -8,13 +8,13 @@
 #include "core/io/InputStream.h"
 #include "core/io/OutputStream.h"
 #include "scene/Component.h"
-#include "scene/System.h"
-#include "core/scene/LargePosition.h"
+#include "scene/EntitySystem.h"
+#include "renderer/SystemPosition.h"
 #include "net/NetData.h"
 
 namespace dw {
 struct NetTransformState {
-    LargePosition position;
+    Vec3 position;
     Vec3 velocity;
     Vec3 acceleration;
     Quat orientation;
@@ -22,7 +22,7 @@ struct NetTransformState {
     Vec3 angular_acceleration;
 
     NetTransformState()
-        : position(LargePosition::origin),
+        : position(Vec3::zero),
           velocity(Vec3::zero),
           acceleration(Vec3::zero),
           orientation(Quat::identity),
@@ -32,7 +32,8 @@ struct NetTransformState {
 
     bool operator==(const NetTransformState& other) const {
         const float eps = 0.01f;
-        return position == other.position && velocity.DistanceSq(other.velocity) < 0.01f &&
+        return position.DistanceSq(other.position) < 0.01f &&
+               velocity.DistanceSq(other.velocity) < 0.01f &&
                acceleration.DistanceSq(other.acceleration) < 0.01f &&
                orientation.Dot(other.orientation) > (1.0f - eps) &&
                angular_velocity.DistanceSq(other.angular_velocity) < 0.01f &&
@@ -76,7 +77,7 @@ public:
     }
 };
 
-class SNetTransformSync : public System {
+class SNetTransformSync : public EntitySystem {
 public:
     DW_OBJECT(SNetTransformSync);
 

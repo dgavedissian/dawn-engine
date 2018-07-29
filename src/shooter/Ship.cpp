@@ -11,11 +11,11 @@
 
 using namespace dw;
 
-Ship::Ship(Context* ctx)
-    : Ship(ctx, ctx->module<SceneManager>()->reserveEntityId(), NetRole::Authority) {
+Ship::Ship(Context* ctx, Frame* frame)
+    : Ship(ctx, frame, ctx->module<SceneManager>()->reserveEntityId(), NetRole::Authority) {
 }
 
-Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role)
+Ship::Ship(Context* ctx, Frame* frame, EntityId reserved_entity_id, NetRole role)
     : Object(ctx), rb_(nullptr), ship_entity_(nullptr) {
     auto rc = module<ResourceCache>();
     assert(rc);
@@ -32,51 +32,50 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role)
 
     // Create ship entity.
     auto sm = module<SceneManager>();
-    ship_entity_ =
-        &sm->createEntity(Hash("Ship"), reserved_entity_id)
-             .addComponent<CTransform>(module<Renderer>()->rootNode().newLargeChild(), renderable)
-             .addComponent<CShipEngines>(
-                 context(),
-                 Vector<ShipEngineData>{// 4 on back.
-                                        {{0.0f, 0.0f, -400.0f}, {5.0f, 0.0f, 15.0f}},
-                                        {{0.0f, 0.0f, -400.0f}, {3.0f, 0.0f, 15.0f}},
-                                        {{0.0f, 0.0f, -400.0f}, {-3.0f, 0.0f, 15.0f}},
-                                        {{0.0f, 0.0f, -400.0f}, {-5.0f, 0.0f, 15.0f}},
-                                        // 2 on front.
-                                        {{0.0f, 0.0f, 400.0f}, {5.0f, 0.0f, -12.0f}},
-                                        {{0.0f, 0.0f, 400.0f}, {-5.0f, 0.0f, -12.0f}},
-                                        // 2 on each side
-                                        {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, 8.0f}},
-                                        {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, -8.0f}},
-                                        {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, 8.0f}},
-                                        {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, -8.0f}},
-                                        // 2 above and below
-                                        {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, 8.0f}},
-                                        {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, -8.0f}},
-                                        {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, 8.0f}},
-                                        {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, -8.0f}}},
-                 Vector<ShipEngineData>{// 4 on right, 4 on left
-                                        {{-35.0f, 0.0f, 0.0f}, {5.0f, 2.0f, 10.0f}},
-                                        {{-35.0f, 0.0f, 0.0f}, {5.0f, -2.0f, 10.0f}},
-                                        {{-35.0f, 0.0f, 0.0f}, {5.0f, 2.0f, -10.0f}},
-                                        {{-35.0f, 0.0f, 0.0f}, {5.0f, -2.0f, -10.0f}},
-                                        {{35.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, 10.0f}},
-                                        {{35.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, 10.0f}},
-                                        {{35.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, -10.0f}},
-                                        {{35.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, -10.0f}},
+    ship_entity_ = &sm->createEntity(Hash("Ship"), reserved_entity_id)
+                        .addComponent<CTransform>(frame->newChild(), renderable)
+                        .addComponent<CShipEngines>(
+                            context(),
+                            Vector<ShipEngineData>{// 4 on back.
+                                                   {{0.0f, 0.0f, -400.0f}, {5.0f, 0.0f, 15.0f}},
+                                                   {{0.0f, 0.0f, -400.0f}, {3.0f, 0.0f, 15.0f}},
+                                                   {{0.0f, 0.0f, -400.0f}, {-3.0f, 0.0f, 15.0f}},
+                                                   {{0.0f, 0.0f, -400.0f}, {-5.0f, 0.0f, 15.0f}},
+                                                   // 2 on front.
+                                                   {{0.0f, 0.0f, 400.0f}, {5.0f, 0.0f, -12.0f}},
+                                                   {{0.0f, 0.0f, 400.0f}, {-5.0f, 0.0f, -12.0f}},
+                                                   // 2 on each side
+                                                   {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, 8.0f}},
+                                                   {{-400.0f, 0.0f, 0.0f}, {6.0f, 0.0f, -8.0f}},
+                                                   {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, 8.0f}},
+                                                   {{400.0f, 0.0f, 0.0f}, {-6.0f, 0.0f, -8.0f}},
+                                                   // 2 above and below
+                                                   {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, 8.0f}},
+                                                   {{0.0f, -400.0f, 0.0f}, {0.0f, 5.0f, -8.0f}},
+                                                   {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, 8.0f}},
+                                                   {{0.0f, 400.0f, 0.0f}, {0.0f, -5.0f, -8.0f}}},
+                            Vector<ShipEngineData>{// 4 on right, 4 on left
+                                                   {{-35.0f, 0.0f, 0.0f}, {5.0f, 2.0f, 10.0f}},
+                                                   {{-35.0f, 0.0f, 0.0f}, {5.0f, -2.0f, 10.0f}},
+                                                   {{-35.0f, 0.0f, 0.0f}, {5.0f, 2.0f, -10.0f}},
+                                                   {{-35.0f, 0.0f, 0.0f}, {5.0f, -2.0f, -10.0f}},
+                                                   {{35.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, 10.0f}},
+                                                   {{35.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, 10.0f}},
+                                                   {{35.0f, 0.0f, 0.0f}, {-5.0f, 2.0f, -10.0f}},
+                                                   {{35.0f, 0.0f, 0.0f}, {-5.0f, -2.0f, -10.0f}},
 
-                                        // 4 on top, 4 on bottom.
-                                        {{0.0f, -35.0f, 0.0f}, {2.0f, 5.0f, 10.0f}},
-                                        {{0.0f, -35.0f, 0.0f}, {-2.0f, 5.0f, 10.0f}},
-                                        {{0.0f, -35.0f, 0.0f}, {2.0f, 5.0f, -10.0f}},
-                                        {{0.0f, -35.0f, 0.0f}, {-2.0f, 5.0f, -10.0f}},
-                                        {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
-                                        {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
-                                        {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
-                                        {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
-    auto& node = ship_entity_->component<CTransform>()->largeNode();
-    node.newChild(Vec3{8.0f, 0.0f, 0.0f}, Quat::identity)->data.renderable = sphere;
-    node.newChild(Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity, Vec3{-1.0f, 1.0f, 1.0f})
+                                                   // 4 on top, 4 on bottom.
+                                                   {{0.0f, -35.0f, 0.0f}, {2.0f, 5.0f, 10.0f}},
+                                                   {{0.0f, -35.0f, 0.0f}, {-2.0f, 5.0f, 10.0f}},
+                                                   {{0.0f, -35.0f, 0.0f}, {2.0f, 5.0f, -10.0f}},
+                                                   {{0.0f, -35.0f, 0.0f}, {-2.0f, 5.0f, -10.0f}},
+                                                   {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
+                                                   {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
+                                                   {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
+                                                   {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
+    auto node = ship_entity_->component<CTransform>()->node;
+    node->newChild(Vec3{8.0f, 0.0f, 0.0f}, Quat::identity)->data.renderable = sphere;
+    node->newChild(Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity, Vec3{-1.0f, 1.0f, 1.0f})
         ->data.renderable = sphere;
 
     // Networking.
@@ -184,23 +183,23 @@ void Ship::update(float dt) {
 void Ship::fireMovementThrusters(const Vec3& power) {
     Vec3 total_force = ship_entity_->component<CShipEngines>()->fireMovementEngines(power);
     rb_->activate();
-    rb_->applyCentralForce(ship_entity_->transform()->largeNode().orientation * total_force);
+    rb_->applyCentralForce(ship_entity_->transform()->orientation * total_force);
 }
 
 void Ship::fireRotationalThrusters(const Vec3& power) {
     Vec3 total_torque = ship_entity_->component<CShipEngines>()->fireRotationalEngines(power);
     rb_->activate();
-    rb_->applyTorque(ship_entity_->transform()->largeNode().orientation * total_torque);
+    rb_->applyTorque(ship_entity_->transform()->orientation * total_torque);
 }
 
 Vec3 Ship::angularVelocity() const {
-    Quat inv_rotation = ship_entity_->transform()->largeNode().orientation;
+    Quat inv_rotation = ship_entity_->transform()->orientation;
     inv_rotation.InverseAndNormalize();
     return inv_rotation * Vec3{rb_->getAngularVelocity()};
 }
 
 Vec3 Ship::localVelocity() const {
-    Quat inv_rotation = ship_entity_->transform()->largeNode().orientation;
+    Quat inv_rotation = ship_entity_->transform()->orientation;
     inv_rotation.InverseAndNormalize();
     return inv_rotation * Vec3{rb_->getLinearVelocity()};
 }

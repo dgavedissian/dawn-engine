@@ -4,14 +4,16 @@
  */
 #include "ShooterGameMode.h"
 
-ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx) : NetEntityPipeline(ctx) {
+ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx)
+    : NetEntityPipeline(ctx), frame_(nullptr) {
 }
 
 Entity* ShooterEntityPipeline::createEntityFromType(EntityId entity_id, EntityType type,
                                                     NetRole role) {
+    assert(frame_);
     switch (type) {
         case Hash("Ship"): {
-            SharedPtr<Ship> ship = makeShared<Ship>(context(), entity_id, role);
+            SharedPtr<Ship> ship = makeShared<Ship>(context(), frame_, entity_id, role);
             Entity* entity = ship->entity();
             entity->component<CShipControls>()->ship = ship;
             ship_list_.emplace_back(std::move(ship));
@@ -53,6 +55,11 @@ void ShooterGameMode::onStart() {
 
     module<SceneManager>()->createStarSystem();
 
+    // Create frame.
+    auto* frame = module<Renderer>()->sceneGraph().addFrame(
+        module<Renderer>()->sceneGraph().root().newChild());
+    entity_pipeline_->frame_ = frame;
+
     // Random thing.
     auto rc = module<ResourceCache>();
     auto material = makeShared<Material>(
@@ -63,20 +70,21 @@ void ShooterGameMode::onStart() {
     material->setUniform("surface_sampler", 0);
     auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(1000.0f);
     renderable->setMaterial(material);
-    //module<SceneManager>()->createEntity(0, LargePosition{4000.0f, 0.0f, 0.0f}, Quat::identity,
-    //                                     renderable);
+    auto planet = module<Renderer>()->sceneGraph().root().newChild(
+        SystemPosition{4000.0f, 0.0f, 0.0f}, Quat::identity);
+    planet->data.renderable = renderable;
 
     // Create a camera.
-    auto& camera = module<SceneManager>()
-                       ->createEntity(0, LargePosition{0.0f, 0.0f, 50.0f}, Quat::identity)
-                       .addComponent<CCamera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
+    auto& camera =
+        module<SceneManager>()->createEntity(0, {0.0f, 0.0f, 50.0f}, Quat::identity, *frame);
+    camera.addComponent<CCamera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
     camera_controller_ = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
     camera_controller_->possess(&camera);
 
     // If we're running a local-only game, spawn a player.
     if (!module<Networking>()->isConnected()) {
-        auto new_ship =
-            makeShared<Ship>(context(), module<SceneManager>()->reserveEntityId(), NetRole::None);
+        auto new_ship = makeShared<Ship>(context(), frame,
+                                         module<SceneManager>()->reserveEntityId(), NetRole::None);
         camera_controller_->follow(new_ship->entity());
         entity_pipeline_->ship_list_.emplace_back(new_ship);
     }

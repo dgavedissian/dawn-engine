@@ -80,8 +80,8 @@ void ShipFlightComputer::update(float dt) {
         ship_->fireMovementThrusters(movement_power);
     }
     Vec3 angular_power{CShipEngines::convertToPower(rotational_acceleration,
-                                                     ship_angular_acceleration_forwards_,
-                                                     ship_angular_acceleration_backwards_)};
+                                                    ship_angular_acceleration_forwards_,
+                                                    ship_angular_acceleration_backwards_)};
     if (rotational_acceleration.Length() > 0.01f) {
         ship_->fireRotationalThrusters(angular_power);
     }

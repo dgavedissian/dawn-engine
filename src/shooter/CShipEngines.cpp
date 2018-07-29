@@ -62,7 +62,7 @@ bool ShipEngineInstance::isForwards() const {
 }
 
 CShipEngines::CShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_engines,
-                             const Vector<ShipEngineData>& nav_engines)
+                           const Vector<ShipEngineData>& nav_engines)
     : Object(ctx),
       engine_data_(movement_engines),
       nav_engine_data_(nav_engines),
@@ -115,23 +115,22 @@ CShipEngines::CShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_
 }
 
 void CShipEngines::onAddToEntity(Entity* parent) {
-    // Initialise engine particles.
     auto* transform = parent->component<CTransform>();
-    auto* ship_scene_node = transform ? transform->scene_node.get<LargeSceneNodeR*>() : nullptr;
-    if (ship_scene_node) {
-        size_t total_engines = engine_data_.size() + nav_engine_data_.size();
+    assert(transform);
 
-        glow_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
-        glow_billboards_->material()->setTexture(
-            module<ResourceCache>()->get<Texture>("shooter:engine/glow.png"), 0);
-        ship_scene_node->newChild()->data.renderable = glow_billboards_;
+    // Initialise engine particles.
+    size_t total_engines = engine_data_.size() + nav_engine_data_.size();
 
-        trail_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
-        trail_billboards_->material()->setTexture(
-            module<ResourceCache>()->get<Texture>("shooter:engine/trail.png"), 0);
-        trail_billboards_->setBillboardType(BillboardType::Directional);
-        ship_scene_node->newChild()->data.renderable = trail_billboards_;
-    }
+    glow_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
+    glow_billboards_->material()->setTexture(
+        module<ResourceCache>()->get<Texture>("shooter:engine/glow.png"), 0);
+    transform->node->newChild()->data.renderable = glow_billboards_;
+
+    trail_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
+    trail_billboards_->material()->setTexture(
+        module<ResourceCache>()->get<Texture>("shooter:engine/trail.png"), 0);
+    trail_billboards_->setBillboardType(BillboardType::Directional);
+    transform->node->newChild()->data.renderable = trail_billboards_;
 }
 
 void CShipEngines::calculateMaxMovementForce(Vec3& pos_force, Vec3& neg_force) {
@@ -215,7 +214,7 @@ Vec3 CShipEngines::fireRotationalEngines(const Vec3& power) {
 }
 
 Vec3 CShipEngines::convertToPower(const Vec3& force, const Vec3& max_pos_force,
-                                   const Vec3& max_neg_force) {
+                                  const Vec3& max_neg_force) {
     auto single_element_to_power = [](float force, float max_pos_force,
                                       float max_neg_force) -> float {
         if (force > 0.0f) {
@@ -252,19 +251,18 @@ Vec3 CShipEngines::currentRotationalPower() {
     return current;
 }
 
-SShipEngines::SShipEngines(Context* ctx) : System(ctx) {
+SShipEngines::SShipEngines(Context* ctx) : EntitySystem(ctx) {
     supportsComponents<CTransform, CShipEngines>();
 }
 
 void SShipEngines::processEntity(Entity& entity, float dt) {
-    auto& transform = *entity.component<CTransform>();
+    auto& transform = *entity.transform();
     auto& ship_engines = *entity.component<CShipEngines>();
 
     auto& engines = ship_engines.engine_data_;
     auto& nav_engines = ship_engines.nav_engine_data_;
 
-    Mat4 model =
-        transform.scene_node.get<LargeSceneNodeR*>()->calculateModelMatrix(LargePosition::origin);
+    Mat4 model = transform.toMat4();
 
     // Update particles.
     if (ship_engines.glow_billboards_) {

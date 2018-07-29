@@ -7,7 +7,7 @@
 #include "Common.h"
 #include "core/math/Colour.h"
 #include "scene/Component.h"
-#include "scene/System.h"
+#include "scene/EntitySystem.h"
 
 using namespace dw;
 
@@ -17,7 +17,7 @@ struct CProjectile : public Component {
     Colour colour;
 };
 
-class SProjectile : public System {
+class SProjectile : public EntitySystem {
 public:
     DW_OBJECT(SProjectile);
 

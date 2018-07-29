@@ -34,9 +34,9 @@ public:
     static RepLayout repLayout() {
         return {{},
                 {Rpc::bind<CShipControls>(&CShipControls::setLinearVelocity,
-                                         &CShipControls::setLinearVelocityImpl),
+                                          &CShipControls::setLinearVelocityImpl),
                  Rpc::bind<CShipControls>(&CShipControls::setAngularVelocity,
-                                         &CShipControls::setAngularVelocityImpl)}};
+                                          &CShipControls::setAngularVelocityImpl)}};
     }
 };
 
@@ -46,8 +46,8 @@ class Ship : public Object {
 public:
     DW_OBJECT(Ship);
 
-    explicit Ship(Context* ctx);
-    Ship(Context* ctx, EntityId reserved_entity_id, NetRole role);
+    Ship(Context* ctx, Frame* frame);
+    Ship(Context* ctx, Frame* frame, EntityId reserved_entity_id, NetRole role);
     ~Ship() = default;
 
     void update(float dt);

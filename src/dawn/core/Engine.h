@@ -33,6 +33,9 @@ public:
     /// Access the frame time
     double frameTime() const;
 
+    /// Access the frames per second metric.
+    int framesPerSecond() const;
+
     /// Get the list of command line flags.
     const Set<String>& flags() const;
 
@@ -49,6 +52,8 @@ private:
     String game_version_;
 
     double frame_time_;
+    int frames_per_second_;
+    int frame_counter_;
 
     // Configuration.
     String log_file_;

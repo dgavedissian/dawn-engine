@@ -4,7 +4,7 @@
  */
 #include "DawnEngine.h"
 #include "scene/Component.h"
-#include "scene/System.h"
+#include "scene/EntitySystem.h"
 #include "renderer/Program.h"
 #include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
@@ -104,7 +104,7 @@ public:
         setupTerrainRenderable();
         custom_mesh_renderable_->setMaterial(material);
 
-        planet_ = &universe->createEntity(Hash("Planet"), LargePosition::origin, Quat::identity)
+        planet_ = &universe->createEntity(Hash("Planet"), SystemPosition::origin, Quat::identity)
                        .addComponent<RenderableComponent>(custom_mesh_renderable_);
 
         // Kick off terrain update thread.
@@ -112,8 +112,8 @@ public:
             while (run_update_thread_.load()) {
                 // Calculate offset and update patches.
                 t_input_lock_.lock();
-                LargePosition camera_position = t_camera_position_;
-                LargePosition planet_position = t_planet_position_;
+                SystemPosition camera_position = t_camera_position_;
+                SystemPosition planet_position = t_planet_position_;
                 t_input_lock_.unlock();
                 updateTerrain(camera_position.getRelativeTo(planet_position));
 
@@ -136,7 +136,7 @@ public:
         terrain_update_thread_.join();
     }
 
-    LargePosition& position() const {
+    SystemPosition& position() const {
         return planet_->transform()->position;
     }
 
@@ -175,8 +175,8 @@ private:
 
     // Update thread data.
     // INPUTS
-    LargePosition t_camera_position_;
-    LargePosition t_planet_position_;
+    SystemPosition t_camera_position_;
+    SystemPosition t_planet_position_;
     Mutex t_input_lock_;
     // OUTPUTS
     Vector<PlanetTerrainPatch::Vertex> t_output_vertices_;
@@ -310,7 +310,7 @@ private:
     friend class PlanetTerrainPatch;
 };
 
-// Careful to value-initialize large_children_ and edge_ in the initialiser list by giving them an
+// Careful to value-initialize children_ and edge_ in the initialiser list by giving them an
 // empty initializer ({}).
 PlanetTerrainPatch::PlanetTerrainPatch(Planet* planet, PlanetTerrainPatch* parent,
                                        const Array<Vec3, 4>& corners, int level)
@@ -532,7 +532,7 @@ public:
 
         // Create a camera.
         auto& camera = module<SceneManager>()
-                           ->createEntity(0, LargePosition{0.0f, 0.0f, radius * 2}, Quat::identity)
+                           ->createEntity(0, SystemPosition{0.0f, 0.0f, radius * 2}, Quat::identity)
                            .addComponent<CCamera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);
         camera_controller->possess(&camera);

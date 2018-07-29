@@ -42,16 +42,17 @@ Entity& SceneManager::createEntity(EntityType type) {
     return createEntity(type, reserveEntityId());
 }
 
-Entity& SceneManager::createEntity(EntityType type, const LargePosition& p, const Quat& o,
-                                   SharedPtr<Renderable> renderable, Entity* parent) {
+Entity& SceneManager::createEntity(EntityType type, const Vec3& p, const Quat& o, Frame& frame,
+                                   SharedPtr<Renderable> renderable) {
     Entity& e = createEntity(type);
-    if (parent) {
-        e.addComponent<CTransform>(
-            parent->transform()->scene_node.get<LargeSceneNodeR*>()->newLargeChild(p, o),
-            renderable);
-    } else {
-        e.addComponent<CTransform>(module<Renderer>()->rootNode().newLargeChild(p, o), renderable);
-    }
+    e.addComponent<CTransform>(frame.newChild(p, o), renderable);
+    return e;
+}
+
+Entity& SceneManager::createEntity(EntityType type, const Vec3& p, const Quat& o, Entity& parent,
+                                   SharedPtr<Renderable> renderable) {
+    Entity& e = createEntity(type);
+    e.addComponent<CTransform>(parent.component<CTransform>()->node->newChild(p, o), renderable);
     return e;
 }
 

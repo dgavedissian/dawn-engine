@@ -5,7 +5,7 @@
 #pragma once
 
 #include "renderer/Material.h"
-#include "renderer/SceneNode.h"
+#include "renderer/Node.h"
 
 namespace dw {
 class DW_API Renderer;
@@ -24,7 +24,7 @@ public:
     void setMaterial(SharedPtr<Material> material);
 
     /// Draws this renderable to the specified view.
-    virtual void draw(Renderer* renderer, uint view, LargeSceneNodeR* camera,
+    virtual void draw(Renderer* renderer, uint view, detail::Transform& camera,
                       const Mat4& model_matrix, const Mat4& view_projection_matrix) = 0;
 
 protected:

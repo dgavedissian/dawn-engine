@@ -114,9 +114,9 @@ void BillboardSet::setParticleDirection(u32 particle_id, const Vec3& direction) 
     particles_[particle_id].direction = direction.Normalized();
 }
 
-void BillboardSet::draw(Renderer* renderer, uint view, LargeSceneNodeR* camera, const Mat4&,
-                        const Mat4& view_projection_matrix) {
-    update(camera);
+void BillboardSet::draw(Renderer* renderer, uint view, detail::Transform& camera_transform,
+                        const Mat4&, const Mat4& view_projection_matrix) {
+    update(camera_transform);
 
     auto rhi = renderer->rhi();
     rhi->setVertexBuffer(vb_->internalHandle());
@@ -131,7 +131,7 @@ void BillboardSet::draw(Renderer* renderer, uint view, LargeSceneNodeR* camera, 
                 static_cast<uint>(particles_.size()) * 6);
 }
 
-void BillboardSet::update(LargeSceneNodeR* camera_transform) {
+void BillboardSet::update(detail::Transform& camera_transform) {
     // Generate vertex data.
     for (auto& p : particles_) {
         Vec3 axis_x, axis_y;
@@ -154,19 +154,18 @@ void BillboardSet::update(LargeSceneNodeR* camera_transform) {
     // Update vertex buffer.
     vb_->update(vertex_data_.data(),
                 static_cast<uint>(vertex_data_.size()) * sizeof(ParticleVertex),
-                vertex_data_.size(), 0);
+                static_cast<uint>(vertex_data_.size()), 0);
     vertex_data_.clear();
 }
 
-void BillboardSet::calculateAxes(LargeSceneNodeR* camera_transform, const ParticleData& data,
+void BillboardSet::calculateAxes(detail::Transform& camera_transform, const ParticleData& data,
                                  Vec3& axis_x, Vec3& axis_y) {
-    Vec3 to_eye =
-        camera_transform->position.getRelativeTo(LargePosition(data.position)).Normalized();
+    Vec3 to_eye = (camera_transform.position - data.position).Normalized();
 
     // Point.
     switch (type_) {
         case BillboardType::Point:
-            axis_x = to_eye.Cross(camera_transform->orientation * Vec3::unitY);
+            axis_x = to_eye.Cross(camera_transform.orientation * Vec3::unitY);
             axis_y = to_eye.Cross(axis_x);
             break;
 

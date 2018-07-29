@@ -4,26 +4,25 @@
  */
 #include "Common.h"
 #include "input/Input.h"
-#include "scene/System.h"
+#include "scene/EntitySystem.h"
 #include "scene/SceneManager.h"
 #include "PhysicsScene.h"
 
 namespace dw {
 namespace {
-btTransform toBulletTransform(CTransform& xform) {
-    btQuaternion quat{xform.orientation().x, xform.orientation().y, xform.orientation().z,
-                      xform.orientation().w};
+btTransform toBulletTransform(detail::Transform& xform) {
+    btQuaternion quat{xform.orientation.x, xform.orientation.y, xform.orientation.z,
+                      xform.orientation.w};
     return btTransform(
-        quat, {static_cast<btScalar>(xform.largeNode().position.x), static_cast<btScalar>(xform.largeNode().position.y),
-               static_cast<btScalar>(xform.largeNode().position.z)});
+        quat, {static_cast<btScalar>(xform.position.x), static_cast<btScalar>(xform.position.y),
+               static_cast<btScalar>(xform.position.z)});
 }
 
-void fromBulletTransform(const btTransform& source, CTransform& dest) {
+void fromBulletTransform(const btTransform& source, detail::Transform& dest) {
     btQuaternion rotation;
     source.getBasis().getRotation(rotation);
-    dest.largeNode().position =
-        LargePosition{source.getOrigin().x(), source.getOrigin().y(), source.getOrigin().z()};
-    dest.orientation() = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
+    dest.position = Vec3{source.getOrigin().x(), source.getOrigin().y(), source.getOrigin().z()};
+    dest.orientation = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
 }
 }  // namespace
 PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr) : Object(context) {
@@ -55,13 +54,13 @@ PhysicsScene::~PhysicsScene() {
     broadphase_.reset();
 }
 
-void PhysicsScene::update(float dt, LargeSceneNodeR*) {
+void PhysicsScene::update(float dt, SystemNode*) {
     world_->stepSimulation(dt, 5);
     // mDebugDrawer->step();
 }
 
-bool PhysicsScene::rayQuery(const LargePosition& start, const LargePosition& end,
-                            LargeSceneNodeR* camera, PhysicsRaycastResult& result) {
+bool PhysicsScene::rayQuery(const SystemPosition& start, const SystemPosition& end,
+                            SystemNode* camera, PhysicsRaycastResult& result) {
     // Make sure this is done in camera-space
     btVector3 start_cs = start.toCameraSpace(camera->position);
     btVector3 end_cs = end.toCameraSpace(camera->position);
@@ -73,7 +72,8 @@ bool PhysicsScene::rayQuery(const LargePosition& start, const LargePosition& end
         world_->rayTest(start_cs, end_cs, raycast);
 
         // Fill the result structure
-        result.position = LargePosition::fromCameraSpace(camera->position, raycast.m_hitPointWorld);
+        result.position =
+            SystemPosition::fromCameraSpace(camera->position, raycast.m_hitPointWorld);
         result.normal = raycast.m_hitNormalWorld;
         result.hit = raycast.hasHit();
 
@@ -115,14 +115,15 @@ void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
     }
 }
 
-PhysicsScene::PhysicsComponentSystem::PhysicsComponentSystem(Context* context) : System(context) {
+PhysicsScene::PhysicsComponentSystem::PhysicsComponentSystem(Context* context)
+    : EntitySystem(context) {
     supportsComponents<CTransform, RigidBody>();
 }
 
 void PhysicsScene::PhysicsComponentSystem::processEntity(Entity& entity, float) {
     auto t = entity.component<CTransform>();
     auto rb = entity.component<RigidBody>()->rigid_body_.get();
-    fromBulletTransform(rb->getWorldTransform(), *t);
+    fromBulletTransform(rb->getWorldTransform(), t->node->transform());
 }
 
 RigidBody::RigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape)
