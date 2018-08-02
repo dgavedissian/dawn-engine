@@ -43,6 +43,13 @@ void Renderer::updateSceneGraph() {
         render_operations_per_camera_[c].clear();
     }
 
+    // Render the background node.
+    for (int c = 0; c < cameras.size(); ++c) {
+        const auto* camera_node = cameras[c].scene_node;
+        auto background_transform = Mat4::Translate(camera_node->transform().position).ToFloat4x4();
+        renderTree(&rootBackgroundNode(), background_transform, Mat4::identity, false, c);
+    }
+
     // Recalculate model matrices of system nodes relative to each frame.
     system_model_matrices_per_frame_.resize(scene_graph_.frameCount());
     for (int f = 0; f < scene_graph_.frameCount(); ++f) {
@@ -82,15 +89,8 @@ void Renderer::updateSceneGraph() {
         auto* frame = scene_graph_.frame(f);
         renderTree(frame->root_frame_node_.get(),
                    system_model_matrices_per_frame_[f].at(frame->system_node_), Mat4::identity,
-                   false);
+                   false, -1);
     }
-
-    // Update transform cache of the "special" background scene node.
-    /*
-    for (int i = 0; i < cameras.size(); ++i) {
-        renderTree(Mat4::identity, i, &rootBackgroundNode(), Mat4::identity, false);
-    }
-    */
 }
 
 void Renderer::renderScene(float interpolation) {
@@ -150,8 +150,7 @@ void Renderer::SCamera::processEntity(Entity& entity, float) {
 }
 
 void Renderer::renderTree(Node* node, const Mat4& frame_model_matrix,
-                          const Mat4& parent_model_matrix, bool dirty) {
-    auto& cameras = camera_entity_system_->cameras;
+                          const Mat4& parent_model_matrix, bool dirty, int camera_id) {
     Mat4& model_matrix = model_matrix_cache_[node];
 
     // Update model matrix if node is dirty.
@@ -164,14 +163,20 @@ void Renderer::renderTree(Node* node, const Mat4& frame_model_matrix,
     // Add render operation for each camera.
     Renderable* renderable = node->data.renderable.get();
     if (renderable) {
-        for (int c = 0; c < cameras.size(); ++c) {
-            render_operations_per_camera_[c].emplace_back(
+        if (camera_id == -1) {
+            auto& cameras = camera_entity_system_->cameras;
+            for (int c = 0; c < cameras.size(); ++c) {
+                render_operations_per_camera_[c].emplace_back(
+                    detail::RenderOperation{renderable, frame_model_matrix * model_matrix});
+            }
+        } else {
+            render_operations_per_camera_[camera_id].emplace_back(
                 detail::RenderOperation{renderable, frame_model_matrix * model_matrix});
         }
     }
 
     for (int i = 0; i < node->childCount(); ++i) {
-        renderTree(node->child(i), frame_model_matrix, model_matrix, dirty);
+        renderTree(node->child(i), frame_model_matrix, model_matrix, dirty, camera_id);
     }
 }
 }  // namespace dw

@@ -62,7 +62,8 @@ private:
     HashMap<Node*, Mat4> model_matrix_cache_;
     Vector<Vector<detail::RenderOperation>> render_operations_per_camera_;
 
-    void renderTree(Node* node, const Mat4& frame_model_matrix, const Mat4& parent, bool dirty);
+    void renderTree(Node* node, const Mat4& frame_model_matrix, const Mat4& parent, bool dirty,
+                    int camera_id);
 };
 
 class Renderer::SCamera : public EntitySystem {
