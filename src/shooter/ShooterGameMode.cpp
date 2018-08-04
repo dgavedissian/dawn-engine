@@ -68,16 +68,16 @@ void ShooterGameMode::onStart() {
     material->setTexture(rc->get<Texture>("base:space/planet.jpg"));
     material->setUniform("light_direction", Vec3{0.0f, 0.0f, 1.0f});
     material->setUniform("surface_sampler", 0);
-    auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(1000.0f);
+    auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(4000.0f);
     renderable->setMaterial(material);
     auto planet = module<Renderer>()->sceneGraph().root().newChild(
-        SystemPosition{4000.0f, 0.0f, 0.0f}, Quat::identity);
+        SystemPosition{12000.0f, 0.0f, -6000.0f}, Quat::identity);
     planet->data.renderable = renderable;
 
     // Create a camera.
     auto& camera =
         module<SceneManager>()->createEntity(0, {0.0f, 0.0f, 50.0f}, Quat::identity, *frame);
-    camera.addComponent<CCamera>(0.1f, 100000.0f, 60.0f, 1280.0f / 800.0f);
+    camera.addComponent<CCamera>(0.1f, 1000000.0f, 60.0f, 1280.0f / 800.0f);
     camera_controller_ = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
     camera_controller_->possess(&camera);
 

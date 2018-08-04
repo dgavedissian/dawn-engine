@@ -15,6 +15,8 @@ SceneManager::SceneManager(Context* ctx)
     : Module(ctx), entity_id_allocator_(1), last_dt_(0.0f), background_scene_node_(nullptr) {
     setDependencies<ResourceCache, Renderer>();
 
+    ontology_world_ = makeUnique<Ontology::World>();
+
     module<Renderer>()->setupEntitySystems(this);
 
     background_scene_node_ = module<Renderer>()->rootBackgroundNode().newChild();
@@ -23,6 +25,8 @@ SceneManager::SceneManager(Context* ctx)
 }
 
 SceneManager::~SceneManager() {
+    ontology_world_.reset();
+    physics_scene_.reset();
 }
 
 void SceneManager::createStarSystem() {
@@ -66,8 +70,8 @@ Entity& SceneManager::createEntity(EntityType type, EntityId reserved_entity_id)
     // Look up slot and move new entity into it.
     auto entity_slot = entity_lookup_table_.find(reserved_entity_id);
     assert(entity_slot != entity_lookup_table_.end() && entity_slot->second == nullptr);
-    auto entity =
-        makeUnique<Entity>(context(), ontology_world_.getEntityManager(), reserved_entity_id, type);
+    auto entity = makeUnique<Entity>(context(), ontology_world_->getEntityManager(),
+                                     reserved_entity_id, type);
     auto entity_ptr = entity.get();
     entity_slot->second = std::move(entity);
     return *entity_ptr;
@@ -92,13 +96,13 @@ void SceneManager::removeEntity(Entity* entity) {
 }
 
 void SceneManager::beginMainLoop() {
-    ontology_world_.getSystemManager().initialise();
+    ontology_world_->getSystemManager().initialise();
 }
 
 void SceneManager::update(float dt) {
     last_dt_ = dt;
     physics_scene_->update(dt, nullptr);
-    ontology_world_.update();
+    ontology_world_->update();
 }
 
 PhysicsScene* SceneManager::physicsScene() const {

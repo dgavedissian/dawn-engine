@@ -20,20 +20,17 @@ Ship::Ship(Context* ctx, Frame* frame, EntityId reserved_entity_id, NetRole role
     auto rc = module<ResourceCache>();
     assert(rc);
 
-    material_ = makeShared<Material>(
-        context(), makeShared<Program>(context(), rc->get<VertexShader>("shooter:ship.vs"),
-                                       rc->get<FragmentShader>("shooter:ship.fs")));
-    material_->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
+    auto part_core = rc->get<Mesh>("shooter:models/part_corelarge.3ds");
+    auto part_wing = rc->get<Mesh>("shooter:models/part_wing.3ds");
 
-    auto renderable = rc->get<Mesh>("shooter:models/core-large.mesh.xml");
-    renderable->setMaterial(material_);
-    auto sphere = rc->get<Mesh>("shooter:models/side-wing.mesh.xml");
-    sphere->setMaterial(material_);
+    // Hack to fix the weird orientation issue in the meshes.
+    part_core->rootNode()->setTransform(Mat4::identity);
+    part_wing->rootNode()->setTransform(Mat4::identity);
 
     // Create ship entity.
     auto sm = module<SceneManager>();
     ship_entity_ = &sm->createEntity(Hash("Ship"), reserved_entity_id)
-                        .addComponent<CTransform>(frame->newChild(), renderable)
+                        .addComponent<CTransform>(frame->newChild(), part_core)
                         .addComponent<CShipEngines>(
                             context(),
                             Vector<ShipEngineData>{// 4 on back.
@@ -74,9 +71,9 @@ Ship::Ship(Context* ctx, Frame* frame, EntityId reserved_entity_id, NetRole role
                                                    {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
                                                    {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
     auto node = ship_entity_->component<CTransform>()->node;
-    node->newChild(Vec3{8.0f, 0.0f, 0.0f}, Quat::identity)->data.renderable = sphere;
-    node->newChild(Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity, Vec3{-1.0f, 1.0f, 1.0f})
-        ->data.renderable = sphere;
+    node->newChild(Vec3{13.0f, -0.5f, 7.0f}, Quat::identity)->data.renderable = part_wing;
+    node->newChild(Vec3{-13.0f, -0.5f, 7.0f}, Quat::identity, Vec3{-1.0f, 1.0f, 1.0f})
+        ->data.renderable = part_wing;
 
     // Networking.
     ship_entity_->addComponent<CNetTransform>();

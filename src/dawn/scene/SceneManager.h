@@ -101,7 +101,7 @@ public:
 
 private:
     float last_dt_;
-    Ontology::World ontology_world_;
+    UniquePtr<Ontology::World> ontology_world_;
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
     EntityId entity_id_allocator_;
 
@@ -112,16 +112,16 @@ private:
 
 template <typename T, typename... Args> T* SceneManager::addSystem(Args... args) {
     auto system = makeUnique<T>(context(), std::forward(args)...);
-    return ontology_world_.getSystemManager()
+    return ontology_world_->getSystemManager()
         .addSystem<OntologySystemAdapter<T>>(std::move(system))
         .system();
 }
 
 template <typename T> T* SceneManager::getSystem() {
-    return ontology_world_.getSystemManager().getSystem<OntologySystemAdapter<T>>().system();
+    return ontology_world_->getSystemManager().getSystem<OntologySystemAdapter<T>>().system();
 }
 
 template <typename T> void SceneManager::removeSystem() {
-    ontology_world_.getSystemManager().removeSystem<OntologySystemAdapter<T>>();
+    ontology_world_->getSystemManager().removeSystem<OntologySystemAdapter<T>>();
 }
 }  // namespace dw

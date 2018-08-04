@@ -9,7 +9,7 @@
 #include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
 #include "scene/CameraController.h"
-#include "scene/TransformComponent.h"
+#include "scene/CTransform.h"
 #include "scene/SceneManager.h"
 #include "renderer/BillboardSet.h"
 #include "renderer/Mesh.h"
@@ -90,6 +90,7 @@ public:
           t_output_ready_{false} {
         auto universe = module<SceneManager>();
         auto rc = module<ResourceCache>();
+        auto renderer = module<Renderer>();
 
         // Set up material.
         auto material = makeShared<Material>(
@@ -104,8 +105,8 @@ public:
         setupTerrainRenderable();
         custom_mesh_renderable_->setMaterial(material);
 
-        planet_ = &universe->createEntity(Hash("Planet"), SystemPosition::origin, Quat::identity)
-                       .addComponent<RenderableComponent>(custom_mesh_renderable_);
+        planet_ = renderer->rootNode().newChild(SystemPosition::origin);
+        planet_->data.renderable = custom_mesh_renderable_;
 
         // Kick off terrain update thread.
         terrain_update_thread_ = Thread([this]() {
@@ -137,7 +138,7 @@ public:
     }
 
     SystemPosition& position() const {
-        return planet_->transform()->position;
+        return planet_->position;
     }
 
     float radius() const {
@@ -149,7 +150,7 @@ public:
         {
             LockGuard<Mutex> camera_position_lock{t_input_lock_};
             t_camera_position_ = camera_->transform()->position;
-            t_planet_position_ = planet_->transform()->position;
+            t_planet_position_ = planet_->position;
         }
 
         // If we have any new terrain data ready, upload to GPU.
@@ -163,7 +164,7 @@ public:
 private:
     Entity* camera_;
 
-    Entity* planet_;
+    SystemNode* planet_;
     float radius_;
 
     // Terrain mesh.
@@ -530,9 +531,13 @@ public:
 
         const float radius = 1000.0f;
 
+        // Create frame.
+        auto frame =
+            module<Renderer>()->sceneGraph().addFrame(module<Renderer>()->rootNode().newChild());
+
         // Create a camera.
         auto& camera = module<SceneManager>()
-                           ->createEntity(0, SystemPosition{0.0f, 0.0f, radius * 2}, Quat::identity)
+                           ->createEntity(0, Vec3::zero, Quat::identity, *frame)
                            .addComponent<CCamera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), 300.0f);
         camera_controller->possess(&camera);
@@ -545,7 +550,7 @@ public:
         // Calculate distance to planet and adjust acceleration accordingly.
         auto& a = camera_controller->possessed()->transform()->position;
         auto& b = planet_->position();
-        float altitude = a.getRelativeTo(b).Length() - planet_->radius();
+        float altitude = SystemPosition{a}.getRelativeTo(b).Length() - planet_->radius();
         camera_controller->setAcceleration(altitude);
 
         camera_controller->update(dt);
