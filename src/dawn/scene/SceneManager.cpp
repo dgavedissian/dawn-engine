@@ -33,7 +33,8 @@ void SceneManager::createStarSystem() {
     background_material->setTexture(
         module<ResourceCache>()->get<Texture>("base:space/starfield.jpg"));
     background_material->setUniform<int>("starfield_sampler", 0);
-    auto skybox = MeshBuilder{context()}.normals(false).texcoords(true).createBox(-10000.0f);
+    background_material->setDepthWrite(false);
+    auto skybox = MeshBuilder{context()}.normals(false).texcoords(true).createBox(-100.0f);
     skybox->setMaterial(background_material);
     background_scene_node_->data.renderable = skybox;
 }
