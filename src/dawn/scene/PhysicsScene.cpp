@@ -117,23 +117,23 @@ void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
 
 PhysicsScene::PhysicsComponentSystem::PhysicsComponentSystem(Context* context)
     : EntitySystem(context) {
-    supportsComponents<CTransform, RigidBody>();
+    supportsComponents<CTransform, CRigidBody>();
 }
 
 void PhysicsScene::PhysicsComponentSystem::processEntity(Entity& entity, float) {
     auto t = entity.component<CTransform>();
-    auto rb = entity.component<RigidBody>()->rigid_body_.get();
+    auto rb = entity.component<CRigidBody>()->rigid_body_.get();
     fromBulletTransform(rb->getWorldTransform(), t->node->transform());
 }
 
-RigidBody::RigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape)
+CRigidBody::CRigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape)
     : world_{world},
       rigid_body_{nullptr},
       collision_shape_{std::move(collision_shape)},
       mass_{mass} {
 }
 
-RigidBody::~RigidBody() {
+CRigidBody::~CRigidBody() {
     if (rigid_body_) {
         world_->removeRigidBody(rigid_body_.get());
         delete rigid_body_->getMotionState();
@@ -141,7 +141,7 @@ RigidBody::~RigidBody() {
     }
 }
 
-void RigidBody::onAddToEntity(Entity* parent) {
+void CRigidBody::onAddToEntity(Entity* parent) {
     // Get initial transform.
     assert(parent->transform());
     btTransform initial_transform = toBulletTransform(*parent->transform());

@@ -19,6 +19,7 @@ class Ship;
 class CShipControls : public Component {
 public:
     WeakPtr<Ship> ship;
+
     ClientRpc<Vec3> setLinearVelocity;
     void setLinearVelocityImpl(const Vec3& v) {
         target_linear_velocity = v;
@@ -28,15 +29,23 @@ public:
         target_angular_velocity = v;
     }
 
+    ClientRpc<bool> toggleWeapon;
+    void toggleWeaponImpl(const bool& toggle)
+    {
+        firing_weapon = toggle;
+    }
+
     Vec3 target_linear_velocity;
     Vec3 target_angular_velocity;
+    bool firing_weapon;
 
     static RepLayout repLayout() {
         return {{},
                 {Rpc::bind<CShipControls>(&CShipControls::setLinearVelocity,
                                           &CShipControls::setLinearVelocityImpl),
                  Rpc::bind<CShipControls>(&CShipControls::setAngularVelocity,
-                                          &CShipControls::setAngularVelocityImpl)}};
+                                          &CShipControls::setAngularVelocityImpl),
+                Rpc::bind<CShipControls>(&CShipControls::toggleWeapon, &CShipControls::toggleWeaponImpl)}};
     }
 };
 
@@ -51,6 +60,8 @@ public:
     ~Ship() = default;
 
     void update(float dt);
+
+    void fireWeapon();
 
     // Used by the flight computer.
     void fireMovementThrusters(const Vec3& power);

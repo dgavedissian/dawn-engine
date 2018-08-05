@@ -7,6 +7,8 @@ set(SOURCE_FILES
     CProjectile.h
     CShipEngines.cpp
     CShipEngines.h
+    CWeapon.cpp
+    CWeapon.h
     Ship.cpp
     Ship.h
     ShipCameraController.cpp

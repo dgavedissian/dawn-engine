@@ -21,6 +21,7 @@ public:
 
     void setBillboardType(BillboardType type);
 
+    void setParticleVisible(u32 particle_id, bool visible);
     void setParticlePosition(u32 particle_id, const Vec3& position);
     void setParticleSize(u32 particle_id, const Vec2& size);
     void setParticleDirection(u32 particle_id, const Vec3& direction);
@@ -33,6 +34,7 @@ private:
     BillboardType type_;
 
     struct ParticleData {
+        bool visible;
         Vec3 position;
         Vec2 size;
         Vec3 direction;
@@ -47,6 +49,7 @@ private:
 
     SharedPtr<VertexBuffer> vb_;
     SharedPtr<IndexBuffer> ib_;
+    uint particle_count_;
 
     void update(detail::Transform& camera_transform);
     void calculateAxes(detail::Transform& camera_transform, const ParticleData& data, Vec3& axis_x,

@@ -13,7 +13,7 @@ ShipFlightComputer::ShipFlightComputer(Context* ctx, Ship* ship)
       target_linear_velocity_{Vec3::zero},
       target_angular_velocity_{Vec3::zero} {
     auto engines = ship->entity()->component<CShipEngines>();
-    auto rb = ship->entity()->component<RigidBody>();
+    auto rb = ship->entity()->component<CRigidBody>();
 
     Vec3 pos_force, neg_force;
     engines->calculateMaxMovementForce(pos_force, neg_force);

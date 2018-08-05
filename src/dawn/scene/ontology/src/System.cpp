@@ -161,9 +161,10 @@ void System::update() {
 #pragma omp parallel for
     // BEGIN DAVID
     first_iteration = false;
-    // END DAVID
-    for (auto it = m_EntityList.begin(); it < m_EntityList.end(); ++it)
+    auto copied_entity_list = m_EntityList;
+    for (auto it = copied_entity_list.begin(); it != copied_entity_list.end(); ++it)
         this->processEntity(*it);
+    // END DAVID
     return;
     /* TODO get this reviewed
         // restart iterator, threads will increment this whenever they pick up

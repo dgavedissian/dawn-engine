@@ -6,6 +6,7 @@
 #include "renderer/MeshBuilder.h"
 #include "renderer/Mesh.h"
 #include "CProjectile.h"
+#include "CWeapon.h"
 #include "ShooterGameMode.h"
 
 using namespace dw;
@@ -16,17 +17,29 @@ public:
 
     void init(int argc, char** argv) override {
         auto rc = module<ResourceCache>();
+        auto sm = module<SceneManager>();
+
         assert(rc);
         rc->addPath("base", "../media/base");
         rc->addPath("shooter", "../media/shooter");
 
-        auto entity_pipeline = makeUnique<ShooterEntityPipeline>(context());
+        // Create frame.
+        auto* frame = module<Renderer>()->sceneGraph().addFrame(
+            module<Renderer>()->sceneGraph().root().newChild());
+
+        // Set up game.
+        auto entity_pipeline = makeUnique<ShooterEntityPipeline>(context(), frame);
         auto entity_pipeline_ptr = entity_pipeline.get();
         module<Networking>()->setEntityPipeline(std::move(entity_pipeline));
-        module<SceneManager>()->addSystem<SShipEngines>();
-        module<SceneManager>()->addSystem<SProjectile>();
+        sm->addSystem<SShipEngines>();
+        sm->addSystem<SProjectile>(
+            frame,
+            HashMap<int, ProjectileTypeInfo>{
+                {0, {100.0f, {6.0f, 15.0f}, rc->get<Texture>("shooter:weapons/projectile1.jpg")}},
+                {1, {100.0f, {6.0f, 15.0f}, rc->get<Texture>("shooter:weapons/projectile2.jpg")}}});
+        sm->addSystem<SWeapon>();
         module<GameplayModule>()->setGameMode(
-            makeShared<ShooterGameMode>(context(), entity_pipeline_ptr));
+            makeShared<ShooterGameMode>(context(), frame, entity_pipeline_ptr));
     }
 
     void update(float dt) override {

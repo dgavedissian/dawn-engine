@@ -16,7 +16,7 @@ void SNetTransformSync::processEntity(Entity& entity, float dt) {
     NetRole role = entity.component<NetData>()->role();
     CTransform& transform = *entity.component<CTransform>();
     NetTransformState& net_state = entity.component<CNetTransform>()->transform_state;
-    RigidBody* rigid_body = entity.component<RigidBody>();
+    CRigidBody* rigid_body = entity.component<CRigidBody>();
 
     if (role >= NetRole::Authority) {
         // If this entity has a rigid body, calculate velocity/angular velocity.

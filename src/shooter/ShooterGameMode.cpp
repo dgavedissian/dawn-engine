@@ -4,8 +4,8 @@
  */
 #include "ShooterGameMode.h"
 
-ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx)
-    : NetEntityPipeline(ctx), frame_(nullptr) {
+ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx, Frame* frame)
+    : NetEntityPipeline(ctx), frame_(frame) {
 }
 
 Entity* ShooterEntityPipeline::createEntityFromType(EntityId entity_id, EntityType type,
@@ -24,8 +24,8 @@ Entity* ShooterEntityPipeline::createEntityFromType(EntityId entity_id, EntityTy
     }
 }
 
-ShooterGameMode::ShooterGameMode(Context* ctx, ShooterEntityPipeline* entity_pipeline)
-    : NetGameMode(ctx), entity_pipeline_(entity_pipeline) {
+ShooterGameMode::ShooterGameMode(Context* ctx, Frame* frame, ShooterEntityPipeline* entity_pipeline)
+    : NetGameMode(ctx), frame_(frame), entity_pipeline_(entity_pipeline) {
 }
 
 void ShooterGameMode::clientOnJoinServer() {
@@ -55,11 +55,6 @@ void ShooterGameMode::onStart() {
 
     module<SceneManager>()->createStarSystem();
 
-    // Create frame.
-    auto* frame = module<Renderer>()->sceneGraph().addFrame(
-        module<Renderer>()->sceneGraph().root().newChild());
-    entity_pipeline_->frame_ = frame;
-
     // Random thing.
     auto rc = module<ResourceCache>();
     auto material = makeShared<Material>(
@@ -76,14 +71,14 @@ void ShooterGameMode::onStart() {
 
     // Create a camera.
     auto& camera =
-        module<SceneManager>()->createEntity(0, {0.0f, 0.0f, 50.0f}, Quat::identity, *frame);
+        module<SceneManager>()->createEntity(0, {0.0f, 0.0f, 50.0f}, Quat::identity, *frame_);
     camera.addComponent<CCamera>(0.1f, 1000000.0f, 60.0f, 1280.0f / 800.0f);
     camera_controller_ = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
     camera_controller_->possess(&camera);
 
     // If we're running a local-only game, spawn a player.
     if (!module<Networking>()->isConnected()) {
-        auto new_ship = makeShared<Ship>(context(), frame,
+        auto new_ship = makeShared<Ship>(context(), frame_,
                                          module<SceneManager>()->reserveEntityId(), NetRole::None);
         camera_controller_->follow(new_ship->entity());
         entity_pipeline_->ship_list_.emplace_back(new_ship);
@@ -92,7 +87,7 @@ void ShooterGameMode::onStart() {
     // Spawn a test ship.
     /*
     auto test_ship = makeShared<Ship>(context());
-    auto rb = test_ship->entity()->component<RigidBody>()->_rigidBody();
+    auto rb = test_ship->entity()->component<CRigidBody>()->_rigidBody();
     btTransform xform = rb->getWorldTransform();
     xform.setOrigin({0.0, 60.0, 0.0});
     rb->setWorldTransform(xform);

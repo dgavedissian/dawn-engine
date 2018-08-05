@@ -96,6 +96,7 @@ public:
     Node(detail::SceneNodePool* pool, Frame* frame, const Vec3& p, const Quat& o, const Vec3& s);
 
     Mat4 calculateModelMatrix() const;
+    Mat4 deriveWorldModelMatrix() const;
 
     Frame* frame() const;
     Node* parent() const;

@@ -12,10 +12,7 @@ Transform::Transform(Vec3 p, Quat o, Vec3 s) : position(p), orientation(o), scal
 }
 
 Mat4 Transform::toMat4() const {
-    Mat4 scale_matrix = Mat4::Scale(scale).ToFloat4x4();
-    Mat4 rotate_matrix = Mat4::FromQuat(orientation);
-    Mat4 translate_matrix = Mat4::Translate(position).ToFloat4x4();
-    return translate_matrix * rotate_matrix * scale_matrix;
+    return Mat4::FromTRS(position, orientation, scale);
 }
 
 Transform Transform::fromMat4(const Mat4& matrix) {
@@ -92,6 +89,10 @@ Node::Node(detail::SceneNodePool* pool, Frame* frame, const Vec3& p, const Quat&
 
 Mat4 Node::calculateModelMatrix() const {
     return transform_.toMat4();
+}
+
+Mat4 Node::deriveWorldModelMatrix() const {
+    return (parent_ ? parent_->deriveWorldModelMatrix() : Mat4::identity) * calculateModelMatrix();
 }
 
 Frame* Node::frame() const {

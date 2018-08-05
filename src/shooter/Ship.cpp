@@ -8,6 +8,7 @@
 #include "net/CNetTransform.h"
 #include "Ship.h"
 #include "ShipFlightComputer.h"
+#include "CWeapon.h"
 
 using namespace dw;
 
@@ -69,7 +70,8 @@ Ship::Ship(Context* ctx, Frame* frame, EntityId reserved_entity_id, NetRole role
                                                    {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
                                                    {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
                                                    {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
-                                                   {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
+                                                   {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}})
+                        .addComponent<CWeapon>(0, 300.0f, Colour{1.0f, 1.0f, 1.0f}, 0.5f);
     auto node = ship_entity_->component<CTransform>()->node;
     node->newChild(Vec3{13.0f, -0.5f, 7.0f}, Quat::identity)->data.renderable = part_wing;
     node->newChild(Vec3{-13.0f, -0.5f, 7.0f}, Quat::identity, Vec3{-1.0f, 1.0f, 1.0f})
@@ -85,10 +87,10 @@ Ship::Ship(Context* ctx, Frame* frame, EntityId reserved_entity_id, NetRole role
 
     // Initialise server-side details.
     if (role >= NetRole::Authority) {
-        ship_entity_->addComponent<RigidBody>(
+        ship_entity_->addComponent<CRigidBody>(
             module<SceneManager>()->physicsScene(), 10.0f,
             makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}));
-        rb_ = ship_entity_->component<RigidBody>()->_rigidBody();
+        rb_ = ship_entity_->component<CRigidBody>()->_rigidBody();
 
         // Initialise flight computer.
         flight_computer_ = makeShared<ShipFlightComputer>(context(), this);
@@ -116,6 +118,7 @@ void Ship::update(float dt) {
                            static_cast<float>(input->isKeyDown(Key::W));
         Vec3 target_linear_velocity = Vec3{x_movement, y_movement, z_movement} * 100.0f;
         if (!controls.target_linear_velocity.BitEquals(target_linear_velocity)) {
+            // TODO. Short circuit RPC call if no net data.
             if (net_data) {
                 controls.setLinearVelocity(target_linear_velocity);
             }
@@ -131,10 +134,22 @@ void Ship::update(float dt) {
                                static_cast<float>(input->isKeyDown(Key::E));
         Vec3 target_angular_velocity = Vec3{pitch_direction, yaw_direction, roll_direction} * 1.2f;
         if (!controls.target_angular_velocity.BitEquals(target_angular_velocity)) {
+            // TODO. Short circuit RPC call if no net data.
             if (net_data) {
                 controls.setAngularVelocity(target_angular_velocity);
             }
             controls.target_angular_velocity = target_angular_velocity;
+        }
+
+        // Control weapon.
+        bool is_firing_weapon = input->isMouseButtonDown(MouseButton::Left) || input->isKeyDown(Key::LeftCtrl);
+        if (controls.firing_weapon != is_firing_weapon)
+        {
+            if (net_data)
+            {
+                controls.toggleWeapon(is_firing_weapon);
+            }
+            controls.firing_weapon = is_firing_weapon;
         }
     }
 
@@ -143,6 +158,9 @@ void Ship::update(float dt) {
         //=============================
         // Handle authoritative server.
         //=============================
+
+        // Fire weapon.
+        ship_entity_->component<CWeapon>()->firing = controls.firing_weapon;
 
         // Apply controls to flight computer.
         flight_computer_->setTargetLinearVelocity(controls.target_linear_velocity);

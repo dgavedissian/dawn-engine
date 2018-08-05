@@ -278,7 +278,7 @@ void SShipEngines::processEntity(Entity& entity, float dt) {
             ship_engines.trail_billboards_->setParticleSize(
                 particle, {engine_glow_size * 0.5f, engine_glow_size * 6.0f});
             ship_engines.trail_billboards_->setParticleDirection(
-                particle, Vec3{model * Vec4{-engines[i].force().Normalized(), 0.0f}});
+                particle, Vec3{model * Vec4{engines[i].force().Normalized(), 0.0f}});
         }
         for (size_t i = 0; i < nav_engines.size(); i++) {
             int particle = i + engines.size();
@@ -292,7 +292,7 @@ void SShipEngines::processEntity(Entity& entity, float dt) {
             ship_engines.trail_billboards_->setParticleSize(
                 particle, {engine_glow_size * 0.25f, engine_glow_size * 3.0f});
             ship_engines.trail_billboards_->setParticleDirection(
-                particle, Vec3{model * Vec4{-nav_engines[i].force().Normalized(), 0.0f}});
+                particle, Vec3{model * Vec4{nav_engines[i].force().Normalized(), 0.0f}});
         }
     }
 

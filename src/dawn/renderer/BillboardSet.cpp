@@ -11,7 +11,7 @@
 
 namespace dw {
 BillboardSet::BillboardSet(Context* ctx, u32 particle_count, const Vec2& particle_size)
-    : Object{ctx}, particle_size_{particle_size}, type_{BillboardType::Point} {
+    : Object{ctx}, particle_size_{particle_size}, type_{BillboardType::Point}, particle_count_{0} {
     // Shaders.
     StringInputStream vs_source{R"(
             #version 330 core
@@ -71,7 +71,8 @@ BillboardSet::BillboardSet(Context* ctx, u32 particle_count, const Vec2& particl
 void BillboardSet::resize(u32 particle_count) {
     particles_.resize(particle_count);
     for (u32 i = 0; i < particle_count; ++i) {
-        particles_[i].position = Vec3(0.0f, 0.0f, 0.0f);
+        particles_[i].visible = true;
+        particles_[i].position = Vec3::zero;
         particles_[i].size = particle_size_;
         particles_[i].direction = Vec3::unitY;
     }
@@ -97,6 +98,11 @@ void BillboardSet::resize(u32 particle_count) {
 
 void BillboardSet::setBillboardType(BillboardType type) {
     type_ = type;
+}
+
+void BillboardSet::setParticleVisible(u32 particle_id, bool visible) {
+    assert(particle_id < particles_.size());
+    particles_[particle_id].visible = visible;
 }
 
 void BillboardSet::setParticlePosition(u32 particle_id, const Vec3& position) {
@@ -127,28 +133,33 @@ void BillboardSet::draw(Renderer* renderer, uint view, detail::Transform& camera
     rhi->setDepthWrite(false);
     material_->setUniform("mvp_matrix", view_projection_matrix);
     material_->program()->applyRendererState();
-    rhi->submit(view, material_->program()->internalHandle(),
-                static_cast<uint>(particles_.size()) * 6);
+    rhi->submit(view, material_->program()->internalHandle(), particle_count_ * 6);
 }
 
 void BillboardSet::update(detail::Transform& camera_transform) {
     // Generate vertex data.
+    particle_count_ = 0;
     for (auto& p : particles_) {
+        if (!p.visible) {
+            continue;
+        }
+
         Vec3 axis_x, axis_y;
         calculateAxes(camera_transform, p, axis_x, axis_y);
 
         // x y u v
         // 0 1
         // 2 3
-        Vec4 quad[] = {{-1.0f, 1.0f, 0.0f, 1.0f},
-                       {1.0f, 1.0f, 1.0f, 1.0f},
-                       {-1.0f, -1.0f, 0.0f, 0.0f},
-                       {1.0f, -1.0f, 1.0f, 0.0f}};
+        Vec4 quad[] = {{-1.0f, 1.0f, 0.0f, 0.0f},
+                       {1.0f, 1.0f, 1.0f, 0.0f},
+                       {-1.0f, -1.0f, 0.0f, 1.0f},
+                       {1.0f, -1.0f, 1.0f, 1.0f}};
         for (int i = 0; i < 4; ++i) {
             Vec3 vertex_position =
                 p.position + axis_x * p.size.x * quad[i].x + axis_y * p.size.y * quad[i].y;
             vertex_data_.emplace_back(ParticleVertex{vertex_position, {quad[i].z, quad[i].w}});
         }
+        particle_count_++;
     }
 
     // Update vertex buffer.
@@ -171,7 +182,7 @@ void BillboardSet::calculateAxes(detail::Transform& camera_transform, const Part
 
         case BillboardType::Directional:
             axis_y = data.direction;
-            axis_x = axis_y.Cross(to_eye);
+            axis_x = axis_y.Cross(to_eye).Normalized();
             break;
     }
 }

@@ -40,7 +40,7 @@ public:
     bool rayQuery(const SystemPosition& start, const SystemPosition& end, SystemNode* camera,
                   PhysicsRaycastResult& result);
 
-    // EntitySystem for updating RigidBody components.
+    // EntitySystem for updating CRigidBody components.
     class PhysicsComponentSystem : public EntitySystem {
     public:
         DW_OBJECT(PhysicsComponentSystem);
@@ -65,13 +65,13 @@ private:
 
     static void onPhysicsTick(btDynamicsWorld* world, btScalar timestep);
 
-    friend class RigidBody;
+    friend class CRigidBody;
 };
 
-class RigidBody : public Component {
+class CRigidBody : public Component {
 public:
-    RigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape);
-    ~RigidBody();
+    CRigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape);
+    ~CRigidBody();
 
     void onAddToEntity(Entity* parent) override;
 

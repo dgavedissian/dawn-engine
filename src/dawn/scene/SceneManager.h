@@ -31,12 +31,12 @@ public:
     /// @tparam T Entity system type.
     /// @tparam Args List of constructor argument types.
     /// @param args Constructor arguments.
-    template <typename T, typename... Args> T* addSystem(Args... args);
+    template <typename T, typename... Args> T* addSystem(Args&&... args);
 
     /// Looks up an entity system in the context.
     /// @tparam T Entity system type.
     /// @return Instance of the entity system type.
-    template <typename T> T* getSystem();
+    template <typename T> T* system();
 
     /// Removes the entity system from the context.
     /// @tparam T Entity system type.
@@ -110,14 +110,14 @@ private:
     UniquePtr<PhysicsScene> physics_scene_;
 };
 
-template <typename T, typename... Args> T* SceneManager::addSystem(Args... args) {
-    auto system = makeUnique<T>(context(), std::forward(args)...);
+template <typename T, typename... Args> T* SceneManager::addSystem(Args&&... args) {
+    auto system = makeUnique<T>(context(), std::forward<Args>(args)...);
     return ontology_world_->getSystemManager()
         .addSystem<OntologySystemAdapter<T>>(std::move(system))
         .system();
 }
 
-template <typename T> T* SceneManager::getSystem() {
+template <typename T> T* SceneManager::system() {
     return ontology_world_->getSystemManager().getSystem<OntologySystemAdapter<T>>().system();
 }
 
