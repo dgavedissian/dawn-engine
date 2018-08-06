@@ -6,8 +6,8 @@
 
 #include <nlohmann/json.hpp>
 
-#include "core/math/StringHash.h"
 #include "core/Collections.h"
+#include "core/Type.h"
 
 namespace dw {
 
@@ -30,7 +30,7 @@ public:
     /// Accesses a module by type hash. Requires a downcast.
     /// @param module_type Module type hash.
     /// @return A pointer to the module instance, or nullptr otherwise.
-    Module* module(StringHash module_type) const;
+    Module* module(Type module_type) const;
 
     /// Adds a module to this context.
     /// @param module Module instance.
@@ -38,7 +38,7 @@ public:
 
     /// Removes a module contained within the context, calling the modules destructor.
     /// @param module_type Module type hash.
-    void removeModule(StringHash module_type);
+    void removeModule(Type module_type);
 
     /// Clears all modules from this context. Equivalent to calling removeModule on
     /// every module.
@@ -81,8 +81,8 @@ public:
     const String& prefPath() const;
 
 private:
-    HashMap<StringHash, UniquePtr<Module>> modules_;
-    Vector<StringHash> module_init_order_;
+    HashMap<Type, UniquePtr<Module>> modules_;
+    Vector<Type> module_init_order_;
 
     // Engine configuration.
     Json config_;

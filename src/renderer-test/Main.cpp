@@ -5,7 +5,7 @@
 #include "DawnEngine.h"
 #include "renderer/MeshBuilder.h"
 #include "core/Timer.h"
-#include "scene/Transform.h"
+#include "scene/CTransform.h"
 
 using namespace dw;
 
@@ -20,12 +20,12 @@ public:
 
     void render(float) override {
         // Store FPS history.
-        float current_fps = static_cast<float>(1.0 / engine_->frameTime());
+        float current_fps = engine_->framesPerSecond();
         static const int FPS_HISTORY_COUNT = 100;
         static float fps_history[FPS_HISTORY_COUNT];
         static double accumulated_time = 0.0;
         accumulated_time += engine_->frameTime();
-        if (accumulated_time > 1.0 / 60.0) {
+        if (accumulated_time > 1.0 / 20.0) {
             accumulated_time = 0.0;
             for (int i = 1; i < FPS_HISTORY_COUNT; ++i) {
                 fps_history[i - 1] = fps_history[i];
@@ -36,7 +36,7 @@ public:
         // Display FPS information.
         ImGui::SetNextWindowSize({280, 200});
         ImGui::Begin("FPS");
-        ImGui::Text("FPS: %f", 1.0 / engine_->frameTime());
+        ImGui::Text("FPS: %f", current_fps);
         ImGui::PlotLines("", fps_history, FPS_HISTORY_COUNT, 0, nullptr, 0.0f, 1000.0f, {250, 150});
         ImGui::End();
 
@@ -611,12 +611,20 @@ TEST_CLASS(MovingSphereHighLevel) {
 
     Entity* object;
     Entity* camera;
+    SystemNode* cube_node;
 
     void start() {
         auto rc = module<ResourceCache>();
+        auto scene = module<SceneManager>();
+        auto renderer = module<Renderer>();
+
+        // Set up resource cache.
         assert(rc);
         rc->addPath("base", "../media/base");
         rc->addPath("renderer-test", "../media/renderer-test");
+
+        // Set up the environment.
+        auto* frame = renderer->sceneGraph().addFrame(&renderer->rootNode());
 
         // Create an object.
         auto material = makeShared<Material>(
@@ -627,19 +635,31 @@ TEST_CLASS(MovingSphereHighLevel) {
         renderable->setMaterial(material);
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
-        auto scene = module<SceneManager>();
-        object = &scene->createEntity(0, Position{0.0f, 0.0f, 0.0f}, Quat::identity)
-                      .addComponent<RenderableComponent>(renderable);
+        object = &scene->createEntity(0, Vec3::zero, Quat::identity, *frame, renderable);
+        auto outer_object =
+            scene->createEntity(0, {20.0f, 0.0f, 0.0f}, Quat::identity, *object, renderable);
+        outer_object.transform()->scale = Vec3(0.25f);
+
+        // Create another object, not an entity, which is stored in a system node.
+        auto cube = MeshBuilder(context()).normals(true).createBox(100.0f);
+        cube->setMaterial(material);
+        cube_node = renderer->sceneGraph().root().newChild(SystemPosition{300.0f, 300.0f, -750.0f});
+        cube_node->data.renderable = cube;
 
         // Create a camera.
-        camera = &scene->createEntity(1, Position{0.0f, 0.0f, 50.0f}, Quat::identity)
-                      .addComponent<Camera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+        camera = &scene->createEntity(1, {0.0f, 0.0f, 60.0f}, Quat::identity, *frame);
+        camera->addComponent<CCamera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
     }
 
     void render() {
         static float angle = 0.0f;
         angle += engine_->frameTime();
-        camera->transform()->position().x = sin(angle) * 30.0f;
+
+        // Move some objects.
+        camera->transform()->position.x = sin(angle) * 30.0f;
+        object->transform()->orientation = Quat::RotateY(angle);
+        cube_node->orientation = Quat::RotateX(angle) * Quat::RotateY(angle) * Quat::RotateZ(angle);
+
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
     }
 

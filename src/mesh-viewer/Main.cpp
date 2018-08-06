@@ -9,7 +9,7 @@
 #include "renderer/Program.h"
 #include "resource/ResourceCache.h"
 #include "scene/Parent.h"
-#include "scene/Transform.h"
+#include "scene/TransformComponent.h"
 
 using namespace dw;
 

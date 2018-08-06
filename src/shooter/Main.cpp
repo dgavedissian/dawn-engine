@@ -5,7 +5,8 @@
 #include "DawnEngine.h"
 #include "renderer/MeshBuilder.h"
 #include "renderer/Mesh.h"
-#include "Projectile.h"
+#include "CProjectile.h"
+#include "CWeapon.h"
 #include "ShooterGameMode.h"
 
 using namespace dw;
@@ -16,17 +17,29 @@ public:
 
     void init(int argc, char** argv) override {
         auto rc = module<ResourceCache>();
+        auto sm = module<SceneManager>();
+
         assert(rc);
         rc->addPath("base", "../media/base");
         rc->addPath("shooter", "../media/shooter");
 
-        auto entity_pipeline = makeUnique<ShooterEntityPipeline>(context());
+        // Create frame.
+        auto* frame = module<Renderer>()->sceneGraph().addFrame(
+            module<Renderer>()->sceneGraph().root().newChild());
+
+        // Set up game.
+        auto entity_pipeline = makeUnique<ShooterEntityPipeline>(context(), frame);
         auto entity_pipeline_ptr = entity_pipeline.get();
         module<Networking>()->setEntityPipeline(std::move(entity_pipeline));
-        module<SceneManager>()->addSystem<ShipEngineSystem>();
-        module<SceneManager>()->addSystem<ProjectileSystem>();
+        sm->addSystem<SShipEngines>();
+        sm->addSystem<SProjectile>(
+            frame,
+            HashMap<int, ProjectileTypeInfo>{
+                {0, {100.0f, {6.0f, 15.0f}, rc->get<Texture>("shooter:weapons/projectile1.jpg")}},
+                {1, {100.0f, {6.0f, 15.0f}, rc->get<Texture>("shooter:weapons/projectile2.jpg")}}});
+        sm->addSystem<SWeapon>();
         module<GameplayModule>()->setGameMode(
-            makeShared<ShooterGameMode>(context(), entity_pipeline_ptr));
+            makeShared<ShooterGameMode>(context(), frame, entity_pipeline_ptr));
     }
 
     void update(float dt) override {
@@ -34,28 +47,6 @@ public:
 
     void render(float) override {
         module<Renderer>()->rhi()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
-
-        // Calculate average FPS.
-        float current_fps = 1.0 / engine_->frameTime();
-        static const int FPS_HISTORY_COUNT = 100;
-        static float fps_history[FPS_HISTORY_COUNT];
-        for (int i = 1; i < FPS_HISTORY_COUNT; ++i) {
-            fps_history[i - 1] = fps_history[i];
-        }
-        fps_history[FPS_HISTORY_COUNT - 1] = current_fps;
-        float average_fps = 0.0f;
-        for (int i = 0; i < FPS_HISTORY_COUNT; ++i) {
-            average_fps += fps_history[i] / FPS_HISTORY_COUNT;
-        }
-
-        // Update displayed FPS information every 100ms.
-        static double accumulated_time = 0.0;
-        static float displayed_fps = 60.0f;
-        accumulated_time += engine_->frameTime();
-        if (accumulated_time > 1.0f / 30.0f) {
-            accumulated_time = 0;
-            displayed_fps = average_fps;
-        }
 
         // Display FPS information.
         ImGui::SetNextWindowPos({10, 10});
@@ -66,8 +57,8 @@ public:
             ImGui::End();
             return;
         }
-        ImGui::Text("FPS:   %.1f", displayed_fps);
-        ImGui::Text("Frame: %.4f ms", 1000.0f / displayed_fps);
+        ImGui::Text("FPS:   %d", engine_->framesPerSecond());
+        ImGui::Text("Frame: %.4f ms", engine_->frameTime());
         ImGui::End();
     }
 

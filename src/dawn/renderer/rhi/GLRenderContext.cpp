@@ -342,35 +342,34 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
         throw Exception{"glfwCreateWindow failed."};
     }
     Vec2i fb_size = backbufferSize();
-    backbuffer_width_ = fb_size.x;
-    backbuffer_height_ = fb_size.y;
+    backbuffer_width_ = static_cast<u16>(fb_size.x);
+    backbuffer_height_ = static_cast<u16>(fb_size.y);
     glfwMakeContextCurrent(window_);
     glfwSwapInterval(0);
     glfwSetWindowUserPointer(window_, static_cast<void*>(context()));
 
     // Setup callbacks.
-    glfwSetKeyCallback(
-        window_, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-            auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
+    glfwSetKeyCallback(window_, [](GLFWwindow* window, int key, int, int action, int) {
+        auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
 
-            // Look up key.
-            auto key_it = s_key_map.find(key);
-            if (key_it == s_key_map.end()) {
-                ctx->module<Logger>()->withObjectName("GLFW").warn("Unknown key code %s", key);
-                return;
-            }
+        // Look up key.
+        auto key_it = s_key_map.find(key);
+        if (key_it == s_key_map.end()) {
+            ctx->module<Logger>()->withObjectName("GLFW").warn("Unknown key code %s", key);
+            return;
+        }
 
-            // If we are repeating a key, ignore.
-            if (action == GLFW_REPEAT) {
-                return;
-            }
+        // If we are repeating a key, ignore.
+        if (action == GLFW_REPEAT) {
+            return;
+        }
 
-            if (action == GLFW_PRESS) {
-                ctx->module<Input>()->_notifyKey(key_it->second, Modifier::None, true);
-            } else if (action == GLFW_RELEASE) {
-                ctx->module<Input>()->_notifyKey(key_it->second, Modifier::None, false);
-            }
-        });
+        if (action == GLFW_PRESS) {
+            ctx->module<Input>()->_notifyKey(key_it->second, Modifier::None, true);
+        } else if (action == GLFW_RELEASE) {
+            ctx->module<Input>()->_notifyKey(key_it->second, Modifier::None, false);
+        }
+    });
     glfwSetCharCallback(window_, [](GLFWwindow* window, unsigned int c) {
         auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
 #ifdef DW_MSVC
@@ -380,7 +379,7 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
 #endif
         ctx->module<Input>()->_notifyCharInput(conv.to_bytes(static_cast<char32_t>(c)));
     });
-    glfwSetMouseButtonCallback(window_, [](GLFWwindow* window, int button, int action, int mode) {
+    glfwSetMouseButtonCallback(window_, [](GLFWwindow* window, int button, int action, int) {
         auto ctx = static_cast<Context*>(glfwGetWindowUserPointer(window));
         auto mouse_button = s_mouse_button_map.find(button);
         if (mouse_button == s_mouse_button_map.end()) {

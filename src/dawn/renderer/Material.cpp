@@ -4,6 +4,7 @@
  */
 #include "Common.h"
 #include "renderer/Material.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
 
@@ -18,6 +19,10 @@ void Material::setPolygonMode(rhi::PolygonMode polygon_mode) {
     polygon_mode_ = polygon_mode;
 }
 
+void Material::setDepthWrite(bool depth_write_enabled) {
+    depth_write_ = depth_write_enabled;
+}
+
 void Material::setTexture(SharedPtr<Texture> texture, uint unit) {
     program_->setTextureUnit(texture, unit);
 }
@@ -27,6 +32,7 @@ void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_pro
 
     // Bind render state.
     renderer->setStatePolygonMode(polygon_mode_);
+    renderer->setDepthWrite(depth_write_);
 
     // Bind common variables.
     // TODO: Maybe bind uniforms by some kind of tag?

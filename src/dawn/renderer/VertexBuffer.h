@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/Renderer.h"
+#include "renderer/rhi/Renderer.h"
 
 namespace dw {
 class DW_API VertexBuffer : public Object {

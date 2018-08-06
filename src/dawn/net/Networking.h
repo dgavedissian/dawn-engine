@@ -7,7 +7,7 @@
 #include "net/Yojimbo.h"
 
 #include "scene/Entity.h"
-#include "net/NetData.h"
+#include "net/CNetData.h"
 #include "net/NetEntityPipeline.h"
 
 namespace dw {

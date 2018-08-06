@@ -7,6 +7,7 @@
 #include "input/Input.h"
 #include "ui/Imgui.h"
 #include "ui/UserInterface.h"
+#include "renderer/Renderer.h"
 
 static_assert(sizeof(ImDrawIdx) == sizeof(dw::u16), "Only 16-bit ImGUI indices are supported.");
 

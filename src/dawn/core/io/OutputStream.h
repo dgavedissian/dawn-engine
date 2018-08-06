@@ -4,7 +4,8 @@
  */
 #pragma once
 
-#include "scene/Position.h"
+#include "renderer/SystemPosition.h"
+#include "core/math/Colour.h"
 
 namespace dw {
 
@@ -42,7 +43,14 @@ public:
         write(v.z);
     }
 
-    virtual void write(const Position& p) {
+    virtual void write(const Vec4& v) {
+        write(v.x);
+        write(v.y);
+        write(v.z);
+        write(v.w);
+    }
+
+    virtual void write(const SystemPosition& p) {
         write(p.x);
         write(p.y);
         write(p.z);
@@ -61,6 +69,10 @@ public:
         }
         char null_byte = '\0';
         writeData(&null_byte, sizeof(char));
+    }
+
+    virtual void write(const Colour& c) {
+        write(c.rgba());
     }
 };
 

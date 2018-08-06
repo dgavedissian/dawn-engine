@@ -21,11 +21,12 @@ public:
 
     void setBillboardType(BillboardType type);
 
+    void setParticleVisible(u32 particle_id, bool visible);
     void setParticlePosition(u32 particle_id, const Vec3& position);
     void setParticleSize(u32 particle_id, const Vec2& size);
     void setParticleDirection(u32 particle_id, const Vec3& direction);
 
-    void draw(Renderer* renderer, uint view, Transform* camera, const Mat4&,
+    void draw(Renderer* renderer, uint view, detail::Transform& camera, const Mat4&,
               const Mat4& view_projection_matrix) override;
 
 private:
@@ -33,6 +34,7 @@ private:
     BillboardType type_;
 
     struct ParticleData {
+        bool visible;
         Vec3 position;
         Vec2 size;
         Vec3 direction;
@@ -47,9 +49,10 @@ private:
 
     SharedPtr<VertexBuffer> vb_;
     SharedPtr<IndexBuffer> ib_;
+    uint particle_count_;
 
-    void update(Transform* camera_transform);
-    void calculateAxes(Transform* camera_transform, const ParticleData& data, Vec3& axis_x,
+    void update(detail::Transform& camera_transform);
+    void calculateAxes(detail::Transform& camera_transform, const ParticleData& data, Vec3& axis_x,
                        Vec3& axis_y);
 };
 }  // namespace dw

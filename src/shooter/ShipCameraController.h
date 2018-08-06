@@ -15,14 +15,14 @@ public:
     explicit ShipCameraController(Context* ctx, const Vec3& offset);
     ~ShipCameraController() = default;
 
-    void follow(Entity* ship);
+    void follow(const Entity* ship);
     void possess(Entity* camera);
 
     void update(float dt);
 
 private:
     Entity* possessed_;
-    Entity* followed_;
+    const Entity* followed_;
 
     Vec3 offset_;
 };

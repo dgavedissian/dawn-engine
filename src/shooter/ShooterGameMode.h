@@ -11,6 +11,8 @@
 #include "ShipCameraController.h"
 #include "Ship.h"
 
+#include "CProjectile.h"
+
 #include "net/NetEntityPipeline.h"
 #include "net/NetGameMode.h"
 
@@ -22,17 +24,20 @@ public:
 
     Vector<SharedPtr<Ship>> ship_list_;
 
-    explicit ShooterEntityPipeline(Context* ctx);
+    explicit ShooterEntityPipeline(Context* ctx, Frame* frame);
     ~ShooterEntityPipeline() override = default;
 
     Entity* createEntityFromType(EntityId entity_id, EntityType type, NetRole role) override;
+
+private:
+    Frame* frame_;
 };
 
 class ShooterGameMode : public NetGameMode {
 public:
     DW_OBJECT(ShooterGameMode);
 
-    ShooterGameMode(Context* ctx, ShooterEntityPipeline* entity_pipeline);
+    ShooterGameMode(Context* ctx, Frame* frame, ShooterEntityPipeline* entity_pipeline);
 
     // NetGameMode
     void clientOnJoinServer() override;
@@ -46,6 +51,7 @@ public:
     void update(float dt) override;
 
 private:
+    Frame* frame_;
     ShooterEntityPipeline* entity_pipeline_;
     SharedPtr<ShipCameraController> camera_controller_;
 };

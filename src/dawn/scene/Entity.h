@@ -7,7 +7,7 @@
 #include "ontology/Entity.hpp"
 
 #include "Component.h"
-#include "scene/Transform.h"
+#include "scene/CTransform.h"
 
 namespace dw {
 /// Entity identifier.
@@ -44,8 +44,13 @@ public:
     /// Returns the type ID of this entity.
     EntityType typeId() const;
 
-    /// Shortcut for returning the transform component.
-    Transform* transform() const;
+    /// Shortcut for returning the transform stored inside the scene node of the transform
+    /// component.
+    detail::Transform* transform();
+
+    /// Shortcut for returning the transform stored inside the scene node of the transform
+    /// component.
+    const detail::Transform* transform() const;
 
 private:
     Ontology::EntityManager& internal_entity_mgr_;
@@ -56,8 +61,6 @@ private:
     Ontology::Entity& entity() const {
         return internal_entity_mgr_.getEntity(internal_entity_id_);
     }
-
-    Transform* transform_;
 };
 
 template <typename T> T* Entity::component() const {

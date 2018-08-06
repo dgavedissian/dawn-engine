@@ -18,6 +18,7 @@ public:
     ~Material();
 
     void setPolygonMode(rhi::PolygonMode polygon_mode);
+    void setDepthWrite(bool depth_write_enabled);
 
     void setTexture(SharedPtr<Texture> texture, uint unit = 0);
 
@@ -33,5 +34,6 @@ private:
     SharedPtr<Program> program_;
 
     rhi::PolygonMode polygon_mode_;
+    bool depth_write_;
 };
 }  // namespace dw

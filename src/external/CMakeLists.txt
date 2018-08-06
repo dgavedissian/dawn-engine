@@ -380,7 +380,7 @@ if(WIN32)
         message(FATAL_ERROR "Unsupported MSVC version: ${MSVC_VERSION}")
     endif()
     set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_PREFIX}/src/yojimbo_sodium-external/${SODIUM_ARCH}/$<CONFIG>/${SODIUM_MSVC}/static/libsodium.lib)
+        ${EXTERNAL_PREFIX}/src/yojimbo_sodium-external/${SODIUM_ARCH}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/${SODIUM_MSVC}/static/libsodium.lib)
 else()
     file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
     set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)

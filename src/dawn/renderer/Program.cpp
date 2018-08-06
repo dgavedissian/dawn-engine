@@ -4,6 +4,7 @@
  */
 #include "Common.h"
 #include "renderer/Program.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
 

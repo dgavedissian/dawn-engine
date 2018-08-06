@@ -64,6 +64,7 @@ set(SOURCE_FILES
     core/StringUtils.h
     core/Timer.cpp
     core/Timer.h
+    core/Type.h
     gameplay/GameMode.cpp
     gameplay/GameMode.h
     gameplay/GameplayModule.cpp
@@ -72,15 +73,15 @@ set(SOURCE_FILES
     input/Input.h
     net/BitStream.cpp
     net/BitStream.h
-    net/NetData.cpp
-    net/NetData.h
+    net/CNetData.cpp
+    net/CNetData.h
+    net/CNetTransform.cpp
+    net/CNetTransform.h
     net/NetEntityPipeline.cpp
     net/NetEntityPipeline.h
     net/NetGameMode.cpp
     net/NetGameMode.h
     net/NetRole.h
-    net/NetTransform.cpp
-    net/NetTransform.h
     net/Networking.cpp
     net/Networking.h
     net/RepProperty.h
@@ -101,8 +102,8 @@ set(SOURCE_FILES
     renderer/rhi/VertexDecl.h
     renderer/BillboardSet.cpp
     renderer/BillboardSet.h
-    renderer/Camera.cpp
-    renderer/Camera.h
+    renderer/CCamera.cpp
+    renderer/CCamera.h
     renderer/CustomMeshRenderable.cpp
     renderer/CustomMeshRenderable.h
     renderer/GLSL.h
@@ -114,15 +115,21 @@ set(SOURCE_FILES
     renderer/Mesh.h
     renderer/MeshBuilder.cpp
     renderer/MeshBuilder.h
+    renderer/Node.cpp
+    renderer/Node.h
     renderer/Program.cpp
     renderer/Program.h
     renderer/Renderable.h
     renderer/Renderable.cpp
     renderer/Renderer.cpp
     renderer/Renderer.h
+    renderer/SceneGraph.cpp
+    renderer/SceneGraph.h
     renderer/Shader.cpp
     renderer/Shader.h
     renderer/StbImage.h
+    renderer/SystemPosition.cpp
+    renderer/SystemPosition.h
     renderer/Texture.cpp
     renderer/Texture.h
     renderer/TriangleBuffer.cpp
@@ -134,25 +141,23 @@ set(SOURCE_FILES
     resource/ResourceCache.cpp
     resource/ResourceCache.h
     scene/BulletDynamics.h
+    scene/CLinearMotion.h
+    scene/CTransform.cpp
+    scene/CTransform.h
     scene/CameraController.cpp
     scene/CameraController.h
     scene/Component.cpp
     scene/Component.h
     scene/Entity.cpp
     scene/Entity.h
+    scene/EntitySystem.cpp
+    scene/EntitySystem.h
     scene/PhysicsScene.cpp
     scene/PhysicsScene.h
-    scene/Position.cpp
-    scene/Position.h
+    scene/SLinearMotion.cpp
+    scene/SLinearMotion.h
     scene/SceneManager.cpp
     scene/SceneManager.h
-    scene/System.cpp
-    scene/System.h
-    scene/Transform.cpp
-    scene/Transform.h
-    scene/Velocity.h
-    scene/VelocitySystem.cpp
-    scene/VelocitySystem.h
     ui/Imgui.h
     ui/UserInterface.cpp
     ui/UserInterface.h
@@ -195,28 +200,28 @@ set (SOURCE_FILES
 
 # Project
 set(BUILD_SHARED_LIBS OFF)
-add_library(DwCore ${SOURCE_FILES})
-enable_cpp14(DwCore)
-enable_maximum_warnings(DwCore)
-set_output_dir(DwCore ${CMAKE_BINARY_DIR}/lib)
+add_library(DwEngine ${SOURCE_FILES})
+enable_cpp14(DwEngine)
+enable_maximum_warnings(DwEngine)
+set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)
-    set_target_properties(DwCore PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
+    set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
 endif()
-target_include_directories(DwCore PUBLIC
+target_include_directories(DwEngine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
         scene/ontology/include)
 
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)
-get_target_property(LIB_DIR DwCore LIBRARY_OUTPUT_DIRECTORY)
+get_target_property(LIB_DIR DwEngine LIBRARY_OUTPUT_DIRECTORY)
 if(APPLE AND BUILD_SHARED_LIBS)
-    set_target_properties(DwCore PROPERTIES FRAMEWORK TRUE)
+    set_target_properties(DwEngine PROPERTIES FRAMEWORK TRUE)
 endif()
 
 # Random extras
 mirror_physical_directories(${SOURCE_FILES})
-set_target_properties(DwCore PROPERTIES DEBUG_POSTFIX _d)
+set_target_properties(DwEngine PROPERTIES DEBUG_POSTFIX _d)
 
 # Add include dirs and libraries
-target_include_directories(DwCore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
-target_link_libraries(DwCore ${LIBS})
+target_include_directories(DwEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
+target_link_libraries(DwEngine ${LIBS})

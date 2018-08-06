@@ -7,23 +7,26 @@
 #include "scene/SceneManager.h"
 #include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
+#include "renderer/Renderer.h"
 #include "PhysicsScene.h"
 
 namespace dw {
-SceneManager::SceneManager(Context* ctx) : Module(ctx), entity_id_allocator_(1) {
-    setDependencies<ResourceCache>();
+SceneManager::SceneManager(Context* ctx)
+    : Module(ctx), entity_id_allocator_(1), last_dt_(0.0f), background_scene_node_(nullptr) {
+    setDependencies<ResourceCache, Renderer>();
 
-    root_node_ = makeShared<Transform>(Position::origin, Quat::identity, nullptr);
+    ontology_world_ = makeUnique<Ontology::World>();
 
-    background_renderable_root_ = makeShared<RenderableNode>();
-    background_entity_ = &createEntity(0, Position::origin, Quat::identity, nullptr)
-                              .addComponent<RenderableComponent>(background_renderable_root_);
-    background_entity_->transform()->setRelativeToCamera(true);
+    module<Renderer>()->setupEntitySystems(this);
+
+    background_scene_node_ = module<Renderer>()->rootBackgroundNode().newChild();
 
     physics_scene_ = makeUnique<PhysicsScene>(ctx, this);
 }
 
 SceneManager::~SceneManager() {
+    ontology_world_.reset();
+    physics_scene_.reset();
 }
 
 void SceneManager::createStarSystem() {
@@ -34,29 +37,27 @@ void SceneManager::createStarSystem() {
     background_material->setTexture(
         module<ResourceCache>()->get<Texture>("base:space/starfield.jpg"));
     background_material->setUniform<int>("starfield_sampler", 0);
-    auto skybox = MeshBuilder{context()}.normals(false).texcoords(true).createBox(-10000.0f);
+    background_material->setDepthWrite(false);
+    auto skybox = MeshBuilder{context()}.normals(false).texcoords(true).createBox(-100.0f);
     skybox->setMaterial(background_material);
-    background_renderable_root_->addChild(skybox);
+    background_scene_node_->data.renderable = skybox;
 }
 
 Entity& SceneManager::createEntity(EntityType type) {
     return createEntity(type, reserveEntityId());
 }
 
-Entity& SceneManager::createEntity(EntityType type, const Position& p, const Quat& o,
-                                   Entity* parent) {
+Entity& SceneManager::createEntity(EntityType type, const Vec3& p, const Quat& o, Frame& frame,
+                                   SharedPtr<Renderable> renderable) {
     Entity& e = createEntity(type);
-    if (parent) {
-        e.addComponent<Transform>(p, o, *parent);
-    } else {
-        e.addComponent<Transform>(p, o, nullptr);
-    }
+    e.addComponent<CTransform>(frame.newChild(p, o), renderable);
     return e;
 }
 
-Entity& SceneManager::createEntity(EntityType type, const Position& p, const Quat& o) {
+Entity& SceneManager::createEntity(EntityType type, const Vec3& p, const Quat& o, Entity& parent,
+                                   SharedPtr<Renderable> renderable) {
     Entity& e = createEntity(type);
-    e.addComponent<Transform>(p, o, rootNode());
+    e.addComponent<CTransform>(parent.component<CTransform>()->node->newChild(p, o), renderable);
     return e;
 }
 
@@ -69,8 +70,8 @@ Entity& SceneManager::createEntity(EntityType type, EntityId reserved_entity_id)
     // Look up slot and move new entity into it.
     auto entity_slot = entity_lookup_table_.find(reserved_entity_id);
     assert(entity_slot != entity_lookup_table_.end() && entity_slot->second == nullptr);
-    auto entity =
-        makeUnique<Entity>(context(), ontology_world_.getEntityManager(), reserved_entity_id, type);
+    auto entity = makeUnique<Entity>(context(), ontology_world_->getEntityManager(),
+                                     reserved_entity_id, type);
     auto entity_ptr = entity.get();
     entity_slot->second = std::move(entity);
     return *entity_ptr;
@@ -95,17 +96,13 @@ void SceneManager::removeEntity(Entity* entity) {
 }
 
 void SceneManager::beginMainLoop() {
-    ontology_world_.getSystemManager().initialise();
+    ontology_world_->getSystemManager().initialise();
 }
 
 void SceneManager::update(float dt) {
     last_dt_ = dt;
     physics_scene_->update(dt, nullptr);
-    ontology_world_.update();
-}
-
-Transform* SceneManager::rootNode() const {
-    return root_node_.get();
+    ontology_world_->update();
 }
 
 PhysicsScene* SceneManager::physicsScene() const {

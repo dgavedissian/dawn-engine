@@ -622,7 +622,7 @@ uint Renderer::backbufferView() const {
             return view_index;
         }
     }
-    log().error("getBackbufferView() returned -1.");
+    log().error("backbufferView() returned -1.");
     return -1;
 }
 }  // namespace rhi

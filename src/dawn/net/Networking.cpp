@@ -8,8 +8,8 @@
 #include "scene/Entity.h"
 #include "scene/SceneManager.h"
 #include "net/BitStream.h"
-#include "net/NetData.h"
-#include "net/NetTransform.h"
+#include "net/CNetData.h"
+#include "net/CNetTransform.h"
 
 namespace dw {
 namespace {
@@ -42,6 +42,11 @@ int yojimbo_printf_function(const char* format, ...) {
         serialize_bytes(stream, bytes.data(), size); \
     }
 
+#ifdef DW_MSVC
+#pragma warning(push)
+#pragma warning(disable : 4127)
+#endif
+
 struct ClientSpawnRequestMessage : public yojimbo::Message {
     u32 request_id;
     EntityType entity_type;
@@ -64,7 +69,9 @@ struct ClientRpcMessage : public yojimbo::Message {
 
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint64(stream, entity_id);
-        serialize_bits(stream, rpc_id, sizeof(RpcId) * 8);
+        auto rpc_id_raw = static_cast<u32>(rpc_id);
+        serialize_bits(stream, rpc_id_raw, sizeof(RpcId) * 8);
+        rpc_id = static_cast<RpcId>(rpc_id_raw);
         yojimbo_serialize_byte_array(stream, payload);
         return true;
     }
@@ -81,9 +88,9 @@ struct ServerCreateEntityMessage : public yojimbo::Message {
     template <typename Stream> bool Serialize(Stream& stream) {
         serialize_uint64(stream, entity_id);
         serialize_uint32(stream, entity_type);
-        auto role_byte = static_cast<u8>(role);
-        serialize_bits(stream, role_byte, 8);
-        role = static_cast<NetRole>(role_byte);
+        auto role_raw = static_cast<u32>(role);
+        serialize_bits(stream, role_raw, 8);
+        role = static_cast<NetRole>(role_raw);
         yojimbo_serialize_byte_array(stream, data);
         return true;
     }
@@ -147,6 +154,10 @@ YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerPropertyReplication, ServerPropertyReplica
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerDestroyEntity, ServerDestroyEntityMessage);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerSpawnResponse, ServerSpawnResponseMessage);
 YOJIMBO_MESSAGE_FACTORY_FINISH();
+
+#ifdef DW_MSVC
+#pragma warning(pop)
+#endif
 }  // namespace
 
 Networking::Networking(Context* context)
@@ -164,12 +175,12 @@ Networking::Networking(Context* context)
     yojimbo_log_level(YOJIMBO_LOG_LEVEL_INFO);
     yojimbo_set_printf_function(yojimbo_printf_function);
 
-    // Set up NetTransformSyncSystem.
-    module<SceneManager>()->addSystem<NetTransformSyncSystem>();
+    // Set up SNetTransformSync.
+    module<SceneManager>()->addSystem<SNetTransformSync>();
 }
 
 Networking::~Networking() {
-    module<SceneManager>()->removeSystem<NetTransformSyncSystem>();
+    module<SceneManager>()->removeSystem<SNetTransformSync>();
     ShutdownYojimbo();
 }
 
@@ -238,7 +249,7 @@ void Networking::update(float dt) {
     }
 }
 
-void Networking::serverUpdate(float dt) {
+void Networking::serverUpdate(float) {
     server_->SendPackets();
     server_->ReceivePackets();
 
@@ -283,9 +294,9 @@ void Networking::serverUpdate(float dt) {
                         log().error("Client RPC: Received from non-existent entity %d", entity_id);
                         break;
                     }
-                    auto net_data = entity->component<NetData>();
+                    auto net_data = entity->component<CNetData>();
                     if (!net_data) {
-                        log().error("Client RPC: Entity %d has no NetData component.", entity_id);
+                        log().error("Client RPC: Entity %d has no CNetData component.", entity_id);
                         break;
                     }
                     net_data->receiveRpc(rpc_message->rpc_id, rpc_message->payload);
@@ -302,7 +313,7 @@ void Networking::serverUpdate(float dt) {
     for (auto id : replicated_entities_) {
         Entity& entity = *em.findEntity(id);
         OutputBitStream properties;
-        entity.component<NetData>()->serialise(properties);
+        entity.component<CNetData>()->serialise(properties);
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
             sendServerPropertyReplication(i, entity, properties);
         }
@@ -311,7 +322,7 @@ void Networking::serverUpdate(float dt) {
     server_->AdvanceTime(time_);
 }
 
-void Networking::clientUpdate(float dt) {
+void Networking::clientUpdate(float) {
     client_->SendPackets();
     client_->ReceivePackets();
 
@@ -347,14 +358,13 @@ void Networking::clientUpdate(float dt) {
                     Entity* entity =
                         entity_pipeline_->createEntityFromType(entity_id, entity_type, role);
                     if (entity) {
-                        assert(entity->hasComponent<NetData>());
-                        entity->component<NetData>()->deserialise(bs);
-                        entity->component<NetData>()->role_ = role;
-                        entity->component<NetData>()->remote_role_ = NetRole::Authority;
+                        assert(entity->hasComponent<CNetData>());
+                        entity->component<CNetData>()->deserialise(bs);
+                        entity->component<CNetData>()->role_ = role;
+                        entity->component<CNetData>()->remote_role_ = NetRole::Authority;
                         log().info("Created replicated entity %d at %d %d %d", entity_id,
-                                   entity->transform()->position().x,
-                                   entity->transform()->position().y,
-                                   entity->transform()->position().z);
+                                   entity->transform()->position.x, entity->transform()->position.y,
+                                   entity->transform()->position.z);
 
                         // If any spawn requests are waiting for an entity to be created,
                         // trigger the callback and clear.
@@ -389,7 +399,7 @@ void Networking::clientUpdate(float dt) {
                 EntityId entity_id = replication_message->entity_id;
                 Entity* entity = module<SceneManager>()->findEntity(entity_id);
                 if (entity) {
-                    entity->component<NetData>()->deserialise(bs);
+                    entity->component<CNetData>()->deserialise(bs);
                 } else {
                     log().warn(
                         "Received replication update for entity %s which does not exist on "
@@ -450,7 +460,7 @@ bool Networking::isConnected() const {
 }
 
 void Networking::replicateEntity(const Entity& entity, int authoritative_proxy_client) {
-    assert(entity.hasComponent<NetData>());
+    assert(entity.hasComponent<CNetData>());
 
     if (!server_) {
         // No-op.
@@ -458,8 +468,8 @@ void Networking::replicateEntity(const Entity& entity, int authoritative_proxy_c
     }
 
     // Set roles.
-    entity.component<NetData>()->role_ = NetRole::Authority;
-    entity.component<NetData>()->remote_role_ = NetRole::Proxy;
+    entity.component<CNetData>()->role_ = NetRole::Authority;
+    entity.component<CNetData>()->remote_role_ = NetRole::Proxy;
 
     // Add to replicated entities list.
     if (replicated_entities_.find(entity.id()) == replicated_entities_.end()) {
@@ -469,7 +479,7 @@ void Networking::replicateEntity(const Entity& entity, int authoritative_proxy_c
         // TODO: Rewrite InputStream/OutputStream to expose an unreal FArchive like interface, which
         // by default will just write the bytes as-is.
         OutputBitStream properties;
-        entity.component<NetData>()->serialise(properties);
+        entity.component<CNetData>()->serialise(properties);
 
         // Send create entity message to clients.
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
@@ -550,7 +560,7 @@ void Networking::OnServerClientConnected(int clientIndex) {
         Entity* entity = module<SceneManager>()->findEntity(entity_id);
         if (entity) {
             OutputBitStream properties;
-            entity->component<NetData>()->serialise(properties);
+            entity->component<CNetData>()->serialise(properties);
             sendServerCreateEntity(clientIndex, *entity, properties, NetRole::Proxy);
         } else {
             log().error("Replicated Entity ID %s missing from SceneManager", entity_id);

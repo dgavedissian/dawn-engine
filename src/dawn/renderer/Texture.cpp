@@ -5,6 +5,7 @@
 #include "Common.h"
 #include "renderer/StbImage.h"
 #include "renderer/Texture.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
 

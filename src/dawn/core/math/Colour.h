@@ -12,12 +12,20 @@ public:
     Colour();
     Colour(float r, float g, float b, float a = 1.0f);
 
+    // Immutable.
     float r() const;
     float g() const;
     float b() const;
     float a() const;
     Vec3 rgb() const;
     Vec4 rgba() const;
+
+    // Mutable.
+    float& r();
+    float& g();
+    float& b();
+    float& a();
+    Vec4& rgba();
 
 private:
     Vec4 components_;
