@@ -1,6 +1,6 @@
 #include "DawnEngine.h"
 #include "scene/CTransform.h"
-#include "net/NetData.h"
+#include "net/CNetData.h"
 #include "net/CNetTransform.h"
 #include "ShipFlightComputer.h"
 #include "Ship.h"

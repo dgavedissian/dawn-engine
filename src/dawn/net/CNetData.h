@@ -39,13 +39,13 @@ private:
 private:
     void onAddToEntity(Entity& entity);
 
-    friend class NetData;
+    friend class CNetData;
 };
 
 // A component that stores network data such as replication layout and roles.
-class DW_API NetData : public Component {
+class DW_API CNetData : public Component {
 public:
-    NetData(RepLayout layout);
+    CNetData(RepLayout layout);
     void onAddToEntity(Entity* parent);
 
     void serialise(OutputStream& out);

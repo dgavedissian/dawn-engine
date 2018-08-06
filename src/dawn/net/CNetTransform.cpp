@@ -3,17 +3,17 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "net/NetData.h"
+#include "net/CNetData.h"
 #include "net/CNetTransform.h"
 #include "scene/PhysicsScene.h"
 
 namespace dw {
 SNetTransformSync::SNetTransformSync(Context* context) : EntitySystem(context) {
-    supportsComponents<CTransform, CNetTransform, NetData>();
+    supportsComponents<CTransform, CNetTransform, CNetData>();
 }
 
 void SNetTransformSync::processEntity(Entity& entity, float dt) {
-    NetRole role = entity.component<NetData>()->role();
+    NetRole role = entity.component<CNetData>()->role();
     CTransform& transform = *entity.component<CTransform>();
     NetTransformState& net_state = entity.component<CNetTransform>()->transform_state;
     CRigidBody* rigid_body = entity.component<CRigidBody>();

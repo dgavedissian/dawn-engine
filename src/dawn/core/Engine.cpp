@@ -140,11 +140,12 @@ void Engine::setup(int argc, char** argv) {
     context_->addModule<SceneManager>();
 
     auto* net = context_->addModule<Networking>();
-    if (arguments_.find("-host") != arguments_.end()) {
-        net->listen(std::stoi(arguments_["-host"]), 32);
+    auto port_arg = arguments_.find("-p");
+    u16 port = port_arg != arguments_.end() ? std::stoi(port_arg->second) : 40000;
+    if (flags_.find("-host") != flags_.end()) {
+        net->listen(port, 32);
     } else if (arguments_.find("-join") != arguments_.end()) {
         String ip = arguments_["-join"];
-        u16 port = std::stoi(arguments_["-p"]);
         net->connect(ip, port);
     }
 

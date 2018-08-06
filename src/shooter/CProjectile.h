@@ -9,6 +9,7 @@
 #include "scene/Component.h"
 #include "scene/EntitySystem.h"
 #include "renderer/BillboardSet.h"
+#include "net/CNetData.h"
 
 using namespace dw;
 
@@ -46,6 +47,16 @@ struct CProjectile : public Component {
     Vec3 position;
     Vec3 velocity;
     Colour colour;
+
+    // Replication layout.
+    static RepLayout repLayout() {
+        return {{RepProperty::bind<CProjectile>(&CProjectile::type),
+                 RepProperty::bind<CProjectile>(&CProjectile::particle_id),
+                 RepProperty::bind<CProjectile>(&CProjectile::position),
+                 RepProperty::bind<CProjectile>(&CProjectile::velocity),
+                 RepProperty::bind<CProjectile>(&CProjectile::colour)},
+                {}};
+    }
 };
 
 class SProjectile : public EntitySystem {
@@ -54,8 +65,8 @@ public:
 
     SProjectile(Context* context, Frame* frame, const HashMap<int, ProjectileTypeInfo>& types);
 
-    void createNewProjectile(int type, const Vec3& position, const Vec3& direction, const Vec3& velocity,
-                             const Colour& colour);
+    Entity* createNewProjectile(int type, const Vec3& position, const Vec3& direction,
+                                const Vec3& velocity, const Colour& colour);
 
     void processEntity(Entity& entity, float dt) override;
 

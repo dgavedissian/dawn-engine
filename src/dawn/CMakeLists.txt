@@ -73,10 +73,10 @@ set(SOURCE_FILES
     input/Input.h
     net/BitStream.cpp
     net/BitStream.h
+    net/CNetData.cpp
+    net/CNetData.h
     net/CNetTransform.cpp
     net/CNetTransform.h
-    net/NetData.cpp
-    net/NetData.h
     net/NetEntityPipeline.cpp
     net/NetEntityPipeline.h
     net/NetGameMode.cpp

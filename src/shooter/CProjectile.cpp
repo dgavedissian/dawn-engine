@@ -4,6 +4,8 @@
  */
 #include "CProjectile.h"
 #include "scene/SceneManager.h"
+#include "net/CNetData.h"
+#include "net/Networking.h"
 
 FreeListAllocator::FreeListAllocator() : FreeListAllocator(0) {
 }
@@ -64,8 +66,8 @@ SProjectile::SProjectile(Context* ctx, Frame* frame, const HashMap<int, Projecti
     }
 }
 
-void SProjectile::createNewProjectile(int type, const Vec3& position, const Vec3& direction, const Vec3& velocity,
-                                      const Colour& colour) {
+Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const Vec3& direction,
+                                         const Vec3& velocity, const Colour& colour) {
     assert(types_.find(type) != types_.end());
 
     auto& render_data = render_data_.at(type);
@@ -75,7 +77,7 @@ void SProjectile::createNewProjectile(int type, const Vec3& position, const Vec3
     if (!billboard_id.isPresent()) {
         log().warn("Unable to create billboard. Ran out of IDs. Size: %d",
                    render_data.free_billboards.size());
-        return;
+        return nullptr;
     }
 
     render_data.billboard_set->setParticleVisible(billboard_id.get(), true);
@@ -89,6 +91,12 @@ void SProjectile::createNewProjectile(int type, const Vec3& position, const Vec3
     projectile.position = position;
     projectile.velocity = velocity;
     projectile.colour = colour;
+
+    // Add net data and replicate.
+    entity.addComponent<CNetData>(RepLayout::build<CProjectile>());
+    module<Networking>()->replicateEntity(entity);
+
+    return &entity;
 }
 
 void SProjectile::processEntity(Entity& entity, float dt) {

@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "net/NetData.h"
+#include "net/CNetData.h"
 #include "net/Networking.h"
 
 namespace dw {
@@ -43,31 +43,31 @@ void RepLayout::onAddToEntity(Entity& entity) {
         rpc.second->onAddToEntity(entity, rpc.first);
     }
 }
-NetData::NetData(RepLayout rep_layout)
+CNetData::CNetData(RepLayout rep_layout)
     : entity_(nullptr),
       rep_layout_(std::move(rep_layout)),
       role_(NetRole::None),
       remote_role_(NetRole::None) {
 }
 
-void NetData::onAddToEntity(Entity* parent) {
+void CNetData::onAddToEntity(Entity* parent) {
     entity_ = parent;
     rep_layout_.onAddToEntity(*parent);
 }
 
-void NetData::serialise(OutputStream& out) {
+void CNetData::serialise(OutputStream& out) {
     for (auto& prop : rep_layout_.property_list_) {
         prop->serialise(out);
     }
 }
 
-void NetData::deserialise(InputStream& in) {
+void CNetData::deserialise(InputStream& in) {
     for (auto& prop : rep_layout_.property_list_) {
         prop->deserialise(in);
     }
 }
 
-void NetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload) {
+void CNetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload) {
     auto* net = entity_->module<Networking>();
     if (net->isServer()) {
         receiveRpc(rpc_id, payload);
@@ -76,7 +76,7 @@ void NetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload) {
     }
 }
 
-void NetData::receiveRpc(RpcId rpc_id, const Vector<u8>& payload) {
+void CNetData::receiveRpc(RpcId rpc_id, const Vector<u8>& payload) {
     auto rpc_func = rep_layout_.rpc_map_.find(rpc_id);
     if (rpc_func != rep_layout_.rpc_map_.end()) {
         (*rpc_func).second->receiveRpc(payload);
@@ -85,11 +85,11 @@ void NetData::receiveRpc(RpcId rpc_id, const Vector<u8>& payload) {
     }
 }
 
-NetRole NetData::role() const {
+NetRole CNetData::role() const {
     return role_;
 }
 
-NetRole NetData::remoteRole() const {
+NetRole CNetData::remoteRole() const {
     return remote_role_;
 }
 }  // namespace dw

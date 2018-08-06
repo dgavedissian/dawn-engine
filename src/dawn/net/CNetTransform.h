@@ -10,7 +10,7 @@
 #include "scene/Component.h"
 #include "scene/EntitySystem.h"
 #include "renderer/SystemPosition.h"
-#include "net/NetData.h"
+#include "net/CNetData.h"
 
 namespace dw {
 struct NetTransformState {

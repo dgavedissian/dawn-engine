@@ -5,6 +5,7 @@
 #pragma once
 
 #include "renderer/SystemPosition.h"
+#include "core/math/Colour.h"
 
 namespace dw {
 class DW_API InputStream {
@@ -59,6 +60,13 @@ public:
         read(v.z);
     }
 
+    virtual void read(Vec4& v) {
+        read(v.x);
+        read(v.y);
+        read(v.z);
+        read(v.w);
+    }
+
     virtual void read(SystemPosition& p) {
         read(p.x);
         read(p.y);
@@ -74,6 +82,10 @@ public:
 
     virtual void read(String& s) {
         s = readLine('\0');
+    }
+
+    virtual void read(Colour& c) {
+        read(c.rgba());
     }
 
 protected:

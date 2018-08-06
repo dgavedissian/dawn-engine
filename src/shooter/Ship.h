@@ -30,8 +30,7 @@ public:
     }
 
     ClientRpc<bool> toggleWeapon;
-    void toggleWeaponImpl(const bool& toggle)
-    {
+    void toggleWeaponImpl(const bool& toggle) {
         firing_weapon = toggle;
     }
 
@@ -45,7 +44,8 @@ public:
                                           &CShipControls::setLinearVelocityImpl),
                  Rpc::bind<CShipControls>(&CShipControls::setAngularVelocity,
                                           &CShipControls::setAngularVelocityImpl),
-                Rpc::bind<CShipControls>(&CShipControls::toggleWeapon, &CShipControls::toggleWeaponImpl)}};
+                 Rpc::bind<CShipControls>(&CShipControls::toggleWeapon,
+                                          &CShipControls::toggleWeaponImpl)}};
     }
 };
 

@@ -19,6 +19,9 @@ Entity* ShooterEntityPipeline::createEntityFromType(EntityId entity_id, EntityTy
             ship_list_.emplace_back(std::move(ship));
             return entity;
         }
+        case Hash("Projectile"):
+            return module<SceneManager>()->system<SProjectile>()->createNewProjectile(
+                0, Vec3::zero, Vec3::unitZ, Vec3::zero, Colour{});
         default:
             return nullptr;
     }
@@ -77,12 +80,14 @@ void ShooterGameMode::onStart() {
     camera_controller_->possess(&camera);
 
     // If we're running a local-only game, spawn a player.
+    /*
     if (!module<Networking>()->isConnected()) {
         auto new_ship = makeShared<Ship>(context(), frame_,
                                          module<SceneManager>()->reserveEntityId(), NetRole::None);
         camera_controller_->follow(new_ship->entity());
         entity_pipeline_->ship_list_.emplace_back(new_ship);
     }
+    */
 
     // Spawn a test ship.
     /*

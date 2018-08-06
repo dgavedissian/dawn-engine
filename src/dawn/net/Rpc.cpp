@@ -5,13 +5,13 @@
 #include "Common.h"
 #include "net/Rpc.h"
 #include "net/NetRole.h"
-#include "net/NetData.h"
+#include "net/CNetData.h"
 
 namespace dw {
 RpcSenderBase::RpcSenderBase() : net_data_(nullptr), logger_(nullptr), rpc_id_(0) {
 }
 
-void RpcSenderBase::initInternal(NetData* net_data, Logger* logger, RpcId rpc_id) {
+void RpcSenderBase::initInternal(CNetData* net_data, Logger* logger, RpcId rpc_id) {
     net_data_ = net_data;
     logger_ = logger;
     rpc_id_ = rpc_id;

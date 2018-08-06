@@ -4,7 +4,7 @@
  */
 #include "DawnEngine.h"
 #include "scene/CTransform.h"
-#include "net/NetData.h"
+#include "net/CNetData.h"
 #include "net/CNetTransform.h"
 #include "Ship.h"
 #include "ShipFlightComputer.h"
@@ -81,7 +81,7 @@ Ship::Ship(Context* ctx, Frame* frame, EntityId reserved_entity_id, NetRole role
     ship_entity_->addComponent<CNetTransform>();
     ship_entity_->addComponent<CShipControls>();
     if (role != NetRole::None) {
-        ship_entity_->addComponent<NetData>(
+        ship_entity_->addComponent<CNetData>(
             RepLayout::build<CNetTransform, CShipEngines, CShipControls>());
     }
 
@@ -102,7 +102,7 @@ void Ship::update(float dt) {
 
     // auto& engines = *ship_entity_->component<CShipEngines>();
     auto& controls = *ship_entity_->component<CShipControls>();
-    auto net_data = ship_entity_->component<NetData>();
+    auto net_data = ship_entity_->component<CNetData>();
 
     if (!net_data || net_data->role() == NetRole::AuthoritativeProxy) {
         //=============================
@@ -142,11 +142,10 @@ void Ship::update(float dt) {
         }
 
         // Control weapon.
-        bool is_firing_weapon = input->isMouseButtonDown(MouseButton::Left) || input->isKeyDown(Key::LeftCtrl);
-        if (controls.firing_weapon != is_firing_weapon)
-        {
-            if (net_data)
-            {
+        bool is_firing_weapon =
+            input->isMouseButtonDown(MouseButton::Left) || input->isKeyDown(Key::LeftCtrl);
+        if (controls.firing_weapon != is_firing_weapon) {
+            if (net_data) {
                 controls.toggleWeapon(is_firing_weapon);
             }
             controls.firing_weapon = is_firing_weapon;

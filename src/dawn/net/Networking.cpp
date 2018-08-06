@@ -8,7 +8,7 @@
 #include "scene/Entity.h"
 #include "scene/SceneManager.h"
 #include "net/BitStream.h"
-#include "net/NetData.h"
+#include "net/CNetData.h"
 #include "net/CNetTransform.h"
 
 namespace dw {
@@ -294,9 +294,9 @@ void Networking::serverUpdate(float) {
                         log().error("Client RPC: Received from non-existent entity %d", entity_id);
                         break;
                     }
-                    auto net_data = entity->component<NetData>();
+                    auto net_data = entity->component<CNetData>();
                     if (!net_data) {
-                        log().error("Client RPC: Entity %d has no NetData component.", entity_id);
+                        log().error("Client RPC: Entity %d has no CNetData component.", entity_id);
                         break;
                     }
                     net_data->receiveRpc(rpc_message->rpc_id, rpc_message->payload);
@@ -313,7 +313,7 @@ void Networking::serverUpdate(float) {
     for (auto id : replicated_entities_) {
         Entity& entity = *em.findEntity(id);
         OutputBitStream properties;
-        entity.component<NetData>()->serialise(properties);
+        entity.component<CNetData>()->serialise(properties);
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
             sendServerPropertyReplication(i, entity, properties);
         }
@@ -358,10 +358,10 @@ void Networking::clientUpdate(float) {
                     Entity* entity =
                         entity_pipeline_->createEntityFromType(entity_id, entity_type, role);
                     if (entity) {
-                        assert(entity->hasComponent<NetData>());
-                        entity->component<NetData>()->deserialise(bs);
-                        entity->component<NetData>()->role_ = role;
-                        entity->component<NetData>()->remote_role_ = NetRole::Authority;
+                        assert(entity->hasComponent<CNetData>());
+                        entity->component<CNetData>()->deserialise(bs);
+                        entity->component<CNetData>()->role_ = role;
+                        entity->component<CNetData>()->remote_role_ = NetRole::Authority;
                         log().info("Created replicated entity %d at %d %d %d", entity_id,
                                    entity->transform()->position.x, entity->transform()->position.y,
                                    entity->transform()->position.z);
@@ -399,7 +399,7 @@ void Networking::clientUpdate(float) {
                 EntityId entity_id = replication_message->entity_id;
                 Entity* entity = module<SceneManager>()->findEntity(entity_id);
                 if (entity) {
-                    entity->component<NetData>()->deserialise(bs);
+                    entity->component<CNetData>()->deserialise(bs);
                 } else {
                     log().warn(
                         "Received replication update for entity %s which does not exist on "
@@ -460,7 +460,7 @@ bool Networking::isConnected() const {
 }
 
 void Networking::replicateEntity(const Entity& entity, int authoritative_proxy_client) {
-    assert(entity.hasComponent<NetData>());
+    assert(entity.hasComponent<CNetData>());
 
     if (!server_) {
         // No-op.
@@ -468,8 +468,8 @@ void Networking::replicateEntity(const Entity& entity, int authoritative_proxy_c
     }
 
     // Set roles.
-    entity.component<NetData>()->role_ = NetRole::Authority;
-    entity.component<NetData>()->remote_role_ = NetRole::Proxy;
+    entity.component<CNetData>()->role_ = NetRole::Authority;
+    entity.component<CNetData>()->remote_role_ = NetRole::Proxy;
 
     // Add to replicated entities list.
     if (replicated_entities_.find(entity.id()) == replicated_entities_.end()) {
@@ -479,7 +479,7 @@ void Networking::replicateEntity(const Entity& entity, int authoritative_proxy_c
         // TODO: Rewrite InputStream/OutputStream to expose an unreal FArchive like interface, which
         // by default will just write the bytes as-is.
         OutputBitStream properties;
-        entity.component<NetData>()->serialise(properties);
+        entity.component<CNetData>()->serialise(properties);
 
         // Send create entity message to clients.
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
@@ -560,7 +560,7 @@ void Networking::OnServerClientConnected(int clientIndex) {
         Entity* entity = module<SceneManager>()->findEntity(entity_id);
         if (entity) {
             OutputBitStream properties;
-            entity->component<NetData>()->serialise(properties);
+            entity->component<CNetData>()->serialise(properties);
             sendServerCreateEntity(clientIndex, *entity, properties, NetRole::Proxy);
         } else {
             log().error("Replicated Entity ID %s missing from SceneManager", entity_id);
