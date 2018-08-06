@@ -7,6 +7,7 @@
 #include "core/Timer.h"
 #include "DawnEngine.h"
 #include "scene/SLinearMotion.h"
+#include "net/CNetTransform.h"
 
 // Required for getBasePath/getPrefPath.
 #if DW_PLATFORM == DW_WIN32
@@ -136,6 +137,8 @@ void Engine::setup(int argc, char** argv) {
     }
     context_->addModule<UserInterface>();
     context_->addModule<ResourceCache>();
+
+    // Non modules. Should be instance based.
     context_->addModule<GameplayModule>();
     context_->addModule<SceneManager>();
 
@@ -152,6 +155,7 @@ void Engine::setup(int argc, char** argv) {
     // Set up built in entity systems.
     auto& sm = *context_->module<SceneManager>();
     sm.addSystem<SLinearMotion>();
+sm.addSystem<SNetTransformSync>();
 
     // Set input viewport size
     /*

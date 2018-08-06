@@ -13,22 +13,6 @@
 
 namespace dw {
 namespace {
-Logger* yojimbo_logger = nullptr;
-int yojimbo_printf_function(const char* format, ...) {
-    // Build string buffer.
-    va_list args;
-    va_start(args, format);
-    char buffer[4 * 1024];
-    int count = vsnprintf(buffer, 4 * 1024, format, args);
-    va_end(args);
-    String str_buffer{buffer};
-
-    // Write to logger, trimming the ending '\n' that yojimbo always gives us.
-    yojimbo_logger->withObjectName("dw::Networking")
-        .info("yojimbo: %s", str_buffer.substr(0, str_buffer.size() - 1));
-    return count;
-}
-
 // Assuming 'bytes' is of type 'Vector<u8>'.
 #define yojimbo_serialize_byte_array(stream, bytes)  \
     if (Stream::IsReading) {                         \
@@ -155,36 +139,98 @@ YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerDestroyEntity, ServerDestroyEntityMessage)
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerSpawnResponse, ServerSpawnResponseMessage);
 YOJIMBO_MESSAGE_FACTORY_FINISH();
 
+class YojimboContext
+{
+public:
+    YojimboContext(Logger* logger) : logger(logger) {
+        InitializeYojimbo();
+        yojimbo_log_level(YOJIMBO_LOG_LEVEL_INFO);
+        yojimbo_set_printf_function(PrintFunction);
+    }
+
+    ~YojimboContext()
+    {
+        ShutdownYojimbo();
+    }
+
+    static YojimboContext* addRef(Context* context)
+    {
+        if (ref_count_ == 0)
+        {
+            context_.reset(new YojimboContext(context->module<Logger>()));
+        }
+        ref_count_++;
+    }
+
+    static void release()
+    {
+        assert(ref_count_ > 0);
+        ref_count_--;
+        if (ref_count_ == 0)
+        {
+            context_.reset();
+        }
+    }
+
+private:
+    Logger * logger;
+
+    static UniquePtr<YojimboContext> context_;
+    static int ref_count_;
+
+    static int PrintFunction(const char* format, ...) {
+        assert(context_);
+
+        // Build string buffer.
+        va_list args;
+        va_start(args, format);
+        char buffer[4 * 1024];
+        int count = vsnprintf(buffer, 4 * 1024, format, args);
+        va_end(args);
+        String str_buffer{ buffer };
+
+        // Write to logger, trimming the ending '\n' that yojimbo always gives us.
+        context_->logger->withObjectName("dw::NetInstance")
+            .info("yojimbo: %s", str_buffer.substr(0, str_buffer.size() - 1));
+        return count;
+    }
+
+};
+
 #ifdef DW_MSVC
 #pragma warning(pop)
 #endif
 }  // namespace
 
-Networking::Networking(Context* context)
-    : Module{context},
+UniquePtr<NetInstance> NetInstance::connect(Context* context, const String& host, u16 port) {
+    auto instance = makeUnique<NetInstance>(context);
+    instance->connect(host, port);
+    return instance;
+}
+
+UniquePtr<NetInstance> NetInstance::listen(Context * context, u16 port, u16 max_clients)
+{
+    auto instance = makeUnique<NetInstance>(context);
+    instance->listen(port, max_clients);
+    return instance;
+}
+
+NetInstance::NetInstance(Context* ctx)
+    : Object{ctx},
       is_server_(false),
       time_(100.0f),
       client_connection_state_(ConnectionState::Disconnected),
       client_(nullptr),
       server_(nullptr),
       spawn_request_id_(0) {
-    setDependencies<SceneManager, SceneManager>();
-
-    yojimbo_logger = module<Logger>();
-    InitializeYojimbo();
-    yojimbo_log_level(YOJIMBO_LOG_LEVEL_INFO);
-    yojimbo_set_printf_function(yojimbo_printf_function);
-
-    // Set up SNetTransformSync.
-    module<SceneManager>()->addSystem<SNetTransformSync>();
+    YojimboContext::addRef(ctx);
 }
 
-Networking::~Networking() {
-    module<SceneManager>()->removeSystem<SNetTransformSync>();
-    ShutdownYojimbo();
+NetInstance::~NetInstance() {
+    YojimboContext::release();
 }
 
-void Networking::connect(const String& ip, u16 port) {
+void NetInstance::connect(const String& ip, u16 port) {
     if (isConnected()) {
         disconnect();
     }
@@ -200,7 +246,7 @@ void Networking::connect(const String& ip, u16 port) {
 
     // Decide on client ID.
     u64 clientId = 0;
-    yojimbo::random_bytes((uint8_t*)&clientId, 8);
+    yojimbo::random_bytes(reinterpret_cast<uint8_t*>(&clientId), 8);
     log().info("Client id is %ull", clientId);
 
     // Connect to server.
@@ -209,7 +255,7 @@ void Networking::connect(const String& ip, u16 port) {
     is_server_ = false;
 }
 
-void Networking::listen(u16 port, u16 max_clients) {
+void NetInstance::listen(u16 port, u16 max_clients) {
     if (isConnected()) {
         disconnect();
     }
@@ -227,7 +273,7 @@ void Networking::listen(u16 port, u16 max_clients) {
     is_server_ = true;
 }
 
-void Networking::disconnect() {
+void NetInstance::disconnect() {
     if (isServer()) {
         server_->Stop();
         server_.reset();
@@ -238,7 +284,7 @@ void Networking::disconnect() {
     }
 }
 
-void Networking::update(float dt) {
+void NetInstance::update(float dt) {
     // static double time_since_last_replication = 0.0;
     // const double replication_time = 1.0 / 20.0;  // 1 / replication rate in Hz
     time_ += dt;
@@ -249,7 +295,7 @@ void Networking::update(float dt) {
     }
 }
 
-void Networking::serverUpdate(float) {
+void NetInstance::serverUpdate(float) {
     server_->SendPackets();
     server_->ReceivePackets();
 
@@ -322,7 +368,7 @@ void Networking::serverUpdate(float) {
     server_->AdvanceTime(time_);
 }
 
-void Networking::clientUpdate(float) {
+void NetInstance::clientUpdate(float) {
     client_->SendPackets();
     client_->ReceivePackets();
 
@@ -447,19 +493,19 @@ void Networking::clientUpdate(float) {
     client_->AdvanceTime(time_);
 }
 
-bool Networking::isClient() const {
+bool NetInstance::isClient() const {
     return client_ != nullptr;
 }
 
-bool Networking::isServer() const {
+bool NetInstance::isServer() const {
     return server_ != nullptr;
 }
 
-bool Networking::isConnected() const {
+bool NetInstance::isConnected() const {
     return isClient() ? client_connection_state_ == ConnectionState::Connected : isServer();
 }
 
-void Networking::replicateEntity(const Entity& entity, int authoritative_proxy_client) {
+void NetInstance::replicateEntity(const Entity& entity, int authoritative_proxy_client) {
     assert(entity.hasComponent<CNetData>());
 
     if (!server_) {
@@ -490,11 +536,11 @@ void Networking::replicateEntity(const Entity& entity, int authoritative_proxy_c
     }
 }
 
-void Networking::setEntityPipeline(UniquePtr<NetEntityPipeline> entity_pipeline) {
+void NetInstance::setEntityPipeline(UniquePtr<NetEntityPipeline> entity_pipeline) {
     entity_pipeline_ = std::move(entity_pipeline);
 }
 
-void Networking::sendSpawnRequest(EntityType type, std::function<void(Entity&)> callback,
+void NetInstance::sendSpawnRequest(EntityType type, std::function<void(Entity&)> callback,
                                   bool authoritative_proxy) {
     assert(isClient());
     assert(isConnected());
@@ -507,7 +553,7 @@ void Networking::sendSpawnRequest(EntityType type, std::function<void(Entity&)> 
     spawn_request_id_++;
 }
 
-void Networking::sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type,
+void NetInstance::sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type,
                          const Vector<u8>& payload) {
     assert(isConnected());
     if (type == RpcType::Client) {
@@ -523,7 +569,7 @@ void Networking::sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type,
     }
 }
 
-void Networking::sendServerCreateEntity(int clientIndex, const Entity& entity,
+void NetInstance::sendServerCreateEntity(int clientIndex, const Entity& entity,
                                         const OutputBitStream& properties, NetRole role) {
     assert(isServer());
 
@@ -537,7 +583,7 @@ void Networking::sendServerCreateEntity(int clientIndex, const Entity& entity,
     server_->SendMessage(clientIndex, 0, message);
 }
 
-void Networking::sendServerPropertyReplication(int clientIndex, const Entity& entity,
+void NetInstance::sendServerPropertyReplication(int clientIndex, const Entity& entity,
                                                const OutputBitStream& properties) {
     assert(isServer());
     auto message = (ServerPropertyReplicationMessage*)server_->CreateMessage(
@@ -548,11 +594,11 @@ void Networking::sendServerPropertyReplication(int clientIndex, const Entity& en
     server_->SendMessage(clientIndex, 0, message);
 }
 
-yojimbo::MessageFactory* Networking::CreateMessageFactory(yojimbo::Allocator& allocator) {
+yojimbo::MessageFactory* NetInstance::CreateMessageFactory(yojimbo::Allocator& allocator) {
     return YOJIMBO_NEW(allocator, NetMessageFactory, allocator);
 }
 
-void Networking::OnServerClientConnected(int clientIndex) {
+void NetInstance::OnServerClientConnected(int clientIndex) {
     log().info("Client ID %s connected.", clientIndex);
 
     // Send replicated entities to client.
@@ -571,7 +617,7 @@ void Networking::OnServerClientConnected(int clientIndex) {
     triggerEvent<ServerClientConnectedEvent>(clientIndex);
 }
 
-void Networking::OnServerClientDisconnected(int clientIndex) {
+void NetInstance::OnServerClientDisconnected(int clientIndex) {
     log().info("Client ID %s disconnected.", clientIndex);
 
     // Trigger event.
