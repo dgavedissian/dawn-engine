@@ -1,0 +1,82 @@
+class SceneManager {
+    // ECS implementation.
+}
+
+class World {
+    World(); // create basic test world.
+    Node* background_scene_node;
+
+    // Future API:
+    using u32 = SystemId;
+
+    void loadGalaxy(const String& galaxy_file);
+    void loadSystem(SystemId system);
+    void unloadSystem(SystemId system);
+    SystemNode* systemRootNode(SystemId system);
+
+    // Scene file: Contains system id to be used as root node.
+    void loadScene(const String& scene_file);
+}
+
+class GameState {
+    void onStart();
+    void onEnd();
+}
+
+struct GameSessionInfo {
+    // Scene url examples
+    // connecting to a game: 172.16.2.15:5555
+    // connecting to a game using in memory transport: 172.16.2.15:5555?transport=mem
+    // start a game in TestScene. host on port 5555 using default transport: TestScene?host=:5555
+    // start a game in TestScene. host on port 5555 using in memory transport. TestScene?host=:5555&transport=mem
+    static Option<GameSessionInfo> parseUrl(const String& url);
+
+    enum Mode {
+        CreateNewGame,
+        JoinExistingGame
+    }
+
+    Mode mode;
+
+    // Networking.
+    String host_ip;
+    u16 port;
+    NetInstance::Transport transport;
+
+    // Scene to use when creating a new game.
+    String scene_name;
+
+    // Other parameters.
+    HashMap<String, String> params;
+}
+
+class GameSession {
+public:
+    GameSession(const GameSessionInfo& gsi);
+
+protected:
+    UniquePtr<NetInstance> net_instance;
+    UniquePtr<World> world;
+    UniquePtr<GameState> game_state;
+
+    UniquePtr<Player> player;
+}
+
+class ShooterGameSession : GameSession {
+    ShooterGameSession(const GameSessionInfo& gsi) {
+        GameSession::defaultInit(gsi);
+
+    }
+
+    void onLoadScene(...) {
+        // Set up scene.
+
+    }
+
+    // Server side.
+    bool acceptPlayer(const PlayerInfo& info) {
+        // return true to accept, false to reject.
+    }
+
+    void onAccept(const AcceptInfo&)
+}
