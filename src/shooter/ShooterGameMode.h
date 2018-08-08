@@ -24,12 +24,15 @@ public:
 
     Vector<SharedPtr<Ship>> ship_list_;
 
-    explicit ShooterEntityPipeline(Context* ctx, Frame* frame);
+    explicit ShooterEntityPipeline(Context* ctx, SceneManager* scene_manager, NetInstance* net,
+                                   Frame* frame);
     ~ShooterEntityPipeline() override = default;
 
     Entity* createEntityFromType(EntityId entity_id, EntityType type, NetRole role) override;
 
 private:
+    SceneManager* scene_manager_;
+    NetInstance* net_;
     Frame* frame_;
 };
 
@@ -37,7 +40,8 @@ class ShooterGameMode : public NetGameMode {
 public:
     DW_OBJECT(ShooterGameMode);
 
-    ShooterGameMode(Context* ctx, Frame* frame, ShooterEntityPipeline* entity_pipeline);
+    ShooterGameMode(Context* ctx, SceneManager* scene_manager, NetInstance* net, Frame* frame,
+                    ShooterEntityPipeline* entity_pipeline);
 
     // NetGameMode
     void clientOnJoinServer() override;

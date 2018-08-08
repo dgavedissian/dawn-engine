@@ -5,11 +5,13 @@
 #pragma once
 
 namespace dw {
+class SceneManager;
+
 class DW_API GameMode : public Object {
 public:
     DW_OBJECT(GameMode)
 
-    GameMode(Context* ctx);
+    GameMode(Context* ctx, SceneManager* scene_manager);
     virtual ~GameMode();
 
     /// Called when the game mode is started.
@@ -21,5 +23,8 @@ public:
     /// Updates this game mode.
     /// @param dt Delta time.
     virtual void update(float dt);
+
+protected:
+    SceneManager* scene_manager_;
 };
 }  // namespace dw

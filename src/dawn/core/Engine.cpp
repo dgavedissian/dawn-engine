@@ -6,8 +6,6 @@
 #include "core/App.h"
 #include "core/Timer.h"
 #include "DawnEngine.h"
-#include "scene/SLinearMotion.h"
-#include "net/CNetTransform.h"
 
 // Required for getBasePath/getPrefPath.
 #if DW_PLATFORM == DW_WIN32
@@ -40,26 +38,10 @@ Engine::~Engine() {
     shutdown();
 }
 
-void Engine::setup(int argc, char** argv) {
+void Engine::setup(const CommandLine& cmdline) {
     assert(!initialised_);
 
-    // Process command line arguments.
-    for (int i = 0; i < argc; i++) {
-        if (argv[i][0] == '-') {
-            // Look ahead to next arg. If flag then add this arg as flag, otherwise add argument
-            // pair
-            if (i < argc - 1) {
-                if (argv[i + 1][0] == '-') {
-                    flags_.insert(String{argv[i]});
-                } else {
-                    arguments_[String{argv[i]}] = String{argv[i + 1]};
-                    i++;  // skip argument value
-                }
-            } else {
-                flags_.insert(String{argv[i]});
-            }
-        }
-    }
+    cmdline_ = cmdline;
 
     // Create context.
     context_ = new Context(basePath(), "");
@@ -80,21 +62,21 @@ void Engine::setup(int argc, char** argv) {
     // Print info.
     log().info("Initialising engine " DW_VERSION_STR);
     printSystemInfo();
-    if (flags_.size() > 0) {
+    if (cmdline.flags.size() > 0) {
         log().info("Flags:");
-        for (auto& flag : flags_) {
+        for (auto& flag : cmdline.flags) {
             log().info("\t%s", flag);
         }
     }
-    if (arguments_.size() > 0) {
+    if (cmdline.arguments.size() > 0) {
         log().info("Arguments:");
-        for (auto& arg : arguments_) {
+        for (auto& arg : cmdline.arguments) {
             log().info("\t%s %s", arg.first, arg.second);
         }
     }
 
     // Enable headless mode if the flag is passed.
-    if (flags_.find("-headless") != flags_.end()) {
+    if (cmdline.flags.find("-headless") != cmdline.flags.end()) {
         headless_ = true;
         log().info("Running in headless mode.");
     }
@@ -137,25 +119,25 @@ void Engine::setup(int argc, char** argv) {
     }
     context_->addModule<UserInterface>();
     context_->addModule<ResourceCache>();
+    context_->addModule<GameplayModule>();
 
     // Non modules. Should be instance based.
-    context_->addModule<GameplayModule>();
-    context_->addModule<SceneManager>();
+    // context_->addModule<SceneManager>();
 
+    /*
     auto* net = context_->addModule<Networking>();
-    auto port_arg = arguments_.find("-p");
-    u16 port = port_arg != arguments_.end() ? std::stoi(port_arg->second) : 40000;
-    if (flags_.find("-host") != flags_.end()) {
+    auto port_arg = cmdline.arguments.find("-p");
+    u16 port = port_arg != cmdline.arguments.end() ? std::stoi(port_arg->second) : 40000;
+    if (cmdline.flags.find("-host") != cmdline.flags.end()) {
         net->listen(port, 32);
-    } else if (arguments_.find("-join") != arguments_.end()) {
-        String ip = arguments_["-join"];
+    } else if (cmdline.arguments.find("-join") != cmdline.arguments.end()) {
+        String ip = cmdline.arguments["-join"];
         net->connect(ip, port);
     }
+    */
 
     // Set up built in entity systems.
-    auto& sm = *context_->module<SceneManager>();
-    sm.addSystem<SLinearMotion>();
-sm.addSystem<SNetTransformSync>();
+    // auto& sm = *context_->module<SceneManager>();
 
     // Set input viewport size
     /*
@@ -195,11 +177,9 @@ void Engine::shutdown() {
     }
 
     // Remove subsystems.
-    context_->removeModule<Networking>();
     context_->removeModule<GameplayModule>();
     context_->removeModule<UserInterface>();
     context_->removeModule<ResourceCache>();
-    context_->removeModule<SceneManager>();
     context_->clearModules();
 
     // The engine is no longer initialised.
@@ -207,10 +187,6 @@ void Engine::shutdown() {
 }
 
 void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_callback) {
-    // Initialise the ECS dependency graph.
-    context_->module<SceneManager>()->beginMainLoop();
-
-    // Start the main loop.
     float time_per_update = 1.0f / 60.0f;
     time::TimePoint previous_time = time::beginTiming();
     time::TimePoint last_fps_update = time::beginTiming();
@@ -232,7 +208,7 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
 
         // Render a frame.
         float interpolation = accumulated_time / time_per_update;
-        preRender(nullptr);
+        preRender();
         context_->module<Renderer>()->renderScene(interpolation);
         render_callback(interpolation);
         postRender();
@@ -247,8 +223,6 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
             frame_counter_ = 0;
         }
     }
-
-    context_->module<GameplayModule>()->setGameMode(nullptr);
 }
 
 double Engine::frameTime() const {
@@ -260,11 +234,11 @@ int Engine::framesPerSecond() const {
 }
 
 const Set<String>& Engine::flags() const {
-    return flags_;
+    return cmdline_.flags;
 }
 
-const Map<String, String>& Engine::arguments() const {
-    return arguments_;
+const HashMap<String, String>& Engine::arguments() const {
+    return cmdline_.arguments;
 }
 
 void Engine::printSystemInfo() {
@@ -386,21 +360,11 @@ String Engine::basePath() const {
 
 void Engine::update(float dt) {
     // log().debug("Frame Time: %f", dt);
-
-    // Receive network packets.
-    context_->module<Networking>()->update(dt);
-
     // Trigger events.
     context_->module<EventSystem>()->update(dt);
 
-    // Tick the scene manager.
-    context_->module<SceneManager>()->update(dt);
-
     // Tick the current game mode.
     context_->module<GameplayModule>()->update(dt);
-
-    // Update gameplay systems.
-    context_->module<SceneManager>()->update(dt);
 
     // Update renderer scene graph.
     context_->module<Renderer>()->updateSceneGraph();
@@ -409,7 +373,7 @@ void Engine::update(float dt) {
     context_->module<UserInterface>()->update(dt);
 }
 
-void Engine::preRender(Camera_OLD*) {
+void Engine::preRender() {
     context_->module<UserInterface>()->preRender();
 }
 

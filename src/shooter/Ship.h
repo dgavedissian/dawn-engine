@@ -55,8 +55,9 @@ class Ship : public Object {
 public:
     DW_OBJECT(Ship);
 
-    Ship(Context* ctx, Frame* frame);
-    Ship(Context* ctx, Frame* frame, EntityId reserved_entity_id, NetRole role);
+    Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame);
+    Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame,
+         EntityId reserved_entity_id, NetRole role);
     ~Ship() = default;
 
     void update(float dt);

@@ -16,7 +16,7 @@
 
 namespace dw {
 /// Manages the current game world, including all entities and entity systems.
-class DW_API SceneManager : public Module {
+class DW_API SceneManager : public Object {
 public:
     DW_OBJECT(SceneManager);
 
@@ -86,9 +86,6 @@ public:
     /// @param entity Entity to remove.
     void removeEntity(Entity* entity);
 
-    /// Begin main loop. Required by Ontology.
-    void beginMainLoop();
-
     /// Updates systems, and calls update on each entity.
     /// @param dt Time elapsed
     void update(float dt);
@@ -100,8 +97,11 @@ public:
     float lastDeltaTime_internal() const;
 
 private:
+    // Ontology stuff.
     float last_dt_;
     UniquePtr<Ontology::World> ontology_world_;
+    bool systems_initialised_;
+
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
     EntityId entity_id_allocator_;
 
@@ -113,7 +113,7 @@ private:
 template <typename T, typename... Args> T* SceneManager::addSystem(Args&&... args) {
     auto system = makeUnique<T>(context(), std::forward<Args>(args)...);
     return ontology_world_->getSystemManager()
-        .addSystem<OntologySystemAdapter<T>>(std::move(system))
+        .addSystem<OntologySystemAdapter<T>>(std::move(system), this)
         .system();
 }
 

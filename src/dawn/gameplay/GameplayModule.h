@@ -4,10 +4,21 @@
  */
 #pragma once
 
-#include "input/Input.h"
-#include "gameplay/GameMode.h"
+#include "GameSession.h"
 
 namespace dw {
+struct DW_API SessionId {
+public:
+    SessionId(int session_index);
+
+    u32 index() const;
+
+private:
+    u32 session_index_;
+
+    friend class GameplayModule;
+};
+
 class DW_API GameplayModule : public Module {
 public:
     DW_OBJECT(GameplayModule)
@@ -15,19 +26,14 @@ public:
     GameplayModule(Context* context);
     ~GameplayModule();
 
-    /// Sets a new game mode.
-    void setGameMode(SharedPtr<GameMode> game_mode);
+    SessionId addSession(UniquePtr<GameSession> session);
+    void replaceSession(SessionId session_id, UniquePtr<GameSession> session);
+    void removeSession(SessionId session_id);
 
     /// Updates the game state.
     void update(float dt);
 
-    /// Gets the current game mode.
-    GameMode* gameMode();
-
 private:
-    SharedPtr<GameMode> new_game_mode_;
-    SharedPtr<GameMode> game_mode_;
-
-    void onKey(const KeyEvent& data);
+    Vector<UniquePtr<GameSession>> game_sessions_;
 };
 }  // namespace dw

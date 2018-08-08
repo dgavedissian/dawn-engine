@@ -6,14 +6,19 @@
 #include "Entity.h"
 
 namespace dw {
-Entity::Entity(Context* context, Ontology::EntityManager& entity_manager, EntityId id,
-               EntityType type)
-    : Object{context},
+Entity::Entity(Context* ctx, SceneManager* scene_manager, Ontology::EntityManager& entity_manager,
+               EntityId id, EntityType type)
+    : Object{ctx},
+      scene_manager_{scene_manager},
       id_{id},
       type_{type},
       internal_entity_mgr_{entity_manager},
       internal_entity_id_{entity_manager.createEntity("").getID()} {
     entity().addComponent<OntologyMetadata>(this);
+}
+
+SceneManager* Entity::sceneManager() const {
+    return scene_manager_;
 }
 
 EntityId Entity::id() const {

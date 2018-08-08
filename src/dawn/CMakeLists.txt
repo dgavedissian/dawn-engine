@@ -37,6 +37,8 @@ set(SOURCE_FILES
     core/App.cpp
     core/App.h
     core/Collections.h
+    core/CommandLine.cpp
+    core/CommandLine.h
     core/Concurrency.cpp
     core/Concurrency.h
     core/Context.cpp
@@ -69,6 +71,8 @@ set(SOURCE_FILES
     gameplay/GameMode.h
     gameplay/GameplayModule.cpp
     gameplay/GameplayModule.h
+    gameplay/GameSession.cpp
+    gameplay/GameSession.h
     input/Input.cpp
     input/Input.h
     net/BitStream.cpp
@@ -81,9 +85,9 @@ set(SOURCE_FILES
     net/NetEntityPipeline.h
     net/NetGameMode.cpp
     net/NetGameMode.h
+    net/NetInstance.cpp
+    net/NetInstance.h
     net/NetRole.h
-    net/Networking.cpp
-    net/Networking.h
     net/RepProperty.h
     net/RepProperty.i.h
     net/Rpc.cpp

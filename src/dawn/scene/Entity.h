@@ -10,6 +10,8 @@
 #include "scene/CTransform.h"
 
 namespace dw {
+class SceneManager;
+
 /// Entity identifier.
 using EntityId = u64;
 using EntityType = u32;
@@ -19,8 +21,8 @@ class Entity : public Object {
 public:
     DW_OBJECT(Entity);
 
-    explicit Entity(Context* context, Ontology::EntityManager& entity_manager, EntityId id,
-                    EntityType type);
+    explicit Entity(Context* ctx, SceneManager* scene_manager,
+                    Ontology::EntityManager& entity_manager, EntityId id, EntityType type);
     virtual ~Entity() = default;
 
     /// Accesses a component contained within this entity.
@@ -38,6 +40,9 @@ public:
     /// @param args Component constructor arguments.
     template <typename T, typename... Args> Entity& addComponent(Args... args);
 
+    /// Returns the scene manager which created this entity.
+    SceneManager* sceneManager() const;
+
     /// Returns the identifier of this entity.
     EntityId id() const;
 
@@ -53,6 +58,7 @@ public:
     const detail::Transform* transform() const;
 
 private:
+    SceneManager* scene_manager_;
     Ontology::EntityManager& internal_entity_mgr_;
     Ontology::Entity::ID internal_entity_id_;
     EntityId id_;

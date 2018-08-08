@@ -18,7 +18,7 @@
 #include "core/App.h"
 #include "core/Engine.h"
 #include "gameplay/GameplayModule.h"
-#include "net/Networking.h"
+#include "net/NetInstance.h"
 #include "input/Input.h"
 #include "renderer/CustomMeshRenderable.h"
 #include "renderer/Renderer.h"

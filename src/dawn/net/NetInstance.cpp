@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "net/Networking.h"
+#include "net/NetInstance.h"
 
 #include "scene/Entity.h"
 #include "scene/SceneManager.h"
@@ -139,8 +139,7 @@ YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerDestroyEntity, ServerDestroyEntityMessage)
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ServerSpawnResponse, ServerSpawnResponseMessage);
 YOJIMBO_MESSAGE_FACTORY_FINISH();
 
-class YojimboContext
-{
+class YojimboContext {
 public:
     YojimboContext(Logger* logger) : logger(logger) {
         InitializeYojimbo();
@@ -148,32 +147,28 @@ public:
         yojimbo_set_printf_function(PrintFunction);
     }
 
-    ~YojimboContext()
-    {
+    ~YojimboContext() {
         ShutdownYojimbo();
     }
 
-    static YojimboContext* addRef(Context* context)
-    {
-        if (ref_count_ == 0)
-        {
+    static YojimboContext* addRef(Context* context) {
+        if (ref_count_ == 0) {
             context_.reset(new YojimboContext(context->module<Logger>()));
         }
         ref_count_++;
+        return context_.get();
     }
 
-    static void release()
-    {
+    static void release() {
         assert(ref_count_ > 0);
         ref_count_--;
-        if (ref_count_ == 0)
-        {
+        if (ref_count_ == 0) {
             context_.reset();
         }
     }
 
 private:
-    Logger * logger;
+    Logger* logger;
 
     static UniquePtr<YojimboContext> context_;
     static int ref_count_;
@@ -187,36 +182,40 @@ private:
         char buffer[4 * 1024];
         int count = vsnprintf(buffer, 4 * 1024, format, args);
         va_end(args);
-        String str_buffer{ buffer };
+        String str_buffer{buffer};
 
         // Write to logger, trimming the ending '\n' that yojimbo always gives us.
         context_->logger->withObjectName("dw::NetInstance")
             .info("yojimbo: %s", str_buffer.substr(0, str_buffer.size() - 1));
         return count;
     }
-
 };
+
+UniquePtr<YojimboContext> YojimboContext::context_ = nullptr;
+int YojimboContext::ref_count_ = 0;
 
 #ifdef DW_MSVC
 #pragma warning(pop)
 #endif
 }  // namespace
 
-UniquePtr<NetInstance> NetInstance::connect(Context* context, const String& host, u16 port) {
-    auto instance = makeUnique<NetInstance>(context);
+UniquePtr<NetInstance> NetInstance::connect(Context* context, SceneManager* scene_manager,
+                                            const String& host, u16 port) {
+    auto instance = makeUnique<NetInstance>(context, scene_manager);
     instance->connect(host, port);
     return instance;
 }
 
-UniquePtr<NetInstance> NetInstance::listen(Context * context, u16 port, u16 max_clients)
-{
-    auto instance = makeUnique<NetInstance>(context);
-    instance->listen(port, max_clients);
+UniquePtr<NetInstance> NetInstance::listen(Context* context, SceneManager* scene_manager,
+                                           const String& host, u16 port, u16 max_clients) {
+    auto instance = makeUnique<NetInstance>(context, scene_manager);
+    instance->listen(host, port, max_clients);
     return instance;
 }
 
-NetInstance::NetInstance(Context* ctx)
+NetInstance::NetInstance(Context* ctx, SceneManager* scene_manager)
     : Object{ctx},
+      scene_manager_(scene_manager),
       is_server_(false),
       time_(100.0f),
       client_connection_state_(ConnectionState::Disconnected),
@@ -255,7 +254,7 @@ void NetInstance::connect(const String& ip, u16 port) {
     is_server_ = false;
 }
 
-void NetInstance::listen(u16 port, u16 max_clients) {
+void NetInstance::listen(const String& host, u16 port, u16 max_clients) {
     if (isConnected()) {
         disconnect();
     }
@@ -268,7 +267,7 @@ void NetInstance::listen(u16 port, u16 max_clients) {
 
     server_ =
         makeUnique<yojimbo::Server>(yojimbo::GetDefaultAllocator(), privateKey,
-                                    yojimbo::Address{"127.0.0.1", port}, config, *this, time_);
+                                    yojimbo::Address{host.c_str(), port}, config, *this, time_);
     server_->Start(max_clients);
     is_server_ = true;
 }
@@ -310,7 +309,7 @@ void NetInstance::serverUpdate(float) {
                 case MT_ClientSpawnRequest: {
                     auto spawn_message = (ClientSpawnRequestMessage*)message;
                     // Spawn entity using entity type.
-                    EntityId entity_id = module<SceneManager>()->reserveEntityId();
+                    EntityId entity_id = scene_manager_->reserveEntityId();
                     log().info("Received spawn request, spawning entity (id: %s) with type %s.",
                                entity_id, spawn_message->entity_type);
                     Entity* entity = entity_pipeline_->createEntityFromType(
@@ -335,7 +334,7 @@ void NetInstance::serverUpdate(float) {
                 case MT_ClientRpc: {
                     auto rpc_message = (ClientRpcMessage*)message;
                     EntityId entity_id = rpc_message->entity_id;
-                    Entity* entity = module<SceneManager>()->findEntity(entity_id);
+                    Entity* entity = scene_manager_->findEntity(entity_id);
                     if (!entity) {
                         log().error("Client RPC: Received from non-existent entity %d", entity_id);
                         break;
@@ -355,9 +354,8 @@ void NetInstance::serverUpdate(float) {
     }
 
     // Send replicated updates.
-    auto& em = *module<SceneManager>();
     for (auto id : replicated_entities_) {
-        Entity& entity = *em.findEntity(id);
+        Entity& entity = *scene_manager_->findEntity(id);
         OutputBitStream properties;
         entity.component<CNetData>()->serialise(properties);
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
@@ -443,7 +441,7 @@ void NetInstance::clientUpdate(float) {
                 auto replication_message = (ServerPropertyReplicationMessage*)message;
                 InputBitStream bs(replication_message->data);
                 EntityId entity_id = replication_message->entity_id;
-                Entity* entity = module<SceneManager>()->findEntity(entity_id);
+                Entity* entity = scene_manager_->findEntity(entity_id);
                 if (entity) {
                     entity->component<CNetData>()->deserialise(bs);
                 } else {
@@ -465,7 +463,7 @@ void NetInstance::clientUpdate(float) {
                     log().warn("Failed to spawn entity on the server. Request ID: %s",
                                spawn_message->request_id);
                 } else {
-                    Entity* entity = module<SceneManager>()->findEntity(spawn_message->entity_id);
+                    Entity* entity = scene_manager_->findEntity(spawn_message->entity_id);
                     if (entity) {
                         auto it = outgoing_spawn_requests_.find(spawn_message->request_id);
                         if (it != outgoing_spawn_requests_.end()) {
@@ -541,7 +539,7 @@ void NetInstance::setEntityPipeline(UniquePtr<NetEntityPipeline> entity_pipeline
 }
 
 void NetInstance::sendSpawnRequest(EntityType type, std::function<void(Entity&)> callback,
-                                  bool authoritative_proxy) {
+                                   bool authoritative_proxy) {
     assert(isClient());
     assert(isConnected());
     outgoing_spawn_requests_[spawn_request_id_] = std::move(callback);
@@ -554,7 +552,7 @@ void NetInstance::sendSpawnRequest(EntityType type, std::function<void(Entity&)>
 }
 
 void NetInstance::sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type,
-                         const Vector<u8>& payload) {
+                          const Vector<u8>& payload) {
     assert(isConnected());
     if (type == RpcType::Client) {
         assert(isClient());
@@ -570,7 +568,7 @@ void NetInstance::sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type,
 }
 
 void NetInstance::sendServerCreateEntity(int clientIndex, const Entity& entity,
-                                        const OutputBitStream& properties, NetRole role) {
+                                         const OutputBitStream& properties, NetRole role) {
     assert(isServer());
 
     auto message =
@@ -584,7 +582,7 @@ void NetInstance::sendServerCreateEntity(int clientIndex, const Entity& entity,
 }
 
 void NetInstance::sendServerPropertyReplication(int clientIndex, const Entity& entity,
-                                               const OutputBitStream& properties) {
+                                                const OutputBitStream& properties) {
     assert(isServer());
     auto message = (ServerPropertyReplicationMessage*)server_->CreateMessage(
         clientIndex, MT_ServerPropertyReplication);
@@ -603,7 +601,7 @@ void NetInstance::OnServerClientConnected(int clientIndex) {
 
     // Send replicated entities to client.
     for (auto entity_id : replicated_entities_) {
-        Entity* entity = module<SceneManager>()->findEntity(entity_id);
+        Entity* entity = scene_manager_->findEntity(entity_id);
         if (entity) {
             OutputBitStream properties;
             entity->component<CNetData>()->serialise(properties);

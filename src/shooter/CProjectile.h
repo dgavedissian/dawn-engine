@@ -63,7 +63,8 @@ class SProjectile : public EntitySystem {
 public:
     DW_OBJECT(SProjectile);
 
-    SProjectile(Context* context, Frame* frame, const HashMap<int, ProjectileTypeInfo>& types);
+    SProjectile(Context* ctx, SceneManager* scene_manager, NetInstance* net, Frame* frame,
+                const HashMap<int, ProjectileTypeInfo>& types);
 
     Entity* createNewProjectile(int type, const Vec3& position, const Vec3& direction,
                                 const Vec3& velocity, const Colour& colour);
@@ -79,4 +80,6 @@ private:
 
     HashMap<int, ProjectileRenderData> render_data_;
     HashMap<int, ProjectileTypeInfo> types_;
+    SceneManager* scene_manager_;
+    NetInstance* net_;
 };

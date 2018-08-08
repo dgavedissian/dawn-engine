@@ -4,10 +4,11 @@
  */
 #pragma once
 
+#include "CommandLine.h"
+
 namespace dw {
 
 class App;
-class Camera_OLD;
 
 typedef Function<void(float)> EngineTickCallback;
 typedef Function<void(float)> EngineRenderCallback;
@@ -20,7 +21,7 @@ public:
     ~Engine();
 
     /// Sets up the engine
-    void setup(int argc, char** argv);
+    void setup(const CommandLine& cmdline);
 
     /// Shuts down the engine
     void shutdown();
@@ -40,7 +41,7 @@ public:
     const Set<String>& flags() const;
 
     /// Get the list of command line arguments.
-    const Map<String, String>& arguments() const;
+    const HashMap<String, String>& arguments() const;
 
 private:
     bool initialised_;
@@ -58,13 +59,12 @@ private:
     // Configuration.
     String log_file_;
     String config_file_;
-    Set<String> flags_;
-    Map<String, String> arguments_;
+    CommandLine cmdline_;
 
     void printSystemInfo();
     String basePath() const;
     void update(float dt);
-    void preRender(Camera_OLD* camera);
+    void preRender();
     void postRender();
 
     void onExit(const ExitEvent& data);

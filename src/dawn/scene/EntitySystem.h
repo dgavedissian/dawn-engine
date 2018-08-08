@@ -7,13 +7,21 @@
 #include "scene/Entity.h"
 
 namespace dw {
+class EntitySystem;
 class SceneManager;
+
+// TODO: Remove all this ontology adapter magic once we move to our own entity system.
+class OntologySystemAdapterHelper {
+public:
+    static void setOntologyAdapter(EntitySystem* entity_system, Ontology::System* adapter);
+    static float getDeltaTimeFromSceneManager(SceneManager* scene_manager);
+};
 
 template <typename T> class OntologySystemAdapter : public Ontology::System {
 public:
-    OntologySystemAdapter(UniquePtr<T>&& wrapped_system)
-        : dt_{0.0f}, wrapped_system_{std::move(wrapped_system)} {
-        wrapped_system_->setOntologyAdapter_internal(this);
+    OntologySystemAdapter(UniquePtr<T> wrapped_system, SceneManager* scene_manager)
+        : dt_{0.0f}, wrapped_system_{std::move(wrapped_system)}, scene_manager_(scene_manager) {
+        OntologySystemAdapterHelper::setOntologyAdapter(wrapped_system.get(), this);
     }
 
     void initialise() override {
@@ -22,8 +30,7 @@ public:
     void processEntity(Ontology::Entity& entity) override {
         if (!first_iteration) {
             wrapped_system_->beginProcessing();
-            // Hack.
-            dt_ = wrapped_system_->template module<SceneManager>()->lastDeltaTime_internal();
+            dt_ = OntologySystemAdapterHelper::getDeltaTimeFromSceneManager(scene_manager_);
             first_iteration = true;
         }
         wrapped_system_->processEntity(*entity.getComponent<OntologyMetadata>().entity_ptr, dt_);
@@ -39,6 +46,7 @@ public:
 private:
     float dt_;
     UniquePtr<T> wrapped_system_;
+    SceneManager* scene_manager_;
 };
 
 class DW_API EntitySystem : public Object {
@@ -78,12 +86,13 @@ public:
     /// @param entity Entity to process.
     virtual void processEntity(Entity& entity, float dt) = 0;
 
-    /// Internal.
-    void setOntologyAdapter_internal(Ontology::System* system);
-
 private:
     Ontology::TypeSet supported_components_;
     Ontology::TypeSet depending_systems_;
     Ontology::System* ontology_system_;
+
+    void setOntologyAdapter(Ontology::System* system);
+
+    friend class OntologySystemAdapterHelper;
 };
 }  // namespace dw

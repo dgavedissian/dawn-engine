@@ -9,19 +9,26 @@
 #include "resource/ResourceCache.h"
 #include "renderer/Renderer.h"
 #include "PhysicsScene.h"
+#include "SLinearMotion.h"
+#include "net/CNetTransform.h"
 
 namespace dw {
 SceneManager::SceneManager(Context* ctx)
-    : Module(ctx), entity_id_allocator_(1), last_dt_(0.0f), background_scene_node_(nullptr) {
-    setDependencies<ResourceCache, Renderer>();
-
+    : Object(ctx),
+      last_dt_(0.0f),
+      systems_initialised_(false),
+      entity_id_allocator_(1),
+      background_scene_node_(nullptr) {
     ontology_world_ = makeUnique<Ontology::World>();
-
-    module<Renderer>()->setupEntitySystems(this);
 
     background_scene_node_ = module<Renderer>()->rootBackgroundNode().newChild();
 
     physics_scene_ = makeUnique<PhysicsScene>(ctx, this);
+
+    // Set up built in entity systems.
+    module<Renderer>()->setupEntitySystems(this);
+    addSystem<SLinearMotion>();
+    addSystem<SNetTransformSync>();
 }
 
 SceneManager::~SceneManager() {
@@ -70,7 +77,7 @@ Entity& SceneManager::createEntity(EntityType type, EntityId reserved_entity_id)
     // Look up slot and move new entity into it.
     auto entity_slot = entity_lookup_table_.find(reserved_entity_id);
     assert(entity_slot != entity_lookup_table_.end() && entity_slot->second == nullptr);
-    auto entity = makeUnique<Entity>(context(), ontology_world_->getEntityManager(),
+    auto entity = makeUnique<Entity>(context(), this, ontology_world_->getEntityManager(),
                                      reserved_entity_id, type);
     auto entity_ptr = entity.get();
     entity_slot->second = std::move(entity);
@@ -95,11 +102,11 @@ void SceneManager::removeEntity(Entity* entity) {
     entity_lookup_table_.erase(entity->id());
 }
 
-void SceneManager::beginMainLoop() {
-    ontology_world_->getSystemManager().initialise();
-}
-
 void SceneManager::update(float dt) {
+    if (!systems_initialised_) {
+        ontology_world_->getSystemManager().initialise();
+        systems_initialised_ = true;
+    }
     last_dt_ = dt;
     physics_scene_->update(dt, nullptr);
     ontology_world_->update();

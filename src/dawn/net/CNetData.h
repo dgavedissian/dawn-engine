@@ -15,6 +15,8 @@
 #include "net/Rpc.h"
 
 namespace dw {
+class NetInstance;
+
 // Replication layout.
 class DW_API RepLayout {
 public:
@@ -45,7 +47,7 @@ private:
 // A component that stores network data such as replication layout and roles.
 class DW_API CNetData : public Component {
 public:
-    CNetData(RepLayout layout);
+    CNetData(NetInstance* net, RepLayout layout);
     void onAddToEntity(Entity* parent);
 
     void serialise(OutputStream& out);
@@ -59,11 +61,12 @@ public:
 
 private:
     Entity* entity_;
+    NetInstance* net_;
     RepLayout rep_layout_;
 
     NetRole role_;
     NetRole remote_role_;
 
-    friend class Networking;
+    friend class NetInstance;
 };
 }  // namespace dw

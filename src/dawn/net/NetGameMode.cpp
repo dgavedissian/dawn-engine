@@ -3,11 +3,12 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "Common.h"
-#include "net/Networking.h"
+#include "net/NetInstance.h"
 #include "net/NetGameMode.h"
 
 namespace dw {
-NetGameMode::NetGameMode(Context* ctx) : GameMode(ctx) {
+NetGameMode::NetGameMode(Context* ctx, SceneManager* scene_manager, NetInstance* net)
+    : GameMode(ctx, scene_manager), net_(net) {
 }
 
 NetGameMode::~NetGameMode() {
@@ -35,7 +36,7 @@ void NetGameMode::onStart() {
     addEventListener<ServerClientDisconnectedEvent>(
         makeEventDelegate(this, &NetGameMode::eventOnServerClientDisconnected));
 
-    if (module<Networking>()->isServer()) {
+    if (net_->isServer()) {
         serverOnStart();
         server_started_ = true;
     }
@@ -54,11 +55,11 @@ void NetGameMode::onEnd() {
 }
 
 void NetGameMode::update(float) {
-    if (module<Networking>()->isServer() && !server_started_) {
+    if (net_->isServer() && !server_started_) {
         serverOnStart();
         server_started_ = true;
     }
-    if (!module<Networking>()->isServer() && server_started_) {
+    if (!net_->isServer() && server_started_) {
         serverOnEnd();
         server_started_ = false;
     }

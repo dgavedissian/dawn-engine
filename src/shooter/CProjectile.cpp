@@ -5,7 +5,7 @@
 #include "CProjectile.h"
 #include "scene/SceneManager.h"
 #include "net/CNetData.h"
-#include "net/Networking.h"
+#include "net/NetInstance.h"
 
 FreeListAllocator::FreeListAllocator() : FreeListAllocator(0) {
 }
@@ -47,8 +47,9 @@ int FreeListAllocator::size() const {
     return size_;
 }
 
-SProjectile::SProjectile(Context* ctx, Frame* frame, const HashMap<int, ProjectileTypeInfo>& types)
-    : EntitySystem(ctx), types_(types) {
+SProjectile::SProjectile(Context* ctx, SceneManager* scene_manager, NetInstance* net, Frame* frame,
+                         const HashMap<int, ProjectileTypeInfo>& types)
+    : EntitySystem(ctx), types_(types), scene_manager_(scene_manager), net_(net) {
     supportsComponents<CProjectile>();
 
     const auto billboard_count = 200;
@@ -83,7 +84,7 @@ Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const V
     render_data.billboard_set->setParticleVisible(billboard_id.get(), true);
     render_data.billboard_set->setParticleDirection(billboard_id.get(), direction);
 
-    auto& entity = module<SceneManager>()->createEntity(Hash("Projectile"));
+    auto& entity = scene_manager_->createEntity(Hash("Projectile"));
     entity.addComponent<CProjectile>();
     auto& projectile = *entity.component<CProjectile>();
     projectile.type = type;
@@ -93,8 +94,8 @@ Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const V
     projectile.colour = colour;
 
     // Add net data and replicate.
-    entity.addComponent<CNetData>(RepLayout::build<CProjectile>());
-    module<Networking>()->replicateEntity(entity);
+    entity.addComponent<CNetData>(net_, RepLayout::build<CProjectile>());
+    net_->replicateEntity(entity);
 
     return &entity;
 }

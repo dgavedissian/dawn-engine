@@ -12,11 +12,12 @@
 
 using namespace dw;
 
-Ship::Ship(Context* ctx, Frame* frame)
-    : Ship(ctx, frame, ctx->module<SceneManager>()->reserveEntityId(), NetRole::Authority) {
+Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame)
+    : Ship(ctx, net, scene_manager, frame, scene_manager->reserveEntityId(), NetRole::Authority) {
 }
 
-Ship::Ship(Context* ctx, Frame* frame, EntityId reserved_entity_id, NetRole role)
+Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame,
+           EntityId reserved_entity_id, NetRole role)
     : Object(ctx), rb_(nullptr), ship_entity_(nullptr) {
     auto rc = module<ResourceCache>();
     assert(rc);
@@ -29,8 +30,7 @@ Ship::Ship(Context* ctx, Frame* frame, EntityId reserved_entity_id, NetRole role
     part_wing->rootNode()->setTransform(Mat4::identity);
 
     // Create ship entity.
-    auto sm = module<SceneManager>();
-    ship_entity_ = &sm->createEntity(Hash("Ship"), reserved_entity_id)
+    ship_entity_ = &scene_manager->createEntity(Hash("Ship"), reserved_entity_id)
                         .addComponent<CTransform>(frame->newChild(), part_core)
                         .addComponent<CShipEngines>(
                             context(),
@@ -82,13 +82,13 @@ Ship::Ship(Context* ctx, Frame* frame, EntityId reserved_entity_id, NetRole role
     ship_entity_->addComponent<CShipControls>();
     if (role != NetRole::None) {
         ship_entity_->addComponent<CNetData>(
-            RepLayout::build<CNetTransform, CShipEngines, CShipControls>());
+            net, RepLayout::build<CNetTransform, CShipEngines, CShipControls>());
     }
 
     // Initialise server-side details.
     if (role >= NetRole::Authority) {
         ship_entity_->addComponent<CRigidBody>(
-            module<SceneManager>()->physicsScene(), 10.0f,
+            ship_entity_->sceneManager()->physicsScene(), 10.0f,
             makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}));
         rb_ = ship_entity_->component<CRigidBody>()->_rigidBody();
 

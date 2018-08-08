@@ -6,7 +6,8 @@
 #include "GameMode.h"
 
 namespace dw {
-GameMode::GameMode(Context* ctx) : Object(ctx) {
+GameMode::GameMode(Context* ctx, SceneManager* scene_manager)
+    : Object(ctx), scene_manager_(scene_manager) {
 }
 
 GameMode::~GameMode() {

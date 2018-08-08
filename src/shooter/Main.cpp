@@ -3,43 +3,74 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
-#include "renderer/MeshBuilder.h"
 #include "renderer/Mesh.h"
 #include "CProjectile.h"
 #include "CWeapon.h"
 #include "ShooterGameMode.h"
+#include "gameplay/GameSession.h"
 
 using namespace dw;
 
-class Shooter : public App {
+class ShooterGameSession : public GameSession {
 public:
-    DW_OBJECT(Shooter);
+    DW_OBJECT(ShooterGameSession);
 
-    void init(int argc, char** argv) override {
+    ShooterGameSession(Context* ctx, const GameSessionInfo& gsi) : GameSession(ctx, gsi) {
         auto rc = module<ResourceCache>();
-        auto sm = module<SceneManager>();
-
-        assert(rc);
-        rc->addPath("base", "../media/base");
-        rc->addPath("shooter", "../media/shooter");
 
         // Create frame.
         auto* frame = module<Renderer>()->sceneGraph().addFrame(
             module<Renderer>()->sceneGraph().root().newChild());
 
         // Set up game.
-        auto entity_pipeline = makeUnique<ShooterEntityPipeline>(context(), frame);
+        auto entity_pipeline = makeUnique<ShooterEntityPipeline>(context(), scene_manager_.get(),
+                                                                 net_instance_.get(), frame);
         auto entity_pipeline_ptr = entity_pipeline.get();
-        module<Networking>()->setEntityPipeline(std::move(entity_pipeline));
-        sm->addSystem<SShipEngines>();
-        sm->addSystem<SProjectile>(
-            frame,
+        net_instance_->setEntityPipeline(std::move(entity_pipeline));
+        scene_manager_->addSystem<SShipEngines>();
+        scene_manager_->addSystem<SProjectile>(
+            scene_manager_.get(), net_instance_.get(), frame,
             HashMap<int, ProjectileTypeInfo>{
                 {0, {100.0f, {6.0f, 15.0f}, rc->get<Texture>("shooter:weapons/projectile1.jpg")}},
                 {1, {100.0f, {6.0f, 15.0f}, rc->get<Texture>("shooter:weapons/projectile2.jpg")}}});
-        sm->addSystem<SWeapon>();
-        module<GameplayModule>()->setGameMode(
-            makeShared<ShooterGameMode>(context(), frame, entity_pipeline_ptr));
+        scene_manager_->addSystem<SWeapon>();
+
+        // Start the game.
+        setGameMode(makeShared<ShooterGameMode>(context(), scene_manager_.get(),
+                                                net_instance_.get(), frame, entity_pipeline_ptr));
+    }
+
+    ~ShooterGameSession() override {
+    }
+
+    void update(float dt) override {
+    }
+};
+
+class Shooter : public App {
+public:
+    DW_OBJECT(Shooter);
+
+    void init(const CommandLine& cmdline) override {
+        auto rc = module<ResourceCache>();
+
+        assert(rc);
+        rc->addPath("base", "../media/base");
+        rc->addPath("shooter", "../media/shooter");
+
+        // Add game session.
+        GameSessionInfo gsi;
+        auto port_arg = cmdline.arguments.find("-p");
+        u16 port = port_arg != cmdline.arguments.end() ? std::stoi(port_arg->second) : 40000;
+        if (cmdline.flags.find("-host") != cmdline.flags.end()) {
+            gsi.start_info = GameSessionInfo::CreateGame{"127.0.0.1", port, 32, "TestScene"};
+        } else if (cmdline.arguments.find("-join") != cmdline.arguments.end()) {
+            gsi.start_info = GameSessionInfo::JoinGame{cmdline.arguments.at("-join"), port};
+        } else {
+            log().error("Need to either host or join.");
+            std::terminate();
+        }
+        module<GameplayModule>()->addSession(makeUnique<ShooterGameSession>(context(), gsi));
     }
 
     void update(float dt) override {
