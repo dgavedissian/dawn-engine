@@ -58,7 +58,7 @@ public:
     // authoritative_proxy_client indicates a client which should receive the entity with Role =
     // AuthoritativeProxy. -1 for none.
     void replicateEntity(const Entity& entity, int authoritative_proxy_client = -1);
-    void setEntityPipeline(UniquePtr<NetEntityPipeline> entity_pipeline);
+    void setEntityPipeline(SharedPtr<NetEntityPipeline> entity_pipeline);
 
     // RPCs.
     void sendSpawnRequest(EntityType type, std::function<void(Entity&)> callback,
@@ -75,7 +75,7 @@ private:
     UniquePtr<yojimbo::Client> client_;
     UniquePtr<yojimbo::Server> server_;
 
-    UniquePtr<NetEntityPipeline> entity_pipeline_;
+    SharedPtr<NetEntityPipeline> entity_pipeline_;
     HashSet<EntityId> replicated_entities_;
 
     // Client only.

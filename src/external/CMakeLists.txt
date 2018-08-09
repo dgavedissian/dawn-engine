@@ -177,6 +177,29 @@ set_property(TARGET Luajit PROPERTY INTERFACE_LINK_LIBRARIES
     ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(LIBS ${LIBS} Luajit)
 
+# Flatbuffers needs to be build with the host compiler options, not the target (if cross compiling).
+ExternalProject_Add(flatbuffers-external
+    PREFIX ${EXTERNAL_PREFIX}
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
+    EXCLUDE_FROM_ALL 1
+    CMAKE_ARGS ${EXTERNAL_ARGS}
+        -DFLATBUFFERS_BUILD_FLATC=1
+        -DFLATBUFFERS_BUILD_FLATHASH=0
+        -DFLATBUFFERS_BUILD_SHAREDLIB=0
+        -DFLATBUFFERS_BUILD_TESTS=0
+)
+set(FLATBUFFERS_GENERATOR ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/$<CONFIG>/flatc PARENT_SCOPE)
+add_library(flatbuffers INTERFACE)
+add_dependencies(flatbuffers flatbuffers-external)
+set_property(TARGET flatbuffers PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
+set_property(TARGET flatbuffers PROPERTY INTERFACE_LINK_LIBRARIES
+    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}flatbuffers${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(LIBS ${LIBS} flatbuffers)
 
 ##############################################################
 # Packaged Dependencies

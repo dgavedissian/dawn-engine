@@ -41,7 +41,7 @@ public:
     DW_OBJECT(ShooterGameMode);
 
     ShooterGameMode(Context* ctx, SceneManager* scene_manager, NetInstance* net, Frame* frame,
-                    ShooterEntityPipeline* entity_pipeline);
+                    SharedPtr<ShooterEntityPipeline> entity_pipeline);
 
     // NetGameMode
     void clientOnJoinServer() override;
@@ -56,6 +56,6 @@ public:
 
 private:
     Frame* frame_;
-    ShooterEntityPipeline* entity_pipeline_;
+    SharedPtr<ShooterEntityPipeline> entity_pipeline_;
     SharedPtr<ShipCameraController> camera_controller_;
 };

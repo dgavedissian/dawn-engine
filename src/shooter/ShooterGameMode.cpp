@@ -30,7 +30,7 @@ Entity* ShooterEntityPipeline::createEntityFromType(EntityId entity_id, EntityTy
 }
 
 ShooterGameMode::ShooterGameMode(Context* ctx, SceneManager* scene_manager, NetInstance* net,
-                                 Frame* frame, ShooterEntityPipeline* entity_pipeline)
+                                 Frame* frame, SharedPtr<ShooterEntityPipeline> entity_pipeline)
     : NetGameMode(ctx, scene_manager, net), frame_(frame), entity_pipeline_(entity_pipeline) {
 }
 

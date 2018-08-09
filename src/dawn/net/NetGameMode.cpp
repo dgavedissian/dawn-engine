@@ -36,7 +36,7 @@ void NetGameMode::onStart() {
     addEventListener<ServerClientDisconnectedEvent>(
         makeEventDelegate(this, &NetGameMode::eventOnServerClientDisconnected));
 
-    if (net_->isServer()) {
+    if (net_ && net_->isServer()) {
         serverOnStart();
         server_started_ = true;
     }
@@ -55,11 +55,11 @@ void NetGameMode::onEnd() {
 }
 
 void NetGameMode::update(float) {
-    if (net_->isServer() && !server_started_) {
+    if (net_ && net_->isServer() && !server_started_) {
         serverOnStart();
         server_started_ = true;
     }
-    if (!net_->isServer() && server_started_) {
+    if (net_ && !net_->isServer() && server_started_) {
         serverOnEnd();
         server_started_ = false;
     }

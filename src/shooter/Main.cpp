@@ -23,10 +23,11 @@ public:
             module<Renderer>()->sceneGraph().root().newChild());
 
         // Set up game.
-        auto entity_pipeline = makeUnique<ShooterEntityPipeline>(context(), scene_manager_.get(),
+        auto entity_pipeline = makeShared<ShooterEntityPipeline>(context(), scene_manager_.get(),
                                                                  net_instance_.get(), frame);
-        auto entity_pipeline_ptr = entity_pipeline.get();
-        net_instance_->setEntityPipeline(std::move(entity_pipeline));
+        if (net_instance_) {
+            net_instance_->setEntityPipeline(entity_pipeline);
+        }
         scene_manager_->addSystem<SShipEngines>();
         scene_manager_->addSystem<SProjectile>(
             scene_manager_.get(), net_instance_.get(), frame,
@@ -37,13 +38,14 @@ public:
 
         // Start the game.
         setGameMode(makeShared<ShooterGameMode>(context(), scene_manager_.get(),
-                                                net_instance_.get(), frame, entity_pipeline_ptr));
+                                                net_instance_.get(), frame, entity_pipeline));
     }
 
     ~ShooterGameSession() override {
     }
 
     void update(float dt) override {
+        GameSession::update(dt);
     }
 };
 
@@ -66,9 +68,6 @@ public:
             gsi.start_info = GameSessionInfo::CreateGame{"127.0.0.1", port, 32, "TestScene"};
         } else if (cmdline.arguments.find("-join") != cmdline.arguments.end()) {
             gsi.start_info = GameSessionInfo::JoinGame{cmdline.arguments.at("-join"), port};
-        } else {
-            log().error("Need to either host or join.");
-            std::terminate();
         }
         module<GameplayModule>()->addSession(makeUnique<ShooterGameSession>(context(), gsi));
     }

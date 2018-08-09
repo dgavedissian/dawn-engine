@@ -534,8 +534,8 @@ void NetInstance::replicateEntity(const Entity& entity, int authoritative_proxy_
     }
 }
 
-void NetInstance::setEntityPipeline(UniquePtr<NetEntityPipeline> entity_pipeline) {
-    entity_pipeline_ = std::move(entity_pipeline);
+void NetInstance::setEntityPipeline(SharedPtr<NetEntityPipeline> entity_pipeline) {
+    entity_pipeline_ = entity_pipeline;
 }
 
 void NetInstance::sendSpawnRequest(EntityType type, std::function<void(Entity&)> callback,

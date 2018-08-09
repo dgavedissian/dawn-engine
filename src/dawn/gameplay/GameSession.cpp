@@ -27,7 +27,9 @@ GameSession::~GameSession() {
 }
 
 void GameSession::update(float dt) {
-    net_instance_->update(dt);
+    if (net_instance_) {
+        net_instance_->update(dt);
+    }
     scene_manager_->update(dt);
 
     // Update the game mode.

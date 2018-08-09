@@ -21,7 +21,7 @@ template <typename T> class OntologySystemAdapter : public Ontology::System {
 public:
     OntologySystemAdapter(UniquePtr<T> wrapped_system, SceneManager* scene_manager)
         : dt_{0.0f}, wrapped_system_{std::move(wrapped_system)}, scene_manager_(scene_manager) {
-        OntologySystemAdapterHelper::setOntologyAdapter(wrapped_system.get(), this);
+        OntologySystemAdapterHelper::setOntologyAdapter(wrapped_system_.get(), this);
     }
 
     void initialise() override {
