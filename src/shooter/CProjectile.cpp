@@ -90,12 +90,15 @@ Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const V
     projectile.type = type;
     projectile.particle_id = billboard_id.get();
     projectile.position = position;
+    projectile.direction = direction;
     projectile.velocity = velocity;
     projectile.colour = colour;
 
     // Add net data and replicate.
-    entity.addComponent<CNetData>(net_, RepLayout::build<CProjectile>());
-    net_->replicateEntity(entity);
+    if (net_) {
+        entity.addComponent<CNetData>(net_, RepLayout::build<CProjectile>());
+        net_->replicateEntity(entity);
+    }
 
     return &entity;
 }
@@ -103,7 +106,6 @@ Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const V
 void SProjectile::processEntity(Entity& entity, float dt) {
     auto& data = *entity.component<CProjectile>();
     auto& render_data = render_data_.at(data.type);
-    const auto& type = types_.at(data.type);
 
     // Perform a raycast between the old and new position.
     Vec3 new_position = data.position + data.velocity * dt;
@@ -113,5 +115,6 @@ void SProjectile::processEntity(Entity& entity, float dt) {
     data.position = new_position;
 
     // Update billboard.
+    render_data.billboard_set->setParticleDirection(data.particle_id, data.direction);
     render_data.billboard_set->setParticlePosition(data.particle_id, data.position);
 }

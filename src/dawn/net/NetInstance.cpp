@@ -406,9 +406,13 @@ void NetInstance::clientUpdate(float) {
                         entity->component<CNetData>()->deserialise(bs);
                         entity->component<CNetData>()->role_ = role;
                         entity->component<CNetData>()->remote_role_ = NetRole::Authority;
-                        log().info("Created replicated entity %d at %d %d %d", entity_id,
-                                   entity->transform()->position.x, entity->transform()->position.y,
-                                   entity->transform()->position.z);
+                        if (entity->transform()) {
+                            log().info("Created replicated entity %d at %d %d %d.", entity_id,
+                                       entity->transform()->position.x, entity->transform()->position.y,
+                                       entity->transform()->position.z);
+                        } else {
+                            log().info("Created replicated entity %d with no transform component.", entity_id);
+                        }
 
                         // If any spawn requests are waiting for an entity to be created,
                         // trigger the callback and clear.
