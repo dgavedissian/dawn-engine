@@ -13,7 +13,7 @@
 #include "net/CNetTransform.h"
 
 namespace dw {
-SceneManager::SceneManager(Context* ctx)
+SceneManager::SceneManager(Context* ctx, EventSystem* event_system)
     : Object(ctx),
       last_dt_(0.0f),
       systems_initialised_(false),
@@ -23,7 +23,7 @@ SceneManager::SceneManager(Context* ctx)
 
     background_scene_node_ = module<Renderer>()->rootBackgroundNode().newChild();
 
-    physics_scene_ = makeUnique<PhysicsScene>(ctx, this);
+    physics_scene_ = makeUnique<PhysicsScene>(ctx, this, event_system);
 
     // Set up built in entity systems.
     module<Renderer>()->setupEntitySystems(this);

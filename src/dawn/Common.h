@@ -73,4 +73,3 @@ inline SharedPtr<T1> dynamicPointerCast(const SharedPtr<T2>& other) {
 #include "core/Object.h"
 #include "core/Module.h"
 #include "core/Log.h"
-#include "core/EventSystem.h"

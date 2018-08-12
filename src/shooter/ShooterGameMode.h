@@ -40,7 +40,7 @@ class ShooterGameMode : public NetGameMode {
 public:
     DW_OBJECT(ShooterGameMode);
 
-    ShooterGameMode(Context* ctx, SceneManager* scene_manager, NetInstance* net, Frame* frame,
+    ShooterGameMode(Context* ctx, GameSession* session, Frame* frame,
                     SharedPtr<ShooterEntityPipeline> entity_pipeline);
 
     // NetGameMode

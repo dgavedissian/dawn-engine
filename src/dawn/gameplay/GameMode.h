@@ -5,13 +5,13 @@
 #pragma once
 
 namespace dw {
-class SceneManager;
+class GameSession;
 
 class DW_API GameMode : public Object {
 public:
     DW_OBJECT(GameMode)
 
-    GameMode(Context* ctx, SceneManager* scene_manager);
+    GameMode(Context* ctx, GameSession* session);
     virtual ~GameMode();
 
     /// Called when the game mode is started.
@@ -25,6 +25,6 @@ public:
     virtual void update(float dt);
 
 protected:
-    SceneManager* scene_manager_;
+    GameSession* session_;
 };
 }  // namespace dw

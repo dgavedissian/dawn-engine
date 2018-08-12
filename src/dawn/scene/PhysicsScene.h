@@ -30,7 +30,7 @@ class DW_API PhysicsScene : public Object {
 public:
     DW_OBJECT(PhysicsScene);
 
-    PhysicsScene(Context* context, SceneManager* scene_mgr);
+    PhysicsScene(Context* context, SceneManager* scene_mgr, EventSystem* event_system);
     ~PhysicsScene();
 
     // Takes a step of dt seconds in the simulation
@@ -50,6 +50,7 @@ public:
     };
 
 private:
+    EventSystem* event_system_;
     SharedPtr<btBroadphaseInterface> broadphase_;
     SharedPtr<btCollisionConfiguration> collision_config_;
     SharedPtr<btCollisionDispatcher> dispatcher_;

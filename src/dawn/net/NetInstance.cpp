@@ -10,6 +10,7 @@
 #include "net/BitStream.h"
 #include "net/CNetData.h"
 #include "net/CNetTransform.h"
+#include "gameplay/GameSession.h"
 
 namespace dw {
 namespace {
@@ -199,23 +200,23 @@ int YojimboContext::ref_count_ = 0;
 #endif
 }  // namespace
 
-UniquePtr<NetInstance> NetInstance::connect(Context* context, SceneManager* scene_manager,
+UniquePtr<NetInstance> NetInstance::connect(Context* context, GameSession* session,
                                             const String& host, u16 port) {
-    auto instance = makeUnique<NetInstance>(context, scene_manager);
+    auto instance = makeUnique<NetInstance>(context, session);
     instance->connect(host, port);
     return instance;
 }
 
-UniquePtr<NetInstance> NetInstance::listen(Context* context, SceneManager* scene_manager,
+UniquePtr<NetInstance> NetInstance::listen(Context* context, GameSession* session,
                                            const String& host, u16 port, u16 max_clients) {
-    auto instance = makeUnique<NetInstance>(context, scene_manager);
+    auto instance = makeUnique<NetInstance>(context, session);
     instance->listen(host, port, max_clients);
     return instance;
 }
 
-NetInstance::NetInstance(Context* ctx, SceneManager* scene_manager)
+NetInstance::NetInstance(Context* ctx, GameSession* session)
     : Object{ctx},
-      scene_manager_(scene_manager),
+      session_(session),
       is_server_(false),
       time_(100.0f),
       client_connection_state_(ConnectionState::Disconnected),
@@ -309,7 +310,7 @@ void NetInstance::serverUpdate(float) {
                 case MT_ClientSpawnRequest: {
                     auto spawn_message = (ClientSpawnRequestMessage*)message;
                     // Spawn entity using entity type.
-                    EntityId entity_id = scene_manager_->reserveEntityId();
+                    EntityId entity_id = session_->sceneManager()->reserveEntityId();
                     log().info("Received spawn request, spawning entity (id: %s) with type %s.",
                                entity_id, spawn_message->entity_type);
                     Entity* entity = entity_pipeline_->createEntityFromType(
@@ -334,7 +335,7 @@ void NetInstance::serverUpdate(float) {
                 case MT_ClientRpc: {
                     auto rpc_message = (ClientRpcMessage*)message;
                     EntityId entity_id = rpc_message->entity_id;
-                    Entity* entity = scene_manager_->findEntity(entity_id);
+                    Entity* entity = session_->sceneManager()->findEntity(entity_id);
                     if (!entity) {
                         log().error("Client RPC: Received from non-existent entity %d", entity_id);
                         break;
@@ -355,7 +356,7 @@ void NetInstance::serverUpdate(float) {
 
     // Send replicated updates.
     for (auto id : replicated_entities_) {
-        Entity& entity = *scene_manager_->findEntity(id);
+        Entity& entity = *session_->sceneManager()->findEntity(id);
         OutputBitStream properties;
         entity.component<CNetData>()->serialise(properties);
         for (int i = 0; i < server_->GetNumConnectedClients(); ++i) {
@@ -373,7 +374,7 @@ void NetInstance::clientUpdate(float) {
     // Handle Connecting -> Connected transition.
     if (client_connection_state_ == ConnectionState::Connecting && client_->IsConnected()) {
         client_connection_state_ = ConnectionState::Connected;
-        triggerEvent<JoinServerEvent>();
+        session_->eventSystem()->triggerEvent<JoinServerEvent>();
     }
     // Handle Connecting -> Disconnected transition.
     if (client_connection_state_ == ConnectionState::Connecting && client_->IsDisconnected()) {
@@ -441,7 +442,7 @@ void NetInstance::clientUpdate(float) {
                 auto replication_message = (ServerPropertyReplicationMessage*)message;
                 InputBitStream bs(replication_message->data);
                 EntityId entity_id = replication_message->entity_id;
-                Entity* entity = scene_manager_->findEntity(entity_id);
+                Entity* entity = session_->sceneManager()->findEntity(entity_id);
                 if (entity) {
                     entity->component<CNetData>()->deserialise(bs);
                 } else {
@@ -463,7 +464,7 @@ void NetInstance::clientUpdate(float) {
                     log().warn("Failed to spawn entity on the server. Request ID: %s",
                                spawn_message->request_id);
                 } else {
-                    Entity* entity = scene_manager_->findEntity(spawn_message->entity_id);
+                    Entity* entity = session_->sceneManager()->findEntity(spawn_message->entity_id);
                     if (entity) {
                         auto it = outgoing_spawn_requests_.find(spawn_message->request_id);
                         if (it != outgoing_spawn_requests_.end()) {
@@ -601,7 +602,7 @@ void NetInstance::OnServerClientConnected(int clientIndex) {
 
     // Send replicated entities to client.
     for (auto entity_id : replicated_entities_) {
-        Entity* entity = scene_manager_->findEntity(entity_id);
+        Entity* entity = session_->sceneManager()->findEntity(entity_id);
         if (entity) {
             OutputBitStream properties;
             entity->component<CNetData>()->serialise(properties);
@@ -612,13 +613,13 @@ void NetInstance::OnServerClientConnected(int clientIndex) {
     }
 
     // Trigger event.
-    triggerEvent<ServerClientConnectedEvent>(clientIndex);
+    session_->eventSystem()->triggerEvent<ServerClientConnectedEvent>(clientIndex);
 }
 
 void NetInstance::OnServerClientDisconnected(int clientIndex) {
     log().info("Client ID %s disconnected.", clientIndex);
 
     // Trigger event.
-    triggerEvent<ServerClientDisconnectedEvent>(clientIndex);
+    session_->eventSystem()->triggerEvent<ServerClientDisconnectedEvent>(clientIndex);
 }
 }  // namespace dw

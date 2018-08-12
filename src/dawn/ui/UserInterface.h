@@ -9,15 +9,15 @@
 #include "ui/Imgui.h"
 
 namespace dw {
-class DW_API UserInterface : public Module {
+class DW_API UserInterface : public Object {
 public:
     DW_OBJECT(UserInterface);
 
-    UserInterface(Context* ctx);
+    UserInterface(Context* ctx, EventSystem* event_system);
     ~UserInterface();
 
-    void beginTick();
-    void endTick();
+    void preUpdate();
+    void postUpdate();
     void preRender();
     void postRender();
 
@@ -26,6 +26,7 @@ public:
 
 private:
     rhi::Renderer* rhi_;
+    EventSystem* event_system_;
 
     // ImGui.
     ImGuiContext* logic_context_;
@@ -39,8 +40,8 @@ private:
     float mouse_wheel_;
     bool mouse_pressed_[MouseButton::Count];
 
-    void forAllContexts(Function<void(ImGuiIO& io)> functor);
-    void drawGUI(ImDrawData* draw_data, ImGuiIO& io);
+    void forAllContexts(const Function<void(ImGuiIO& io)>& functor) const;
+    void drawGUI(ImDrawData* draw_data, ImGuiIO& io) const;
 
     // Callback handlers.
     void onKey(const KeyEvent& state);

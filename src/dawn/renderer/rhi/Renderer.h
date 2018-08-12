@@ -493,7 +493,7 @@ public:
     void submit(uint view, ProgramHandle program, uint vertex_count, uint offset);
 
     /// Render a single frame.
-    void frame();
+    bool frame();
 
     /// Get the current window size.
     Vec2i windowSize() const;

@@ -6,16 +6,18 @@
 #include "scene/CameraController.h"
 
 namespace dw {
-CameraController::CameraController(Context* context, float acceleration)
+CameraController::CameraController(Context* context, EventSystem* event_system, float acceleration)
     : Object{context},
+      event_system_(event_system),
+      possessed_(nullptr),
       velocity_{0.0f, 0.0f, 0.0f},
       roll_velocity_{0.0f},
       acceleration_{acceleration} {
-    addEventListener<MouseMoveEvent>(makeEventDelegate(this, &CameraController::onMouseMove));
+    event_system_->addListener(this, &CameraController::onMouseMove);
 }
 
 CameraController::~CameraController() {
-    removeEventListener<MouseMoveEvent>(makeEventDelegate(this, &CameraController::onMouseMove));
+    event_system_->removeListener(this, &CameraController::onMouseMove);
 }
 
 void CameraController::setAcceleration(float acceleration) {

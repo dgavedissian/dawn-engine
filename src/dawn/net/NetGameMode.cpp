@@ -5,10 +5,10 @@
 #include "Common.h"
 #include "net/NetInstance.h"
 #include "net/NetGameMode.h"
+#include "gameplay/GameSession.h"
 
 namespace dw {
-NetGameMode::NetGameMode(Context* ctx, SceneManager* scene_manager, NetInstance* net)
-    : GameMode(ctx, scene_manager), net_(net) {
+NetGameMode::NetGameMode(Context* ctx, GameSession* session) : GameMode(ctx, session) {
 }
 
 NetGameMode::~NetGameMode() {
@@ -30,24 +30,20 @@ void NetGameMode::serverOnClientDisconnected() {
 }
 
 void NetGameMode::onStart() {
-    addEventListener<JoinServerEvent>(makeEventDelegate(this, &NetGameMode::eventOnJoinServer));
-    addEventListener<ServerClientConnectedEvent>(
-        makeEventDelegate(this, &NetGameMode::eventOnServerClientConnected));
-    addEventListener<ServerClientDisconnectedEvent>(
-        makeEventDelegate(this, &NetGameMode::eventOnServerClientDisconnected));
+    session_->eventSystem()->addListener(this, &NetGameMode::eventOnJoinServer);
+    session_->eventSystem()->addListener(this, &NetGameMode::eventOnServerClientConnected);
+    session_->eventSystem()->addListener(this, &NetGameMode::eventOnServerClientDisconnected);
 
-    if (net_ && net_->isServer()) {
+    if (session_->net() && session_->net()->isServer()) {
         serverOnStart();
         server_started_ = true;
     }
 }
 
 void NetGameMode::onEnd() {
-    removeEventListener<JoinServerEvent>(makeEventDelegate(this, &NetGameMode::eventOnJoinServer));
-    removeEventListener<ServerClientConnectedEvent>(
-        makeEventDelegate(this, &NetGameMode::eventOnServerClientConnected));
-    removeEventListener<ServerClientDisconnectedEvent>(
-        makeEventDelegate(this, &NetGameMode::eventOnServerClientDisconnected));
+    session_->eventSystem()->removeListener(this, &NetGameMode::eventOnJoinServer);
+    session_->eventSystem()->removeListener(this, &NetGameMode::eventOnServerClientConnected);
+    session_->eventSystem()->removeListener(this, &NetGameMode::eventOnServerClientDisconnected);
 
     if (server_started_) {
         serverOnEnd();
@@ -55,11 +51,11 @@ void NetGameMode::onEnd() {
 }
 
 void NetGameMode::update(float) {
-    if (net_ && net_->isServer() && !server_started_) {
+    if (session_->net() && session_->net()->isServer() && !server_started_) {
         serverOnStart();
         server_started_ = true;
     }
-    if (net_ && !net_->isServer() && server_started_) {
+    if (session_->net() && !session_->net()->isServer() && server_started_) {
         serverOnEnd();
         server_started_ = false;
     }

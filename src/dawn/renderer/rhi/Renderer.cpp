@@ -494,14 +494,13 @@ void Renderer::submit(uint view, ProgramHandle program, uint vertex_count, uint 
     item.clear();
 }
 
-void Renderer::frame() {
+bool Renderer::frame() {
     // If we are rendering in multithreaded mode, wait for the render thread.
     if (use_render_thread_) {
         // If the rendering thread is doing nothing, print a warning and give up.
         if (shared_rt_finished_) {
-            log().warn("Rendering thread has finished running. Sending shutdown signal.");
-            module<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
-            return;
+            log().warn("Rendering thread has finished running.");
+            return false;
         }
 
         // Wait for render thread.
@@ -518,18 +517,20 @@ void Renderer::frame() {
             is_first_frame_ = false;
         }
         if (!renderFrame(submit_)) {
-            module<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
-            log().warn("Rendering failed. Sending shutdown signal.");
-            return;
+            log().warn("Rendering failed.");
+            return false;
         }
     }
 
     // Update window events.
     shared_render_context_->processEvents();
     if (shared_render_context_->isWindowClosed()) {
-        log().info("Window closed. Sending shutdown signal.");
-        module<EventSystem>()->triggerEvent(makeShared<ExitEvent>());
+        log().info("Window closed.");
+        return false;
     }
+
+    // Continue.
+    return true;
 }
 
 Vec2i Renderer::windowSize() const {

@@ -25,7 +25,8 @@ void fromBulletTransform(const btTransform& source, detail::Transform& dest) {
     dest.orientation = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
 }
 }  // namespace
-PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr) : Object(context) {
+PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr, EventSystem* event_system)
+    : Object(context), event_system_(event_system) {
     log().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
 
     broadphase_.reset(new btDbvtBroadphase());
@@ -40,13 +41,13 @@ PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr) : Object(c
     world_->setInternalTickCallback(onPhysicsTick);
 
     // Register delegates.
-    addEventListener<KeyEvent>(makeEventDelegate(this, &PhysicsScene::onKey));
+    event_system->addListener(this, &PhysicsScene::onKey);
 
     scene_mgr->addSystem<PhysicsComponentSystem>();
 }
 
 PhysicsScene::~PhysicsScene() {
-    removeEventListener<KeyEvent>(makeEventDelegate(this, &PhysicsScene::onKey));
+    event_system_->removeListener(this, &PhysicsScene::onKey);
     world_.reset();
     solver_.reset();
     dispatcher_.reset();

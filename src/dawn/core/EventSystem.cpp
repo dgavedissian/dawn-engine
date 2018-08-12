@@ -8,89 +8,10 @@
 
 namespace dw {
 EventSystem::EventSystem(Context* context)
-    : Module(context), active_queue_(0), processing_events_(false) {
+    : Object(context), active_queue_(0), processing_events_(false) {
 }
 
 EventSystem::~EventSystem() {
-}
-
-bool EventSystem::addListener(const EventDelegate& event_delegate, const EventType& type) {
-    if (processing_events_) {
-        added_event_listeners_[type].push_back(event_delegate);
-    } else {
-        // This will find or create the entry
-        auto& event_listener_list = event_listeners_[type];
-        for (const auto& delegate_function : event_listener_list) {
-            if (event_delegate == delegate_function) {
-                // WARNING: Attempting to double-register a delegate
-                return false;
-            }
-        }
-
-        event_listener_list.push_back(event_delegate);
-    }
-
-    return true;
-}
-
-bool EventSystem::removeListener(const EventDelegate& event_delegate, const EventType& type) {
-    if (processing_events_) {
-        remove_event_listeners_[type].push_back(event_delegate);
-        return true;
-    }
-    bool success = false;
-    auto find_it = event_listeners_.find(type);
-    if (find_it != event_listeners_.end()) {
-        auto& listeners = find_it->second;
-        for (auto it = listeners.begin(); it != listeners.end(); ++it) {
-            if (event_delegate == (*it)) {
-                listeners.erase(it);
-                success = true;
-                break;
-            }
-        }
-    }
-
-    return success;
-}
-
-void EventSystem::removeAllListeners(const EventDelegate& event_delegate) {
-    for (auto listener_pair : event_listeners_) {
-        removeListener(event_delegate, listener_pair.first);
-    }
-}
-
-bool EventSystem::triggerEvent(const EventDataPtr& event_data) const {
-    bool processed = false;
-
-    auto find_it = event_listeners_.find(event_data->type());
-    if (find_it != event_listeners_.end()) {
-        auto& listeners = find_it->second;
-        for (const auto& delegate_function : listeners) {
-            delegate_function(event_data);
-            processed = true;
-        }
-    }
-
-    return processed;
-}
-
-bool EventSystem::queueEvent(const EventDataPtr& event_data) {
-    assert(active_queue_ >= 0);
-    assert(active_queue_ < EVENTSYSTEM_NUM_QUEUES);
-
-    // Make sure the event is valid
-    if (!event_data) {
-        // ERROR: Invalid event in queueEvent()
-        return false;
-    }
-
-    auto find_it = event_listeners_.find(event_data->type());
-    if (find_it != event_listeners_.end()) {
-        queues_[active_queue_].push_back(event_data);
-        return true;
-    }
-    return false;
 }
 
 bool EventSystem::abortEvent(const EventType& type, bool all_of_type /*= false*/) {
@@ -171,18 +92,58 @@ bool EventSystem::update(double max_duration) {
     // If any Listeners were queued for addition or removal whilst processing events, add them now
     for (auto listener : added_event_listeners_) {
         for (const auto& delegate_function : listener.second) {
-            addListener(delegate_function, listener.first);
+            addDelegate(delegate_function, listener.first);
         }
     }
     added_event_listeners_.clear();
 
     for (auto listener : remove_event_listeners_) {
         for (const auto& delegate_function : listener.second) {
-            removeListener(delegate_function, listener.first);
+            removeDelegate(delegate_function, listener.first);
         }
     }
     remove_event_listeners_.clear();
 
     return queue_flushed;
+}
+
+bool EventSystem::addDelegate(EventDelegate event_delegate, EventType type) {
+    if (processing_events_) {
+        added_event_listeners_[type].push_back(event_delegate);
+    } else {
+        // This will find or create the entry
+        auto& event_listener_list = event_listeners_[type];
+        for (const auto& delegate_function : event_listener_list) {
+            if (event_delegate == delegate_function) {
+                // WARNING: Attempting to double-register a delegate
+                return false;
+            }
+        }
+
+        event_listener_list.push_back(event_delegate);
+    }
+
+    return true;
+}
+
+bool EventSystem::removeDelegate(EventDelegate event_delegate, EventType type) {
+    if (processing_events_) {
+        remove_event_listeners_[type].push_back(event_delegate);
+        return true;
+    }
+    bool success = false;
+    auto find_it = event_listeners_.find(type);
+    if (find_it != event_listeners_.end()) {
+        auto& listeners = find_it->second;
+        for (auto it = listeners.begin(); it != listeners.end(); ++it) {
+            if (event_delegate == (*it)) {
+                listeners.erase(it);
+                success = true;
+                break;
+            }
+        }
+    }
+
+    return success;
 }
 }  // namespace dw

@@ -24,6 +24,17 @@ Input::Input(Context* context)
 Input::~Input() {
 }
 
+void Input::registerEventSystem(EventSystem* event_system) {
+    event_systems_.emplace_back(event_system);
+}
+
+void Input::unregisterEventSystem(EventSystem* event_system) {
+    auto it = std::find(event_systems_.begin(), event_systems_.end(), event_system);
+    if (it != event_systems_.end()) {
+        event_systems_.erase(it);
+    }
+}
+
 bool Input::isKeyDown(Key::Enum key) const {
     return key_down_[key];
 }
@@ -52,26 +63,36 @@ Vec2 Input::mouseScroll() const {
 
 void Input::_notifyKey(Key::Enum key, Modifier::Enum modifier, bool state) {
     key_down_[key] = state;
-    triggerEvent<KeyEvent>(key, modifier, state);
+    for (auto es : event_systems_) {
+        es->triggerEvent<KeyEvent>(key, modifier, state);
+    }
 }
 
 void Input::_notifyCharInput(const String& text) {
-    triggerEvent<CharInputEvent>(text);
+    for (auto es : event_systems_) {
+        es->triggerEvent<CharInputEvent>(text);
+    }
 }
 
 void Input::_notifyMouseButtonPress(MouseButton::Enum button, bool state) {
     mouse_button_state_[button] = state;
-    triggerEvent<MouseButtonEvent>(button, state);
+    for (auto es : event_systems_) {
+        es->triggerEvent<MouseButtonEvent>(button, state);
+    }
 }
 
 void Input::_notifyMouseMove(const Vec2i& position) {
     mouse_move_ = position - mouse_position_;
     mouse_position_ = position;
-    triggerEvent<MouseMoveEvent>(mouse_position_, mousePositionRelative(), mouse_move_);
+    for (auto es : event_systems_) {
+        es->triggerEvent<MouseMoveEvent>(mouse_position_, mousePositionRelative(), mouse_move_);
+    }
 }
 
 void Input::_notifyScroll(const Vec2& offset) {
     mouse_scroll_ = offset;
-    triggerEvent<MouseScrollEvent>(offset);
+    for (auto es : event_systems_) {
+        es->triggerEvent<MouseScrollEvent>(offset);
+    }
 }
 }  // namespace dw

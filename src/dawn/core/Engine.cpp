@@ -18,6 +18,12 @@
 #endif
 
 namespace dw {
+SessionId::SessionId(int session_index) : session_index_(session_index) {
+}
+
+u32 SessionId::index() const {
+    return session_index_;
+}
 
 Engine::Engine(const String& game, const String& version)
     : Object{nullptr},
@@ -89,9 +95,6 @@ void Engine::setup(const CommandLine& cmdline) {
     window_title += " (debug)";
 #endif
 
-    // Low-level subsystems
-    context_->addModule<EventSystem>();
-
     // Load configuration
     if (context_->module<FileSystem>()->fileExists(config_file_)) {
         log().info("Loading configuration from %s", config_file_);
@@ -117,9 +120,7 @@ void Engine::setup(const CommandLine& cmdline) {
             rhi::RendererType::Null, context_->config().at("window_width").get<u16>(),
             context_->config().at("window_height").get<u16>(), window_title, false);
     }
-    context_->addModule<UserInterface>();
     context_->addModule<ResourceCache>();
-    context_->addModule<GameplayModule>();
 
     // Non modules. Should be instance based.
     // context_->addModule<SceneManager>();
@@ -163,7 +164,7 @@ void Engine::setup(const CommandLine& cmdline) {
     log().info("Engine initialised. Starting %s %s", game_name_, game_version_);
 
     // Register delegate.
-    addEventListener<ExitEvent>(makeEventDelegate(this, &Engine::onExit));
+    // addEventListener<ExitEvent>(makeEventDelegate(this, &Engine::onExit));
 }
 
 void Engine::shutdown() {
@@ -176,9 +177,9 @@ void Engine::shutdown() {
         context_->saveConfig(config_file_);
     }
 
+    game_sessions_.clear();
+
     // Remove subsystems.
-    context_->removeModule<GameplayModule>();
-    context_->removeModule<UserInterface>();
     context_->removeModule<ResourceCache>();
     context_->clearModules();
 
@@ -199,19 +200,28 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
 
         // Update game logic.
         while (accumulated_time >= time_per_update) {
-            context_->module<UserInterface>()->beginTick();
-            update(time_per_update);
+            // Pre update.
+            forEachSession([](GameSession* session) { session->preUpdate(); });
+
+            // Update.
+            forEachSession(
+                [time_per_update](GameSession* session) { session->update(time_per_update); });
+            context_->module<Renderer>()->updateSceneGraph();
             tick_callback(time_per_update);
-            context_->module<UserInterface>()->endTick();
+
+            // Post update.
+            forEachSession([](GameSession* session) { session->postUpdate(); });
             accumulated_time -= time_per_update;
         }
 
         // Render a frame.
         float interpolation = accumulated_time / time_per_update;
-        preRender();
-        context_->module<Renderer>()->renderScene(interpolation);
+        forEachSession([this, interpolation](GameSession* session) {
+            session->preRender();
+            context_->module<Renderer>()->renderScene(interpolation);
+            session->postRender();
+        });
         render_callback(interpolation);
-        postRender();
         context_->module<Renderer>()->frame();
 
         // Update frame counter.
@@ -223,6 +233,22 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
             frame_counter_ = 0;
         }
     }
+}
+
+SessionId Engine::addSession(UniquePtr<GameSession> session) {
+    // TODO: Initialise session.
+    game_sessions_.emplace_back(std::move(session));
+    return SessionId(static_cast<u32>(game_sessions_.size() - 1));
+}
+
+void Engine::replaceSession(SessionId session_id, UniquePtr<GameSession> session) {
+    assert(game_sessions_.size() < session_id.index());
+    // TODO: Initialise session.
+    game_sessions_[session_id.index()] = std::move(session);
+}
+
+void Engine::removeSession(SessionId session_id) {
+    game_sessions_[session_id.index()].reset();
 }
 
 double Engine::frameTime() const {
@@ -239,6 +265,12 @@ const Set<String>& Engine::flags() const {
 
 const HashMap<String, String>& Engine::arguments() const {
     return cmdline_.arguments;
+}
+
+void Engine::forEachSession(const Function<void(GameSession*)>& functor) {
+    for (auto& session : game_sessions_) {
+        functor(session.get());
+    }
 }
 
 void Engine::printSystemInfo() {
@@ -356,30 +388,6 @@ String Engine::basePath() const {
     executable_path = executable_path.substr(0, len);
     return executable_path;
 #endif
-}
-
-void Engine::update(float dt) {
-    // log().debug("Frame Time: %f", dt);
-    // Trigger events.
-    context_->module<EventSystem>()->update(dt);
-
-    // Tick the current game mode.
-    context_->module<GameplayModule>()->update(dt);
-
-    // Update renderer scene graph.
-    context_->module<Renderer>()->updateSceneGraph();
-
-    // Update user interface.
-    context_->module<UserInterface>()->update(dt);
-}
-
-void Engine::preRender() {
-    context_->module<UserInterface>()->preRender();
-}
-
-void Engine::postRender() {
-    context_->module<UserInterface>()->postRender();
-    context_->module<UserInterface>()->render();
 }
 
 void Engine::onExit(const ExitEvent&) {

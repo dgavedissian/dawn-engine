@@ -5,8 +5,11 @@
 #pragma once
 
 #include "GameMode.h"
-#include "net/NetInstance.h"
+
+#include "core/EventSystem.h"
 #include "scene/SceneManager.h"
+#include "net/NetInstance.h"
+#include "ui/UserInterface.h"
 
 namespace dw {
 struct DW_API GameSessionInfo {
@@ -14,7 +17,7 @@ struct DW_API GameSessionInfo {
         String scene_name;
     };
 
-    struct CreateGame {
+    struct CreateNetGame {
         String host;  // host to bind to. usually 127.0.0.1.
         u16 port;
         u16 max_clients;
@@ -22,13 +25,13 @@ struct DW_API GameSessionInfo {
         // TODO: Transport.
     };
 
-    struct JoinGame {
+    struct JoinNetGame {
         String host;
         u16 port;
         // TODO: Transport.
     };
 
-    Variant<CreateLocalGame, CreateGame, JoinGame> start_info;
+    Variant<CreateLocalGame, CreateNetGame, JoinNetGame> start_info;
 
     // Other parameters.
     HashMap<String, String> params;
@@ -39,21 +42,37 @@ public:
     DW_OBJECT(GameSession);
 
     GameSession(Context* ctx, const GameSessionInfo& gsi);
-    virtual ~GameSession();
+    virtual ~GameSession() = default;
 
     virtual void update(float dt);
+    virtual void preUpdate();
+    virtual void postUpdate();
+    virtual void preRender();
+    virtual void postRender();
 
-    // TODO: Deprecate below.
+    /// Access the current game mode.
+    GameMode* gameMode() const;
+
+    /// Access the user interface.
+    UserInterface* ui() const;
+
+    /// Access the scene manager.
+    SceneManager* sceneManager() const;
+
+    /// Access the event system for this game instance.
+    EventSystem* eventSystem() const;
+
+    /// Access the network instance. nullptr if networking is disabled.
+    NetInstance* net() const;
+
+protected:
+    UniquePtr<UserInterface> ui_;
+    UniquePtr<SceneManager> scene_manager_;
+    UniquePtr<EventSystem> event_system_;
+    UniquePtr<NetInstance> net_instance_;
 
     /// Sets a new game mode.
     void setGameMode(SharedPtr<GameMode> game_mode);
-
-    /// Gets the current game mode.
-    GameMode* gameMode() const;
-
-protected:
-    UniquePtr<SceneManager> scene_manager_;
-    UniquePtr<NetInstance> net_instance_;
 
 private:
     SharedPtr<GameMode> new_game_mode_;

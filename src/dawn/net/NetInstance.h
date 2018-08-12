@@ -12,6 +12,8 @@
 #include "scene/SceneManager.h"
 
 namespace dw {
+class GameSession;
+
 enum class ConnectionState { Disconnected, Connecting, Connected };
 enum class NetMode { Server, Client };
 
@@ -19,12 +21,12 @@ class DW_API NetInstance : public Object, public yojimbo::Adapter {
 public:
     DW_OBJECT(NetInstance);
 
-    static UniquePtr<NetInstance> connect(Context* context, SceneManager* scene_manager,
+    static UniquePtr<NetInstance> connect(Context* context, GameSession* session,
                                           const String& host, u16 port);
-    static UniquePtr<NetInstance> listen(Context* context, SceneManager* scene_manager,
-                                         const String& host, u16 port, u16 max_clients);
+    static UniquePtr<NetInstance> listen(Context* context, GameSession* session, const String& host,
+                                         u16 port, u16 max_clients);
 
-    NetInstance(Context* context, SceneManager* scene_manager);
+    NetInstance(Context* context, GameSession* session);
     virtual ~NetInstance();
 
     // Connect to a server at ip:port.
@@ -66,7 +68,7 @@ public:
     void sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type, const Vector<u8>& payload);
 
 private:
-    SceneManager* scene_manager_;
+    GameSession* session_;
 
     bool is_server_;
     double time_;

@@ -7,11 +7,23 @@
 #include "CommandLine.h"
 
 namespace dw {
-
 class App;
+class GameSession;
 
 typedef Function<void(float)> EngineTickCallback;
 typedef Function<void(float)> EngineRenderCallback;
+
+class DW_API SessionId {
+public:
+    SessionId(int session_index);
+
+    u32 index() const;
+
+private:
+    u32 session_index_;
+
+    friend class Engine;
+};
 
 class DW_API Engine : public Object {
 public:
@@ -30,6 +42,15 @@ public:
     /// @param tick_callback Function to run every time the game logic is updated.
     /// @param render_callback Function to run every time a frame is rendered.
     void run(EngineTickCallback tick_callback, EngineRenderCallback render_callback);
+
+    // Add a session.
+    SessionId addSession(UniquePtr<GameSession> session);
+
+    // Replace a session.
+    void replaceSession(SessionId session_id, UniquePtr<GameSession> session);
+
+    // Remove a session.
+    void removeSession(SessionId session_id);
 
     /// Access the frame time
     double frameTime() const;
@@ -56,6 +77,9 @@ private:
     int frames_per_second_;
     int frame_counter_;
 
+    Vector<UniquePtr<GameSession>> game_sessions_;
+    void forEachSession(const Function<void(GameSession*)>& functor);
+
     // Configuration.
     String log_file_;
     String config_file_;
@@ -63,9 +87,6 @@ private:
 
     void printSystemInfo();
     String basePath() const;
-    void update(float dt);
-    void preRender();
-    void postRender();
 
     void onExit(const ExitEvent& data);
 };

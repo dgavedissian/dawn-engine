@@ -69,8 +69,6 @@ set(SOURCE_FILES
     core/Type.h
     gameplay/GameMode.cpp
     gameplay/GameMode.h
-    gameplay/GameplayModule.cpp
-    gameplay/GameplayModule.h
     gameplay/GameSession.cpp
     gameplay/GameSession.h
     input/Input.cpp
