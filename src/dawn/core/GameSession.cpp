@@ -5,13 +5,15 @@
 #include "Common.h"
 #include "GameSession.h"
 #include "net/NetInstance.h"
+#include "renderer/SceneGraph.h"
 
 namespace dw {
 GameSession::GameSession(Context* ctx, const GameSessionInfo& gsi)
-    : Object(ctx), new_game_mode_(nullptr), game_mode_(nullptr) {
+    : Object(ctx), gsi_(gsi), new_game_mode_(nullptr), game_mode_(nullptr) {
     event_system_ = makeUnique<EventSystem>(ctx);
     ui_ = makeUnique<UserInterface>(ctx, event_system_.get());
-    scene_manager_ = makeUnique<SceneManager>(ctx, event_system_.get());
+    scene_graph_ = makeUnique<SceneGraph>(ctx);
+    scene_manager_ = makeUnique<SceneManager>(ctx, event_system_.get(), scene_graph_.get());
 
     // Initialise networking.
     if (gsi.start_info.is<GameSessionInfo::CreateNetGame>()) {
@@ -23,12 +25,17 @@ GameSession::GameSession(Context* ctx, const GameSessionInfo& gsi)
     }
 }
 
+void GameSession::preUpdate() {
+    ui_->preUpdate();
+}
+
 void GameSession::update(float dt) {
     event_system_->update(1.0f);  // TODO: Specify maximum time.
     if (net_instance_) {
         net_instance_->update(dt);
     }
     scene_manager_->update(dt);
+    scene_graph_->updateSceneGraph();
 
     // Update the game mode.
     if (game_mode_) {
@@ -46,10 +53,6 @@ void GameSession::update(float dt) {
     ui_->update(dt);
 }
 
-void GameSession::preUpdate() {
-    ui_->preUpdate();
-}
-
 void GameSession::postUpdate() {
     ui_->postUpdate();
 }
@@ -58,9 +61,17 @@ void GameSession::preRender() {
     ui_->preRender();
 }
 
+void GameSession::render(float interpolation) {
+    if (!gsi_.headless) {
+        scene_graph_->renderScene(interpolation);
+    }
+}
+
 void GameSession::postRender() {
     ui_->postRender();
-    ui_->render();
+    if (!gsi_.headless) {
+        ui_->render();
+    }
 }
 
 GameMode* GameSession::gameMode() const {
@@ -69,6 +80,10 @@ GameMode* GameSession::gameMode() const {
 
 UserInterface* GameSession::ui() const {
     return ui_.get();
+}
+
+SceneGraph* GameSession::sceneGraph() const {
+    return scene_graph_.get();
 }
 
 SceneManager* GameSession::sceneManager() const {

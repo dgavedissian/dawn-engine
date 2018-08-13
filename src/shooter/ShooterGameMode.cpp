@@ -4,6 +4,8 @@
  */
 #include "ShooterGameMode.h"
 #include "core/GameSession.h"
+#include "renderer/CCamera.h"
+#include "renderer/SceneGraph.h"
 
 ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx, SceneManager* scene_manager,
                                              NetInstance* net, Frame* frame)
@@ -72,8 +74,8 @@ void ShooterGameMode::onStart() {
     material->setUniform("surface_sampler", 0);
     auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(4000.0f);
     renderable->setMaterial(material);
-    auto planet = module<Renderer>()->sceneGraph().root().newChild(
-        SystemPosition{12000.0f, 0.0f, -6000.0f}, Quat::identity);
+    auto planet = session_->sceneGraph()->root().newChild(SystemPosition{12000.0f, 0.0f, -6000.0f},
+                                                          Quat::identity);
     planet->data.renderable = renderable;
 
     // Create a camera.

@@ -8,6 +8,7 @@
 #include "CWeapon.h"
 #include "ShooterGameMode.h"
 #include "core/GameSession.h"
+#include "renderer/SceneGraph.h"
 
 using namespace dw;
 
@@ -23,8 +24,7 @@ public:
         }
 
         // Create frame.
-        auto* frame = module<Renderer>()->sceneGraph().addFrame(
-            module<Renderer>()->sceneGraph().root().newChild());
+        auto* frame = scene_graph_->addFrame(scene_graph_->root().newChild());
 
         // Set up game.
         auto entity_pipeline = makeShared<ShooterEntityPipeline>(context(), scene_manager_.get(),
@@ -73,6 +73,7 @@ public:
             GameSessionInfo server_session;
             server_session.start_info =
                 GameSessionInfo::CreateNetGame{"127.0.0.1", port, 32, "TestScene"};
+            server_session.headless = true;
             GameSessionInfo client_session;
             client_session.start_info = GameSessionInfo::JoinNetGame{"127.0.0.1", port};
 
@@ -88,6 +89,7 @@ public:
             } else if (cmdline.arguments.find("-join") != cmdline.arguments.end()) {
                 gsi.start_info = GameSessionInfo::JoinNetGame{cmdline.arguments.at("-join"), port};
             }
+            gsi.headless = cmdline.flags.find("-headless") != cmdline.flags.end();
             engine_->addSession(makeUnique<ShooterGameSession>(context(), gsi));
         }
     }

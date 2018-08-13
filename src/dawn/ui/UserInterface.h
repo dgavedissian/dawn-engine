@@ -6,6 +6,7 @@
 
 #include "renderer/rhi/Renderer.h"
 #include "renderer/Program.h"
+#include "input/Input.h"
 #include "ui/Imgui.h"
 
 namespace dw {

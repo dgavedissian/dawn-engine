@@ -33,6 +33,9 @@ struct DW_API GameSessionInfo {
 
     Variant<CreateLocalGame, CreateNetGame, JoinNetGame> start_info;
 
+    // Graphics settings.
+    bool headless = false;
+
     // Other parameters.
     HashMap<String, String> params;
 };
@@ -44,10 +47,11 @@ public:
     GameSession(Context* ctx, const GameSessionInfo& gsi);
     virtual ~GameSession() = default;
 
-    virtual void update(float dt);
     virtual void preUpdate();
+    virtual void update(float dt);
     virtual void postUpdate();
     virtual void preRender();
+    virtual void render(float interpolation);
     virtual void postRender();
 
     /// Access the current game mode.
@@ -55,6 +59,9 @@ public:
 
     /// Access the user interface.
     UserInterface* ui() const;
+
+    /// Access the scene graph.
+    SceneGraph* sceneGraph() const;
 
     /// Access the scene manager.
     SceneManager* sceneManager() const;
@@ -66,7 +73,10 @@ public:
     NetInstance* net() const;
 
 protected:
+    GameSessionInfo gsi_;
+
     UniquePtr<UserInterface> ui_;
+    UniquePtr<SceneGraph> scene_graph_;
     UniquePtr<SceneManager> scene_manager_;
     UniquePtr<EventSystem> event_system_;
     UniquePtr<NetInstance> net_instance_;

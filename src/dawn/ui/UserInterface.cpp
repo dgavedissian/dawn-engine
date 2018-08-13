@@ -130,21 +130,21 @@ UserInterface::~UserInterface() {
     event_system_->removeListener(this, &UserInterface::onMouseScroll);
 }
 
-void UserInterface::preUpdate() {
+void UserInterface::preUpdate() const {
     ImGui::SetCurrentContext(logic_context_);
     ImGui::NewFrame();
 }
 
-void UserInterface::postUpdate() {
+void UserInterface::postUpdate() const {
     ImGui::Render();
 }
 
-void UserInterface::preRender() {
+void UserInterface::preRender() const {
     ImGui::SetCurrentContext(renderer_context_);
     ImGui::NewFrame();
 }
 
-void UserInterface::postRender() {
+void UserInterface::postRender() const {
     ImGui::Render();
 }
 

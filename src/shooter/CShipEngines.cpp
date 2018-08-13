@@ -119,7 +119,7 @@ void CShipEngines::onAddToEntity(Entity* parent) {
     assert(transform);
 
     // Initialise engine particles.
-    size_t total_engines = engine_data_.size() + nav_engine_data_.size();
+    u32 total_engines = engine_data_.size() + nav_engine_data_.size();
 
     glow_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
     glow_billboards_->material()->setTexture(

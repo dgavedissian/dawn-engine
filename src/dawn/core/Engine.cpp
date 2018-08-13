@@ -205,15 +205,13 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         // Update game logic.
         while (accumulated_time >= time_per_update) {
             // Pre update.
-            forEachSession([time_per_update](GameSession* session)
-            {
+            forEachSession([time_per_update](GameSession* session) {
                 session->preUpdate();
                 session->update(time_per_update);
                 session->postUpdate();
             });
 
             ui_->preUpdate();
-            context_->module<Renderer>()->updateSceneGraph();
             tick_callback(time_per_update);
             ui_->postUpdate();
 
@@ -224,15 +222,14 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         float interpolation = accumulated_time / time_per_update;
         forEachSession([this, interpolation](GameSession* session) {
             session->preRender();
-            context_->module<Renderer>()->renderScene(interpolation);
+            session->render(interpolation);
             session->postRender();
         });
         ui_->preRender();
         render_callback(interpolation);
         ui_->postRender();
         ui_->render();
-        if (!context_->module<Renderer>()->frame())
-        {
+        if (!context_->module<Renderer>()->frame()) {
             running_ = false;
         }
 
