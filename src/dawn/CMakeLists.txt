@@ -51,6 +51,10 @@ set(SOURCE_FILES
     core/EventSystem.h
     core/Exception.h
     core/FixedMemoryPool.h
+    core/GameMode.cpp
+    core/GameMode.h
+    core/GameSession.cpp
+    core/GameSession.h
 	core/Handle.h
     core/Log.cpp
     core/Log.h
@@ -67,10 +71,6 @@ set(SOURCE_FILES
     core/Timer.cpp
     core/Timer.h
     core/Type.h
-    gameplay/GameMode.cpp
-    gameplay/GameMode.h
-    gameplay/GameSession.cpp
-    gameplay/GameSession.h
     input/Input.cpp
     input/Input.h
     net/BitStream.cpp

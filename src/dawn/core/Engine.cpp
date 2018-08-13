@@ -122,8 +122,10 @@ void Engine::setup(const CommandLine& cmdline) {
     }
     context_->addModule<ResourceCache>();
 
-    // Non modules. Should be instance based.
-    // context_->addModule<SceneManager>();
+    // Engine events and UI.
+    event_system_ = makeUnique<EventSystem>(context_);
+    context_->module<Input>()->registerEventSystem(event_system_.get());
+    ui_ = makeUnique<UserInterface>(context_, event_system_.get());
 
     /*
     auto* net = context_->addModule<Networking>();
@@ -164,7 +166,7 @@ void Engine::setup(const CommandLine& cmdline) {
     log().info("Engine initialised. Starting %s %s", game_name_, game_version_);
 
     // Register delegate.
-    // addEventListener<ExitEvent>(makeEventDelegate(this, &Engine::onExit));
+    event_system_->addListener(this, &Engine::onExit);
 }
 
 void Engine::shutdown() {
@@ -177,6 +179,8 @@ void Engine::shutdown() {
         context_->saveConfig(config_file_);
     }
 
+    ui_.reset();
+    event_system_.reset();
     game_sessions_.clear();
 
     // Remove subsystems.
@@ -201,16 +205,18 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         // Update game logic.
         while (accumulated_time >= time_per_update) {
             // Pre update.
-            forEachSession([](GameSession* session) { session->preUpdate(); });
+            forEachSession([time_per_update](GameSession* session)
+            {
+                session->preUpdate();
+                session->update(time_per_update);
+                session->postUpdate();
+            });
 
-            // Update.
-            forEachSession(
-                [time_per_update](GameSession* session) { session->update(time_per_update); });
+            ui_->preUpdate();
             context_->module<Renderer>()->updateSceneGraph();
             tick_callback(time_per_update);
+            ui_->postUpdate();
 
-            // Post update.
-            forEachSession([](GameSession* session) { session->postUpdate(); });
             accumulated_time -= time_per_update;
         }
 
@@ -221,8 +227,14 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
             context_->module<Renderer>()->renderScene(interpolation);
             session->postRender();
         });
+        ui_->preRender();
         render_callback(interpolation);
-        context_->module<Renderer>()->frame();
+        ui_->postRender();
+        ui_->render();
+        if (!context_->module<Renderer>()->frame())
+        {
+            running_ = false;
+        }
 
         // Update frame counter.
         frame_counter_++;

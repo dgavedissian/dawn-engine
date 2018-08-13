@@ -32,7 +32,7 @@ public:
     void renderScene(float interpolation);
 
     /// Render a single frame.
-    void frame();
+    bool frame();
 
     /// Get the renderer hardware interface.
     rhi::Renderer* rhi() const;
@@ -57,7 +57,6 @@ private:
 
     SCamera* camera_entity_system_;
 
-    Vector<Mat4> view_proj_matrices_per_camera_;
     Vector<HashMap<SystemNode*, Mat4>> system_model_matrices_per_frame_;
     HashMap<Node*, Mat4> model_matrix_cache_;
     Vector<Vector<detail::RenderOperation>> render_operations_per_camera_;

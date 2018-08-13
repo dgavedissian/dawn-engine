@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "gameplay/GameMode.h"
+#include "core/GameMode.h"
 
 namespace dw {
 class DW_API NetGameMode : public GameMode {

@@ -16,10 +16,10 @@ public:
     UserInterface(Context* ctx, EventSystem* event_system);
     ~UserInterface();
 
-    void preUpdate();
-    void postUpdate();
-    void preRender();
-    void postRender();
+    void preUpdate() const;
+    void postUpdate() const;
+    void preRender() const;
+    void postRender() const;
 
     void update(float dt);
     void render();

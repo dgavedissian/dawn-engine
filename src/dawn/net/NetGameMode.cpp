@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "net/NetInstance.h"
 #include "net/NetGameMode.h"
-#include "gameplay/GameSession.h"
+#include "core/GameSession.h"
 
 namespace dw {
 NetGameMode::NetGameMode(Context* ctx, GameSession* session) : GameMode(ctx, session) {

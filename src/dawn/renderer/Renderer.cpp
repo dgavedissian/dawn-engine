@@ -21,15 +21,7 @@ Renderer::~Renderer() {
 }
 
 void Renderer::updateSceneGraph() {
-    // Recalculate view-proj matrices.
     auto& cameras = camera_entity_system_->cameras;
-    view_proj_matrices_per_camera_.resize(cameras.size());
-    for (int i = 0; i < cameras.size(); ++i) {
-        /*
-        view_proj_matrices_per_camera_[i] =
-            cameras[i].projection_matrix * cameras[i].scene_node->calculateViewMatrix();
-        */
-    }
 
     // Create a frame -> frame ID map.
     HashMap<Frame*, int> frame_to_frame_id;
@@ -110,8 +102,8 @@ void Renderer::renderScene(float interpolation) {
     }
 }
 
-void Renderer::frame() {
-    rhi_->frame();
+bool Renderer::frame() {
+    return rhi_->frame();
 }
 
 rhi::Renderer* Renderer::rhi() const {

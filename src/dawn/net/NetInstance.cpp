@@ -10,7 +10,7 @@
 #include "net/BitStream.h"
 #include "net/CNetData.h"
 #include "net/CNetTransform.h"
-#include "gameplay/GameSession.h"
+#include "core/GameSession.h"
 
 namespace dw {
 namespace {

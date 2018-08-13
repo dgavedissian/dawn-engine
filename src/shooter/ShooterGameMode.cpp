@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "ShooterGameMode.h"
-#include "gameplay/GameSession.h"
+#include "core/GameSession.h"
 
 ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx, SceneManager* scene_manager,
                                              NetInstance* net, Frame* frame)

@@ -7,7 +7,7 @@
 #include "CProjectile.h"
 #include "CWeapon.h"
 #include "ShooterGameMode.h"
-#include "gameplay/GameSession.h"
+#include "core/GameSession.h"
 
 using namespace dw;
 

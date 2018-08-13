@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CommandLine.h"
+#include "ui/UserInterface.h"
 
 namespace dw {
 class App;
@@ -76,6 +77,10 @@ private:
     double frame_time_;
     int frames_per_second_;
     int frame_counter_;
+
+    // Engine events and UI.
+    UniquePtr<EventSystem> event_system_;
+    UniquePtr<UserInterface> ui_;
 
     Vector<UniquePtr<GameSession>> game_sessions_;
     void forEachSession(const Function<void(GameSession*)>& functor);
