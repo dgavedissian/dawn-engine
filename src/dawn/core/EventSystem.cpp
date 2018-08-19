@@ -114,7 +114,7 @@ bool EventSystem::addDelegate(EventDelegate event_delegate, EventType type) {
         // This will find or create the entry
         auto& event_listener_list = event_listeners_[type];
         for (const auto& delegate_function : event_listener_list) {
-            if (event_delegate == delegate_function) {
+            if (event_delegate.equals(delegate_function)) {
                 // WARNING: Attempting to double-register a delegate
                 return false;
             }
@@ -136,7 +136,7 @@ bool EventSystem::removeDelegate(EventDelegate event_delegate, EventType type) {
     if (find_it != event_listeners_.end()) {
         auto& listeners = find_it->second;
         for (auto it = listeners.begin(); it != listeners.end(); ++it) {
-            if (event_delegate == (*it)) {
+            if (event_delegate.equals(*it)) {
                 listeners.erase(it);
                 success = true;
                 break;

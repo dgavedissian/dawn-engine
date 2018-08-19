@@ -25,6 +25,14 @@ GameSession::GameSession(Context* ctx, const GameSessionInfo& gsi)
     }
 }
 
+GameSession::~GameSession() {
+    if (game_mode_) {
+        game_mode_->onEnd();
+    }
+    new_game_mode_.reset();
+    game_mode_.reset();
+}
+
 void GameSession::preUpdate() {
     ui_->preUpdate();
 }

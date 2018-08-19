@@ -45,7 +45,7 @@ public:
     DW_OBJECT(GameSession);
 
     GameSession(Context* ctx, const GameSessionInfo& gsi);
-    virtual ~GameSession() = default;
+    virtual ~GameSession();
 
     virtual void preUpdate();
     virtual void update(float dt);
