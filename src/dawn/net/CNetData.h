@@ -53,8 +53,8 @@ public:
     void serialise(OutputStream& out);
     void deserialise(InputStream& in);
 
-    void sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload);
-    void receiveRpc(RpcId rpc_id, const Vector<u8>& payload);
+    void sendRpc(RpcId rpc_id, RpcType type, const Vector<byte>& payload);
+    void receiveRpc(RpcId rpc_id, const Vector<byte>& payload);
 
     NetRole role() const;
     NetRole remoteRole() const;

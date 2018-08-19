@@ -193,7 +193,7 @@ ExternalProject_Add(flatbuffers-external
         -DFLATBUFFERS_BUILD_SHAREDLIB=0
         -DFLATBUFFERS_BUILD_TESTS=0
 )
-set(FLATBUFFERS_GENERATOR ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/$<CONFIG>/flatc PARENT_SCOPE)
+set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/$<CONFIG>/flatc PARENT_SCOPE)
 add_library(flatbuffers INTERFACE)
 add_dependencies(flatbuffers flatbuffers-external)
 set_property(TARGET flatbuffers PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)

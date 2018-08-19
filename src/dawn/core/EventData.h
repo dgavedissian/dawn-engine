@@ -42,10 +42,10 @@ public:
             (object_ptr->*member_func_ptr)(*event_data);
         }
 
-        bool equals(const EventForwarderBase& other) const override
-        {
+        bool equals(const EventForwarderBase& other) const override {
             const auto& other_forwarder = static_cast<const EventForwarder<T, E>&>(other);
-            return object_ptr == other_forwarder.object_ptr && member_func_ptr == other_forwarder.member_func_ptr;
+            return object_ptr == other_forwarder.object_ptr &&
+                   member_func_ptr == other_forwarder.member_func_ptr;
         }
 
     private:
@@ -63,8 +63,7 @@ public:
         *delegate_this = makeDelegate(event_forwarder.get(), &EventForwarder<T, E>::onEvent);
     }
 
-    bool equals(const EventDelegate& other) const
-    {
+    bool equals(const EventDelegate& other) const {
         return event_forwarder_->equals(*other.event_forwarder_);
     }
 

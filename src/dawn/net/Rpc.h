@@ -20,7 +20,7 @@ public:
     // Called by CNetData when registering this RPC with a particular entity.
     virtual void onAddToEntity(Entity& entity, RpcId rpc_id) = 0;
     // Called by CNetData when an RPC is received.
-    virtual void receiveRpc(const Vector<u8>& data) = 0;
+    virtual void receiveRpc(const Vector<byte>& data) = 0;
 };
 
 // Useful aliases.
@@ -81,7 +81,7 @@ private:
 
         // RpcBinding interface
         void onAddToEntity(Entity& entity, RpcId rpc_id) override;
-        void receiveRpc(const Vector<u8>& payload) override;
+        void receiveRpc(const Vector<byte>& payload) override;
 
     private:
         RpcFunctorPtr<Component, Type, Args...> functor_;

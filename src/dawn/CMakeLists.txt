@@ -1,6 +1,30 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
 
+# Source: https://github.com/google/flatbuffers/blob/master/CMake/FindFlatBuffers.cmake
+function(FLATBUFFERS_GENERATE_C_HEADERS Name)
+    set(FLATC_OUTPUTS)
+    foreach(FILE ${ARGN})
+        get_filename_component(FLATC_OUTPUT ${FILE} NAME_WE)
+        set(FLATC_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers/${FLATC_OUTPUT}_generated.h")
+        list(APPEND FLATC_OUTPUTS ${FLATC_OUTPUT})
+
+        add_custom_command(OUTPUT ${FLATC_OUTPUT}
+            COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
+                ARGS -c -o "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers/" ${FILE}
+            COMMENT "Building C++ header for ${FILE}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    endforeach() 
+    set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
+endfunction()
+
+set(FLATBUFFER_DEFINITION_FILES
+    net/protocol/protocol.fbs
+    net/protocol/to_client.fbs
+    net/protocol/to_server.fbs)
+
+FLATBUFFERS_GENERATE_C_HEADERS(NetProtocol ${FLATBUFFER_DEFINITION_FILES})
+
 set(SOURCE_FILES
     core/io/File.cpp
     core/io/File.h
@@ -73,6 +97,9 @@ set(SOURCE_FILES
     core/Type.h
     input/Input.cpp
     input/Input.h
+    net/transport/Transport.h
+    net/transport/YojimboTransport.cpp
+    net/transport/YojimboTransport.h
     net/BitStream.cpp
     net/BitStream.h
     net/CNetData.cpp
@@ -202,7 +229,7 @@ set (SOURCE_FILES
 
 # Project
 set(BUILD_SHARED_LIBS OFF)
-add_library(DwEngine ${SOURCE_FILES})
+add_library(DwEngine ${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES} ${NetProtocol_OUTPUTS})
 enable_cpp14(DwEngine)
 enable_maximum_warnings(DwEngine)
 set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
@@ -211,7 +238,8 @@ if(BUILD_SHARED_LIBS)
 endif()
 target_include_directories(DwEngine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-        scene/ontology/include)
+    scene/ontology/include)
+target_include_directories(DwEngine PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/flatbuffers)
 
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)
@@ -221,7 +249,7 @@ if(APPLE AND BUILD_SHARED_LIBS)
 endif()
 
 # Random extras
-mirror_physical_directories(${SOURCE_FILES})
+mirror_physical_directories(${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES})
 set_target_properties(DwEngine PROPERTIES DEBUG_POSTFIX _d)
 
 # Add include dirs and libraries

@@ -1,0 +1,8 @@
+include "protocol.fbs";
+
+table ServerMessage {
+  to_server: ServerMessageData;
+}
+
+root_type ServerMessage;
+file_identifier "DWSM";

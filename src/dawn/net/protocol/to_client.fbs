@@ -1,0 +1,8 @@
+include "protocol.fbs";
+
+table ClientMessage {
+  to_client: ClientMessageData;
+}
+
+root_type ClientMessage;
+file_identifier "DWCM";

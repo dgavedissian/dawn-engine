@@ -11,11 +11,13 @@
 #include "net/NetEntityPipeline.h"
 #include "scene/SceneManager.h"
 
+#include "net/transport/Transport.h"
+
 namespace dw {
 class GameSession;
-
-enum class ConnectionState { Disconnected, Connecting, Connected };
 enum class NetMode { Server, Client };
+
+enum class Transport { Yojimbo, InMemory };
 
 class DW_API NetInstance : public Object, public yojimbo::Adapter {
 public:
@@ -65,17 +67,14 @@ public:
     // RPCs.
     void sendSpawnRequest(EntityType type, std::function<void(Entity&)> callback,
                           bool authoritative_proxy = false);
-    void sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type, const Vector<u8>& payload);
+    void sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type, const Vector<byte>& payload);
 
 private:
     GameSession* session_;
 
     bool is_server_;
-    double time_;
-
-    ConnectionState client_connection_state_;
-    UniquePtr<yojimbo::Client> client_;
-    UniquePtr<yojimbo::Server> server_;
+    UniquePtr<TransportClient> client_;
+    UniquePtr<TransportServer> server_;
 
     SharedPtr<NetEntityPipeline> entity_pipeline_;
     HashSet<EntityId> replicated_entities_;
@@ -88,15 +87,13 @@ private:
     // Server only.
 
 private:
-    void sendServerCreateEntity(int clientIndex, const Entity& entity,
+    void sendServerCreateEntity(ClientId client_id, const Entity& entity,
                                 const OutputBitStream& properties, NetRole role);
-    void sendServerPropertyReplication(int clientIndex, const Entity& entity,
+    void sendServerPropertyReplication(ClientId client_id, const Entity& entity,
                                        const OutputBitStream& properties);
 
-    // Implementation of yojimbo::Adapter.
-    yojimbo::MessageFactory* CreateMessageFactory(yojimbo::Allocator& allocator) override;
-    void OnServerClientConnected(int clientIndex) override;
-    void OnServerClientDisconnected(int clientIndex) override;
+    void onServerClientConnected(ClientId client_id);
+    void onServerClientDisconnected(ClientId client_id);
 };
 
 DEFINE_EMPTY_EVENT(JoinServerEvent);

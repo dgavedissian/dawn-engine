@@ -68,7 +68,7 @@ void CNetData::deserialise(InputStream& in) {
     }
 }
 
-void CNetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload) {
+void CNetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<byte>& payload) {
     if (net_->isServer()) {
         receiveRpc(rpc_id, payload);
     } else {
@@ -76,7 +76,7 @@ void CNetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload) {
     }
 }
 
-void CNetData::receiveRpc(RpcId rpc_id, const Vector<u8>& payload) {
+void CNetData::receiveRpc(RpcId rpc_id, const Vector<byte>& payload) {
     auto rpc_func = rep_layout_.rpc_map_.find(rpc_id);
     if (rpc_func != rep_layout_.rpc_map_.end()) {
         (*rpc_func).second->receiveRpc(payload);
