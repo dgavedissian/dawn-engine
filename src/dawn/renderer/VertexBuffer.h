@@ -11,12 +11,12 @@ class DW_API VertexBuffer : public Object {
 public:
     DW_OBJECT(VertexBuffer);
 
-    VertexBuffer(Context* context, const void* data, uint size, uint vertex_count,
-                 const rhi::VertexDecl& decl, rhi::BufferUsage usage = rhi::BufferUsage::Static);
+    VertexBuffer(Context* context, Memory data, uint vertex_count, const rhi::VertexDecl& decl,
+                 rhi::BufferUsage usage = rhi::BufferUsage::Static);
     ~VertexBuffer();
 
     // Will resize.
-    void update(const void* data, uint size, uint vertex_count, uint offset);
+    void update(Memory data, uint vertex_count, uint offset);
 
     rhi::VertexBufferHandle internalHandle() const;
     u32 vertexCount() const;

@@ -126,10 +126,10 @@ void Renderer::init(RendererType type, u16 width, u16 height, const String& titl
     // Initialise transient vb/ib.
     transient_vb_max_size = DW_MAX_TRANSIENT_VERTEX_BUFFER_SIZE;
     transient_vb =
-        createVertexBuffer(nullptr, transient_vb_max_size, VertexDecl{}, BufferUsage::Stream);
+        createVertexBuffer(Memory(transient_vb_max_size), VertexDecl{}, BufferUsage::Stream);
     transient_ib_max_size = DW_MAX_TRANSIENT_INDEX_BUFFER_SIZE;
-    transient_ib = createIndexBuffer(nullptr, transient_ib_max_size, IndexBufferType::U16,
-                                     BufferUsage::Stream);
+    transient_ib =
+        createIndexBuffer(Memory(transient_vb_max_size), IndexBufferType::U16, BufferUsage::Stream);
     frames_[0].transient_vb_storage.handle = frames_[1].transient_vb_storage.handle = transient_vb;
     frames_[0].transient_ib_storage.handle = frames_[1].transient_ib_storage.handle = transient_ib;
 
@@ -156,11 +156,12 @@ void Renderer::init(RendererType type, u16 width, u16 height, const String& titl
     }
 }
 
-VertexBufferHandle Renderer::createVertexBuffer(const void* data, uint size, const VertexDecl& decl,
+VertexBufferHandle Renderer::createVertexBuffer(Memory data, const VertexDecl& decl,
                                                 BufferUsage usage) {
     // TODO: Validate data.
     auto handle = vertex_buffer_handle_.next();
-    submitPreFrameCommand(cmd::CreateVertexBuffer{handle, Memory{data, size}, size, decl, usage});
+    uint data_size = data.size();
+    submitPreFrameCommand(cmd::CreateVertexBuffer{handle, std::move(data), data_size, decl, usage});
     vertex_buffer_decl_[handle] = decl;
     return handle;
 }
@@ -171,10 +172,9 @@ void Renderer::setVertexBuffer(VertexBufferHandle handle) {
     submit_->current_item.vertex_decl_override = VertexDecl{};
 }
 
-void Renderer::updateVertexBuffer(VertexBufferHandle handle, const void* data, uint size,
-                                  uint offset) {
+void Renderer::updateVertexBuffer(VertexBufferHandle handle, Memory data, uint offset) {
     // TODO: Validate data.
-    submitPreFrameCommand(cmd::UpdateVertexBuffer{handle, Memory{data, size}, offset});
+    submitPreFrameCommand(cmd::UpdateVertexBuffer{handle, std::move(data), offset});
 
 #ifdef DW_DEBUG
     if (submit_->updated_vertex_buffers.count(handle) != 0) {
@@ -190,10 +190,11 @@ void Renderer::deleteVertexBuffer(VertexBufferHandle handle) {
     submitPostFrameCommand(cmd::DeleteVertexBuffer{handle});
 }
 
-IndexBufferHandle Renderer::createIndexBuffer(const void* data, uint size, IndexBufferType type,
+IndexBufferHandle Renderer::createIndexBuffer(Memory data, IndexBufferType type,
                                               BufferUsage usage) {
     auto handle = index_buffer_handle_.next();
-    submitPreFrameCommand(cmd::CreateIndexBuffer{handle, Memory{data, size}, size, type, usage});
+    uint data_size = data.size();
+    submitPreFrameCommand(cmd::CreateIndexBuffer{handle, std::move(data), data_size, type, usage});
     index_buffer_types_[handle] = type;
     return handle;
 }
@@ -203,10 +204,9 @@ void Renderer::setIndexBuffer(IndexBufferHandle handle) {
     submit_->current_item.ib_offset = 0;
 }
 
-void Renderer::updateIndexBuffer(IndexBufferHandle handle, const void* data, uint size,
-                                 uint offset) {
+void Renderer::updateIndexBuffer(IndexBufferHandle handle, Memory data, uint offset) {
     // TODO: Validate data.
-    submitPreFrameCommand(cmd::UpdateIndexBuffer{handle, Memory{data, size}, offset});
+    submitPreFrameCommand(cmd::UpdateIndexBuffer{handle, std::move(data), offset});
 
 #ifdef DW_DEBUG
     if (submit_->updated_index_buffers.count(handle) != 0) {
@@ -282,9 +282,9 @@ void Renderer::setIndexBuffer(TransientIndexBufferHandle handle) {
     submit_->current_item.ib_offset = (uint)(tib.data - submit_->transient_ib_storage.data);
 }
 
-ShaderHandle Renderer::createShader(ShaderStage stage, const void* data, u32 size) {
+ShaderHandle Renderer::createShader(ShaderStage stage, Memory data) {
     auto handle = shader_handle_.next();
-    submitPreFrameCommand(cmd::CreateShader{handle, stage, Memory{data, size}});
+    submitPreFrameCommand(cmd::CreateShader{handle, stage, std::move(data)});
     return handle;
 }
 
@@ -342,11 +342,10 @@ void Renderer::setUniform(const String& uniform_name, UniformData data) {
     submit_->current_item.uniforms[uniform_name] = data;
 }
 
-TextureHandle Renderer::createTexture2D(u16 width, u16 height, TextureFormat format,
-                                        const void* data, u32 size) {
+TextureHandle Renderer::createTexture2D(u16 width, u16 height, TextureFormat format, Memory data) {
     auto handle = texture_handle_.next();
     texture_data_[handle] = {width, height, format};
-    submitPreFrameCommand(cmd::CreateTexture2D{handle, width, height, format, Memory{data, size}});
+    submitPreFrameCommand(cmd::CreateTexture2D{handle, width, height, format, std::move(data)});
     return handle;
 }
 
@@ -362,7 +361,7 @@ void Renderer::deleteTexture(TextureHandle handle) {
 
 FrameBufferHandle Renderer::createFrameBuffer(u16 width, u16 height, TextureFormat format) {
     auto handle = frame_buffer_handle_.next();
-    auto texture_handle = createTexture2D(width, height, format, nullptr, 0);
+    auto texture_handle = createTexture2D(width, height, format, Memory());
     frame_buffer_textures_[handle] = {texture_handle};
     submitPreFrameCommand(cmd::CreateFrameBuffer{handle, width, height, {texture_handle}});
     return handle;
@@ -545,11 +544,11 @@ Vec2i Renderer::backbufferSize() const {
     return shared_render_context_->backbufferSize();
 }
 
-void Renderer::submitPreFrameCommand(RenderCommand&& command) {
+void Renderer::submitPreFrameCommand(RenderCommand command) {
     submit_->commands_pre.emplace_back(std::move(command));
 }
 
-void Renderer::submitPostFrameCommand(RenderCommand&& command) {
+void Renderer::submitPostFrameCommand(RenderCommand command) {
     submit_->commands_post.emplace_back(std::move(command));
 }
 

@@ -20,7 +20,7 @@
 namespace dw {
 namespace {
 Vector<byte> toVector(const flatbuffers::Vector<uint8_t>& v) {
-    return Vector<byte>(v.begin(), v.end());
+    return Vector<byte>(v.data(), v.data() + v.size());
 }
 }  // namespace
 

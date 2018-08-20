@@ -44,7 +44,7 @@ UserInterface::UserInterface(Context* ctx, EventSystem* event_system)
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
         rhi::TextureHandle handle =
             rhi_->createTexture2D(static_cast<u16>(width), static_cast<u16>(height),
-                                  rhi::TextureFormat::RGBA8, pixels, width * height * 4);
+                                  rhi::TextureFormat::RGBA8, Memory(pixels, width * height * 4));
         io.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(handle.internal()));
 
         // Set up key map.

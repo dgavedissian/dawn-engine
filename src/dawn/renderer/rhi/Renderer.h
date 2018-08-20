@@ -405,17 +405,17 @@ public:
               bool use_render_thread);
 
     /// Create vertex buffer.
-    VertexBufferHandle createVertexBuffer(const void* data, uint size, const VertexDecl& decl,
+    VertexBufferHandle createVertexBuffer(Memory data, const VertexDecl& decl,
                                           BufferUsage usage = BufferUsage::Static);
     void setVertexBuffer(VertexBufferHandle handle);
-    void updateVertexBuffer(VertexBufferHandle handle, const void* data, uint size, uint offset);
+    void updateVertexBuffer(VertexBufferHandle handle, Memory data, uint offset);
     void deleteVertexBuffer(VertexBufferHandle handle);
 
     /// Create index buffer.
-    IndexBufferHandle createIndexBuffer(const void* data, uint size, IndexBufferType type,
+    IndexBufferHandle createIndexBuffer(Memory data, IndexBufferType type,
                                         BufferUsage usage = BufferUsage::Static);
     void setIndexBuffer(IndexBufferHandle handle);
-    void updateIndexBuffer(IndexBufferHandle handle, const void* data, uint size, uint offset);
+    void updateIndexBuffer(IndexBufferHandle handle, Memory data, uint offset);
     void deleteIndexBuffer(IndexBufferHandle handle);
 
     /// Transient vertex buffer.
@@ -430,7 +430,7 @@ public:
     void setIndexBuffer(TransientIndexBufferHandle handle);
 
     /// Create shader.
-    ShaderHandle createShader(ShaderStage type, const void* data, uint size);
+    ShaderHandle createShader(ShaderStage type, Memory data);
     void deleteShader(ShaderHandle handle);
 
     /// Create program.
@@ -450,8 +450,7 @@ public:
     void setUniform(const String& uniform_name, UniformData data);
 
     // Create texture.
-    TextureHandle createTexture2D(u16 width, u16 height, TextureFormat format, const void* data,
-                                  u32 size);
+    TextureHandle createTexture2D(u16 width, u16 height, TextureFormat format, Memory data);
     void setTexture(TextureHandle handle, uint sampler_unit);
     // get texture information.
     void deleteTexture(TextureHandle handle);
@@ -555,8 +554,8 @@ private:
     Frame* render_;
 
     // Add a command to the submit thread.
-    void submitPreFrameCommand(RenderCommand&& command);
-    void submitPostFrameCommand(RenderCommand&& command);
+    void submitPreFrameCommand(RenderCommand command);
+    void submitPostFrameCommand(RenderCommand command);
 
     // Renderer.
     UniquePtr<RenderContext> shared_render_context_;

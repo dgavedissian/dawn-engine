@@ -45,14 +45,15 @@ struct CProjectile : public Component {
     int type;
     int particle_id;
     Vec3 position;
+    Vec3 direction;
     Vec3 velocity;
     Colour colour;
 
     // Replication layout.
     static RepLayout repLayout() {
         return {{RepProperty::bind<CProjectile>(&CProjectile::type),
-                 RepProperty::bind<CProjectile>(&CProjectile::particle_id),
                  RepProperty::bind<CProjectile>(&CProjectile::position),
+                 RepProperty::bind<CProjectile>(&CProjectile::direction),
                  RepProperty::bind<CProjectile>(&CProjectile::velocity),
                  RepProperty::bind<CProjectile>(&CProjectile::colour)},
                 {}};

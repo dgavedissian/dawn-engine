@@ -71,7 +71,7 @@ Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* f
                                                    {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
                                                    {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
                                                    {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}})
-                        .addComponent<CWeapon>(0, 300.0f, Colour{1.0f, 1.0f, 1.0f}, 0.5f);
+                        .addComponent<CWeapon>(0, 600.0f, Colour{1.0f, 1.0f, 1.0f}, 0.3f);
     auto node = ship_entity_->component<CTransform>()->node;
     node->newChild(Vec3{13.0f, -0.5f, 7.0f}, Quat::identity)->data.renderable = part_wing;
     node->newChild(Vec3{-13.0f, -0.5f, 7.0f}, Quat::identity, Vec3{-1.0f, 1.0f, 1.0f})

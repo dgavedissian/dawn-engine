@@ -181,10 +181,8 @@ bool Mesh::beginLoad(const String& asset_name, InputStream& is) {
         .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
         .add(rhi::VertexDecl::Attribute::Normal, 3, rhi::VertexDecl::AttributeType::Float)
         .end();
-    vertex_buffer_ = makeShared<VertexBuffer>(
-        context(), vertices.data(), vertices.size() * sizeof(Vertex), vertices.size(), decl);
-    index_buffer_ = makeShared<IndexBuffer>(context(), indices.data(), indices.size(),
-                                            rhi::IndexBufferType::U32);
+    vertex_buffer_ = makeShared<VertexBuffer>(context(), Memory(vertices), vertices.size(), decl);
+    index_buffer_ = makeShared<IndexBuffer>(context(), Memory(indices), rhi::IndexBufferType::U32);
 
     // Set up node hierarchy.
     Function<UniquePtr<Node>(aiNode*, Node*)> create_node_tree =
