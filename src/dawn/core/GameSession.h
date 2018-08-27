@@ -14,24 +14,24 @@
 namespace dw {
 struct DW_API GameSessionInfo {
     struct CreateLocalGame {
-        String scene_name;
+        String scene_name = "unknown";
     };
 
     struct CreateNetGame {
-        String host;  // host to bind to. usually 127.0.0.1.
-        u16 port;
-        u16 max_clients;
-        String scene_name;
+        String host = "localhost";  // host to bind to. usually 127.0.0.1.
+        u16 port = 10000;
+        u16 max_clients = 16;
+        String scene_name = "unknown";
         // TODO: Transport.
     };
 
     struct JoinNetGame {
-        String host;
-        u16 port;
+        String host = "localhost";
+        u16 port = 10000;
         // TODO: Transport.
     };
 
-    Variant<CreateLocalGame, CreateNetGame, JoinNetGame> start_info;
+    Variant<CreateLocalGame, CreateNetGame, JoinNetGame> start_info = CreateLocalGame{};
 
     // Graphics settings.
     bool headless = false;
@@ -75,10 +75,10 @@ public:
 protected:
     GameSessionInfo gsi_;
 
+    UniquePtr<EventSystem> event_system_;
     UniquePtr<UserInterface> ui_;
     UniquePtr<SceneGraph> scene_graph_;
     UniquePtr<SceneManager> scene_manager_;
-    UniquePtr<EventSystem> event_system_;
     UniquePtr<NetInstance> net_instance_;
 
     /// Sets a new game mode.
