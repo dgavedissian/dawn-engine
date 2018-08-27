@@ -6,16 +6,51 @@
 #include "renderer/MeshBuilder.h"
 #include "core/Timer.h"
 #include "scene/CTransform.h"
+#include "renderer/CCamera.h"
+#include "renderer/SceneGraph.h"
 
 using namespace dw;
 
-template <typename T> class Example : public App {
+class Example : public Object {
 public:
-    DW_OBJECT(Example<T>);
+    DW_OBJECT(Example);
 
-    void init(int, char**) override {
-        example_ = makeUnique<T>(context_, engine_);
-        example_->start();
+    Example(Context* ctx, const Engine* engine, const GameSession* session)
+        : Object(ctx), r{ctx->module<Renderer>()->rhi()}, engine_{engine}, session_{session} {
+    }
+
+    u16 width() const {
+        return context()->config().at("window_width").get<u16>();
+    }
+
+    u16 height() const {
+        return context()->config().at("window_height").get<u16>();
+    }
+
+    virtual void start() = 0;
+    virtual void render() = 0;
+    virtual void stop() = 0;
+
+    rhi::Renderer* r;
+    const Engine* engine_;
+    const GameSession* session_;
+};
+
+template <typename... T> class ExampleApp : public App {
+public:
+    DW_OBJECT(ExampleApp<T...>);
+
+    Vector<SharedPtr<Example>> examples_;
+    Example* current_example_;
+    int frame_id_;
+
+    ExampleApp() : current_example_(nullptr), frame_id_(0) {
+    }
+
+    void init(const CommandLine&) override {
+        auto session = makeUnique<GameSession>(context(), GameSessionInfo{});
+        examples_ = {makeShared<T>(context_, engine_, session.get())...};
+        engine_->addSession(std::move(session));
     }
 
     void render(float) override {
@@ -34,22 +69,45 @@ public:
         }
 
         // Display FPS information.
-        ImGui::SetNextWindowSize({280, 200});
+        ImGui::SetNextWindowPos({ 0, 0 });
+        ImGui::SetNextWindowSize({280, 130});
         ImGui::Begin("FPS");
         ImGui::Text("FPS: %f", current_fps);
-        ImGui::PlotLines("", fps_history, FPS_HISTORY_COUNT, 0, nullptr, 0.0f, 1000.0f, {250, 150});
+        ImGui::PlotLines("", fps_history, FPS_HISTORY_COUNT, 0, nullptr, 0.0f, 1000.0f, {250, 80});
+        ImGui::End();
+
+        // Display example list.
+        ImGui::SetNextWindowPos({ 0, 130 });
+        ImGui::SetNextWindowSize({180, 250});
+        ImGui::Begin("Examples");
+        for (auto& example : examples_) {
+            if (ImGui::Button(example->typeName().c_str())) {
+                if (current_example_) {
+                    current_example_->stop();
+                }
+                current_example_ = example.get();
+                current_example_->start();
+                frame_id_ = 0;
+            }
+        }
         ImGui::End();
 
         // Render example.
-        example_->render();
+        if (current_example_) {
+            current_example_->render();
+            frame_id_++;
+        }
     }
 
     void update(float) override {
     }
 
     void shutdown() override {
-        example_->stop();
-        example_.reset();
+        if (current_example_) {
+            current_example_->stop();
+            current_example_ = nullptr;
+        }
+        examples_.clear();
     }
 
     String gameName() override {
@@ -59,30 +117,16 @@ public:
     String gameVersion() override {
         return "1.0.0";
     }
-
-private:
-    UniquePtr<T> example_;
 };
 
-#define TEST_CLASS_NAME(test_name) test_name##Test
-#define TEST_CLASS(test_name) class TEST_CLASS_NAME(test_name) : public Object
-#define TEST_BODY(test_name)                                                        \
-                                                                                    \
-public:                                                                             \
-    DW_OBJECT(TEST_CLASS_NAME(test_name));                                          \
-    TEST_CLASS_NAME(test_name)                                                      \
-    (Context * context, const Engine* engine)                                       \
-        : Object{context}, r{context->module<Renderer>()->rhi()}, engine_{engine} { \
-    }                                                                               \
-    u16 width() const {                                                             \
-        return context()->config().at("window_width").get<u16>();                   \
-    }                                                                               \
-    u16 height() const {                                                            \
-        return context()->config().at("window_height").get<u16>();                  \
-    }                                                                               \
-    rhi::Renderer* r;                                                               \
-    const Engine* engine_
-#define TEST_IMPLEMENT_MAIN(test_name) DW_IMPLEMENT_MAIN(Example<TEST_CLASS_NAME(test_name)>)
+#define TEST_CLASS(test_name) class test_name : public Example
+#define TEST_BODY(test_name)                                                  \
+public:                                                                       \
+    DW_OBJECT(test_name)                                                      \
+    test_name(Context* ctx, const Engine* engine, const GameSession* session) \
+        : Example(ctx, engine, session) {                                     \
+    }
+#define TEST_IMPLEMENT_MAIN(...) DW_IMPLEMENT_MAIN(ExampleApp<__VA_ARGS__>)
 
 // Utils
 namespace util {
@@ -106,7 +150,7 @@ uint createFullscreenQuad(rhi::Renderer* r, rhi::VertexBufferHandle& vb) {
         .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
         .add(rhi::VertexDecl::Attribute::TexCoord0, 2, rhi::VertexDecl::AttributeType::Float)
         .end();
-    vb = r->createVertexBuffer(vertices, sizeof(vertices), decl);
+    vb = r->createVertexBuffer(Memory(vertices, sizeof(vertices)), decl);
     return 3;
 }
 
@@ -154,7 +198,7 @@ TEST_CLASS(BasicVertexBuffer) {
             .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
             .add(rhi::VertexDecl::Attribute::Colour, 4, rhi::VertexDecl::AttributeType::Uint8, true)
             .end();
-        vb_ = r->createVertexBuffer(vertices, sizeof(vertices), decl);
+        vb_ = r->createVertexBuffer(Memory(vertices, sizeof(vertices)), decl);
     }
 
     void render() {
@@ -198,10 +242,10 @@ TEST_CLASS(BasicIndexBuffer) {
             .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
             .add(rhi::VertexDecl::Attribute::Colour, 3, rhi::VertexDecl::AttributeType::Float)
             .end();
-        vb_ = r->createVertexBuffer(vertices, sizeof(vertices), decl);
+        vb_ = r->createVertexBuffer(Memory(vertices, sizeof(vertices)), decl);
 
         u32 elements[] = {0, 2, 1, 2, 0, 3};
-        ib_ = r->createIndexBuffer(elements, sizeof(elements), rhi::IndexBufferType::U32);
+        ib_ = r->createIndexBuffer(Memory(elements, sizeof(elements)), rhi::IndexBufferType::U32);
     }
 
     void render() {
@@ -522,10 +566,9 @@ TEST_CLASS(DeferredShading) {
 
         // Set up frame buffer.
         auto format = rhi::TextureFormat::RGBA32F;
-        gbuffer_ =
-            r->createFrameBuffer({r->createTexture2D(width(), height(), format, nullptr, 0),
-                                  r->createTexture2D(width(), height(), format, nullptr, 0),
-                                  r->createTexture2D(width(), height(), format, nullptr, 0)});
+        gbuffer_ = r->createFrameBuffer({r->createTexture2D(width(), height(), format, Memory()),
+                                         r->createTexture2D(width(), height(), format, Memory()),
+                                         r->createTexture2D(width(), height(), format, Memory())});
 
         // Load post process shader.
         auto pp_vs =
@@ -615,8 +658,8 @@ TEST_CLASS(MovingSphereHighLevel) {
 
     void start() {
         auto rc = module<ResourceCache>();
-        auto scene = module<SceneManager>();
-        auto renderer = module<Renderer>();
+        auto scene = session_->sceneManager();
+        auto scene_graph = session_->sceneGraph();
 
         // Set up resource cache.
         assert(rc);
@@ -624,7 +667,7 @@ TEST_CLASS(MovingSphereHighLevel) {
         rc->addPath("renderer-test", "../media/renderer-test");
 
         // Set up the environment.
-        auto* frame = renderer->sceneGraph().addFrame(&renderer->rootNode());
+        auto* frame = scene_graph->addFrame(&scene_graph->root());
 
         // Create an object.
         auto material = makeShared<Material>(
@@ -643,12 +686,17 @@ TEST_CLASS(MovingSphereHighLevel) {
         // Create another object, not an entity, which is stored in a system node.
         auto cube = MeshBuilder(context()).normals(true).createBox(100.0f);
         cube->setMaterial(material);
-        cube_node = renderer->sceneGraph().root().newChild(SystemPosition{300.0f, 300.0f, -750.0f});
+        cube_node = scene_graph->root().newChild(SystemPosition{300.0f, 300.0f, -750.0f});
         cube_node->data.renderable = cube;
 
         // Create a camera.
         camera = &scene->createEntity(1, {0.0f, 0.0f, 60.0f}, Quat::identity, *frame);
         camera->addComponent<CCamera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+    }
+
+    void stop() {
+        session_->sceneManager()->removeEntity(object);
+        session_->sceneManager()->removeEntity(camera);
     }
 
     void render() {
@@ -662,11 +710,7 @@ TEST_CLASS(MovingSphereHighLevel) {
 
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
     }
-
-    void stop() {
-        module<SceneManager>()->removeEntity(object);
-        module<SceneManager>()->removeEntity(camera);
-    }
 };
 
-TEST_IMPLEMENT_MAIN(MovingSphereHighLevel);
+TEST_IMPLEMENT_MAIN(BasicVertexBuffer, BasicIndexBuffer, TransientIndexBuffer, Textured3DCube,
+                    PostProcessing, DeferredShading, MovingSphereHighLevel);

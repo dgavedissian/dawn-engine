@@ -14,6 +14,8 @@
 #include "renderer/BillboardSet.h"
 #include "renderer/Mesh.h"
 #include "ui/Imgui.h"
+#include "renderer/SceneGraph.h"
+#include "renderer/CCamera.h"
 
 using namespace dw;
 
@@ -77,7 +79,8 @@ class Planet : public Object {
 public:
     DW_OBJECT(Planet);
 
-    Planet(Context* ctx, float radius, float terrain_max_height, Entity* camera)
+    Planet(Context* ctx, SceneGraph* scene_graph, float radius, float terrain_max_height,
+           Entity* camera)
         : Object{ctx},
           camera_{camera},
           planet_{nullptr},
@@ -88,9 +91,7 @@ public:
           run_update_thread_{true},
           terrain_patches_{},
           t_output_ready_{false} {
-        auto universe = module<SceneManager>();
         auto rc = module<ResourceCache>();
-        auto renderer = module<Renderer>();
 
         // Set up material.
         auto material = makeShared<Material>(
@@ -105,7 +106,7 @@ public:
         setupTerrainRenderable();
         custom_mesh_renderable_->setMaterial(material);
 
-        planet_ = renderer->rootNode().newChild(SystemPosition::origin);
+        planet_ = scene_graph->root().newChild(SystemPosition::origin);
         planet_->data.renderable = custom_mesh_renderable_;
 
         // Kick off terrain update thread.
@@ -241,10 +242,9 @@ private:
         int default_index_count = 20;
         custom_mesh_renderable_ = makeShared<CustomMeshRenderable>(
             context(),
-            makeShared<VertexBuffer>(context(), nullptr,
-                                     default_vertex_count * vertex_decl.stride(),
+            makeShared<VertexBuffer>(context(), Memory(default_vertex_count * vertex_decl.stride()),
                                      default_vertex_count, vertex_decl, rhi::BufferUsage::Dynamic),
-            makeShared<IndexBuffer>(context(), nullptr, default_index_count * sizeof(u32),
+            makeShared<IndexBuffer>(context(), Memory(default_index_count * sizeof(u32)),
                                     rhi::IndexBufferType::U32, rhi::BufferUsage::Dynamic));
 
         // Setup patches.
@@ -301,11 +301,8 @@ private:
     void uploadTerrainDataToGpu(const Vector<PlanetTerrainPatch::Vertex>& vertices,
                                 const Vector<u32>& indices) {
         // Upload to GPU.
-        custom_mesh_renderable_->vertexBuffer()->update(
-            vertices.data(), sizeof(PlanetTerrainPatch::Vertex) * vertices.size(), vertices.size(),
-            0);
-        custom_mesh_renderable_->indexBuffer()->update(indices.data(), sizeof(u32) * indices.size(),
-                                                       0);
+        custom_mesh_renderable_->vertexBuffer()->update(Memory{vertices}, vertices.size(), 0);
+        custom_mesh_renderable_->indexBuffer()->update(Memory{indices}, 0);
     }
 
     friend class PlanetTerrainPatch;
@@ -516,37 +513,38 @@ int PlanetTerrainPatch::sharedEdgeWith(PlanetTerrainPatch* patch, int hint) {
     return 0;
 }
 
-class Sandbox : public App {
+class SandboxSession : public GameSession {
 public:
-    DW_OBJECT(Sandbox);
+    DW_OBJECT(SandboxSession);
 
     SharedPtr<CameraController> camera_controller;
     SharedPtr<Planet> planet_;
 
-    void init(int argc, char** argv) override {
-        auto rc = module<ResourceCache>();
-        assert(rc);
-        rc->addPath("base", "../media/base");
-        rc->addPath("sandbox", "../media/sandbox");
-
+    SandboxSession(Context* ctx, const GameSessionInfo& gsi) : GameSession(ctx, gsi) {
+        module<Input>()->registerEventSystem(event_system_.get());
         const float radius = 1000.0f;
 
         // Create frame.
-        auto frame =
-            module<Renderer>()->sceneGraph().addFrame(module<Renderer>()->rootNode().newChild());
+        auto frame = scene_graph_->addFrame(scene_graph_->root().newChild());
 
         // Create a camera.
-        auto& camera = module<SceneManager>()
-                           ->createEntity(0, Vec3::zero, Quat::identity, *frame)
-                           .addComponent<CCamera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
-        camera_controller = makeShared<CameraController>(context(), 300.0f);
+        auto& camera = scene_manager_->createEntity(0, Vec3(0.0f, 0.0f, radius * 2.0f),
+                                                    Quat::identity, *frame);
+        camera.addComponent<CCamera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
+        camera_controller = makeShared<CameraController>(context(), event_system_.get(), 300.0f);
         camera_controller->possess(&camera);
 
         // Create a planet.
-        planet_ = makeShared<Planet>(context(), radius, 40.0f, &camera);
+        planet_ = makeShared<Planet>(context(), scene_graph_.get(), radius, 40.0f, &camera);
+    }
+
+    ~SandboxSession() override {
+        module<Input>()->unregisterEventSystem(event_system_.get());
     }
 
     void update(float dt) override {
+        GameSession::update(dt);
+
         // Calculate distance to planet and adjust acceleration accordingly.
         auto& a = camera_controller->possessed()->transform()->position;
         auto& b = planet_->position();
@@ -555,6 +553,27 @@ public:
 
         camera_controller->update(dt);
         planet_->update(dt);
+    }
+
+    void render(float interpolation) override {
+        GameSession::render(interpolation);
+    }
+};
+
+class Sandbox : public App {
+public:
+    DW_OBJECT(Sandbox);
+
+    void init(const CommandLine& cmdline) override {
+        auto rc = module<ResourceCache>();
+        assert(rc);
+        rc->addPath("base", "../media/base");
+        rc->addPath("sandbox", "../media/sandbox");
+
+        engine_->addSession(makeUnique<SandboxSession>(context(), GameSessionInfo{}));
+    }
+
+    void update(float dt) override {
     }
 
     void render(float) override {
