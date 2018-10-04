@@ -12,7 +12,7 @@ class DW_API CameraController : public Object {
 public:
     DW_OBJECT(CameraController);
 
-    CameraController(Context* context, float acceleration);
+    CameraController(Context* context, EventSystem* event_system, float acceleration);
     ~CameraController();
 
     void setAcceleration(float acceleration);
@@ -23,6 +23,7 @@ public:
     void update(float dt);
 
 private:
+    EventSystem* event_system_;
     Entity* possessed_;
 
     Vec3 velocity_;

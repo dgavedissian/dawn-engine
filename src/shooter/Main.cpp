@@ -7,7 +7,8 @@
 #include "CProjectile.h"
 #include "CWeapon.h"
 #include "ShooterGameMode.h"
-#include "gameplay/GameSession.h"
+#include "core/GameSession.h"
+#include "renderer/SceneGraph.h"
 
 using namespace dw;
 
@@ -18,9 +19,12 @@ public:
     ShooterGameSession(Context* ctx, const GameSessionInfo& gsi) : GameSession(ctx, gsi) {
         auto rc = module<ResourceCache>();
 
+        if (!net_instance_ || net_instance_->isClient()) {
+            module<Input>()->registerEventSystem(event_system_.get());
+        }
+
         // Create frame.
-        auto* frame = module<Renderer>()->sceneGraph().addFrame(
-            module<Renderer>()->sceneGraph().root().newChild());
+        auto* frame = scene_graph_->addFrame(scene_graph_->root().newChild());
 
         // Set up game.
         auto entity_pipeline = makeShared<ShooterEntityPipeline>(context(), scene_manager_.get(),
@@ -37,11 +41,13 @@ public:
         scene_manager_->addSystem<SWeapon>();
 
         // Start the game.
-        setGameMode(makeShared<ShooterGameMode>(context(), scene_manager_.get(),
-                                                net_instance_.get(), frame, entity_pipeline));
+        setGameMode(makeShared<ShooterGameMode>(context(), this, frame, entity_pipeline));
     }
 
     ~ShooterGameSession() override {
+        if (!net_instance_ || net_instance_->isClient()) {
+            module<Input>()->unregisterEventSystem(event_system_.get());
+        }
     }
 
     void update(float dt) override {
@@ -60,16 +66,32 @@ public:
         rc->addPath("base", "../media/base");
         rc->addPath("shooter", "../media/shooter");
 
-        // Add game session.
-        GameSessionInfo gsi;
-        auto port_arg = cmdline.arguments.find("-p");
-        u16 port = port_arg != cmdline.arguments.end() ? std::stoi(port_arg->second) : 40000;
-        if (cmdline.flags.find("-host") != cmdline.flags.end()) {
-            gsi.start_info = GameSessionInfo::CreateGame{"127.0.0.1", port, 32, "TestScene"};
-        } else if (cmdline.arguments.find("-join") != cmdline.arguments.end()) {
-            gsi.start_info = GameSessionInfo::JoinGame{cmdline.arguments.at("-join"), port};
+        // Add multiple game sessions
+        if (cmdline.flags.find("-two_sessions") != cmdline.flags.end()) {
+            const u16 port = 40000;
+
+            GameSessionInfo server_session;
+            server_session.start_info =
+                GameSessionInfo::CreateNetGame{"127.0.0.1", port, 32, "TestScene"};
+            server_session.headless = true;
+            GameSessionInfo client_session;
+            client_session.start_info = GameSessionInfo::JoinNetGame{"127.0.0.1", port};
+
+            engine_->addSession(makeUnique<ShooterGameSession>(context(), server_session));
+            engine_->addSession(makeUnique<ShooterGameSession>(context(), client_session));
+        } else {
+            // Add game session.
+            GameSessionInfo gsi;
+            auto port_arg = cmdline.arguments.find("-p");
+            u16 port = port_arg != cmdline.arguments.end() ? std::stoi(port_arg->second) : 40000;
+            if (cmdline.flags.find("-host") != cmdline.flags.end()) {
+                gsi.start_info = GameSessionInfo::CreateNetGame{"127.0.0.1", port, 32, "TestScene"};
+            } else if (cmdline.arguments.find("-join") != cmdline.arguments.end()) {
+                gsi.start_info = GameSessionInfo::JoinNetGame{cmdline.arguments.at("-join"), port};
+            }
+            gsi.headless = cmdline.flags.find("-headless") != cmdline.flags.end();
+            engine_->addSession(makeUnique<ShooterGameSession>(context(), gsi));
         }
-        module<GameplayModule>()->addSession(makeUnique<ShooterGameSession>(context(), gsi));
     }
 
     void update(float dt) override {

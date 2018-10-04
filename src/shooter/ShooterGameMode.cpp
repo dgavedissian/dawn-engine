@@ -3,6 +3,9 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "ShooterGameMode.h"
+#include "core/GameSession.h"
+#include "renderer/CCamera.h"
+#include "renderer/SceneGraph.h"
 
 ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx, SceneManager* scene_manager,
                                              NetInstance* net, Frame* frame)
@@ -29,19 +32,20 @@ Entity* ShooterEntityPipeline::createEntityFromType(EntityId entity_id, EntityTy
     }
 }
 
-ShooterGameMode::ShooterGameMode(Context* ctx, SceneManager* scene_manager, NetInstance* net,
-                                 Frame* frame, SharedPtr<ShooterEntityPipeline> entity_pipeline)
-    : NetGameMode(ctx, scene_manager, net), frame_(frame), entity_pipeline_(entity_pipeline) {
+ShooterGameMode::ShooterGameMode(Context* ctx, GameSession* session, Frame* frame,
+                                 SharedPtr<ShooterEntityPipeline> entity_pipeline)
+    : NetGameMode(ctx, session), frame_(frame), entity_pipeline_(entity_pipeline) {
 }
 
 void ShooterGameMode::clientOnJoinServer() {
     log().info("Client: connected to server.");
-    net_->sendSpawnRequest(Hash("Ship"),
-                           [this](Entity& entity) {
-                               log().info("Received spawn response. Triggering callback.");
-                               camera_controller_->follow(&entity);
-                           },
-                           /* authoritative_proxy */ true);
+    session_->net()->sendSpawnRequest(
+        Hash("Ship"),
+        [this](Entity& entity) {
+            log().info("Received spawn response. Triggering callback.");
+            camera_controller_->follow(&entity);
+        },
+        /* authoritative_proxy */ true);
 }
 
 void ShooterGameMode::serverOnStart() {
@@ -58,7 +62,7 @@ void ShooterGameMode::serverOnClientDisconnected() {
 void ShooterGameMode::onStart() {
     NetGameMode::onStart();
 
-    scene_manager_->createStarSystem();
+    session_->sceneManager()->createStarSystem();
 
     // Random thing.
     auto rc = module<ResourceCache>();
@@ -70,20 +74,21 @@ void ShooterGameMode::onStart() {
     material->setUniform("surface_sampler", 0);
     auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(4000.0f);
     renderable->setMaterial(material);
-    auto planet = module<Renderer>()->sceneGraph().root().newChild(
-        SystemPosition{12000.0f, 0.0f, -6000.0f}, Quat::identity);
+    auto planet = session_->sceneGraph()->root().newChild(SystemPosition{12000.0f, 0.0f, -6000.0f},
+                                                          Quat::identity);
     planet->data.renderable = renderable;
 
     // Create a camera.
-    auto& camera = scene_manager_->createEntity(0, {0.0f, 0.0f, 50.0f}, Quat::identity, *frame_);
+    auto& camera =
+        session_->sceneManager()->createEntity(0, {0.0f, 0.0f, 50.0f}, Quat::identity, *frame_);
     camera.addComponent<CCamera>(0.1f, 1000000.0f, 60.0f, 1280.0f / 800.0f);
     camera_controller_ = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
     camera_controller_->possess(&camera);
 
     // If we're running a local-only game, spawn a player.
-    if (!net_) {
-        auto new_ship = makeShared<Ship>(context(), net_, scene_manager_, frame_,
-                                         scene_manager_->reserveEntityId(), NetRole::None);
+    if (!session_->net()) {
+        auto new_ship = makeShared<Ship>(context(), session_->net(), session_->sceneManager(), frame_,
+            session_->sceneManager()->reserveEntityId(), NetRole::None);
         camera_controller_->follow(new_ship->entity());
         entity_pipeline_->ship_list_.emplace_back(new_ship);
     }

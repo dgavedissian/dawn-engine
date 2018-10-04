@@ -4,14 +4,14 @@
  */
 #pragma once
 
-#include "gameplay/GameMode.h"
+#include "core/GameMode.h"
 
 namespace dw {
 class DW_API NetGameMode : public GameMode {
 public:
     DW_OBJECT(NetGameMode)
 
-    NetGameMode(Context* ctx, SceneManager* scene_manager, NetInstance* net);
+    NetGameMode(Context* ctx, GameSession* session);
     virtual ~NetGameMode();
 
     /// Called on the client when it joins a server.
@@ -36,9 +36,6 @@ public:
     virtual void onStart() override;
     virtual void onEnd() override;
     virtual void update(float dt) override;
-
-protected:
-    NetInstance* net_;
 
 private:
     void eventOnJoinServer(const JoinServerEvent&);

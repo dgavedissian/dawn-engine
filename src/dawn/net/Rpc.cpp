@@ -19,7 +19,7 @@ void RpcSenderBase::initInternal(CNetData* net_data, Logger* logger, RpcId rpc_i
 
 void RpcSenderBase::sendServerRpc(const OutputBitStream& payload) {
     assert(net_data_);
-    net_data_->sendRpc(rpc_id_, RpcType::Server, payload.data());
+    net_data_->sendRpc(rpc_id_, RpcType::Server, payload.vec_data());
 }
 
 void RpcSenderBase::sendClientRpc(const OutputBitStream& payload) {
@@ -27,7 +27,7 @@ void RpcSenderBase::sendClientRpc(const OutputBitStream& payload) {
     if (net_data_->role() != NetRole::AuthoritativeProxy) {
         logger_->warn("Trying to send a client RPC from a non-authoritative proxy.");
     } else {
-        net_data_->sendRpc(rpc_id_, RpcType::Client, payload.data());
+        net_data_->sendRpc(rpc_id_, RpcType::Client, payload.vec_data());
     }
 }
 }  // namespace dw

@@ -82,7 +82,6 @@ Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const V
     }
 
     render_data.billboard_set->setParticleVisible(billboard_id.get(), true);
-    render_data.billboard_set->setParticleDirection(billboard_id.get(), direction);
 
     auto& entity = scene_manager_->createEntity(Hash("Projectile"));
     entity.addComponent<CProjectile>();

@@ -17,7 +17,7 @@
 #include "core/StringUtils.h"
 #include "core/App.h"
 #include "core/Engine.h"
-#include "gameplay/GameplayModule.h"
+#include "core/GameSession.h"
 #include "net/NetInstance.h"
 #include "input/Input.h"
 #include "renderer/CustomMeshRenderable.h"

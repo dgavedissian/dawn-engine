@@ -6,11 +6,15 @@
 #include "net/BitStream.h"
 
 namespace dw {
-InputBitStream::InputBitStream(const Vector<u8>& data) : data_(data) {
+InputBitStream::InputBitStream(const byte* data, u32 length) : data_(data), length_(length) {
+}
+
+InputBitStream::InputBitStream(const Vector<byte>& data)
+    : data_(data.data()), length_(data.size()) {
 }
 
 u32 InputBitStream::readData(void* dest, u32 size) {
-    memcpy(dest, data_.data() + position_, size);
+    memcpy(dest, data_ + position_, size);
     position_ += size;
     return size;
 }
@@ -19,8 +23,12 @@ void InputBitStream::seek(u64 position) {
     position_ = position;
 }
 
-const Vector<u8>& InputBitStream::data() const {
+const byte* InputBitStream::data() const {
     return data_;
+}
+
+u32 InputBitStream::length() const {
+    return length_;
 }
 
 OutputBitStream::OutputBitStream(u32 bytes_to_reserve) {
@@ -34,7 +42,15 @@ u32 OutputBitStream::writeData(const void* src, u32 size) {
     return size;
 }
 
-const Vector<u8>& OutputBitStream::data() const {
+const Vector<byte>& OutputBitStream::vec_data() const {
     return data_;
+}
+
+const byte* OutputBitStream::data() const {
+    return data_.data();
+}
+
+u32 OutputBitStream::length() const {
+    return data_.size();
 }
 }  // namespace dw

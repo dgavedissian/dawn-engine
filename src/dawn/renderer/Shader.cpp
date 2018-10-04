@@ -172,8 +172,7 @@ bool Shader::beginLoad(const String&, InputStream& src) {
     }
     Vector<u32> spirv_out;
     glslang::GlslangToSpv(*program.getIntermediate(stage), spirv_out);
-    handle_ = module<Renderer>()->rhi()->createShader(type_, spirv_out.data(),
-                                                      spirv_out.size() * sizeof(u32));
+    handle_ = module<Renderer>()->rhi()->createShader(type_, Memory(spirv_out));
 
     return true;
 }

@@ -42,7 +42,7 @@ public:
     friend DW_API int runApp(UniquePtr<App> app, int argc, char** argv);
 
 protected:
-    const Engine* engine_;
+    Engine* engine_;
 };
 
 DW_API int runApp(UniquePtr<App> app, int argc, char** argv);

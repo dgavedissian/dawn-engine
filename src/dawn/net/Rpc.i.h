@@ -49,7 +49,7 @@ void Rpc::RpcBindingImpl<Component, Type, Args...>::onAddToEntity(Entity& entity
 }
 
 template <typename Component, RpcType Type, typename... Args>
-void Rpc::RpcBindingImpl<Component, Type, Args...>::receiveRpc(const Vector<u8>& payload) {
+void Rpc::RpcBindingImpl<Component, Type, Args...>::receiveRpc(const Vector<byte>& payload) {
     InputBitStream bs(payload);
     (component_->*handler_)(stream::read<Args>(bs)...);
 }

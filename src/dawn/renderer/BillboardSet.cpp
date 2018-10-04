@@ -59,10 +59,10 @@ BillboardSet::BillboardSet(Context* ctx, u32 particle_count, const Vec2& particl
         .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
         .add(rhi::VertexDecl::Attribute::TexCoord0, 2, rhi::VertexDecl::AttributeType::Float)
         .end();
-    vb_ = makeShared<VertexBuffer>(ctx, nullptr, vertex_count * sizeof(ParticleVertex),
-                                   vertex_count, decl, rhi::BufferUsage::Dynamic);
+    vb_ = makeShared<VertexBuffer>(ctx, Memory(vertex_count * sizeof(ParticleVertex)), vertex_count,
+                                   decl, rhi::BufferUsage::Dynamic);
     ib_ =
-        makeShared<IndexBuffer>(ctx, nullptr, index_count * sizeof(u32), rhi::IndexBufferType::U32);
+        makeShared<IndexBuffer>(ctx, Memory(index_count * sizeof(u32)), rhi::IndexBufferType::U32);
 
     // Initialise data stores.
     resize(particle_count);
@@ -93,7 +93,7 @@ void BillboardSet::resize(u32 particle_count) {
         index_data_[i * 6 + 4] = start_vertex + 2;
         index_data_[i * 6 + 5] = start_vertex + 3;
     }
-    ib_->update(index_data_.data(), static_cast<uint>(index_data_.size()) * sizeof(u32), 0);
+    ib_->update(Memory(index_data_.data(), static_cast<uint>(index_data_.size()) * sizeof(u32)), 0);
 }
 
 void BillboardSet::setBillboardType(BillboardType type) {
@@ -163,9 +163,7 @@ void BillboardSet::update(detail::Transform& camera_transform) {
     }
 
     // Update vertex buffer.
-    vb_->update(vertex_data_.data(),
-                static_cast<uint>(vertex_data_.size()) * sizeof(ParticleVertex),
-                static_cast<uint>(vertex_data_.size()), 0);
+    vb_->update(Memory(vertex_data_), static_cast<uint>(vertex_data_.size()), 0);
     vertex_data_.clear();
 }
 

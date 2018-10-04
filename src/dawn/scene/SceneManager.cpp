@@ -11,9 +11,10 @@
 #include "PhysicsScene.h"
 #include "SLinearMotion.h"
 #include "net/CNetTransform.h"
+#include "renderer/SceneGraph.h"
 
 namespace dw {
-SceneManager::SceneManager(Context* ctx)
+SceneManager::SceneManager(Context* ctx, EventSystem* event_system, SceneGraph* scene_graph)
     : Object(ctx),
       last_dt_(0.0f),
       systems_initialised_(false),
@@ -21,12 +22,12 @@ SceneManager::SceneManager(Context* ctx)
       background_scene_node_(nullptr) {
     ontology_world_ = makeUnique<Ontology::World>();
 
-    background_scene_node_ = module<Renderer>()->rootBackgroundNode().newChild();
+    background_scene_node_ = scene_graph->backgroundNode().newChild();
 
-    physics_scene_ = makeUnique<PhysicsScene>(ctx, this);
+    physics_scene_ = makeUnique<PhysicsScene>(ctx, this, event_system);
 
     // Set up built in entity systems.
-    module<Renderer>()->setupEntitySystems(this);
+    scene_graph->setupEntitySystems(this);
     addSystem<SLinearMotion>();
     addSystem<SNetTransformSync>();
 }

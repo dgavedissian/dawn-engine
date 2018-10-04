@@ -20,7 +20,7 @@ class DW_API SceneManager : public Object {
 public:
     DW_OBJECT(SceneManager);
 
-    SceneManager(Context* context);
+    SceneManager(Context* context, EventSystem* event_system, SceneGraph* scene_graph);
     ~SceneManager();
 
     // TODO: Move this into Universe class.
