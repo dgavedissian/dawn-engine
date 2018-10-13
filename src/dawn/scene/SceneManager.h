@@ -7,6 +7,7 @@
 #include "renderer/Node.h"
 #include "scene/Entity.h"
 #include "scene/CTransform.h"
+#include "renderer/SceneGraph.h"
 
 #include <ontology/World.hpp>
 #include <ontology/SystemManager.hpp>

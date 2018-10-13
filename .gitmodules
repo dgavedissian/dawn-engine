@@ -60,4 +60,4 @@
 	url = http://luajit.org/git/luajit-2.0.git
 [submodule "src/external/flatbuffers"]
 	path = src/external/flatbuffers
-	url = git@github.com:google/flatbuffers.git
+	url = https://github.com/google/flatbuffers.git
