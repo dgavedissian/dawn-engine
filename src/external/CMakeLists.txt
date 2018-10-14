@@ -2,7 +2,9 @@
 # Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
 
 # Use GLVND if possible.
-cmake_policy(SET CMP0072 NEW)
+if(POLICY CMP0072)
+    cmake_policy(SET CMP0072 NEW)
+endif()
 
 find_package(OpenGL REQUIRED)
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR})

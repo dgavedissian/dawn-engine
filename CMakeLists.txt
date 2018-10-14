@@ -33,10 +33,13 @@ include(Utilities)
 # Platform specific stuff
 ###############################################
 
-# Workaround for 'warning C4577: 'noexcept' used with no exception handling mode specified;
-# termination on exception is not guaranteed. Specify /EHsc'
 if(MSVC)
+    # Workaround for 'warning C4577: 'noexcept' used with no exception handling mode specified;
+    # termination on exception is not guaranteed. Specify /EHsc'
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+
+    # As of MSVC 2017 15.8, we need to set this define to use "correct" alignment behaviour.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_ENABLE_EXTENDED_ALIGNED_STORAGE")
 endif(MSVC)
 
 ###############################################
