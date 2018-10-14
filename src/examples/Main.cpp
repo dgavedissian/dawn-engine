@@ -711,8 +711,91 @@ TEST_CLASS(MovingSphere) {
     }
 };
 
+
+TEST_CLASS(PostProcessPipeline) {
+    TEST_BODY(PostProcessPipeline);
+
+    SharedPtr<CustomMeshRenderable> box_;
+    rhi::ProgramHandle box_program_;
+
+    rhi::VertexBufferHandle fsq_vb_;
+    rhi::ProgramHandle post_process_;
+    rhi::FrameBufferHandle fb_handle_;
+
+    void start() override {
+        module<FileSystem>()->setWorkingDir("../media/examples");
+
+        // Load shaders.
+        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/cube_solid.vs");
+        auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/cube_solid.fs");
+        box_program_ = r->createProgram();
+        r->attachShader(box_program_, vs);
+        r->attachShader(box_program_, fs);
+        r->linkProgram(box_program_);
+
+        // Create box.
+        box_ = MeshBuilder{context()}.normals(true).texcoords(true).createBox(10.0f);
+
+        // Create full screen quad.
+        util::createFullscreenQuad(r, fsq_vb_);
+
+        // Set up frame buffer.
+        fb_handle_ = r->createFrameBuffer(1280, 800, rhi::TextureFormat::RGB8);
+
+        // Load post process shader.
+        auto pp_vs =
+            util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/post_process.vs");
+        auto pp_fs =
+            util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/post_process.fs");
+        post_process_ = r->createProgram();
+        r->attachShader(post_process_, pp_vs);
+        r->attachShader(post_process_, pp_fs);
+        r->linkProgram(post_process_);
+        r->setUniform("in_sampler", 0);
+        r->submit(0, post_process_);
+
+        // Set up render pipeline.
+
+    }
+
+    void render() override {
+        // Calculate matrices.
+        static float angle = 0.0f;
+        angle += M_PI / 3.0f * engine_->frameTime();  // 60 degrees per second.
+        Mat4 model = Mat4::Translate(Vec3{0.0f, 0.0f, -50.0f}).ToFloat4x4() * Mat4::RotateY(angle);
+        static Mat4 view = Mat4::identity;
+        static Mat4 proj =
+            util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(width()) / height());
+        r->setUniform("model_matrix", model);
+        r->setUniform("mvp_matrix", proj * view * model);
+        r->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
+
+        // Set up views.
+        r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+        r->setViewFrameBuffer(0, fb_handle_);
+        r->setViewClear(1, {0.0f, 0.2f, 0.0f, 1.0f});
+        r->setViewFrameBuffer(1, rhi::FrameBufferHandle{0});
+
+        // Set vertex buffer and submit.
+        r->setVertexBuffer(box_->vertexBuffer()->internalHandle());
+        r->setIndexBuffer(box_->indexBuffer()->internalHandle());
+        r->submit(0, box_program_, box_->indexBuffer()->indexCount());
+
+        // Draw fb.
+        r->setTexture(r->getFrameBufferTexture(fb_handle_, 0), 0);
+        r->setVertexBuffer(fsq_vb_);
+        r->submit(1, post_process_, 3);
+    }
+
+    void stop() override {
+        r->deleteProgram(post_process_);
+        r->deleteVertexBuffer(fsq_vb_);
+        r->deleteProgram(box_program_);
+    }
+};
+
 using ExampleApp =
     ExampleAppContainer<RHIBasicVertexBuffer, RHIBasicIndexBuffer, RHITransientIndexBuffer,
-                        RHITextured3DCube, RHIPostProcessing, RHIDeferredShading,
-                        MovingSphere>;
+                        RHITextured3DCube, RHIPostProcessing, RHIDeferredShading, MovingSphere,
+                        PostProcessPipeline>;
 DW_IMPLEMENT_MAIN(ExampleApp)

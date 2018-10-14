@@ -152,6 +152,8 @@ set(SOURCE_FILES
     renderer/Renderable.cpp
     renderer/Renderer.cpp
     renderer/Renderer.h
+    renderer/RenderPipeline.cpp
+    renderer/RenderPipeline.h
     renderer/SceneGraph.cpp
     renderer/SceneGraph.h
     renderer/Shader.cpp
