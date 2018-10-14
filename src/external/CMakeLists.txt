@@ -1,6 +1,9 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
 
+# Use GLVND if possible.
+cmake_policy(SET CMP0072 NEW)
+
 find_package(OpenGL REQUIRED)
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR})
 set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
@@ -193,12 +196,21 @@ ExternalProject_Add(flatbuffers-external
         -DFLATBUFFERS_BUILD_SHAREDLIB=0
         -DFLATBUFFERS_BUILD_TESTS=0
 )
-set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/$<CONFIG>/flatc PARENT_SCOPE)
+if(MSVC)
+    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/$<CONFIG>/flatc PARENT_SCOPE)
+else()
+    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/flatc PARENT_SCOPE)
+endif()
 add_library(flatbuffers INTERFACE)
 add_dependencies(flatbuffers flatbuffers-external)
 set_property(TARGET flatbuffers PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-set_property(TARGET flatbuffers PROPERTY INTERFACE_LINK_LIBRARIES
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}flatbuffers${CMAKE_STATIC_LIBRARY_SUFFIX})
+if (UNIX AND NOT APPLE)
+    set_property(TARGET flatbuffers PROPERTY INTERFACE_LINK_LIBRARIES
+            ${EXTERNAL_INSTALL}/lib64/${CMAKE_STATIC_LIBRARY_PREFIX}flatbuffers${CMAKE_STATIC_LIBRARY_SUFFIX})
+else()
+    set_property(TARGET flatbuffers PROPERTY INTERFACE_LINK_LIBRARIES
+            ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}flatbuffers${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
 set(LIBS ${LIBS} flatbuffers)
 
 ##############################################################

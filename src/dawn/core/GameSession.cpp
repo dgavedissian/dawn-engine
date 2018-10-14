@@ -31,6 +31,12 @@ GameSession::~GameSession() {
     }
     new_game_mode_.reset();
     game_mode_.reset();
+
+    net_instance_.reset();
+    scene_manager_.reset();
+    scene_graph_.reset();
+    ui_.reset();
+    event_system_.reset();
 }
 
 void GameSession::preUpdate() {

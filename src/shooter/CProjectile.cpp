@@ -94,8 +94,10 @@ Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const V
     projectile.colour = colour;
 
     // Add net data and replicate.
-    entity.addComponent<CNetData>(net_, RepLayout::build<CProjectile>());
-    net_->replicateEntity(entity);
+    if (net_) {
+        entity.addComponent<CNetData>(net_, RepLayout::build<CProjectile>());
+        net_->replicateEntity(entity);
+    }
 
     return &entity;
 }
