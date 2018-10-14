@@ -111,11 +111,11 @@ public:
     }
 
     String gameName() override {
-        return "RendererTest";
+        return "Examples Viewer";
     }
 
     String gameVersion() override {
-        return "1.0.0";
+        return DW_VERSION_STR;
     }
 };
 
@@ -164,14 +164,14 @@ rhi::ShaderHandle loadShader(Context* ctx, rhi::ShaderStage type, const String& 
 }
 }  // namespace util
 
-TEST_CLASS(BasicVertexBuffer) {
-    TEST_BODY(BasicVertexBuffer);
+TEST_CLASS(RHIBasicVertexBuffer) {
+    TEST_BODY(RHIBasicVertexBuffer);
 
     rhi::VertexBufferHandle vb_;
     rhi::ProgramHandle program_;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
@@ -212,15 +212,15 @@ TEST_CLASS(BasicVertexBuffer) {
     }
 };
 
-TEST_CLASS(BasicIndexBuffer) {
-    TEST_BODY(BasicIndexBuffer);
+TEST_CLASS(RHIBasicIndexBuffer) {
+    TEST_BODY(RHIBasicIndexBuffer);
 
     rhi::VertexBufferHandle vb_;
     rhi::IndexBufferHandle ib_;
     rhi::ProgramHandle program_;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
@@ -259,13 +259,13 @@ TEST_CLASS(BasicIndexBuffer) {
     }
 };
 
-TEST_CLASS(TransientIndexBuffer) {
-    TEST_BODY(TransientIndexBuffer);
+TEST_CLASS(RHITransientIndexBuffer) {
+    TEST_BODY(RHITransientIndexBuffer);
 
     rhi::ProgramHandle program_;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
@@ -312,8 +312,8 @@ TEST_CLASS(TransientIndexBuffer) {
     }
 };
 
-TEST_CLASS(Textured3DCube) {
-    TEST_BODY(Textured3DCube);
+TEST_CLASS(RHITextured3DCube) {
+    TEST_BODY(RHITextured3DCube);
 
     SharedPtr<CustomMeshRenderable> box_;
     rhi::ProgramHandle program_;
@@ -322,7 +322,7 @@ TEST_CLASS(Textured3DCube) {
     UniquePtr<Texture> texture_resource_;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/cube_textured.vs");
@@ -370,8 +370,8 @@ TEST_CLASS(Textured3DCube) {
     }
 };
 
-TEST_CLASS(PostProcessing) {
-    TEST_BODY(PostProcessing);
+TEST_CLASS(RHIPostProcessing) {
+    TEST_BODY(RHIPostProcessing);
 
     SharedPtr<CustomMeshRenderable> box_;
     rhi::ProgramHandle box_program_;
@@ -381,7 +381,7 @@ TEST_CLASS(PostProcessing) {
     rhi::FrameBufferHandle fb_handle_;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/cube_solid.vs");
@@ -449,8 +449,8 @@ TEST_CLASS(PostProcessing) {
     }
 };
 
-TEST_CLASS(DeferredShading) {
-    TEST_BODY(DeferredShading);
+TEST_CLASS(RHIDeferredShading) {
+    TEST_BODY(RHIDeferredShading);
 
     SharedPtr<CustomMeshRenderable> ground_;
     rhi::ProgramHandle cube_program_;
@@ -536,7 +536,7 @@ TEST_CLASS(DeferredShading) {
     Vector<UniquePtr<PointLight>> point_lights;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs =
@@ -648,8 +648,8 @@ TEST_CLASS(DeferredShading) {
     }
 };
 
-TEST_CLASS(MovingSphereHighLevel) {
-    TEST_BODY(MovingSphereHighLevel);
+TEST_CLASS(MovingSphere) {
+    TEST_BODY(MovingSphere);
 
     Entity* object;
     Entity* camera;
@@ -663,7 +663,7 @@ TEST_CLASS(MovingSphereHighLevel) {
         // Set up resource cache.
         assert(rc);
         rc->addPath("base", "../media/base");
-        rc->addPath("renderer-test", "../media/renderer-test");
+        rc->addPath("examples", "../media/examples");
 
         // Set up the environment.
         auto* frame = scene_graph->addFrame(&scene_graph->root());
@@ -671,8 +671,8 @@ TEST_CLASS(MovingSphereHighLevel) {
         // Create an object.
         auto material = makeShared<Material>(
             context(), makeShared<Program>(
-                           context(), rc->get<VertexShader>("renderer-test:shaders/cube_solid.vs"),
-                           rc->get<FragmentShader>("renderer-test:shaders/cube_solid.fs")));
+                           context(), rc->get<VertexShader>("examples:shaders/cube_solid.vs"),
+                           rc->get<FragmentShader>("examples:shaders/cube_solid.fs")));
         auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
         renderable->setMaterial(material);
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
@@ -711,6 +711,8 @@ TEST_CLASS(MovingSphereHighLevel) {
     }
 };
 
-using ExampleApp = ExampleAppContainer<BasicVertexBuffer, BasicIndexBuffer, TransientIndexBuffer, Textured3DCube,
-                PostProcessing, DeferredShading, MovingSphereHighLevel>;
+using ExampleApp =
+    ExampleAppContainer<RHIBasicVertexBuffer, RHIBasicIndexBuffer, RHITransientIndexBuffer,
+                        RHITextured3DCube, RHIPostProcessing, RHIDeferredShading,
+                        MovingSphere>;
 DW_IMPLEMENT_MAIN(ExampleApp)

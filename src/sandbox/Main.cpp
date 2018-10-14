@@ -623,7 +623,7 @@ public:
     }
 
     String gameVersion() override {
-        return "1.0.0";
+        return DW_VERSION_STR;
     }
 };
 

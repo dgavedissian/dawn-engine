@@ -4,4 +4,4 @@
 set(SOURCE_FILES
     Main.cpp)
 
-add_game(RendererTest "${SOURCE_FILES}")
+add_game(Viewer "${SOURCE_FILES}")

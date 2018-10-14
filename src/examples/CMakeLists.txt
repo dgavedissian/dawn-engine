@@ -4,4 +4,4 @@
 set(SOURCE_FILES
     Main.cpp)
 
-add_game(MeshViewer "${SOURCE_FILES}")
+add_game(Examples "${SOURCE_FILES}")
