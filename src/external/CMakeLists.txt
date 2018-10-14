@@ -53,6 +53,17 @@ if(WIN32)
 else()
     set(ASSIMP_PATCH_COMMAND sed -e "/use_pkgconfig(UNZIP minizip)/s/^/#/g" -i CMakeLists.txt)
 endif()
+if(MSVC)
+    set(ASSIMP_OUTPUT_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt$<$<CONFIG:Debug>:_d>.lib
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/$<CONFIG>/IrrXML$<$<CONFIG:Debug>:_d>.lib
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/$<CONFIG>/zlibstatic$<$<CONFIG:Debug>:d>.lib)
+else()
+    set(ASSIMP_OUTPUT_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/libassimp$<$<CONFIG:Debug>:_d>.a
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/libIrrXML$<$<CONFIG:Debug>:_d>.a
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/libzlibstatic$<$<CONFIG:Debug>:_d>.a)
+endif()
 ExternalProject_Add(Assimp-external
     PREFIX ${EXTERNAL_PREFIX}
     # As we need to patch the source, we make a copy using URL instead.
@@ -74,17 +85,7 @@ add_library(Assimp INTERFACE)
 add_dependencies(Assimp Assimp-external)
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
 set_property(TARGET Assimp PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-if(MSVC)
-    set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt$<$<CONFIG:Debug>:_d>.lib
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/$<CONFIG>/IrrXML$<$<CONFIG:Debug>:_d>.lib
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/$<CONFIG>/zlibstatic$<$<CONFIG:Debug>:d>.lib)
-else()
-    set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/libassimp$<$<CONFIG:Debug>:_d>.a
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/libIrrXML$<$<CONFIG:Debug>:_d>.a
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/libzlibstatic$<$<CONFIG:Debug>:_d>.a)
-endif()
+set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES ${ASSIMP_OUTPUT_LIBRARIES})
 set(LIBS ${LIBS} Assimp)
 
 # Bullet
@@ -206,7 +207,7 @@ endif()
 add_library(flatbuffers INTERFACE)
 add_dependencies(flatbuffers flatbuffers-external)
 set_property(TARGET flatbuffers PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-if (UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE AND (NOT EXISTS "/etc/debian_version"))
     set_property(TARGET flatbuffers PROPERTY INTERFACE_LINK_LIBRARIES
             ${EXTERNAL_INSTALL}/lib64/${CMAKE_STATIC_LIBRARY_PREFIX}flatbuffers${CMAKE_STATIC_LIBRARY_SUFFIX})
 else()

@@ -36,15 +36,15 @@ public:
     const GameSession* session_;
 };
 
-template <typename... T> class ExampleApp : public App {
+template <typename... T> class ExampleAppContainer : public App {
 public:
-    DW_OBJECT(ExampleApp<T...>);
+    DW_OBJECT(ExampleAppContainer<T...>);
 
     Vector<SharedPtr<Example>> examples_;
     Example* current_example_;
     int frame_id_;
 
-    ExampleApp() : current_example_(nullptr), frame_id_(0) {
+    ExampleAppContainer() : current_example_(nullptr), frame_id_(0) {
     }
 
     void init(const CommandLine&) override {
@@ -126,7 +126,6 @@ public:                                                                       \
     test_name(Context* ctx, const Engine* engine, const GameSession* session) \
         : Example(ctx, engine, session) {                                     \
     }
-#define TEST_IMPLEMENT_MAIN(...) DW_IMPLEMENT_MAIN(ExampleApp<__VA_ARGS__>)
 
 // Utils
 namespace util {
@@ -171,7 +170,7 @@ TEST_CLASS(BasicVertexBuffer) {
     rhi::VertexBufferHandle vb_;
     rhi::ProgramHandle program_;
 
-    void start() {
+    void start() override {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
@@ -201,13 +200,13 @@ TEST_CLASS(BasicVertexBuffer) {
         vb_ = r->createVertexBuffer(Memory(vertices, sizeof(vertices)), decl);
     }
 
-    void render() {
+    void render() override {
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
         r->setVertexBuffer(vb_);
         r->submit(0, program_, 3);
     }
 
-    void stop() {
+    void stop() override {
         r->deleteProgram(program_);
         r->deleteVertexBuffer(vb_);
     }
@@ -220,7 +219,7 @@ TEST_CLASS(BasicIndexBuffer) {
     rhi::IndexBufferHandle ib_;
     rhi::ProgramHandle program_;
 
-    void start() {
+    void start() override {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
@@ -248,13 +247,13 @@ TEST_CLASS(BasicIndexBuffer) {
         ib_ = r->createIndexBuffer(Memory(elements, sizeof(elements)), rhi::IndexBufferType::U32);
     }
 
-    void render() {
+    void render() override {
         r->setVertexBuffer(vb_);
         r->setIndexBuffer(ib_);
         r->submit(0, program_, 6);
     }
 
-    void stop() {
+    void stop() override {
         r->deleteProgram(program_);
         r->deleteVertexBuffer(vb_);
     }
@@ -265,7 +264,7 @@ TEST_CLASS(TransientIndexBuffer) {
 
     rhi::ProgramHandle program_;
 
-    void start() {
+    void start() override {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
@@ -277,7 +276,7 @@ TEST_CLASS(TransientIndexBuffer) {
         r->linkProgram(program_);
     }
 
-    void render() {
+    void render() override {
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
 
         static float angle = 0.0f;
@@ -308,7 +307,7 @@ TEST_CLASS(TransientIndexBuffer) {
         r->submit(0, program_, 6);
     }
 
-    void stop() {
+    void stop() override {
         r->deleteProgram(program_);
     }
 };
@@ -322,7 +321,7 @@ TEST_CLASS(Textured3DCube) {
     // Uses the higher level wrapper which provides loading from files.
     UniquePtr<Texture> texture_resource_;
 
-    void start() {
+    void start() override {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
@@ -346,7 +345,7 @@ TEST_CLASS(Textured3DCube) {
         box_ = MeshBuilder{context()}.normals(true).texcoords(true).createBox(10.0f);
     }
 
-    void render() {
+    void render() override {
         // Calculate matrices.
         static float angle = 0.0f;
         angle += M_PI / 3.0f * engine_->frameTime();  // 60 degrees per second.
@@ -366,7 +365,7 @@ TEST_CLASS(Textured3DCube) {
         r->submit(0, program_, box_->indexBuffer()->indexCount());
     }
 
-    void stop() {
+    void stop() override {
         r->deleteProgram(program_);
     }
 };
@@ -381,7 +380,7 @@ TEST_CLASS(PostProcessing) {
     rhi::ProgramHandle post_process_;
     rhi::FrameBufferHandle fb_handle_;
 
-    void start() {
+    void start() override {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
@@ -414,7 +413,7 @@ TEST_CLASS(PostProcessing) {
         r->submit(0, post_process_);
     }
 
-    void render() {
+    void render() override {
         // Calculate matrices.
         static float angle = 0.0f;
         angle += M_PI / 3.0f * engine_->frameTime();  // 60 degrees per second.
@@ -443,7 +442,7 @@ TEST_CLASS(PostProcessing) {
         r->submit(1, post_process_, 3);
     }
 
-    void stop() {
+    void stop() override {
         r->deleteProgram(post_process_);
         r->deleteVertexBuffer(fsq_vb_);
         r->deleteProgram(box_program_);
@@ -536,7 +535,7 @@ TEST_CLASS(DeferredShading) {
 
     Vector<UniquePtr<PointLight>> point_lights;
 
-    void start() {
+    void start() override {
         module<FileSystem>()->setWorkingDir("../media/renderer-test");
 
         // Load shaders.
@@ -596,7 +595,7 @@ TEST_CLASS(DeferredShading) {
         }
     }
 
-    void render() {
+    void render() override {
         // Set up views.
         r->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
         r->setViewFrameBuffer(0, gbuffer_);
@@ -642,7 +641,7 @@ TEST_CLASS(DeferredShading) {
         }
     }
 
-    void stop() {
+    void stop() override {
         r->deleteProgram(post_process_);
         r->deleteVertexBuffer(fsq_vb_);
         r->deleteProgram(cube_program_);
@@ -656,7 +655,7 @@ TEST_CLASS(MovingSphereHighLevel) {
     Entity* camera;
     SystemNode* cube_node;
 
-    void start() {
+    void start() override {
         auto rc = module<ResourceCache>();
         auto scene = session_->sceneManager();
         auto scene_graph = session_->sceneGraph();
@@ -694,12 +693,12 @@ TEST_CLASS(MovingSphereHighLevel) {
         camera->addComponent<CCamera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
     }
 
-    void stop() {
+    void stop() override {
         session_->sceneManager()->removeEntity(object);
         session_->sceneManager()->removeEntity(camera);
     }
 
-    void render() {
+    void render() override {
         static float angle = 0.0f;
         angle += engine_->frameTime();
 
@@ -712,5 +711,6 @@ TEST_CLASS(MovingSphereHighLevel) {
     }
 };
 
-TEST_IMPLEMENT_MAIN(BasicVertexBuffer, BasicIndexBuffer, TransientIndexBuffer, Textured3DCube,
-                    PostProcessing, DeferredShading, MovingSphereHighLevel);
+using ExampleApp = ExampleAppContainer<BasicVertexBuffer, BasicIndexBuffer, TransientIndexBuffer, Textured3DCube,
+                PostProcessing, DeferredShading, MovingSphereHighLevel>;
+DW_IMPLEMENT_MAIN(ExampleApp)
