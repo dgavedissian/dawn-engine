@@ -10,15 +10,19 @@
 #include "renderer/Texture.h"
 
 namespace dw {
-class DW_API Material : public Object {
+class DW_API Material : public Resource {
 public:
     DW_OBJECT(Material);
 
     Material(Context* context, SharedPtr<Program> program);
     ~Material();
 
+    bool beginLoad(const String& asset_name, InputStream& src) override;
+    void endLoad() override;
+
     void setPolygonMode(rhi::PolygonMode polygon_mode);
     void setDepthWrite(bool depth_write_enabled);
+    void setMask(u32 mask);
 
     void setTexture(SharedPtr<Texture> texture, uint unit = 0);
 
@@ -30,10 +34,13 @@ public:
 
     Program* program();
 
+    u32 mask() const;
+
 private:
     SharedPtr<Program> program_;
 
     rhi::PolygonMode polygon_mode_;
     bool depth_write_;
+    u32 mask_;
 };
 }  // namespace dw

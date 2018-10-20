@@ -8,6 +8,7 @@
 #include "scene/CTransform.h"
 #include "renderer/CCamera.h"
 #include "renderer/SceneGraph.h"
+#include "renderer/RenderPipeline.h"
 
 using namespace dw;
 
@@ -69,7 +70,7 @@ public:
         }
 
         // Display FPS information.
-        ImGui::SetNextWindowPos({ 0, 0 });
+        ImGui::SetNextWindowPos({0, 0});
         ImGui::SetNextWindowSize({280, 130});
         ImGui::Begin("FPS");
         ImGui::Text("FPS: %f", current_fps);
@@ -77,7 +78,7 @@ public:
         ImGui::End();
 
         // Display example list.
-        ImGui::SetNextWindowPos({ 0, 130 });
+        ImGui::SetNextWindowPos({0, 130});
         ImGui::SetNextWindowSize({180, 250});
         ImGui::Begin("Examples");
         for (auto& example : examples_) {
@@ -670,9 +671,9 @@ TEST_CLASS(MovingSphere) {
 
         // Create an object.
         auto material = makeShared<Material>(
-            context(), makeShared<Program>(
-                           context(), rc->get<VertexShader>("examples:shaders/cube_solid.vs"),
-                           rc->get<FragmentShader>("examples:shaders/cube_solid.fs")));
+            context(),
+            makeShared<Program>(context(), rc->get<VertexShader>("examples:shaders/cube_solid.vs"),
+                                rc->get<FragmentShader>("examples:shaders/cube_solid.fs")));
         auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
         renderable->setMaterial(material);
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
@@ -711,86 +712,122 @@ TEST_CLASS(MovingSphere) {
     }
 };
 
-
 TEST_CLASS(PostProcessPipeline) {
     TEST_BODY(PostProcessPipeline);
 
-    SharedPtr<CustomMeshRenderable> box_;
-    rhi::ProgramHandle box_program_;
-
-    rhi::VertexBufferHandle fsq_vb_;
-    rhi::ProgramHandle post_process_;
-    rhi::FrameBufferHandle fb_handle_;
+    SharedPtr<CustomMeshRenderable> ground_;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/examples");
+        using rds = RenderPipelineDesc;
+        auto generate_gbuffer = rds::Node{{},
+                                          {{"gb0", rhi::TextureFormat::RGBA32F},
+                                           {"gb1", rhi::TextureFormat::RGBA32F},
+                                           {"gb2", rhi::TextureFormat::RGBA32F}},
+                                          {rds::ClearStep{}, rds::RenderQueueStep{0x1}}};
+        auto lighting =
+            rds::Node{{{"gb0", rhi::TextureFormat::RGBA32F},
+                       {"gb1", rhi::TextureFormat::RGBA32F},
+                       {"gb2", rhi::TextureFormat::RGBA32F}},
+                      {{"out", rhi::TextureFormat::RGBA8}},
+                      {rds::RenderQuadStep{"examples:custom/deferred_ambient_light_pass"},
+                       rds::RenderQueueStep{0x2}}};
+        HashMap<String, rds::Node> nodes = {{"GenerateGBuffer", generate_gbuffer},
+                                            {"Lighting", lighting}};
+        rds desc = {nodes,
+                    {{"gb0", rds::Texture{rhi::TextureFormat::RGBA32F}},
+                     {"gb1", rds::Texture{rhi::TextureFormat::RGBA32F}},
+                     {"gb2", rds::Texture{rhi::TextureFormat::RGBA32F}}},
+                    {rds::NodeInstance{
+                         "GenerateGBuffer", {}, {{"gb0", "gb0"}, {"gb1", "gb1"}, {"gb2", "gb2"}}},
+                     rds::NodeInstance{"Lighting",
+                                       {{"gb0", "gb0"}, {"gb1", "gb1"}, {"gb2", "gb2"}},
+                                       {{"out", rds::PipelineOutput}}}}};
 
+        auto rc = module<ResourceCache>();
+        auto scene_graph = session_->sceneGraph();
+
+        // Set up resource cache.
+        assert(rc);
+        rc->addPath("base", "../media/base");
+        rc->addPath("examples", "../media/examples");
+
+        // Create material for outputting object information to the gbuffer.
+        auto object_gbuffer = rc->addCustomResource(
+            "examples:custom/object_gbuffer",
+            makeShared<Material>(
+                context(),
+                makeShared<Program>(
+                    context(), rc->get<VertexShader>("examples:shaders/object_gbuffer.vs"),
+                    rc->get<FragmentShader>("examples:shaders/object_gbuffer.fs"))));
+        object_gbuffer->setUniform("wall_sampler", 0);
+        object_gbuffer->setUniform("texcoord_scale", Vec2{10.0f, 10.0f});
+
+        // Create material for processing the ambient light in the deferred shading.
+        auto ambient_light_pass = rc->addCustomResource(
+            "examples:custom/deferred_ambient_light_pass",
+            makeShared<Material>(
+                context(),
+                makeShared<Program>(
+                    context(), rc->get<VertexShader>("examples:shaders/post_process.vs"),
+                    rc->get<FragmentShader>("examples:shaders/deferred_ambient_light_pass.fs"))));
+        ambient_light_pass->setUniform("ambient_light", Vec3{0.02f, 0.02f, 0.02f});
+
+        // Create ground.
+        ground_ = MeshBuilder{context_}.normals(true).texcoords(true).createPlane(250.0f, 250.0f);
+
+        /*
         // Load shaders.
-        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/cube_solid.vs");
-        auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/cube_solid.fs");
-        box_program_ = r->createProgram();
-        r->attachShader(box_program_, vs);
-        r->attachShader(box_program_, fs);
-        r->linkProgram(box_program_);
+        auto vs =
+            util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/object_gbuffer.vs");
+        auto fs =
+            util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/object_gbuffer.fs");
+        cube_program_ = r->createProgram();
+        r->attachShader(cube_program_, vs);
+        r->attachShader(cube_program_, fs);
+        r->linkProgram(cube_program_);
+        r->setUniform("wall_sampler", 0);
+        r->setUniform("texcoord_scale", Vec2{ 10.0f, 10.0f });
+        r->submit(0, cube_program_);
 
-        // Create box.
-        box_ = MeshBuilder{context()}.normals(true).texcoords(true).createBox(10.0f);
+        // Create ground.
+        ground_ = MeshBuilder{ context_ }.normals(true).texcoords(true).createPlane(250.0f, 250.0f);
+
+        // Load texture.
+        File texture_file{ context(), "wall.jpg" };
+        texture_resource_ = makeUnique<Texture>(context());
+        texture_resource_->beginLoad("wall.jpg", texture_file);
+        texture_resource_->endLoad();
 
         // Create full screen quad.
         util::createFullscreenQuad(r, fsq_vb_);
 
         // Set up frame buffer.
-        fb_handle_ = r->createFrameBuffer(1280, 800, rhi::TextureFormat::RGB8);
+        auto format = rhi::TextureFormat::RGBA32F;
+        gbuffer_ = r->createFrameBuffer({ r->createTexture2D(width(), height(), format, Memory()),
+                                         r->createTexture2D(width(), height(), format, Memory()),
+                                         r->createTexture2D(width(), height(), format, Memory()) });
 
         // Load post process shader.
         auto pp_vs =
             util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/post_process.vs");
-        auto pp_fs =
-            util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/post_process.fs");
+        auto pp_fs = util::loadShader(context(), rhi::ShaderStage::Fragment,
+            "shaders/deferred_ambient_light_pass.fs");
         post_process_ = r->createProgram();
         r->attachShader(post_process_, pp_vs);
         r->attachShader(post_process_, pp_fs);
         r->linkProgram(post_process_);
-        r->setUniform("in_sampler", 0);
+        r->setUniform("gb0_sampler", 0);
+        r->setUniform("gb1_sampler", 1);
+        r->setUniform("gb2_sampler", 2);
+        r->setUniform("ambient_light", Vec3{ 0.02f, 0.02f, 0.02f });
         r->submit(0, post_process_);
-
-        // Set up render pipeline.
-
+        */
     }
 
     void render() override {
-        // Calculate matrices.
-        static float angle = 0.0f;
-        angle += M_PI / 3.0f * engine_->frameTime();  // 60 degrees per second.
-        Mat4 model = Mat4::Translate(Vec3{0.0f, 0.0f, -50.0f}).ToFloat4x4() * Mat4::RotateY(angle);
-        static Mat4 view = Mat4::identity;
-        static Mat4 proj =
-            util::createProjMatrix(0.1f, 1000.0f, 60.0f, static_cast<float>(width()) / height());
-        r->setUniform("model_matrix", model);
-        r->setUniform("mvp_matrix", proj * view * model);
-        r->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
-
-        // Set up views.
-        r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
-        r->setViewFrameBuffer(0, fb_handle_);
-        r->setViewClear(1, {0.0f, 0.2f, 0.0f, 1.0f});
-        r->setViewFrameBuffer(1, rhi::FrameBufferHandle{0});
-
-        // Set vertex buffer and submit.
-        r->setVertexBuffer(box_->vertexBuffer()->internalHandle());
-        r->setIndexBuffer(box_->indexBuffer()->internalHandle());
-        r->submit(0, box_program_, box_->indexBuffer()->indexCount());
-
-        // Draw fb.
-        r->setTexture(r->getFrameBufferTexture(fb_handle_, 0), 0);
-        r->setVertexBuffer(fsq_vb_);
-        r->submit(1, post_process_, 3);
     }
 
     void stop() override {
-        r->deleteProgram(post_process_);
-        r->deleteVertexBuffer(fsq_vb_);
-        r->deleteProgram(box_program_);
     }
 };
 

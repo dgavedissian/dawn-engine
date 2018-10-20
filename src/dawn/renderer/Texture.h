@@ -15,6 +15,9 @@ public:
     Texture(Context* context);
     ~Texture();
 
+    static SharedPtr<Texture> createTexture2D(Context* ctx, const Vec2i& size,
+                                              rhi::TextureFormat format, Memory data = {});
+
     bool beginLoad(const String& asset_name, InputStream& src) override;
     void endLoad() override;
 

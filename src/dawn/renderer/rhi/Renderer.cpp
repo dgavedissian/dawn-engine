@@ -144,7 +144,11 @@ void Renderer::init(RendererType type, u16 width, u16 height, const String& titl
             shared_render_context_ = makeUnique<GLRenderContext>(context());
             break;
         case RendererType::D3D12:
-            log().error("D3D12 renderer unimplemented. Deferring to OpenGL.");
+            log().error("D3D12 renderer unimplemented. Falling back to OpenGL.");
+            shared_render_context_ = makeUnique<GLRenderContext>(context());
+            break;
+        case RendererType::Vulkan:
+            log().error("Vulkan renderer unimplemented. Falling back to OpenGL.");
             shared_render_context_ = makeUnique<GLRenderContext>(context());
             break;
     }

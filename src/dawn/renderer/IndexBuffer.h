@@ -18,6 +18,8 @@ public:
     // Will resize.
     void update(Memory data, uint offset);
 
+    void bind(rhi::Renderer* r);
+
     rhi::IndexBufferHandle internalHandle() const;
     u32 indexCount() const;
 

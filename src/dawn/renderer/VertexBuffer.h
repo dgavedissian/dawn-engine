@@ -18,6 +18,8 @@ public:
     // Will resize.
     void update(Memory data, uint vertex_count, uint offset);
 
+    void bind(rhi::Renderer* r);
+
     rhi::VertexBufferHandle internalHandle() const;
     u32 vertexCount() const;
 

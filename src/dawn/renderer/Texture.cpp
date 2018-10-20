@@ -32,10 +32,21 @@ int imageCallbackEof(void* user) {
 }
 }  // namespace
 
-Texture::Texture(Context* context) : Resource(context) {
+Texture::Texture(Context* ctx) : Resource(ctx) {
 }
 
 Texture::~Texture() {
+    if (handle_.isValid()) {
+        module<Renderer>()->rhi()->deleteTexture(handle_);
+    }
+}
+
+SharedPtr<Texture> Texture::createTexture2D(Context* ctx, const Vec2i& size,
+                                            rhi::TextureFormat format, Memory data) {
+    auto texture = makeShared<Texture>(ctx);
+    texture->handle_ =
+        ctx->module<Renderer>()->rhi()->createTexture2D(size.x, size.y, format, std::move(data));
+    return texture;
 }
 
 bool Texture::beginLoad(const String&, InputStream& src) {

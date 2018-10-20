@@ -87,8 +87,9 @@ void ShooterGameMode::onStart() {
 
     // If we're running a local-only game, spawn a player.
     if (!session_->net()) {
-        auto new_ship = makeShared<Ship>(context(), session_->net(), session_->sceneManager(), frame_,
-            session_->sceneManager()->reserveEntityId(), NetRole::None);
+        auto new_ship =
+            makeShared<Ship>(context(), session_->net(), session_->sceneManager(), frame_,
+                             session_->sceneManager()->reserveEntityId(), NetRole::None);
         camera_controller_->follow(new_ship->entity());
         entity_pipeline_->ship_list_.emplace_back(new_ship);
     }

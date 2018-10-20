@@ -33,9 +33,8 @@ SharedPtr<InputStream> ResourceFilesystemPath::getFile(const ResourcePath& path_
     log().info("Loading resource from filesystem at " + full_path);
     if (module<FileSystem>()->fileExists(full_path)) {
         return makeShared<File>(context(), full_path, FileMode::Read);
-    } else {
-        return nullptr;
     }
+    return nullptr;
 }
 
 ResourceCache::ResourceCache(Context* context) : Module(context) {

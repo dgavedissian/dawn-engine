@@ -135,6 +135,8 @@ set(SOURCE_FILES
     renderer/CCamera.h
     renderer/CustomMeshRenderable.cpp
     renderer/CustomMeshRenderable.h
+    renderer/FrameBuffer.cpp
+    renderer/FrameBuffer.h
     renderer/GLSL.h
     renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h

@@ -35,6 +35,10 @@ void IndexBuffer::update(Memory data, uint offset) {
     context_->module<Renderer>()->rhi()->updateIndexBuffer(handle_, std::move(data), offset);
 }
 
+void IndexBuffer::bind(rhi::Renderer* r) {
+    r->setIndexBuffer(handle_);
+}
+
 rhi::IndexBufferHandle IndexBuffer::internalHandle() const {
     return handle_;
 }

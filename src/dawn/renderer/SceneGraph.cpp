@@ -16,6 +16,16 @@ SceneGraph::SceneGraph(Context* ctx)
       root_(&pool_, SystemPosition::origin, Quat::identity),
       background_root_(&pool_, nullptr, Vec3::zero, Quat::identity, Vec3::one),
       camera_entity_system_(nullptr) {
+    auto default_render_pipeline_node = RenderPipelineDesc::Node{
+        {},
+        {{"out", rhi::TextureFormat::RGBA8}},
+        {RenderPipelineDesc::ClearStep{}, RenderPipelineDesc::RenderQueueStep{}}};
+    auto default_render_pipeline =
+        RenderPipelineDesc{{{"Default", default_render_pipeline_node}},
+                           {},
+                           {RenderPipelineDesc::NodeInstance{
+                               "Default", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}}};
+    setRenderPipeline(RenderPipeline::createFromDesc(ctx, default_render_pipeline));
 }
 
 SceneGraph::~SceneGraph() {
@@ -23,6 +33,10 @@ SceneGraph::~SceneGraph() {
 
 void SceneGraph::setupEntitySystems(SceneManager* scene_manager) {
     camera_entity_system_ = scene_manager->addSystem<SCamera>();
+}
+
+void SceneGraph::setRenderPipeline(SharedPtr<RenderPipeline> render_pipeline) {
+    render_pipeline_ = render_pipeline;
 }
 
 void SceneGraph::updateSceneGraph() {
@@ -90,20 +104,24 @@ void SceneGraph::updateSceneGraph() {
     }
 }
 
-void SceneGraph::renderScene(float) {
+void SceneGraph::renderScene(float interpolation) {
+    render_pipeline_->render(interpolation, this, 0);
+}
+
+void SceneGraph::renderSceneFromCamera(float, u32 camera_id, uint view, u32 mask) {
     // Render stuff.
     auto& cameras = camera_entity_system_->cameras;
-    for (size_t i = 0; i < cameras.size(); ++i) {
-        // All rendering is done relative to the cameras own frame. Get transform within the frame.
-        Mat4& camera_model_matrix = model_matrix_cache_.at(cameras[i].scene_node);
-        Mat4 view_matrix = camera_model_matrix.Inverted();
-        auto camera_transform = detail::Transform::fromMat4(camera_model_matrix);
+    assert(camera_id < cameras.size());
 
-        // Process all render operations.
-        for (auto& op : render_operations_per_camera_[i]) {
-            op.renderable->draw(module<Renderer>(), i, camera_transform, op.model,
-                                cameras[i].projection_matrix * view_matrix);
-        }
+    // All rendering is done relative to the cameras own frame. Get transform within the frame.
+    Mat4& camera_model_matrix = model_matrix_cache_.at(cameras[camera_id].scene_node);
+    Mat4 view_matrix = camera_model_matrix.Inverted();
+    auto camera_transform = detail::Transform::fromMat4(camera_model_matrix);
+
+    // Process all render operations.
+    for (auto& op : render_operations_per_camera_[camera_id]) {
+        op.renderable->draw(module<Renderer>(), view, camera_transform, op.model,
+                            cameras[camera_id].projection_matrix * view_matrix);
     }
 }
 

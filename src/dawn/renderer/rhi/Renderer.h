@@ -38,7 +38,7 @@ using TextureHandle = Handle<detail::TextureTag, -1>;
 using FrameBufferHandle = Handle<detail::FrameBufferTag, -1>;
 
 // Renderer type.
-enum class RendererType { Null, OpenGL, D3D12 };
+enum class RendererType { Null, OpenGL, D3D12, Vulkan };
 
 // Shader type.
 enum class ShaderStage { Vertex, Geometry, Fragment };
