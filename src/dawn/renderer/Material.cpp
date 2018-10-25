@@ -8,8 +8,15 @@
 
 namespace dw {
 
+Material::Material(Context* ctx) : Material{ctx, nullptr} {
+}
+
 Material::Material(Context* ctx, SharedPtr<Program> program)
-    : Resource{ctx}, program_{program}, polygon_mode_{rhi::PolygonMode::Fill}, depth_write_{true} {
+    : Resource{ctx},
+      program_{program},
+      polygon_mode_{rhi::PolygonMode::Fill},
+      depth_write_{true},
+      mask_{0x0} {
 }
 
 Material::~Material() {

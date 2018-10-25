@@ -26,6 +26,7 @@ SceneGraph::SceneGraph(Context* ctx)
                            {RenderPipelineDesc::NodeInstance{
                                "Default", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}}};
     setRenderPipeline(RenderPipeline::createFromDesc(ctx, default_render_pipeline));
+    assert(render_pipeline_);
 }
 
 SceneGraph::~SceneGraph() {
@@ -105,7 +106,9 @@ void SceneGraph::updateSceneGraph() {
 }
 
 void SceneGraph::renderScene(float interpolation) {
-    render_pipeline_->render(interpolation, this, 0);
+    if (camera_entity_system_->cameras.size() > 0) {
+        render_pipeline_->render(interpolation, this, 0);
+    }
 }
 
 void SceneGraph::renderSceneFromCamera(float, u32 camera_id, uint view, u32 mask) {

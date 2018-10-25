@@ -14,8 +14,9 @@ class DW_API Material : public Resource {
 public:
     DW_OBJECT(Material);
 
-    Material(Context* context, SharedPtr<Program> program);
-    ~Material();
+    Material(Context* ctx);
+    Material(Context* ctx, SharedPtr<Program> program);
+    ~Material() override;
 
     bool beginLoad(const String& asset_name, InputStream& src) override;
     void endLoad() override;
