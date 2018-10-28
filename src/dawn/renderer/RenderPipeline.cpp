@@ -13,6 +13,8 @@
 #include "resource/ResourceCache.h"
 
 namespace dw {
+const char* RenderPipelineDesc::PipelineOutput = "__OUTPUT__";
+
 RenderPipeline::RenderPipeline(Context* ctx) : Resource{ctx} {
 }
 

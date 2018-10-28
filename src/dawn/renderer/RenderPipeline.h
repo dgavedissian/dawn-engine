@@ -10,6 +10,8 @@
 #include "renderer/rhi/Renderer.h"
 
 namespace dw {
+class DW_API SceneGraph;
+
 struct DW_API RenderPipelineDesc {
     struct DW_API Texture {
         rhi::TextureFormat format;
@@ -44,7 +46,7 @@ struct DW_API RenderPipelineDesc {
     HashMap<String, Texture> textures = {};
     Vector<NodeInstance> pipeline = {};
 
-    static constexpr auto PipelineOutput = "__OUTPUT__";
+    static const char* PipelineOutput;
 };
 
 class DW_API RenderPipeline : public Resource {
