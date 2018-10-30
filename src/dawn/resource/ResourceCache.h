@@ -49,6 +49,23 @@ public:
     void addPath(const String& package, const Path& path);
     void addPackage(const String& package, UniquePtr<ResourcePackage> file);
 
+    template <typename T>
+    SharedPtr<T> addCustomResource(const ResourcePath& resource_path, SharedPtr<T> resource) {
+        String name(resource_path);
+
+        if (!resource) {
+            log().error("NULL resource provided at %s. Skipping.", name);
+            return nullptr;
+        }
+
+        if (resource_cache_.find(name) != resource_cache_.end()) {
+            log().warn("Found an existing resource at %s. Replacing with an instance of '%s'", name,
+                       resource->typeName());
+        }
+        resource_cache_[name] = resource;
+        return resource;
+    }
+
     template <typename T> SharedPtr<T> get(const ResourcePath& resource_path) {
         String name(resource_path);
 

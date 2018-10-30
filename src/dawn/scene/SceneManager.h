@@ -4,23 +4,24 @@
  */
 #pragma once
 
-#include "renderer/Renderable.h"
+#include "renderer/Node.h"
 #include "scene/Entity.h"
-#include "scene/Transform.h"
+#include "scene/CTransform.h"
+#include "renderer/SceneGraph.h"
 
 #include <ontology/World.hpp>
 #include <ontology/SystemManager.hpp>
 
-#include "scene/System.h"
+#include "scene/EntitySystem.h"
 #include "scene/PhysicsScene.h"
 
 namespace dw {
 /// Manages the current game world, including all entities and entity systems.
-class DW_API SceneManager : public Module {
+class DW_API SceneManager : public Object {
 public:
     DW_OBJECT(SceneManager);
 
-    SceneManager(Context* context);
+    SceneManager(Context* context, EventSystem* event_system, SceneGraph* scene_graph);
     ~SceneManager();
 
     // TODO: Move this into Universe class.
@@ -31,12 +32,12 @@ public:
     /// @tparam T Entity system type.
     /// @tparam Args List of constructor argument types.
     /// @param args Constructor arguments.
-    template <typename T, typename... Args> T* addSystem(Args... args);
+    template <typename T, typename... Args> T* addSystem(Args&&... args);
 
     /// Looks up an entity system in the context.
     /// @tparam T Entity system type.
     /// @return Instance of the entity system type.
-    template <typename T> T* getSystem();
+    template <typename T> T* system();
 
     /// Removes the entity system from the context.
     /// @tparam T Entity system type.
@@ -51,16 +52,21 @@ public:
     /// @param type Entity type ID.
     /// @param p Initial position.
     /// @param o Initial orientation.
-    /// @param parent Parent entity.
+    /// @param frame Frame to spawn the entity in.
+    /// @param renderable Renderable attached to this entity. Can be null.
     /// @return A newly created entity.
-    Entity& createEntity(EntityType type, const Position& p, const Quat& o, Entity* parent);
+    Entity& createEntity(EntityType type, const Vec3& p, const Quat& o, Frame& frame,
+                         SharedPtr<Renderable> renderable = nullptr);
 
     /// Creates a new entity with a transform component.
     /// @param type Entity type ID.
     /// @param p Initial position.
     /// @param o Initial orientation.
+    /// @param parent Parent entity.
+    /// @param renderable Renderable attached to this entity. Can be null.
     /// @return A newly created entity.
-    Entity& createEntity(EntityType type, const Position& p, const Quat& o);
+    Entity& createEntity(EntityType type, const Vec3& p, const Quat& o, Entity& parent,
+                         SharedPtr<Renderable> renderable = nullptr);
 
     /// Creates a new empty entity with a previously reserved entity ID.
     /// @param type Entity type ID.
@@ -81,15 +87,9 @@ public:
     /// @param entity Entity to remove.
     void removeEntity(Entity* entity);
 
-    /// Begin main loop. Required by Ontology.
-    void beginMainLoop();
-
     /// Updates systems, and calls update on each entity.
     /// @param dt Time elapsed
     void update(float dt);
-
-    /// Returns the root node in the scene graph.
-    Transform* rootNode() const;
 
     /// Returns the physics scene.
     PhysicsScene* physicsScene() const;
@@ -98,30 +98,31 @@ public:
     float lastDeltaTime_internal() const;
 
 private:
+    // Ontology stuff.
     float last_dt_;
-    Ontology::World ontology_world_;
+    UniquePtr<Ontology::World> ontology_world_;
+    bool systems_initialised_;
+
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
     EntityId entity_id_allocator_;
 
-    SharedPtr<Transform> root_node_;
-    SharedPtr<RenderableNode> background_renderable_root_;
-    Entity* background_entity_;
+    Node* background_scene_node_;
 
     UniquePtr<PhysicsScene> physics_scene_;
 };
 
-template <typename T, typename... Args> T* SceneManager::addSystem(Args... args) {
-    auto system = makeUnique<T>(context(), std::forward(args)...);
-    return ontology_world_.getSystemManager()
-        .addSystem<OntologySystemAdapter<T>>(std::move(system))
+template <typename T, typename... Args> T* SceneManager::addSystem(Args&&... args) {
+    auto system = makeUnique<T>(context(), std::forward<Args>(args)...);
+    return ontology_world_->getSystemManager()
+        .addSystem<OntologySystemAdapter<T>>(std::move(system), this)
         .system();
 }
 
-template <typename T> T* SceneManager::getSystem() {
-    return ontology_world_.getSystemManager().getSystem<OntologySystemAdapter<T>>().system();
+template <typename T> T* SceneManager::system() {
+    return ontology_world_->getSystemManager().getSystem<OntologySystemAdapter<T>>().system();
 }
 
 template <typename T> void SceneManager::removeSystem() {
-    ontology_world_.getSystemManager().removeSystem<OntologySystemAdapter<T>>();
+    ontology_world_->getSystemManager().removeSystem<OntologySystemAdapter<T>>();
 }
 }  // namespace dw

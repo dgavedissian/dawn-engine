@@ -5,6 +5,7 @@
 #include "Common.h"
 #include "renderer/StbImage.h"
 #include "renderer/Texture.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
 
@@ -31,10 +32,21 @@ int imageCallbackEof(void* user) {
 }
 }  // namespace
 
-Texture::Texture(Context* context) : Resource(context) {
+Texture::Texture(Context* ctx) : Resource(ctx) {
 }
 
 Texture::~Texture() {
+    if (handle_.isValid()) {
+        module<Renderer>()->rhi()->deleteTexture(handle_);
+    }
+}
+
+SharedPtr<Texture> Texture::createTexture2D(Context* ctx, const Vec2i& size,
+                                            rhi::TextureFormat format, Memory data) {
+    auto texture = makeShared<Texture>(ctx);
+    texture->handle_ =
+        ctx->module<Renderer>()->rhi()->createTexture2D(size.x, size.y, format, std::move(data));
+    return texture;
 }
 
 bool Texture::beginLoad(const String&, InputStream& src) {
@@ -44,12 +56,13 @@ bool Texture::beginLoad(const String&, InputStream& src) {
         &imageCallbackEof,
     };
     int width, height, bpp;
-    byte* data = stbi_load_from_callbacks(&callbacks, reinterpret_cast<void*>(&src), &width,
-                                          &height, &bpp, 4);
+    byte* buffer = stbi_load_from_callbacks(&callbacks, reinterpret_cast<void*>(&src), &width,
+                                            &height, &bpp, 4);
+    Memory data(buffer, static_cast<u32>(width * height * 4),
+                [](byte* buffer) { stbi_image_free(buffer); });
     handle_ = module<Renderer>()->rhi()->createTexture2D(
-        static_cast<u16>(width), static_cast<u16>(height), rhi::TextureFormat::RGBA8, data,
-        static_cast<u32>(width * height * 4));
-    stbi_image_free(data);
+        static_cast<u16>(width), static_cast<u16>(height), rhi::TextureFormat::RGBA8,
+        std::move(data));
     return true;
 }
 

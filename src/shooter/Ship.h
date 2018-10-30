@@ -10,15 +10,16 @@
 #include "renderer/Mesh.h"
 #include "core/math/Defs.h"
 #include "core/Delegate.h"
-#include "ShipEngines.h"
+#include "CShipEngines.h"
 
 using namespace dw;
 
 class Ship;
 
-class ShipControls : public Component {
+class CShipControls : public Component {
 public:
     WeakPtr<Ship> ship;
+
     ClientRpc<Vec3> setLinearVelocity;
     void setLinearVelocityImpl(const Vec3& v) {
         target_linear_velocity = v;
@@ -28,15 +29,23 @@ public:
         target_angular_velocity = v;
     }
 
+    ClientRpc<bool> toggleWeapon;
+    void toggleWeaponImpl(const bool& toggle) {
+        firing_weapon = toggle;
+    }
+
     Vec3 target_linear_velocity;
     Vec3 target_angular_velocity;
+    bool firing_weapon;
 
     static RepLayout repLayout() {
         return {{},
-                {Rpc::bind<ShipControls>(&ShipControls::setLinearVelocity,
-                                         &ShipControls::setLinearVelocityImpl),
-                 Rpc::bind<ShipControls>(&ShipControls::setAngularVelocity,
-                                         &ShipControls::setAngularVelocityImpl)}};
+                {Rpc::bind<CShipControls>(&CShipControls::setLinearVelocity,
+                                          &CShipControls::setLinearVelocityImpl),
+                 Rpc::bind<CShipControls>(&CShipControls::setAngularVelocity,
+                                          &CShipControls::setAngularVelocityImpl),
+                 Rpc::bind<CShipControls>(&CShipControls::toggleWeapon,
+                                          &CShipControls::toggleWeaponImpl)}};
     }
 };
 
@@ -46,11 +55,14 @@ class Ship : public Object {
 public:
     DW_OBJECT(Ship);
 
-    explicit Ship(Context* ctx);
-    Ship(Context* ctx, EntityId reserved_entity_id, NetRole role);
+    Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame);
+    Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame,
+         EntityId reserved_entity_id, NetRole role);
     ~Ship() = default;
 
     void update(float dt);
+
+    void fireWeapon();
 
     // Used by the flight computer.
     void fireMovementThrusters(const Vec3& power);
@@ -63,7 +75,6 @@ public:
 private:
     Entity* ship_entity_;
     btRigidBody* rb_;
-    SharedPtr<Material> material_;
 
     SharedPtr<ShipFlightComputer> flight_computer_;
 };

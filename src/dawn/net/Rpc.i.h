@@ -45,11 +45,11 @@ template <typename Component, RpcType Type, typename... Args>
 void Rpc::RpcBindingImpl<Component, Type, Args...>::onAddToEntity(Entity& entity, RpcId rpc_id) {
     component_ = entity.component<Component>();
     auto& rpc_sender = component_->*functor_;
-    rpc_sender.initInternal(entity.component<NetData>(), &entity.log(), rpc_id);
+    rpc_sender.initInternal(entity.component<CNetData>(), &entity.log(), rpc_id);
 }
 
 template <typename Component, RpcType Type, typename... Args>
-void Rpc::RpcBindingImpl<Component, Type, Args...>::receiveRpc(const Vector<u8>& payload) {
+void Rpc::RpcBindingImpl<Component, Type, Args...>::receiveRpc(const Vector<byte>& payload) {
     InputBitStream bs(payload);
     (component_->*handler_)(stream::read<Args>(bs)...);
 }

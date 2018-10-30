@@ -5,7 +5,7 @@
 #pragma once
 
 #include "resource/Resource.h"
-#include "renderer/Renderer.h"
+#include "renderer/rhi/RHIRenderer.h"
 
 namespace dw {
 class DW_API Texture : public Resource {
@@ -14,6 +14,9 @@ public:
 
     Texture(Context* context);
     ~Texture();
+
+    static SharedPtr<Texture> createTexture2D(Context* ctx, const Vec2i& size,
+                                              rhi::TextureFormat format, Memory data = {});
 
     bool beginLoad(const String& asset_name, InputStream& src) override;
     void endLoad() override;

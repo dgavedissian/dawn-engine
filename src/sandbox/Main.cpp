@@ -4,16 +4,18 @@
  */
 #include "DawnEngine.h"
 #include "scene/Component.h"
-#include "scene/System.h"
+#include "scene/EntitySystem.h"
 #include "renderer/Program.h"
 #include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
 #include "scene/CameraController.h"
-#include "scene/Transform.h"
+#include "scene/CTransform.h"
 #include "scene/SceneManager.h"
 #include "renderer/BillboardSet.h"
 #include "renderer/Mesh.h"
 #include "ui/Imgui.h"
+#include "renderer/SceneGraph.h"
+#include "renderer/CCamera.h"
 
 using namespace dw;
 
@@ -77,7 +79,8 @@ class Planet : public Object {
 public:
     DW_OBJECT(Planet);
 
-    Planet(Context* ctx, float radius, float terrain_max_height, Entity* camera)
+    Planet(Context* ctx, SceneGraph* scene_graph, float radius, float terrain_max_height,
+           Entity* camera)
         : Object{ctx},
           camera_{camera},
           planet_{nullptr},
@@ -88,7 +91,6 @@ public:
           run_update_thread_{true},
           terrain_patches_{},
           t_output_ready_{false} {
-        auto universe = module<SceneManager>();
         auto rc = module<ResourceCache>();
 
         // Set up material.
@@ -104,16 +106,16 @@ public:
         setupTerrainRenderable();
         custom_mesh_renderable_->setMaterial(material);
 
-        planet_ = &universe->createEntity(Hash("Planet"), Position::origin, Quat::identity)
-                       .addComponent<RenderableComponent>(custom_mesh_renderable_);
+        planet_ = scene_graph->root().newChild(SystemPosition::origin);
+        planet_->data.renderable = custom_mesh_renderable_;
 
         // Kick off terrain update thread.
         terrain_update_thread_ = Thread([this]() {
             while (run_update_thread_.load()) {
                 // Calculate offset and update patches.
                 t_input_lock_.lock();
-                Position camera_position = t_camera_position_;
-                Position planet_position = t_planet_position_;
+                SystemPosition camera_position = t_camera_position_;
+                SystemPosition planet_position = t_planet_position_;
                 t_input_lock_.unlock();
                 updateTerrain(camera_position.getRelativeTo(planet_position));
 
@@ -136,8 +138,8 @@ public:
         terrain_update_thread_.join();
     }
 
-    Position& position() const {
-        return planet_->transform()->position();
+    SystemPosition& position() const {
+        return planet_->position;
     }
 
     float radius() const {
@@ -148,8 +150,8 @@ public:
         // Update camera position data.
         {
             LockGuard<Mutex> camera_position_lock{t_input_lock_};
-            t_camera_position_ = camera_->transform()->position();
-            t_planet_position_ = planet_->transform()->position();
+            t_camera_position_ = camera_->transform()->position;
+            t_planet_position_ = planet_->position;
         }
 
         // If we have any new terrain data ready, upload to GPU.
@@ -163,7 +165,7 @@ public:
 private:
     Entity* camera_;
 
-    Entity* planet_;
+    SystemNode* planet_;
     float radius_;
 
     // Terrain mesh.
@@ -175,8 +177,8 @@ private:
 
     // Update thread data.
     // INPUTS
-    Position t_camera_position_;
-    Position t_planet_position_;
+    SystemPosition t_camera_position_;
+    SystemPosition t_planet_position_;
     Mutex t_input_lock_;
     // OUTPUTS
     Vector<PlanetTerrainPatch::Vertex> t_output_vertices_;
@@ -240,10 +242,9 @@ private:
         int default_index_count = 20;
         custom_mesh_renderable_ = makeShared<CustomMeshRenderable>(
             context(),
-            makeShared<VertexBuffer>(context(), nullptr,
-                                     default_vertex_count * vertex_decl.stride(),
+            makeShared<VertexBuffer>(context(), Memory(default_vertex_count * vertex_decl.stride()),
                                      default_vertex_count, vertex_decl, rhi::BufferUsage::Dynamic),
-            makeShared<IndexBuffer>(context(), nullptr, default_index_count * sizeof(u32),
+            makeShared<IndexBuffer>(context(), Memory(default_index_count * sizeof(u32)),
                                     rhi::IndexBufferType::U32, rhi::BufferUsage::Dynamic));
 
         // Setup patches.
@@ -300,11 +301,8 @@ private:
     void uploadTerrainDataToGpu(const Vector<PlanetTerrainPatch::Vertex>& vertices,
                                 const Vector<u32>& indices) {
         // Upload to GPU.
-        custom_mesh_renderable_->vertexBuffer()->update(
-            vertices.data(), sizeof(PlanetTerrainPatch::Vertex) * vertices.size(), vertices.size(),
-            0);
-        custom_mesh_renderable_->indexBuffer()->update(indices.data(), sizeof(u32) * indices.size(),
-                                                       0);
+        custom_mesh_renderable_->vertexBuffer()->update(Memory{vertices}, vertices.size(), 0);
+        custom_mesh_renderable_->indexBuffer()->update(Memory{indices}, 0);
     }
 
     friend class PlanetTerrainPatch;
@@ -515,45 +513,71 @@ int PlanetTerrainPatch::sharedEdgeWith(PlanetTerrainPatch* patch, int hint) {
     return 0;
 }
 
-class Sandbox : public App {
+class SandboxSession : public GameSession {
 public:
-    DW_OBJECT(Sandbox);
+    DW_OBJECT(SandboxSession);
 
     SharedPtr<CameraController> camera_controller;
     SharedPtr<Planet> planet_;
 
-    void init(int argc, char** argv) override {
-        auto rc = module<ResourceCache>();
-        assert(rc);
-        rc->addPath("base", "../media/base");
-        rc->addPath("sandbox", "../media/sandbox");
-
+    SandboxSession(Context* ctx, const GameSessionInfo& gsi) : GameSession(ctx, gsi) {
+        module<Input>()->registerEventSystem(event_system_.get());
         const float radius = 1000.0f;
 
+        // Create frame.
+        auto frame = scene_graph_->addFrame(scene_graph_->root().newChild());
+
         // Create a camera.
-        auto& camera = module<SceneManager>()
-                           ->createEntity(0, Position{0.0f, 0.0f, radius * 2}, Quat::identity)
-                           .addComponent<Camera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
-        camera_controller = makeShared<CameraController>(context(), 300.0f);
+        auto& camera = scene_manager_->createEntity(0, Vec3(0.0f, 0.0f, radius * 2.0f),
+                                                    Quat::identity, *frame);
+        camera.addComponent<CCamera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
+        camera_controller = makeShared<CameraController>(context(), event_system_.get(), 300.0f);
         camera_controller->possess(&camera);
 
         // Create a planet.
-        planet_ = makeShared<Planet>(context(), radius, 40.0f, &camera);
+        planet_ = makeShared<Planet>(context(), scene_graph_.get(), radius, 40.0f, &camera);
+    }
+
+    ~SandboxSession() override {
+        module<Input>()->unregisterEventSystem(event_system_.get());
     }
 
     void update(float dt) override {
+        GameSession::update(dt);
+
         // Calculate distance to planet and adjust acceleration accordingly.
-        auto& a = camera_controller->possessed()->transform()->position();
+        auto& a = camera_controller->possessed()->transform()->position;
         auto& b = planet_->position();
-        float altitude = a.getRelativeTo(b).Length() - planet_->radius();
+        float altitude = SystemPosition{a}.getRelativeTo(b).Length() - planet_->radius();
         camera_controller->setAcceleration(altitude);
 
         camera_controller->update(dt);
         planet_->update(dt);
     }
 
+    void render(float interpolation) override {
+        GameSession::render(interpolation);
+    }
+};
+
+class Sandbox : public App {
+public:
+    DW_OBJECT(Sandbox);
+
+    void init(const CommandLine& cmdline) override {
+        auto rc = module<ResourceCache>();
+        assert(rc);
+        rc->addPath("base", "../media/base");
+        rc->addPath("sandbox", "../media/sandbox");
+
+        engine_->addSession(makeUnique<SandboxSession>(context(), GameSessionInfo{}));
+    }
+
+    void update(float dt) override {
+    }
+
     void render(float) override {
-        module<Renderer>()->rhi()->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
+        module<Renderer>()->rhi()->setViewClear(0, {0.0f, 0.0f, 0.1f, 0.2f});
 
         // Calculate average FPS.
         float current_fps = 1.0 / engine_->frameTime();
@@ -599,7 +623,7 @@ public:
     }
 
     String gameVersion() override {
-        return "1.0.0";
+        return DW_VERSION_STR;
     }
 };
 

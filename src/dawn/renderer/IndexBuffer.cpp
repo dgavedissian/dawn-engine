@@ -7,32 +7,36 @@
 #include "renderer/Renderer.h"
 
 namespace dw {
-IndexBuffer::IndexBuffer(Context* context, const void* data, uint size, rhi::IndexBufferType type,
+IndexBuffer::IndexBuffer(Context* ctx, Memory data, rhi::IndexBufferType type,
                          rhi::BufferUsage usage)
-    : Object{context}, type_{type} {
-    handle_ = context_->module<Renderer>()->rhi()->createIndexBuffer(data, size, type, usage);
+    : Object{ctx}, type_{type} {
     if (type == rhi::IndexBufferType::U16) {
-        index_count_ = size / sizeof(u16);
+        index_count_ = data.size() / sizeof(u16);
     } else if (type == rhi::IndexBufferType::U32) {
-        index_count_ = size / sizeof(u32);
+        index_count_ = data.size() / sizeof(u32);
     } else {
         assert(false);
-    };
+    }
+    handle_ = context_->module<Renderer>()->rhi()->createIndexBuffer(std::move(data), type, usage);
 }
 
 IndexBuffer::~IndexBuffer() {
     context_->module<Renderer>()->rhi()->deleteIndexBuffer(handle_);
 }
 
-void IndexBuffer::update(const void* data, uint size, uint offset) {
+void IndexBuffer::update(Memory data, uint offset) {
     if (type_ == rhi::IndexBufferType::U16) {
-        index_count_ = size / sizeof(u16);
+        index_count_ = data.size() / sizeof(u16);
     } else if (type_ == rhi::IndexBufferType::U32) {
-        index_count_ = size / sizeof(u32);
+        index_count_ = data.size() / sizeof(u32);
     } else {
         assert(false);
     };
-    context_->module<Renderer>()->rhi()->updateIndexBuffer(handle_, data, size, offset);
+    context_->module<Renderer>()->rhi()->updateIndexBuffer(handle_, std::move(data), offset);
+}
+
+void IndexBuffer::bind(rhi::RHIRenderer* r) {
+    r->setIndexBuffer(handle_);
 }
 
 rhi::IndexBufferHandle IndexBuffer::internalHandle() const {

@@ -8,19 +8,19 @@
 #include "scene/Entity.h"
 
 namespace dw {
-class NetData;
+class CNetData;
 
 using RpcId = u16;
 enum class RpcType { Server, Client };
 
-// Rpc binding interface. Used internally by NetData.
+// Rpc binding interface. Used internally by CNetData.
 class DW_API RpcBinding {
 public:
     virtual ~RpcBinding() = default;
-    // Called by NetData when registering this RPC with a particular entity.
+    // Called by CNetData when registering this RPC with a particular entity.
     virtual void onAddToEntity(Entity& entity, RpcId rpc_id) = 0;
-    // Called by NetData when an RPC is received.
-    virtual void receiveRpc(const Vector<u8>& data) = 0;
+    // Called by CNetData when an RPC is received.
+    virtual void receiveRpc(const Vector<byte>& data) = 0;
 };
 
 // Useful aliases.
@@ -34,14 +34,14 @@ public:
     virtual ~RpcSenderBase() = default;
 
     // Called by RpcBinding when setting up this sender object.
-    void initInternal(NetData* net_data, Logger* logger, RpcId rpc_id);
+    void initInternal(CNetData* net_data, Logger* logger, RpcId rpc_id);
 
 protected:
     void sendServerRpc(const OutputBitStream& payload);
     void sendClientRpc(const OutputBitStream& payload);
 
 protected:
-    NetData* net_data_;
+    CNetData* net_data_;
     Logger* logger_;
     RpcId rpc_id_;
 };
@@ -71,7 +71,7 @@ public:
                               RpcHandlerPtr<Component, Args...> handler);
 
 private:
-    // RPC binding implementation. This associates the NetData component and RPC id with the sender
+    // RPC binding implementation. This associates the CNetData component and RPC id with the sender
     // functor. In addition, it will execute RPC handlers when receiving a payload.
     template <typename Component, RpcType Type, typename... Args>
     class DW_API RpcBindingImpl : public RpcBinding {
@@ -81,7 +81,7 @@ private:
 
         // RpcBinding interface
         void onAddToEntity(Entity& entity, RpcId rpc_id) override;
-        void receiveRpc(const Vector<u8>& payload) override;
+        void receiveRpc(const Vector<byte>& payload) override;
 
     private:
         RpcFunctorPtr<Component, Type, Args...> functor_;

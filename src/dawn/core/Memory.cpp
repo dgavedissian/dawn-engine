@@ -4,54 +4,24 @@
  */
 #include "Common.h"
 #include "core/Memory.h"
+#include "Memory.h"
 
 namespace dw {
-Memory::Memory() : Memory{nullptr, 0} {
+Memory::Memory() : data_{nullptr}, size_{0} {
 }
 
-Memory::Memory(const void* data, uint size) : data_{nullptr}, size_{size} {
-    if (data != nullptr) {
-        data_ = new byte[size];
-        memcpy(data_, data, size);
+Memory::Memory(uint size) : size_{size} {
+    if (size > 0) {
+        data_.reset(new byte[size], std::default_delete<byte[]>());
     }
 }
 
-Memory::~Memory() {
-    if (data_) {
-        delete[] data_;
-    }
+byte& Memory::operator[](size_t index) const {
+    return data_.get()[index];
 }
 
-Memory::Memory(const Memory& other) noexcept {
-    *this = other;
-}
-
-Memory& Memory::operator=(const Memory& other) noexcept {
-    if (other.data_ != nullptr) {
-        data_ = new byte[other.size_];
-        size_ = other.size_;
-        memcpy(data_, other.data_, other.size_);
-    } else {
-        data_ = nullptr;
-        size_ = 0;
-    }
-    return *this;
-}
-
-Memory::Memory(Memory&& other) noexcept {
-    *this = std::move(other);
-}
-
-Memory& Memory::operator=(Memory&& other) noexcept {
-    data_ = other.data_;
-    size_ = other.size_;
-    other.data_ = nullptr;
-    other.size_ = 0;
-    return *this;
-}
-
-void* Memory::data() const {
-    return data_;
+byte* Memory::data() const {
+    return data_.get();
 }
 
 uint Memory::size() const {

@@ -4,29 +4,29 @@
  */
 #include "Common.h"
 #include "input/Input.h"
-#include "scene/System.h"
+#include "scene/EntitySystem.h"
 #include "scene/SceneManager.h"
 #include "PhysicsScene.h"
 
 namespace dw {
 namespace {
-btTransform toBulletTransform(Transform& xform) {
-    btQuaternion quat{xform.orientation().x, xform.orientation().y, xform.orientation().z,
-                      xform.orientation().w};
+btTransform toBulletTransform(detail::Transform& xform) {
+    btQuaternion quat{xform.orientation.x, xform.orientation.y, xform.orientation.z,
+                      xform.orientation.w};
     return btTransform(
-        quat, {static_cast<btScalar>(xform.position().x), static_cast<btScalar>(xform.position().y),
-               static_cast<btScalar>(xform.position().z)});
+        quat, {static_cast<btScalar>(xform.position.x), static_cast<btScalar>(xform.position.y),
+               static_cast<btScalar>(xform.position.z)});
 }
 
-void fromBulletTransform(const btTransform& source, Transform& dest) {
+void fromBulletTransform(const btTransform& source, detail::Transform& dest) {
     btQuaternion rotation;
     source.getBasis().getRotation(rotation);
-    dest.position() =
-        Position{source.getOrigin().x(), source.getOrigin().y(), source.getOrigin().z()};
-    dest.orientation() = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
+    dest.position = Vec3{source.getOrigin().x(), source.getOrigin().y(), source.getOrigin().z()};
+    dest.orientation = Quat{rotation.x(), rotation.y(), rotation.z(), rotation.w()};
 }
 }  // namespace
-PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr) : Object(context) {
+PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr, EventSystem* event_system)
+    : Object(context), event_system_(event_system) {
     log().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
 
     broadphase_.reset(new btDbvtBroadphase());
@@ -41,13 +41,13 @@ PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr) : Object(c
     world_->setInternalTickCallback(onPhysicsTick);
 
     // Register delegates.
-    addEventListener<KeyEvent>(makeEventDelegate(this, &PhysicsScene::onKey));
+    event_system->addListener(this, &PhysicsScene::onKey);
 
     scene_mgr->addSystem<PhysicsComponentSystem>();
 }
 
 PhysicsScene::~PhysicsScene() {
-    removeEventListener<KeyEvent>(makeEventDelegate(this, &PhysicsScene::onKey));
+    event_system_->removeListener(this, &PhysicsScene::onKey);
     world_.reset();
     solver_.reset();
     dispatcher_.reset();
@@ -55,16 +55,16 @@ PhysicsScene::~PhysicsScene() {
     broadphase_.reset();
 }
 
-void PhysicsScene::update(float dt, Camera_OLD*) {
+void PhysicsScene::update(float dt, SystemNode*) {
     world_->stepSimulation(dt, 5);
     // mDebugDrawer->step();
 }
 
-bool PhysicsScene::rayQuery(const Position& start, const Position& end, Camera_OLD* camera,
-                            PhysicsRaycastResult& result) {
+bool PhysicsScene::rayQuery(const SystemPosition& start, const SystemPosition& end,
+                            SystemNode* camera, PhysicsRaycastResult& result) {
     // Make sure this is done in camera-space
-    btVector3 start_cs = start.toCameraSpace(camera);
-    btVector3 end_cs = end.toCameraSpace(camera);
+    btVector3 start_cs = start.toCameraSpace(camera->position);
+    btVector3 end_cs = end.toCameraSpace(camera->position);
 
     // Ensure that the direction can be normalised
     btVector3 delta = end_cs - start_cs;
@@ -73,7 +73,8 @@ bool PhysicsScene::rayQuery(const Position& start, const Position& end, Camera_O
         world_->rayTest(start_cs, end_cs, raycast);
 
         // Fill the result structure
-        result.position = Position::fromCameraSpace(camera, raycast.m_hitPointWorld);
+        result.position =
+            SystemPosition::fromCameraSpace(camera->position, raycast.m_hitPointWorld);
         result.normal = raycast.m_hitNormalWorld;
         result.hit = raycast.hasHit();
 
@@ -115,24 +116,25 @@ void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
     }
 }
 
-PhysicsScene::PhysicsComponentSystem::PhysicsComponentSystem(Context* context) : System(context) {
-    supportsComponents<Transform, RigidBody>();
+PhysicsScene::PhysicsComponentSystem::PhysicsComponentSystem(Context* context)
+    : EntitySystem(context) {
+    supportsComponents<CTransform, CRigidBody>();
 }
 
 void PhysicsScene::PhysicsComponentSystem::processEntity(Entity& entity, float) {
-    auto t = entity.component<Transform>();
-    auto rb = entity.component<RigidBody>()->rigid_body_.get();
-    fromBulletTransform(rb->getWorldTransform(), *t);
+    auto t = entity.component<CTransform>();
+    auto rb = entity.component<CRigidBody>()->rigid_body_.get();
+    fromBulletTransform(rb->getWorldTransform(), t->node->transform());
 }
 
-RigidBody::RigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape)
+CRigidBody::CRigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape)
     : world_{world},
       rigid_body_{nullptr},
       collision_shape_{std::move(collision_shape)},
       mass_{mass} {
 }
 
-RigidBody::~RigidBody() {
+CRigidBody::~CRigidBody() {
     if (rigid_body_) {
         world_->removeRigidBody(rigid_body_.get());
         delete rigid_body_->getMotionState();
@@ -140,7 +142,7 @@ RigidBody::~RigidBody() {
     }
 }
 
-void RigidBody::onAddToEntity(Entity* parent) {
+void CRigidBody::onAddToEntity(Entity* parent) {
     // Get initial transform.
     assert(parent->transform());
     btTransform initial_transform = toBulletTransform(*parent->transform());

@@ -1,6 +1,30 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
 
+# Source: https://github.com/google/flatbuffers/blob/master/CMake/FindFlatBuffers.cmake
+function(FLATBUFFERS_GENERATE_C_HEADERS Name)
+    set(FLATC_OUTPUTS)
+    foreach(FILE ${ARGN})
+        get_filename_component(FLATC_OUTPUT ${FILE} NAME_WE)
+        set(FLATC_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers/${FLATC_OUTPUT}_generated.h")
+        list(APPEND FLATC_OUTPUTS ${FLATC_OUTPUT})
+
+        add_custom_command(OUTPUT ${FLATC_OUTPUT}
+            COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
+                ARGS -c -o "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers/" ${FILE}
+            COMMENT "Building C++ header for ${FILE}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    endforeach() 
+    set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
+endfunction()
+
+set(FLATBUFFER_DEFINITION_FILES
+    net/protocol/protocol.fbs
+    net/protocol/to_client.fbs
+    net/protocol/to_server.fbs)
+
+FLATBUFFERS_GENERATE_C_HEADERS(NetProtocol ${FLATBUFFER_DEFINITION_FILES})
+
 set(SOURCE_FILES
     core/io/File.cpp
     core/io/File.h
@@ -37,6 +61,8 @@ set(SOURCE_FILES
     core/App.cpp
     core/App.h
     core/Collections.h
+    core/CommandLine.cpp
+    core/CommandLine.h
     core/Concurrency.cpp
     core/Concurrency.h
     core/Context.cpp
@@ -49,6 +75,10 @@ set(SOURCE_FILES
     core/EventSystem.h
     core/Exception.h
     core/FixedMemoryPool.h
+    core/GameMode.cpp
+    core/GameMode.h
+    core/GameSession.cpp
+    core/GameSession.h
 	core/Handle.h
     core/Log.cpp
     core/Log.h
@@ -64,25 +94,25 @@ set(SOURCE_FILES
     core/StringUtils.h
     core/Timer.cpp
     core/Timer.h
-    gameplay/GameMode.cpp
-    gameplay/GameMode.h
-    gameplay/GameplayModule.cpp
-    gameplay/GameplayModule.h
+    core/Type.h
     input/Input.cpp
     input/Input.h
+    net/transport/Transport.h
+    net/transport/YojimboTransport.cpp
+    net/transport/YojimboTransport.h
     net/BitStream.cpp
     net/BitStream.h
-    net/NetData.cpp
-    net/NetData.h
+    net/CNetData.cpp
+    net/CNetData.h
+    net/CNetTransform.cpp
+    net/CNetTransform.h
     net/NetEntityPipeline.cpp
     net/NetEntityPipeline.h
     net/NetGameMode.cpp
     net/NetGameMode.h
+    net/NetInstance.cpp
+    net/NetInstance.h
     net/NetRole.h
-    net/NetTransform.cpp
-    net/NetTransform.h
-    net/Networking.cpp
-    net/Networking.h
     net/RepProperty.h
     net/RepProperty.i.h
     net/Rpc.cpp
@@ -101,10 +131,12 @@ set(SOURCE_FILES
     renderer/rhi/VertexDecl.h
     renderer/BillboardSet.cpp
     renderer/BillboardSet.h
-    renderer/Camera.cpp
-    renderer/Camera.h
+    renderer/CCamera.cpp
+    renderer/CCamera.h
     renderer/CustomMeshRenderable.cpp
     renderer/CustomMeshRenderable.h
+    renderer/FrameBuffer.cpp
+    renderer/FrameBuffer.h
     renderer/GLSL.h
     renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h
@@ -114,15 +146,23 @@ set(SOURCE_FILES
     renderer/Mesh.h
     renderer/MeshBuilder.cpp
     renderer/MeshBuilder.h
+    renderer/Node.cpp
+    renderer/Node.h
     renderer/Program.cpp
     renderer/Program.h
     renderer/Renderable.h
     renderer/Renderable.cpp
     renderer/Renderer.cpp
     renderer/Renderer.h
+    renderer/RenderPipeline.cpp
+    renderer/RenderPipeline.h
+    renderer/SceneGraph.cpp
+    renderer/SceneGraph.h
     renderer/Shader.cpp
     renderer/Shader.h
     renderer/StbImage.h
+    renderer/SystemPosition.cpp
+    renderer/SystemPosition.h
     renderer/Texture.cpp
     renderer/Texture.h
     renderer/TriangleBuffer.cpp
@@ -134,25 +174,23 @@ set(SOURCE_FILES
     resource/ResourceCache.cpp
     resource/ResourceCache.h
     scene/BulletDynamics.h
+    scene/CLinearMotion.h
+    scene/CTransform.cpp
+    scene/CTransform.h
     scene/CameraController.cpp
     scene/CameraController.h
     scene/Component.cpp
     scene/Component.h
     scene/Entity.cpp
     scene/Entity.h
+    scene/EntitySystem.cpp
+    scene/EntitySystem.h
     scene/PhysicsScene.cpp
     scene/PhysicsScene.h
-    scene/Position.cpp
-    scene/Position.h
+    scene/SLinearMotion.cpp
+    scene/SLinearMotion.h
     scene/SceneManager.cpp
     scene/SceneManager.h
-    scene/System.cpp
-    scene/System.h
-    scene/Transform.cpp
-    scene/Transform.h
-    scene/Velocity.h
-    scene/VelocitySystem.cpp
-    scene/VelocitySystem.h
     ui/Imgui.h
     ui/UserInterface.cpp
     ui/UserInterface.h
@@ -195,28 +233,29 @@ set (SOURCE_FILES
 
 # Project
 set(BUILD_SHARED_LIBS OFF)
-add_library(DwCore ${SOURCE_FILES})
-enable_cpp14(DwCore)
-enable_maximum_warnings(DwCore)
-set_output_dir(DwCore ${CMAKE_BINARY_DIR}/lib)
+add_library(DwEngine ${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES} ${NetProtocol_OUTPUTS})
+enable_cpp14(DwEngine)
+enable_maximum_warnings(DwEngine)
+set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)
-    set_target_properties(DwCore PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
+    set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
 endif()
-target_include_directories(DwCore PUBLIC
+target_include_directories(DwEngine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-        scene/ontology/include)
+    scene/ontology/include)
+target_include_directories(DwEngine PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/flatbuffers)
 
 # Copy over shared library dependencies
 set(DEPS_DIR ${CMAKE_BINARY_DIR}/dependencies/install/lib)
-get_target_property(LIB_DIR DwCore LIBRARY_OUTPUT_DIRECTORY)
+get_target_property(LIB_DIR DwEngine LIBRARY_OUTPUT_DIRECTORY)
 if(APPLE AND BUILD_SHARED_LIBS)
-    set_target_properties(DwCore PROPERTIES FRAMEWORK TRUE)
+    set_target_properties(DwEngine PROPERTIES FRAMEWORK TRUE)
 endif()
 
 # Random extras
-mirror_physical_directories(${SOURCE_FILES})
-set_target_properties(DwCore PROPERTIES DEBUG_POSTFIX _d)
+mirror_physical_directories(${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES})
+set_target_properties(DwEngine PROPERTIES DEBUG_POSTFIX _d)
 
 # Add include dirs and libraries
-target_include_directories(DwCore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
-target_link_libraries(DwCore ${LIBS})
+target_include_directories(DwEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
+target_link_libraries(DwEngine ${LIBS})

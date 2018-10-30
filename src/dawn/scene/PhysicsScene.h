@@ -4,8 +4,9 @@
  */
 #pragma once
 
-#include "scene/Position.h"
-#include "scene/System.h"
+#include "renderer/SystemPosition.h"
+#include "renderer/Node.h"
+#include "scene/EntitySystem.h"
 #include "input/Input.h"
 
 // Bullet
@@ -14,13 +15,12 @@
 namespace dw {
 class Renderer;
 class RigidEntity;
-class Camera_OLD;
 
 // Structure to hold the result of a raycast
 // TODO: merge this with RendererRaycastResult
 struct DW_API PhysicsRaycastResult {
     RigidEntity* body;
-    Position position;
+    SystemPosition position;
     Vec3 normal;
     bool hit;
 };
@@ -30,18 +30,18 @@ class DW_API PhysicsScene : public Object {
 public:
     DW_OBJECT(PhysicsScene);
 
-    PhysicsScene(Context* context, SceneManager* scene_mgr);
+    PhysicsScene(Context* context, SceneManager* scene_mgr, EventSystem* event_system);
     ~PhysicsScene();
 
     // Takes a step of dt seconds in the simulation
-    void update(float dt, Camera_OLD* camera);
+    void update(float dt, SystemNode* camera);
 
     // Performs a raycast query
-    bool rayQuery(const Position& start, const Position& end, Camera_OLD* camera,
+    bool rayQuery(const SystemPosition& start, const SystemPosition& end, SystemNode* camera,
                   PhysicsRaycastResult& result);
 
-    // System for updating RigidBody components.
-    class PhysicsComponentSystem : public System {
+    // EntitySystem for updating CRigidBody components.
+    class PhysicsComponentSystem : public EntitySystem {
     public:
         DW_OBJECT(PhysicsComponentSystem);
 
@@ -50,6 +50,7 @@ public:
     };
 
 private:
+    EventSystem* event_system_;
     SharedPtr<btBroadphaseInterface> broadphase_;
     SharedPtr<btCollisionConfiguration> collision_config_;
     SharedPtr<btCollisionDispatcher> dispatcher_;
@@ -65,13 +66,13 @@ private:
 
     static void onPhysicsTick(btDynamicsWorld* world, btScalar timestep);
 
-    friend class RigidBody;
+    friend class CRigidBody;
 };
 
-class RigidBody : public Component {
+class CRigidBody : public Component {
 public:
-    RigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape);
-    ~RigidBody();
+    CRigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape);
+    ~CRigidBody();
 
     void onAddToEntity(Entity* parent) override;
 

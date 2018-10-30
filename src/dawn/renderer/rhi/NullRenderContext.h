@@ -29,8 +29,6 @@ public:
     void stopRendering() override;
     void processCommandList(Vector<RenderCommand>& command_list) override;
     bool frame(const Frame* frame) override;
-
-private:
 };
 }  // namespace rhi
 }  // namespace dw

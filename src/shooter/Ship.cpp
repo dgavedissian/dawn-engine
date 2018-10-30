@@ -3,38 +3,36 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "DawnEngine.h"
-#include "scene/Transform.h"
-#include "net/NetData.h"
-#include "net/NetTransform.h"
+#include "scene/CTransform.h"
+#include "net/CNetData.h"
+#include "net/CNetTransform.h"
 #include "Ship.h"
 #include "ShipFlightComputer.h"
+#include "CWeapon.h"
 
 using namespace dw;
 
-Ship::Ship(Context* ctx)
-    : Ship(ctx, ctx->module<SceneManager>()->reserveEntityId(), NetRole::Authority) {
+Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame)
+    : Ship(ctx, net, scene_manager, frame, scene_manager->reserveEntityId(), NetRole::Authority) {
 }
 
-Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx), rb_(nullptr) {
+Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame,
+           EntityId reserved_entity_id, NetRole role)
+    : Object(ctx), rb_(nullptr), ship_entity_(nullptr) {
     auto rc = module<ResourceCache>();
     assert(rc);
 
-    material_ = makeShared<Material>(
-        context(), makeShared<Program>(context(), rc->get<VertexShader>("shooter:ship.vs"),
-                                       rc->get<FragmentShader>("shooter:ship.fs")));
-    material_->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
+    auto part_core = rc->get<Mesh>("shooter:models/part_corelarge.3ds");
+    auto part_wing = rc->get<Mesh>("shooter:models/part_wing.3ds");
 
-    auto renderable = rc->get<Mesh>("shooter:models/core-large.mesh.xml");
-    renderable->setMaterial(material_);
-    auto sphere = rc->get<Mesh>("shooter:models/side-wing.mesh.xml");
-    sphere->setMaterial(material_);
+    // Hack to fix the weird orientation issue in the meshes.
+    part_core->rootNode()->setTransform(Mat4::identity);
+    part_wing->rootNode()->setTransform(Mat4::identity);
 
     // Create ship entity.
-    auto sm = module<SceneManager>();
-    ship_entity_ = &sm->createEntity(Hash("Ship"), reserved_entity_id)
-                        .addComponent<Transform>(Position{0.0f, 0.0f, 0.0f}, Quat::identity)
-                        .addComponent<RenderableComponent>(renderable)
-                        .addComponent<ShipEngines>(
+    ship_entity_ = &scene_manager->createEntity(Hash("Ship"), reserved_entity_id)
+                        .addComponent<CTransform>(frame->newChild(), part_core)
+                        .addComponent<CShipEngines>(
                             context(),
                             Vector<ShipEngineData>{// 4 on back.
                                                    {{0.0f, 0.0f, -400.0f}, {5.0f, 0.0f, 15.0f}},
@@ -72,26 +70,27 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
                                                    {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, 10.0f}},
                                                    {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, 10.0f}},
                                                    {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
-                                                   {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}});
-    auto node = ship_entity_->component<RenderableComponent>()->node;
-    node->addChild(makeShared<RenderableNode>(sphere, Vec3{8.0f, 0.0f, 0.0f}, Quat::identity));
-    node->addChild(makeShared<RenderableNode>(sphere, Vec3{-8.0f, 0.0f, 0.0f}, Quat::identity,
-                                              Vec3{-1.0f, 1.0f, 1.0f}));
+                                                   {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}})
+                        .addComponent<CWeapon>(0, 600.0f, Colour{1.0f, 1.0f, 1.0f}, 0.3f);
+    auto node = ship_entity_->component<CTransform>()->node;
+    node->newChild(Vec3{13.0f, -0.5f, 7.0f}, Quat::identity)->data.renderable = part_wing;
+    node->newChild(Vec3{-13.0f, -0.5f, 7.0f}, Quat::identity, Vec3{-1.0f, 1.0f, 1.0f})
+        ->data.renderable = part_wing;
 
     // Networking.
-    ship_entity_->addComponent<NetTransform>();
-    ship_entity_->addComponent<ShipControls>();
+    ship_entity_->addComponent<CNetTransform>();
+    ship_entity_->addComponent<CShipControls>();
     if (role != NetRole::None) {
-        ship_entity_->addComponent<NetData>(
-            RepLayout::build<NetTransform, ShipEngines, ShipControls>());
+        ship_entity_->addComponent<CNetData>(
+            net, RepLayout::build<CNetTransform, CShipEngines, CShipControls>());
     }
 
     // Initialise server-side details.
     if (role >= NetRole::Authority) {
-        ship_entity_->addComponent<RigidBody>(
-            module<SceneManager>()->physicsScene(), 10.0f,
+        ship_entity_->addComponent<CRigidBody>(
+            ship_entity_->sceneManager()->physicsScene(), 10.0f,
             makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}));
-        rb_ = ship_entity_->component<RigidBody>()->_rigidBody();
+        rb_ = ship_entity_->component<CRigidBody>()->_rigidBody();
 
         // Initialise flight computer.
         flight_computer_ = makeShared<ShipFlightComputer>(context(), this);
@@ -101,9 +100,9 @@ Ship::Ship(Context* ctx, EntityId reserved_entity_id, NetRole role) : Object(ctx
 void Ship::update(float dt) {
     auto input = module<Input>();
 
-    // auto& engines = *ship_entity_->component<ShipEngines>();
-    auto& controls = *ship_entity_->component<ShipControls>();
-    auto net_data = ship_entity_->component<NetData>();
+    // auto& engines = *ship_entity_->component<CShipEngines>();
+    auto& controls = *ship_entity_->component<CShipControls>();
+    auto net_data = ship_entity_->component<CNetData>();
 
     if (!net_data || net_data->role() == NetRole::AuthoritativeProxy) {
         //=============================
@@ -119,6 +118,7 @@ void Ship::update(float dt) {
                            static_cast<float>(input->isKeyDown(Key::W));
         Vec3 target_linear_velocity = Vec3{x_movement, y_movement, z_movement} * 100.0f;
         if (!controls.target_linear_velocity.BitEquals(target_linear_velocity)) {
+            // TODO. Short circuit RPC call if no net data.
             if (net_data) {
                 controls.setLinearVelocity(target_linear_velocity);
             }
@@ -134,10 +134,21 @@ void Ship::update(float dt) {
                                static_cast<float>(input->isKeyDown(Key::E));
         Vec3 target_angular_velocity = Vec3{pitch_direction, yaw_direction, roll_direction} * 1.2f;
         if (!controls.target_angular_velocity.BitEquals(target_angular_velocity)) {
+            // TODO. Short circuit RPC call if no net data.
             if (net_data) {
                 controls.setAngularVelocity(target_angular_velocity);
             }
             controls.target_angular_velocity = target_angular_velocity;
+        }
+
+        // Control weapon.
+        bool is_firing_weapon =
+            input->isMouseButtonDown(MouseButton::Left) || input->isKeyDown(Key::LeftCtrl);
+        if (controls.firing_weapon != is_firing_weapon) {
+            if (net_data) {
+                controls.toggleWeapon(is_firing_weapon);
+            }
+            controls.firing_weapon = is_firing_weapon;
         }
     }
 
@@ -146,6 +157,9 @@ void Ship::update(float dt) {
         //=============================
         // Handle authoritative server.
         //=============================
+
+        // Fire weapon.
+        ship_entity_->component<CWeapon>()->firing = controls.firing_weapon;
 
         // Apply controls to flight computer.
         flight_computer_->setTargetLinearVelocity(controls.target_linear_velocity);
@@ -181,25 +195,25 @@ void Ship::update(float dt) {
 }
 
 void Ship::fireMovementThrusters(const Vec3& power) {
-    Vec3 total_force = ship_entity_->component<ShipEngines>()->fireMovementEngines(power);
+    Vec3 total_force = ship_entity_->component<CShipEngines>()->fireMovementEngines(power);
     rb_->activate();
-    rb_->applyCentralForce(ship_entity_->transform()->orientation() * total_force);
+    rb_->applyCentralForce(ship_entity_->transform()->orientation * total_force);
 }
 
 void Ship::fireRotationalThrusters(const Vec3& power) {
-    Vec3 total_torque = ship_entity_->component<ShipEngines>()->fireRotationalEngines(power);
+    Vec3 total_torque = ship_entity_->component<CShipEngines>()->fireRotationalEngines(power);
     rb_->activate();
-    rb_->applyTorque(ship_entity_->transform()->orientation() * total_torque);
+    rb_->applyTorque(ship_entity_->transform()->orientation * total_torque);
 }
 
 Vec3 Ship::angularVelocity() const {
-    Quat inv_rotation = ship_entity_->transform()->orientation();
+    Quat inv_rotation = ship_entity_->transform()->orientation;
     inv_rotation.InverseAndNormalize();
     return inv_rotation * Vec3{rb_->getAngularVelocity()};
 }
 
 Vec3 Ship::localVelocity() const {
-    Quat inv_rotation = ship_entity_->transform()->orientation();
+    Quat inv_rotation = ship_entity_->transform()->orientation;
     inv_rotation.InverseAndNormalize();
     return inv_rotation * Vec3{rb_->getLinearVelocity()};
 }

@@ -43,10 +43,6 @@
 #include <emscripten.h>
 #endif
 
-//
-// External libraries
-//
-
 // Re-enable warnings
 #if defined(DW_MSVC)
 #pragma warning(pop)

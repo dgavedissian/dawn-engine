@@ -6,7 +6,6 @@
 #include "core/App.h"
 #include "core/Timer.h"
 #include "DawnEngine.h"
-#include "scene/VelocitySystem.h"
 
 // Required for getBasePath/getPrefPath.
 #if DW_PLATFORM == DW_WIN32
@@ -19,6 +18,12 @@
 #endif
 
 namespace dw {
+SessionId::SessionId(int session_index) : session_index_(session_index) {
+}
+
+u32 SessionId::index() const {
+    return session_index_;
+}
 
 Engine::Engine(const String& game, const String& version)
     : Object{nullptr},
@@ -29,6 +34,8 @@ Engine::Engine(const String& game, const String& version)
       game_name_{game},
       game_version_{version},
       frame_time_{0.0f},
+      frames_per_second_{0},
+      frame_counter_(0),
       log_file_{"engine.log"},
       config_file_{"engine.cfg"} {
 }
@@ -37,26 +44,10 @@ Engine::~Engine() {
     shutdown();
 }
 
-void Engine::setup(int argc, char** argv) {
+void Engine::setup(const CommandLine& cmdline) {
     assert(!initialised_);
 
-    // Process command line arguments.
-    for (int i = 0; i < argc; i++) {
-        if (argv[i][0] == '-') {
-            // Look ahead to next arg. If flag then add this arg as flag, otherwise add argument
-            // pair
-            if (i < argc - 1) {
-                if (argv[i + 1][0] == '-') {
-                    flags_.insert(String{argv[i]});
-                } else {
-                    arguments_[String{argv[i]}] = String{argv[i + 1]};
-                    i++;  // skip argument value
-                }
-            } else {
-                flags_.insert(String{argv[i]});
-            }
-        }
-    }
+    cmdline_ = cmdline;
 
     // Create context.
     context_ = new Context(basePath(), "");
@@ -66,7 +57,7 @@ void Engine::setup(int argc, char** argv) {
 
     // Initialise logging.
     context_->addModule<Logger>();
-// TODO(david): Add a file logger to prefPath + log_file_
+    // TODO(david): Add a file logger to prefPath + log_file_
 #ifdef DW_DEBUG
     log().warn("NOTE: This is a debug build!");
 #endif
@@ -77,21 +68,21 @@ void Engine::setup(int argc, char** argv) {
     // Print info.
     log().info("Initialising engine " DW_VERSION_STR);
     printSystemInfo();
-    if (flags_.size() > 0) {
+    if (cmdline.flags.size() > 0) {
         log().info("Flags:");
-        for (auto& flag : flags_) {
+        for (auto& flag : cmdline.flags) {
             log().info("\t%s", flag);
         }
     }
-    if (arguments_.size() > 0) {
+    if (cmdline.arguments.size() > 0) {
         log().info("Arguments:");
-        for (auto& arg : arguments_) {
+        for (auto& arg : cmdline.arguments) {
             log().info("\t%s %s", arg.first, arg.second);
         }
     }
 
     // Enable headless mode if the flag is passed.
-    if (flags_.find("-headless") != flags_.end()) {
+    if (cmdline.flags.find("-headless") != cmdline.flags.end()) {
         headless_ = true;
         log().info("Running in headless mode.");
     }
@@ -103,9 +94,6 @@ void Engine::setup(int argc, char** argv) {
 #ifdef DW_DEBUG
     window_title += " (debug)";
 #endif
-
-    // Low-level subsystems
-    context_->addModule<EventSystem>();
 
     // Load configuration
     if (context_->module<FileSystem>()->fileExists(config_file_)) {
@@ -121,8 +109,6 @@ void Engine::setup(int argc, char** argv) {
     // TODO(David): bind engine services to lua?
 
     // Create the engine subsystems.
-    context_->addModule<SceneManager>();
-
     auto* renderer = context_->addModule<Renderer>();
     if (!headless_) {
         bool use_multithreading = true;
@@ -138,22 +124,27 @@ void Engine::setup(int argc, char** argv) {
             rhi::RendererType::Null, context_->config().at("window_width").get<u16>(),
             context_->config().at("window_height").get<u16>(), window_title, false);
     }
-    context_->addModule<UserInterface>();
     context_->addModule<ResourceCache>();
-    context_->addModule<GameplayModule>();
 
+    // Engine events and UI.
+    event_system_ = makeUnique<EventSystem>(context_);
+    context_->module<Input>()->registerEventSystem(event_system_.get());
+    ui_ = makeUnique<UserInterface>(context_, event_system_.get());
+
+    /*
     auto* net = context_->addModule<Networking>();
-    if (arguments_.find("-host") != arguments_.end()) {
-        net->listen(std::stoi(arguments_["-host"]), 32);
-    } else if (arguments_.find("-join") != arguments_.end()) {
-        String ip = arguments_["-join"];
-        u16 port = std::stoi(arguments_["-p"]);
+    auto port_arg = cmdline.arguments.find("-p");
+    u16 port = port_arg != cmdline.arguments.end() ? std::stoi(port_arg->second) : 40000;
+    if (cmdline.flags.find("-host") != cmdline.flags.end()) {
+        net->listen(port, 32);
+    } else if (cmdline.arguments.find("-join") != cmdline.arguments.end()) {
+        String ip = cmdline.arguments["-join"];
         net->connect(ip, port);
     }
+    */
 
     // Set up built in entity systems.
-    auto& sm = *context_->module<SceneManager>();
-    sm.addSystem<VelocitySystem>();
+    // auto& sm = *context_->module<SceneManager>();
 
     // Set input viewport size
     /*
@@ -179,7 +170,7 @@ void Engine::setup(int argc, char** argv) {
     log().info("Engine initialised. Starting %s %s", game_name_, game_version_);
 
     // Register delegate.
-    addEventListener<ExitEvent>(makeEventDelegate(this, &Engine::onExit));
+    event_system_->addListener(this, &Engine::onExit);
 }
 
 void Engine::shutdown() {
@@ -192,12 +183,12 @@ void Engine::shutdown() {
         context_->saveConfig(config_file_);
     }
 
+    ui_.reset();
+    event_system_.reset();
+    game_sessions_.clear();
+
     // Remove subsystems.
-    context_->removeModule<Networking>();
-    context_->removeModule<GameplayModule>();
-    context_->removeModule<UserInterface>();
     context_->removeModule<ResourceCache>();
-    context_->removeModule<SceneManager>();
     context_->clearModules();
 
     // The engine is no longer initialised.
@@ -205,12 +196,9 @@ void Engine::shutdown() {
 }
 
 void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_callback) {
-    // Initialise the ECS dependency graph.
-    context_->module<SceneManager>()->beginMainLoop();
-
-    // Start the main loop.
     float time_per_update = 1.0f / 60.0f;
     time::TimePoint previous_time = time::beginTiming();
+    time::TimePoint last_fps_update = time::beginTiming();
     double accumulated_time = 0.0;
     auto main_loop = [&] {
         time::TimePoint current_time = time::beginTiming();
@@ -220,20 +208,43 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
 
         // Update game logic.
         while (accumulated_time >= time_per_update) {
-            context_->module<UserInterface>()->beginTick();
-            update(time_per_update);
+            // Pre update.
+            forEachSession([time_per_update](GameSession* session) {
+                session->preUpdate();
+                session->update(time_per_update);
+                session->postUpdate();
+            });
+
+            ui_->preUpdate();
             tick_callback(time_per_update);
-            context_->module<UserInterface>()->endTick();
+            ui_->postUpdate();
+
             accumulated_time -= time_per_update;
         }
 
         // Render a frame.
-        float interpolation = accumulated_time / time_per_update;
-        preRender(nullptr);
-        context_->module<Renderer>()->renderScene(interpolation);
+        double interpolation = accumulated_time / time_per_update;
+        forEachSession([interpolation](GameSession* session) {
+            session->preRender();
+            session->render(interpolation);
+            session->postRender();
+        });
+        ui_->preRender();
         render_callback(interpolation);
-        postRender();
-        context_->module<Renderer>()->frame();
+        ui_->postRender();
+        ui_->render();
+        if (!context_->module<Renderer>()->frame()) {
+            running_ = false;
+        }
+
+        // Update frame counter.
+        frame_counter_++;
+        current_time = time::beginTiming();
+        if (time::elapsed(last_fps_update, current_time) > 1.0) {
+            last_fps_update = current_time;
+            frames_per_second_ = frame_counter_;
+            frame_counter_ = 0;
+        }
     };
 
 #ifdef DW_EMSCRIPTEN
@@ -246,20 +257,44 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         main_loop();
     }
 #endif
+}
 
-    context_->module<GameplayModule>()->setGameMode(nullptr);
+SessionId Engine::addSession(UniquePtr<GameSession> session) {
+    // TODO: Initialise session.
+    game_sessions_.emplace_back(std::move(session));
+    return SessionId(static_cast<u32>(game_sessions_.size() - 1));
+}
+
+void Engine::replaceSession(SessionId session_id, UniquePtr<GameSession> session) {
+    assert(game_sessions_.size() < session_id.index());
+    // TODO: Initialise session.
+    game_sessions_[session_id.index()] = std::move(session);
+}
+
+void Engine::removeSession(SessionId session_id) {
+    game_sessions_[session_id.index()].reset();
 }
 
 double Engine::frameTime() const {
     return frame_time_;
 }
 
-const Set<String>& Engine::flags() const {
-    return flags_;
+int Engine::framesPerSecond() const {
+    return frames_per_second_;
 }
 
-const Map<String, String>& Engine::arguments() const {
-    return arguments_;
+const Set<String>& Engine::flags() const {
+    return cmdline_.flags;
+}
+
+const HashMap<String, String>& Engine::arguments() const {
+    return cmdline_.arguments;
+}
+
+void Engine::forEachSession(const Function<void(GameSession*)>& functor) {
+    for (auto& session : game_sessions_) {
+        functor(session.get());
+    }
 }
 
 void Engine::printSystemInfo() {
@@ -277,7 +312,8 @@ void Engine::printSystemInfo() {
 }
 
 #if DW_PLATFORM == DW_LINUX
-static String readSymLink(const String& path) {
+namespace {
+String readSymLink(const String& path) {
     char* retval = nullptr;
     size_t len = 64;
     ssize_t rc;
@@ -303,6 +339,7 @@ static String readSymLink(const String& path) {
     delete[] retval;
     return {};
 }
+}  // namespace
 #endif
 
 String Engine::basePath() const {
@@ -380,40 +417,6 @@ String Engine::basePath() const {
     return "/";
 #endif
 #endif
-}
-
-void Engine::update(float dt) {
-    // log().debug("Frame Time: %f", dt);
-
-    // Receive network packets.
-    context_->module<Networking>()->update(dt);
-
-    // Trigger events.
-    context_->module<EventSystem>()->update(dt);
-
-    // Tick the scene manager.
-    context_->module<SceneManager>()->update(dt);
-
-    // Tick the current game mode.
-    context_->module<GameplayModule>()->update(dt);
-
-    // Update gameplay systems.
-    context_->module<SceneManager>()->update(dt);
-
-    // Update renderer scene graph.
-    context_->module<Renderer>()->updateSceneGraph();
-
-    // Update user interface.
-    context_->module<UserInterface>()->update(dt);
-}
-
-void Engine::preRender(Camera_OLD*) {
-    context_->module<UserInterface>()->preRender();
-}
-
-void Engine::postRender() {
-    context_->module<UserInterface>()->postRender();
-    context_->module<UserInterface>()->render();
 }
 
 void Engine::onExit(const ExitEvent&) {

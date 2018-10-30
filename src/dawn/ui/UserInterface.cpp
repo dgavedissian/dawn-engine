@@ -7,14 +7,13 @@
 #include "input/Input.h"
 #include "ui/Imgui.h"
 #include "ui/UserInterface.h"
+#include "renderer/Renderer.h"
 
 static_assert(sizeof(ImDrawIdx) == sizeof(dw::u16), "Only 16-bit ImGUI indices are supported.");
 
 namespace dw {
-UserInterface::UserInterface(Context* ctx) : Module(ctx), mouse_wheel_(0.0f) {
-    setDependencies<Renderer>();
-    setOptionalDependencies<Input>();
-
+UserInterface::UserInterface(Context* ctx, EventSystem* event_system)
+    : Object(ctx), event_system_(event_system), mouse_wheel_(0.0f) {
     logic_context_ = ImGui::CreateContext();
     renderer_context_ = ImGui::CreateContext();
 
@@ -45,7 +44,7 @@ UserInterface::UserInterface(Context* ctx) : Module(ctx), mouse_wheel_(0.0f) {
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
         rhi::TextureHandle handle =
             rhi_->createTexture2D(static_cast<u16>(width), static_cast<u16>(height),
-                                  rhi::TextureFormat::RGBA8, pixels, width * height * 4);
+                                  rhi::TextureFormat::RGBA8, Memory(pixels, width * height * 4));
         io.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(handle.internal()));
 
         // Set up key map.
@@ -118,34 +117,34 @@ UserInterface::UserInterface(Context* ctx) : Module(ctx), mouse_wheel_(0.0f) {
     program_->setUniform<int>("ui_texture", 0);
 
     // Register delegates.
-    addEventListener<KeyEvent>(makeEventDelegate(this, &UserInterface::onKey));
-    addEventListener<CharInputEvent>(makeEventDelegate(this, &UserInterface::onCharInput));
-    addEventListener<MouseButtonEvent>(makeEventDelegate(this, &UserInterface::onMouseButton));
-    addEventListener<MouseScrollEvent>(makeEventDelegate(this, &UserInterface::onMouseScroll));
+    event_system_->addListener(this, &UserInterface::onKey);
+    event_system_->addListener(this, &UserInterface::onCharInput);
+    event_system_->addListener(this, &UserInterface::onMouseButton);
+    event_system_->addListener(this, &UserInterface::onMouseScroll);
 }
 
 UserInterface::~UserInterface() {
-    removeEventListener<KeyEvent>(makeEventDelegate(this, &UserInterface::onKey));
-    removeEventListener<CharInputEvent>(makeEventDelegate(this, &UserInterface::onCharInput));
-    removeEventListener<MouseButtonEvent>(makeEventDelegate(this, &UserInterface::onMouseButton));
-    removeEventListener<MouseScrollEvent>(makeEventDelegate(this, &UserInterface::onMouseScroll));
+    event_system_->removeListener(this, &UserInterface::onKey);
+    event_system_->removeListener(this, &UserInterface::onCharInput);
+    event_system_->removeListener(this, &UserInterface::onMouseButton);
+    event_system_->removeListener(this, &UserInterface::onMouseScroll);
 }
 
-void UserInterface::beginTick() {
+void UserInterface::preUpdate() const {
     ImGui::SetCurrentContext(logic_context_);
     ImGui::NewFrame();
 }
 
-void UserInterface::endTick() {
+void UserInterface::postUpdate() const {
     ImGui::Render();
 }
 
-void UserInterface::preRender() {
+void UserInterface::preRender() const {
     ImGui::SetCurrentContext(renderer_context_);
     ImGui::NewFrame();
 }
 
-void UserInterface::postRender() {
+void UserInterface::postRender() const {
     ImGui::Render();
 }
 
@@ -189,12 +188,12 @@ void UserInterface::render() {
     }
 }
 
-void UserInterface::forAllContexts(Function<void(ImGuiIO& io)> functor) {
+void UserInterface::forAllContexts(const Function<void(ImGuiIO& io)>& functor) const {
     functor(*logic_io_);
     functor(*renderer_io_);
 }
 
-void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) {
+void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) const {
     if (!draw_data) {
         return;
     }

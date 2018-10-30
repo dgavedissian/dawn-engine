@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "CommandLine.h"
+
 #if DW_PLATFORM == DW_WIN32
 #include "platform/Windows.h"
 #define DW_IMPLEMENT_MAIN(AppClass)                                \
@@ -28,7 +30,7 @@ public:
     virtual ~App() {
     }
 
-    virtual void init(int argc, char** argv) = 0;
+    virtual void init(const CommandLine& cmdline) = 0;
     virtual void update(float dt) = 0;
     virtual void render(float) {
     }
@@ -40,7 +42,7 @@ public:
     friend DW_API int runApp(UniquePtr<App> app, int argc, char** argv);
 
 protected:
-    const Engine* engine_;
+    Engine* engine_;
 };
 
 DW_API int runApp(UniquePtr<App> app, int argc, char** argv);

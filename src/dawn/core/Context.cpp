@@ -13,7 +13,7 @@ Context::Context(const String& base_path, const String& pref_path)
 Context::~Context() {
 }
 
-Module* Context::module(StringHash module_type) const {
+Module* Context::module(Type module_type) const {
     auto it = modules_.find(module_type);
     if (it != modules_.end()) {
         return (*it).second.get();
@@ -28,7 +28,7 @@ Module* Context::addModule(UniquePtr<Module> module) {
     return subsystem_ptr;
 }
 
-void Context::removeModule(StringHash module_type) {
+void Context::removeModule(Type module_type) {
     modules_.erase(module_type);
     module_init_order_.erase(
         std::find(module_init_order_.begin(), module_init_order_.end(), module_type));

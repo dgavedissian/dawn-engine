@@ -1,13 +1,14 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
 
-# New non-legacy OpenGL.
-if(APPLE)
-cmake_policy(SET CMP0072 NEW)
+# Use GLVND if possible.
+if(POLICY CMP0072)
+    cmake_policy(SET CMP0072 NEW)
+endif()
+
 find_package(OpenGL REQUIRED)
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR})
 set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
-endif()
 
 # Force everything to be statically linked
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
@@ -53,6 +54,17 @@ if(WIN32)
 else()
     set(ASSIMP_PATCH_COMMAND sed -e "/use_pkgconfig(UNZIP minizip)/s/^/#/g" -i CMakeLists.txt)
 endif()
+if(MSVC)
+    set(ASSIMP_OUTPUT_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt$<$<CONFIG:Debug>:_d>.lib
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/$<CONFIG>/IrrXML$<$<CONFIG:Debug>:_d>.lib
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/$<CONFIG>/zlibstatic$<$<CONFIG:Debug>:d>.lib)
+else()
+    set(ASSIMP_OUTPUT_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/libassimp$<$<CONFIG:Debug>:_d>.a
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/libIrrXML$<$<CONFIG:Debug>:_d>.a
+        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/libzlibstatic$<$<CONFIG:Debug>:_d>.a)
+endif()
 ExternalProject_Add(Assimp-external
     PREFIX ${EXTERNAL_PREFIX}
     # As we need to patch the source, we make a copy using URL instead.
@@ -74,17 +86,7 @@ add_library(Assimp INTERFACE)
 add_dependencies(Assimp Assimp-external)
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
 set_property(TARGET Assimp PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-if(MSVC)
-    set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt$<$<CONFIG:Debug>:_d>.lib
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/$<CONFIG>/IrrXML$<$<CONFIG:Debug>:_d>.lib
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/$<CONFIG>/zlibstatic$<$<CONFIG:Debug>:d>.lib)
-else()
-    set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/libassimp$<$<CONFIG:Debug>:_d>.a
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/libIrrXML$<$<CONFIG:Debug>:_d>.a
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/libzlibstatic$<$<CONFIG:Debug>:_d>.a)
-endif()
+set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES ${ASSIMP_OUTPUT_LIBRARIES})
 set(LIBS ${LIBS} Assimp)
 
 # Bullet
@@ -190,6 +192,38 @@ set_property(TARGET Luajit PROPERTY INTERFACE_LINK_LIBRARIES
     ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(LIBS ${LIBS} Luajit)
 
+# Flatbuffers needs to be build with the host compiler options, not the target (if cross compiling).
+ExternalProject_Add(flatbuffers-external
+    PREFIX ${EXTERNAL_PREFIX}
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
+    EXCLUDE_FROM_ALL 1
+    CMAKE_ARGS ${EXTERNAL_ARGS}
+        -DFLATBUFFERS_BUILD_FLATC=1
+        -DFLATBUFFERS_BUILD_FLATHASH=0
+        -DFLATBUFFERS_BUILD_SHAREDLIB=0
+        -DFLATBUFFERS_BUILD_TESTS=0
+)
+if(MSVC)
+    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/$<CONFIG>/flatc PARENT_SCOPE)
+else()
+    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/flatc PARENT_SCOPE)
+endif()
+add_library(flatbuffers INTERFACE)
+add_dependencies(flatbuffers flatbuffers-external)
+set_property(TARGET flatbuffers PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
+if (UNIX AND NOT APPLE AND (NOT EXISTS "/etc/debian_version"))
+    set_property(TARGET flatbuffers PROPERTY INTERFACE_LINK_LIBRARIES
+            ${EXTERNAL_INSTALL}/lib64/${CMAKE_STATIC_LIBRARY_PREFIX}flatbuffers${CMAKE_STATIC_LIBRARY_SUFFIX})
+else()
+    set_property(TARGET flatbuffers PROPERTY INTERFACE_LINK_LIBRARIES
+            ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}flatbuffers${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
+set(LIBS ${LIBS} flatbuffers)
 
 ##############################################################
 # Packaged Dependencies
@@ -411,7 +445,7 @@ if(WIN32)
         message(FATAL_ERROR "Unsupported MSVC version: ${MSVC_VERSION}")
     endif()
     set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_PREFIX}/src/yojimbo_sodium-external/${SODIUM_ARCH}/$<CONFIG>/${SODIUM_MSVC}/static/libsodium.lib)
+        ${EXTERNAL_PREFIX}/src/yojimbo_sodium-external/${SODIUM_ARCH}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/${SODIUM_MSVC}/static/libsodium.lib)
 else()
     file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
     set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)

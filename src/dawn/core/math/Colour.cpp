@@ -35,4 +35,24 @@ Vec3 Colour::rgb() const {
 Vec4 Colour::rgba() const {
     return components_;
 }
+
+float& Colour::r() {
+    return components_.x;
+}
+
+float& Colour::g() {
+    return components_.y;
+}
+
+float& Colour::b() {
+    return components_.z;
+}
+
+float& Colour::a() {
+    return components_.w;
+}
+
+Vec4& Colour::rgba() {
+    return components_;
+}
 }  // namespace dw

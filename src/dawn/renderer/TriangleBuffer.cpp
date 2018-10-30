@@ -32,12 +32,10 @@ void TriangleBuffer::begin() {
 
 SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
     // Set up vertex data.
-    const void* data;
-    uint size;
+    Memory data;
     rhi::VertexDecl decl;
     if (contains_normals_ && contains_texcoords_) {
-        data = vertices_.data();
-        size = static_cast<uint>(vertices_.size()) * sizeof(Vertex);
+        data = Memory(vertices_);
         decl.begin()
             .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
             .add(rhi::VertexDecl::Attribute::Normal, 3, rhi::VertexDecl::AttributeType::Float)
@@ -58,10 +56,10 @@ SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
         decl.end();
 
         // Build packed buffer based on parameters.
-        size = vertices_.size() * decl.stride();
+        data = Memory(vertices_.size() * decl.stride());
         uint stride =
             decl.stride() / sizeof(float);  // convert stride in bytes to stride in floats.
-        float* packed_data = new float[vertices_.size() * decl.stride()];
+        auto* packed_data = reinterpret_cast<float*>(data.data());
         for (size_t i = 0; i < vertices_.size(); ++i) {
             uint offset = 0;
             Vertex& source_vertex = vertices_[i];
@@ -81,19 +79,12 @@ SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
             }
             assert(offset == stride);
         }
-        data = packed_data;
     }
 
     // Create custom mesh.
     auto custom_mesh = makeShared<CustomMeshRenderable>(
-        context_, makeShared<VertexBuffer>(context_, data, size, vertices_.size(), decl),
-        makeShared<IndexBuffer>(context_, indices_.data(), indices_.size() * sizeof(u32),
-                                rhi::IndexBufferType::U32));
-
-    // Delete packed buffer.
-    if (!contains_normals_ || !contains_texcoords_) {
-        delete[]((const float*)data);
-    }
+        context_, makeShared<VertexBuffer>(context_, std::move(data), vertices_.size(), decl),
+        makeShared<IndexBuffer>(context_, Memory(indices_), rhi::IndexBufferType::U32));
 
     return custom_mesh;
 }

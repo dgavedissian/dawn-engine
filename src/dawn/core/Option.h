@@ -18,6 +18,9 @@ public:
     Option<T>& operator=(const T& other);
     Option<T>& operator=(T&& other);
 
+    T* operator->();
+    T& operator*();
+
     bool isPresent() const;
     T& get();
     const T& get() const;
@@ -74,6 +77,14 @@ template <class T> Option<T>& Option<T>::operator=(T&& other) {
     set_ = true;
     get() = std::move(other.get());
     return *this;
+}
+
+template <class T> T* Option<T>::operator->() {
+    return &get();
+}
+
+template <class T> T& Option<T>::operator*() {
+    return get();
 }
 
 template <class T> bool Option<T>::isPresent() const {

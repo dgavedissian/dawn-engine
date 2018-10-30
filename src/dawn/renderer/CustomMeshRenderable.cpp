@@ -5,6 +5,7 @@
 #include "Common.h"
 #include "renderer/CustomMeshRenderable.h"
 #include "renderer/Program.h"
+#include "renderer/Renderer.h"
 
 namespace dw {
 CustomMeshRenderable::CustomMeshRenderable(Context* ctx, SharedPtr<VertexBuffer> vertex_buffer,
@@ -15,7 +16,7 @@ CustomMeshRenderable::CustomMeshRenderable(Context* ctx, SharedPtr<VertexBuffer>
 CustomMeshRenderable::~CustomMeshRenderable() {
 }
 
-void CustomMeshRenderable::draw(Renderer* renderer, uint view, Transform* camera,
+void CustomMeshRenderable::draw(Renderer* renderer, uint view, detail::Transform&,
                                 const Mat4& model_matrix, const Mat4& view_projection_matrix) {
     auto rhi = renderer->rhi();
     u32 vertex_count = index_buffer_ ? index_buffer_->indexCount() : vertex_buffer_->vertexCount();

@@ -7,9 +7,11 @@
 #include "ontology/Entity.hpp"
 
 #include "Component.h"
-#include "scene/Transform.h"
+#include "scene/CTransform.h"
 
 namespace dw {
+class SceneManager;
+
 /// Entity identifier.
 using EntityId = u64;
 using EntityType = u32;
@@ -19,8 +21,8 @@ class Entity : public Object {
 public:
     DW_OBJECT(Entity);
 
-    explicit Entity(Context* context, Ontology::EntityManager& entity_manager, EntityId id,
-                    EntityType type);
+    explicit Entity(Context* ctx, SceneManager* scene_manager,
+                    Ontology::EntityManager& entity_manager, EntityId id, EntityType type);
     virtual ~Entity() = default;
 
     /// Accesses a component contained within this entity.
@@ -38,16 +40,25 @@ public:
     /// @param args Component constructor arguments.
     template <typename T, typename... Args> Entity& addComponent(Args... args);
 
+    /// Returns the scene manager which created this entity.
+    SceneManager* sceneManager() const;
+
     /// Returns the identifier of this entity.
     EntityId id() const;
 
     /// Returns the type ID of this entity.
     EntityType typeId() const;
 
-    /// Shortcut for returning the transform component.
-    Transform* transform() const;
+    /// Shortcut for returning the transform stored inside the scene node of the transform
+    /// component.
+    detail::Transform* transform();
+
+    /// Shortcut for returning the transform stored inside the scene node of the transform
+    /// component.
+    const detail::Transform* transform() const;
 
 private:
+    SceneManager* scene_manager_;
     Ontology::EntityManager& internal_entity_mgr_;
     Ontology::Entity::ID internal_entity_id_;
     EntityId id_;
@@ -56,8 +67,6 @@ private:
     Ontology::Entity& entity() const {
         return internal_entity_mgr_.getEntity(internal_entity_id_);
     }
-
-    Transform* transform_;
 };
 
 template <typename T> T* Entity::component() const {
