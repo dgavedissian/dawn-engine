@@ -271,8 +271,9 @@ void RenderPipeline::PClearStep::execute(Logger& log, rhi::RHIRenderer* r, float
 RenderPipeline::PRenderQueueStep::PRenderQueueStep(u32 mask) : mask_(mask) {
 }
 
-void RenderPipeline::PRenderQueueStep::execute(Logger& log, rhi::RHIRenderer* r, float interpolation,
-                                               SceneGraph* scene_graph, u32 camera_id, uint view) {
+void RenderPipeline::PRenderQueueStep::execute(Logger& log, rhi::RHIRenderer* r,
+                                               float interpolation, SceneGraph* scene_graph,
+                                               u32 camera_id, uint view) {
     log.debug("Rendering scene from camera %d (mask: 0x%x) to view %d", camera_id, mask_, view);
     scene_graph->renderSceneFromCamera(interpolation, camera_id, view, mask_);
 }

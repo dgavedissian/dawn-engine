@@ -112,7 +112,7 @@ RHIRenderer::~RHIRenderer() {
 }
 
 void RHIRenderer::init(RendererType type, u16 width, u16 height, const String& title,
-                    bool use_render_thread) {
+                       bool use_render_thread) {
     if (type == RendererType::Null) {
         use_render_thread = false;
     }
@@ -161,7 +161,7 @@ void RHIRenderer::init(RendererType type, u16 width, u16 height, const String& t
 }
 
 VertexBufferHandle RHIRenderer::createVertexBuffer(Memory data, const VertexDecl& decl,
-                                                BufferUsage usage) {
+                                                   BufferUsage usage) {
     // TODO: Validate data.
     auto handle = vertex_buffer_handle_.next();
     uint data_size = data.size();
@@ -195,7 +195,7 @@ void RHIRenderer::deleteVertexBuffer(VertexBufferHandle handle) {
 }
 
 IndexBufferHandle RHIRenderer::createIndexBuffer(Memory data, IndexBufferType type,
-                                              BufferUsage usage) {
+                                                 BufferUsage usage) {
     auto handle = index_buffer_handle_.next();
     uint data_size = data.size();
     submitPreFrameCommand(cmd::CreateIndexBuffer{handle, std::move(data), data_size, type, usage});
@@ -227,7 +227,7 @@ void RHIRenderer::deleteIndexBuffer(IndexBufferHandle handle) {
 }
 
 TransientVertexBufferHandle RHIRenderer::allocTransientVertexBuffer(uint vertex_count,
-                                                                 const VertexDecl& decl) {
+                                                                    const VertexDecl& decl) {
     // Check that we have enough space.
     uint size = vertex_count * decl.stride();
     if (size > transient_vb_max_size - submit_->transient_vb_storage.size) {
@@ -346,7 +346,8 @@ void RHIRenderer::setUniform(const String& uniform_name, UniformData data) {
     submit_->current_item.uniforms[uniform_name] = data;
 }
 
-TextureHandle RHIRenderer::createTexture2D(u16 width, u16 height, TextureFormat format, Memory data) {
+TextureHandle RHIRenderer::createTexture2D(u16 width, u16 height, TextureFormat format,
+                                           Memory data) {
     auto handle = texture_handle_.next();
     texture_data_[handle] = {width, height, format};
     submitPreFrameCommand(cmd::CreateTexture2D{handle, width, height, format, std::move(data)});
@@ -446,8 +447,8 @@ void RHIRenderer::setStateBlendEquation(BlendEquation equation, BlendFunc src, B
 }
 
 void RHIRenderer::setStateBlendEquation(BlendEquation equation_rgb, BlendFunc src_rgb,
-                                     BlendFunc dest_rgb, BlendEquation equation_a, BlendFunc src_a,
-                                     BlendFunc dest_a) {
+                                        BlendFunc dest_rgb, BlendEquation equation_a,
+                                        BlendFunc src_a, BlendFunc dest_a) {
     submit_->current_item.blend_equation_rgb = equation_rgb;
     submit_->current_item.blend_src_rgb = src_rgb;
     submit_->current_item.blend_dest_rgb = dest_rgb;

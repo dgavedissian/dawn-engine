@@ -73,6 +73,7 @@ function(add_dawn_executable GAME_NAME)
 
     # Add executable
     add_executable(${GAME_NAME} ${TYPE} ${TARGET_SRCS})
+    set_output_dir(${GAME_NAME} ${CMAKE_BINARY_DIR})
 
     # Compile in C++14 mode
     enable_cpp14(${GAME_NAME})
@@ -86,13 +87,12 @@ function(add_dawn_executable GAME_NAME)
 
     # Add libraries
     target_link_libraries(${GAME_NAME} DwEngine)
-    set_output_dir(${GAME_NAME} ${OUT_DIR})
     set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
     if(EMSCRIPTEN)
         set_target_properties(${GAME_NAME} PROPERTIES SUFFIX .html)
-        set(link_flags "-s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=256MB")
-        if(DW_ENABLE_WASM)
-            set(link_flags ${LINK_FLAGS} -s WASM=1)
+        set(link_flags "-s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=256MB -s ALLOW_MEMORY_GROWTH=1 --no-heap-copy")
+        if(DW_DISABLE_WASM)
+            set(link_flags "${link_flags} -s WASM=0")
         endif()
         # Include resources.
         foreach (resource ${TARGET_RESOURCE_PKGS})

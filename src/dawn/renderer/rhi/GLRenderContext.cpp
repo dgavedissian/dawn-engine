@@ -12,8 +12,9 @@
 #include <codecvt>
 
 /**
- * GLRenderContext. A render context implementation which targets GL 3.3 on desktop platforms, GLES 3.0 on mobile
- * platforms (Apple A7 and above (iPhone 5s and above), Android 4.3 and above), and WebGL 2 on HTML5.
+ * GLRenderContext. A render context implementation which targets GL 3.3 on desktop platforms,
+ * GLES 3.0 on mobile platforms (Apple A7 and above (iPhone 5s and above), Android 4.3 and above),
+ * and WebGL 2 on HTML5.
  */
 
 #define DW_GL_330 1
@@ -352,7 +353,7 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+    // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #elif !defined(DW_EMSCRIPTEN)
 #error Unsupported: GLES 3.0 on non Web platform.
 #endif
@@ -375,7 +376,8 @@ void GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
     if (!window_) {
         // Failed to create window.
         // TODO: Handle error properly.
-        log().error("glfwCreateWindow failed. Code: 0x%x. Description: %s", last_error, last_error_description);
+        log().error("glfwCreateWindow failed. Code: 0x%x. Description: %s", last_error,
+                    last_error_description);
         throw Exception{"glfwCreateWindow failed."};
     }
     Vec2i fb_size = backbufferSize();
@@ -823,12 +825,11 @@ void GLRenderContext::operator()(const cmd::CreateShader& c) {
     source = str::replace(source, "#extension GL_ARB_shading_language_420pack : require",
                           "#extension GL_ARB_shading_language_420pack : disable");
 #endif
-    //log().debug("Decompiled GLSL from SPIR-V: %s", source);
+    // log().debug("Decompiled GLSL from SPIR-V: %s", source);
 
     // Compile shader.
     static HashMap<ShaderStage, GLenum> shader_type_map = {
-        {ShaderStage::Vertex, GL_VERTEX_SHADER},
-        {ShaderStage::Fragment, GL_FRAGMENT_SHADER}};
+        {ShaderStage::Vertex, GL_VERTEX_SHADER}, {ShaderStage::Fragment, GL_FRAGMENT_SHADER}};
     GLuint shader = glCreateShader(shader_type_map.at(c.stage));
     if (shader == 0) {
         GL_CHECK();

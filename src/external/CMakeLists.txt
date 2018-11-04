@@ -25,25 +25,25 @@ set(EXTERNAL_PREFIX ${CMAKE_BINARY_DIR}/dependencies)
 set(EXTERNAL_INSTALL ${EXTERNAL_PREFIX}/install)
 
 # Arguments to be passed to all calls to CMake
-set(EXTERNAL_ARGS
+set(HOST_EXTERNAL_ARGS
     -G ${CMAKE_GENERATOR}
     -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL}
-    # ExternalProject needs to have these passed in.
-    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-    -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     -DBUILD_SHARED_LIBS=0)
 if(APPLE)
-    set(EXTERNAL_ARGS ${EXTERNAL_ARGS}
-        -DCMAKE_OSX_ARCHITECTURES=x86_64
-        -DCMAKE_C_FLAGS=-fPIC\ -stdlib=libc++
-        -DCMAKE_CXX_FLAGS=-fPIC\ -std=c++11\ -stdlib=libc++)
+    set(HOST_EXTERNAL_ARGS ${HOST_EXTERNAL_ARGS}
+            -DCMAKE_OSX_ARCHITECTURES=x86_64
+            -DCMAKE_C_FLAGS=-fPIC\ -stdlib=libc++\ -w
+            -DCMAKE_CXX_FLAGS=-fPIC\ -std=c++11\ -stdlib=libc++\ -w)
 elseif(UNIX)
-    set(EXTERNAL_ARGS ${EXTERNAL_ARGS}
-        -DCMAKE_C_FLAGS=-fPIC
-        -DCMAKE_CXX_FLAGS=-fPIC)
+    set(HOST_EXTERNAL_ARGS ${HOST_EXTERNAL_ARGS}
+            -DCMAKE_C_FLAGS=-fPIC\ -w
+            -DCMAKE_CXX_FLAGS=-fPIC\ -std=c++11\ -w)
 endif()
+set(EXTERNAL_ARGS ${HOST_EXTERNAL_ARGS}
+    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+    -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
 
 # Note that "set_property(TARGET <target> PROPERTY INTERFACE_INCLUDE_DIRECTORIES ...)" checks for the
 # existence of the path. Therefore, we create the path beforehand.
@@ -192,7 +192,28 @@ set_property(TARGET Luajit PROPERTY INTERFACE_LINK_LIBRARIES
     ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(LIBS ${LIBS} Luajit)
 
-# Flatbuffers needs to be build with the host compiler options, not the target (if cross compiling).
+# We build flatbuffers twice, first with the host toolchain to get flatc, then again against the target toolchain
+# without flatc.
+ExternalProject_Add(flatc-external
+    PREFIX ${EXTERNAL_PREFIX}
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target flatc --config $<CONFIG>
+    EXCLUDE_FROM_ALL 1
+    CMAKE_ARGS ${HOST_EXTERNAL_ARGS}
+        -DFLATBUFFERS_BUILD_FLATC=1
+        -DFLATBUFFERS_BUILD_FLATHASH=0
+        -DFLATBUFFERS_BUILD_SHAREDLIB=0
+        -DFLATBUFFERS_BUILD_TESTS=0
+)
+if(MSVC)
+    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatc-external-build/$<CONFIG>/flatc PARENT_SCOPE)
+else()
+    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatc-external-build/flatc PARENT_SCOPE)
+endif()
 ExternalProject_Add(flatbuffers-external
     PREFIX ${EXTERNAL_PREFIX}
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
@@ -203,20 +224,15 @@ ExternalProject_Add(flatbuffers-external
     INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
     EXCLUDE_FROM_ALL 1
     CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DFLATBUFFERS_BUILD_FLATC=1
+        -DFLATBUFFERS_BUILD_FLATC=0
         -DFLATBUFFERS_BUILD_FLATHASH=0
         -DFLATBUFFERS_BUILD_SHAREDLIB=0
         -DFLATBUFFERS_BUILD_TESTS=0
 )
-if(MSVC)
-    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/$<CONFIG>/flatc PARENT_SCOPE)
-else()
-    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/flatc PARENT_SCOPE)
-endif()
 add_library(flatbuffers INTERFACE)
-add_dependencies(flatbuffers flatbuffers-external)
+add_dependencies(flatbuffers flatbuffers-external flatc-external)
 set_property(TARGET flatbuffers PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-if (UNIX AND NOT APPLE AND (NOT EXISTS "/etc/debian_version"))
+if (UNIX AND NOT APPLE AND (NOT EXISTS "/etc/debian_version") AND NOT EMSCRIPTEN)
     set_property(TARGET flatbuffers PROPERTY INTERFACE_LINK_LIBRARIES
             ${EXTERNAL_INSTALL}/lib64/${CMAKE_STATIC_LIBRARY_PREFIX}flatbuffers${CMAKE_STATIC_LIBRARY_SUFFIX})
 else()

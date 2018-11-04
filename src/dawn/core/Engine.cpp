@@ -249,9 +249,9 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
 
 #ifdef DW_EMSCRIPTEN
     // void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infinite_loop);
-    emscripten_set_main_loop_arg([](void* arg) {
-        (*reinterpret_cast<decltype(main_loop)*>(arg))();
-    }, reinterpret_cast<void*>(&main_loop), 0, 1);
+    emscripten_set_main_loop_arg(
+        [](void* arg) { (*reinterpret_cast<decltype(main_loop)*>(arg))(); },
+        reinterpret_cast<void*>(&main_loop), 0, 1);
 #else
     while (running_) {
         main_loop();
@@ -303,7 +303,11 @@ void Engine::printSystemInfo() {
 #elif DW_PLATFORM == DW_MACOS
     String platform = "macOS";
 #elif DW_PLATFORM == DW_LINUX
+#ifdef DW_EMSCRIPTEN
+    String platform = "Emscripten";
+#else
     String platform = "Linux";
+#endif
 #endif
     log().info("Platform: %s", platform);
     log().info("Base Path: %s", context()->basePath());
