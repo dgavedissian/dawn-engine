@@ -11,12 +11,12 @@ class DW_API IndexBuffer : public Object {
 public:
     DW_OBJECT(IndexBuffer);
 
-    IndexBuffer(Context* context, const void* data, uint size, rhi::IndexBufferType type,
+    IndexBuffer(Context* context, Memory data, rhi::IndexBufferType type,
                 rhi::BufferUsage usage = rhi::BufferUsage::Static);
     ~IndexBuffer();
 
     // Will resize.
-    void update(const void* data, uint size, uint offset);
+    void update(Memory data, uint offset);
 
     rhi::IndexBufferHandle internalHandle() const;
     u32 indexCount() const;

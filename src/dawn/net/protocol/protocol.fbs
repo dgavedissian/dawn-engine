@@ -1,0 +1,54 @@
+// ServerXX - messages destined for the server.
+// ClientXX - messages destined for a client.
+enum NetRole : byte {
+    Proxy = 1,               // An object which receives replicated properties from the server.
+    AuthoritativeProxy = 2,  // A proxy which can send client RPCs.
+    Authority = 3,           // Authoritative copy (usually on the server).
+    None = 4                 // No net role.
+}
+
+table ServerSpawnRequest {
+  request_id: uint64;
+  entity_type: uint32;
+  authoritative_proxy: bool;
+}
+
+// TODO: Merge this with SpawnRequest. Add RpcResponse message instead of SpawnResponse.
+table ServerRpc {
+  entity_id: uint64;
+  rpc_id: uint64;
+  payload: [uint8];
+}
+
+union ServerMessageData {
+  ServerSpawnRequest,
+  ServerRpc
+}
+
+table ClientCreateEntity {
+  entity_id: uint64;
+  entity_type: uint32;
+  role: NetRole = None;
+  payload: [uint8];
+}
+
+table ClientPropertyUpdateMessage {
+  entity_id: uint64;
+  payload: [uint8];
+}
+
+table ClientDestroyEntity {
+  entity_id: uint64;
+}
+
+table ClientSpawnResponse {
+  request_id: uint64;
+  entity_id: uint64;
+}
+
+union ClientMessageData {
+  ClientCreateEntity,
+  ClientPropertyUpdateMessage,
+  ClientDestroyEntity,
+  ClientSpawnResponse
+}

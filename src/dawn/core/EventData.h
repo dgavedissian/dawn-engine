@@ -26,6 +26,7 @@ public:
     class EventForwarderBase {
     public:
         virtual ~EventForwarderBase() = default;
+        virtual bool equals(const EventForwarderBase& other) const = 0;
     };
 
     template <typename T, typename E> class EventForwarder : public EventForwarderBase {
@@ -37,8 +38,14 @@ public:
         }
 
         void onEvent(EventDataPtr base_event_data) {
-            E* event_data = (E*)base_event_data.get();
+            E* event_data = static_cast<E*>(base_event_data.get());
             (object_ptr->*member_func_ptr)(*event_data);
+        }
+
+        bool equals(const EventForwarderBase& other) const override {
+            const auto& other_forwarder = static_cast<const EventForwarder<T, E>&>(other);
+            return object_ptr == other_forwarder.object_ptr &&
+                   member_func_ptr == other_forwarder.member_func_ptr;
         }
 
     private:
@@ -52,8 +59,12 @@ public:
 
         // Use Delegate<...>'s assignment operator to assign the actual delegate which this is a
         // subclass of.
-        *static_cast<Delegate<void(EventDataPtr)>*>(this) =
-            makeDelegate(event_forwarder.get(), &EventForwarder<T, E>::onEvent);
+        auto* const delegate_this = static_cast<Delegate<void(EventDataPtr)>* const>(this);
+        *delegate_this = makeDelegate(event_forwarder.get(), &EventForwarder<T, E>::onEvent);
+    }
+
+    bool equals(const EventDelegate& other) const {
+        return event_forwarder_->equals(*other.event_forwarder_);
     }
 
 private:

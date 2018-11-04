@@ -4,14 +4,14 @@
  */
 #pragma once
 
-#include "gameplay/GameMode.h"
+#include "core/GameMode.h"
 
 namespace dw {
 class DW_API NetGameMode : public GameMode {
 public:
     DW_OBJECT(NetGameMode)
 
-    NetGameMode(Context* ctx);
+    NetGameMode(Context* ctx, GameSession* session);
     virtual ~NetGameMode();
 
     /// Called on the client when it joins a server.

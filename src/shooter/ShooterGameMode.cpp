@@ -3,9 +3,13 @@
  * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
  */
 #include "ShooterGameMode.h"
+#include "core/GameSession.h"
+#include "renderer/CCamera.h"
+#include "renderer/SceneGraph.h"
 
-ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx, Frame* frame)
-    : NetEntityPipeline(ctx), frame_(frame) {
+ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx, SceneManager* scene_manager,
+                                             NetInstance* net, Frame* frame)
+    : NetEntityPipeline(ctx), scene_manager_(scene_manager), net_(net), frame_(frame) {
 }
 
 Entity* ShooterEntityPipeline::createEntityFromType(EntityId entity_id, EntityType type,
@@ -13,27 +17,29 @@ Entity* ShooterEntityPipeline::createEntityFromType(EntityId entity_id, EntityTy
     assert(frame_);
     switch (type) {
         case Hash("Ship"): {
-            SharedPtr<Ship> ship = makeShared<Ship>(context(), frame_, entity_id, role);
+            SharedPtr<Ship> ship =
+                makeShared<Ship>(context(), net_, scene_manager_, frame_, entity_id, role);
             Entity* entity = ship->entity();
             entity->component<CShipControls>()->ship = ship;
             ship_list_.emplace_back(std::move(ship));
             return entity;
         }
         case Hash("Projectile"):
-            return module<SceneManager>()->system<SProjectile>()->createNewProjectile(
+            return scene_manager_->system<SProjectile>()->createNewProjectile(
                 0, Vec3::zero, Vec3::unitZ, Vec3::zero, Colour{});
         default:
             return nullptr;
     }
 }
 
-ShooterGameMode::ShooterGameMode(Context* ctx, Frame* frame, ShooterEntityPipeline* entity_pipeline)
-    : NetGameMode(ctx), frame_(frame), entity_pipeline_(entity_pipeline) {
+ShooterGameMode::ShooterGameMode(Context* ctx, GameSession* session, Frame* frame,
+                                 SharedPtr<ShooterEntityPipeline> entity_pipeline)
+    : NetGameMode(ctx, session), frame_(frame), entity_pipeline_(entity_pipeline) {
 }
 
 void ShooterGameMode::clientOnJoinServer() {
     log().info("Client: connected to server.");
-    module<Networking>()->sendSpawnRequest(
+    session_->net()->sendSpawnRequest(
         Hash("Ship"),
         [this](Entity& entity) {
             log().info("Received spawn response. Triggering callback.");
@@ -56,7 +62,7 @@ void ShooterGameMode::serverOnClientDisconnected() {
 void ShooterGameMode::onStart() {
     NetGameMode::onStart();
 
-    module<SceneManager>()->createStarSystem();
+    session_->sceneManager()->createStarSystem();
 
     // Random thing.
     auto rc = module<ResourceCache>();
@@ -68,26 +74,24 @@ void ShooterGameMode::onStart() {
     material->setUniform("surface_sampler", 0);
     auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(4000.0f);
     renderable->setMaterial(material);
-    auto planet = module<Renderer>()->sceneGraph().root().newChild(
-        SystemPosition{12000.0f, 0.0f, -6000.0f}, Quat::identity);
+    auto planet = session_->sceneGraph()->root().newChild(SystemPosition{12000.0f, 0.0f, -6000.0f},
+                                                          Quat::identity);
     planet->data.renderable = renderable;
 
     // Create a camera.
     auto& camera =
-        module<SceneManager>()->createEntity(0, {0.0f, 0.0f, 50.0f}, Quat::identity, *frame_);
+        session_->sceneManager()->createEntity(0, {0.0f, 0.0f, 50.0f}, Quat::identity, *frame_);
     camera.addComponent<CCamera>(0.1f, 1000000.0f, 60.0f, 1280.0f / 800.0f);
     camera_controller_ = makeShared<ShipCameraController>(context(), Vec3{0.0f, 15.0f, 50.0f});
     camera_controller_->possess(&camera);
 
     // If we're running a local-only game, spawn a player.
-    /*
-    if (!module<Networking>()->isConnected()) {
-        auto new_ship = makeShared<Ship>(context(), frame_,
-                                         module<SceneManager>()->reserveEntityId(), NetRole::None);
+    if (!session_->net()) {
+        auto new_ship = makeShared<Ship>(context(), session_->net(), session_->sceneManager(), frame_,
+            session_->sceneManager()->reserveEntityId(), NetRole::None);
         camera_controller_->follow(new_ship->entity());
         entity_pipeline_->ship_list_.emplace_back(new_ship);
     }
-    */
 
     // Spawn a test ship.
     /*

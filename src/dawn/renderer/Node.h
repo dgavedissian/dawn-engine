@@ -149,7 +149,7 @@ private:
     UniquePtr<Node, detail::SceneNodePool::Deleter<Node>> root_frame_node_;
     Node* followed_;
 
-    friend class Renderer;
+    friend class SceneGraph;
 };
 
 }  // namespace dw

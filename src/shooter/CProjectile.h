@@ -45,14 +45,15 @@ struct CProjectile : public Component {
     int type;
     int particle_id;
     Vec3 position;
+    Vec3 direction;
     Vec3 velocity;
     Colour colour;
 
     // Replication layout.
     static RepLayout repLayout() {
         return {{RepProperty::bind<CProjectile>(&CProjectile::type),
-                 RepProperty::bind<CProjectile>(&CProjectile::particle_id),
                  RepProperty::bind<CProjectile>(&CProjectile::position),
+                 RepProperty::bind<CProjectile>(&CProjectile::direction),
                  RepProperty::bind<CProjectile>(&CProjectile::velocity),
                  RepProperty::bind<CProjectile>(&CProjectile::colour)},
                 {}};
@@ -63,7 +64,8 @@ class SProjectile : public EntitySystem {
 public:
     DW_OBJECT(SProjectile);
 
-    SProjectile(Context* context, Frame* frame, const HashMap<int, ProjectileTypeInfo>& types);
+    SProjectile(Context* ctx, SceneManager* scene_manager, NetInstance* net, Frame* frame,
+                const HashMap<int, ProjectileTypeInfo>& types);
 
     Entity* createNewProjectile(int type, const Vec3& position, const Vec3& direction,
                                 const Vec3& velocity, const Colour& colour);
@@ -79,4 +81,6 @@ private:
 
     HashMap<int, ProjectileRenderData> render_data_;
     HashMap<int, ProjectileTypeInfo> types_;
+    SceneManager* scene_manager_;
+    NetInstance* net_;
 };

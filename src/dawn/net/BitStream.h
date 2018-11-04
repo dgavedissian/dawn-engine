@@ -8,19 +8,23 @@
 #include "core/io/OutputStream.h"
 
 namespace dw {
+// Note: Data must outlive the InputBitStream.
 class DW_API InputBitStream : public InputStream {
 public:
-    InputBitStream(const Vector<u8>& data);
+    InputBitStream(const byte* data, u32 length);
+    InputBitStream(const Vector<byte>& data);
     ~InputBitStream() = default;
 
     // InputStream.
     u32 readData(void* dest, u32 size) override;
     void seek(u64 position) override;
 
-    const Vector<u8>& data() const;
+    const byte* data() const;
+    u32 length() const;
 
 private:
-    const Vector<u8>& data_;
+    const byte* data_;
+    u32 length_;
 };
 
 class DW_API OutputBitStream : public OutputStream {
@@ -30,9 +34,12 @@ public:
 
     u32 writeData(const void* src, u32 size) override;
 
-    const Vector<u8>& data() const;
+    const Vector<byte>& vec_data() const;
+
+    const byte* data() const;
+    u32 length() const;
 
 private:
-    Vector<u8> data_;
+    Vector<byte> data_;
 };
 }  // namespace dw

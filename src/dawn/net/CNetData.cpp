@@ -4,7 +4,7 @@
  */
 #include "Common.h"
 #include "net/CNetData.h"
-#include "net/Networking.h"
+#include "net/NetInstance.h"
 
 namespace dw {
 RepLayout::RepLayout() : next_rpc_id_(0) {
@@ -43,8 +43,9 @@ void RepLayout::onAddToEntity(Entity& entity) {
         rpc.second->onAddToEntity(entity, rpc.first);
     }
 }
-CNetData::CNetData(RepLayout rep_layout)
+CNetData::CNetData(NetInstance* net, RepLayout rep_layout)
     : entity_(nullptr),
+      net_(net),
       rep_layout_(std::move(rep_layout)),
       role_(NetRole::None),
       remote_role_(NetRole::None) {
@@ -67,16 +68,15 @@ void CNetData::deserialise(InputStream& in) {
     }
 }
 
-void CNetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<u8>& payload) {
-    auto* net = entity_->module<Networking>();
-    if (net->isServer()) {
+void CNetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<byte>& payload) {
+    if (net_->isServer()) {
         receiveRpc(rpc_id, payload);
     } else {
-        net->sendRpc(entity_->id(), rpc_id, type, payload);
+        net_->sendRpc(entity_->id(), rpc_id, type, payload);
     }
 }
 
-void CNetData::receiveRpc(RpcId rpc_id, const Vector<u8>& payload) {
+void CNetData::receiveRpc(RpcId rpc_id, const Vector<byte>& payload) {
     auto rpc_func = rep_layout_.rpc_map_.find(rpc_id);
     if (rpc_func != rep_layout_.rpc_map_.end()) {
         (*rpc_func).second->receiveRpc(payload);

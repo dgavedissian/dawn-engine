@@ -6,6 +6,7 @@
 
 #include "core/math/Vec2i.h"
 #include "core/math/Vec3i.h"
+#include "core/EventSystem.h"
 
 namespace dw {
 
@@ -148,6 +149,10 @@ public:
     Input(Context* context);
     ~Input();
 
+    /// Register with event system.
+    void registerEventSystem(EventSystem* event_system);
+    void unregisterEventSystem(EventSystem* event_system);
+
     /// Key state.
     bool isKeyDown(Key::Enum key) const;
 
@@ -180,6 +185,8 @@ private:
     Vec2i mouse_position_;
     Vec2i mouse_move_;
     Vec2 mouse_scroll_;
+
+    Vector<EventSystem*> event_systems_;
 };
 
 DEFINE_EVENT(KeyEvent, Key::Enum, key, Modifier::Enum, mod, bool, down);
