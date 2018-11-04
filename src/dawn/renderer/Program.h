@@ -7,7 +7,7 @@
 #include "core/math/Defs.h"
 #include "renderer/Shader.h"
 #include "renderer/Texture.h"
-#include "renderer/rhi/Renderer.h"
+#include "renderer/rhi/RHIRenderer.h"
 
 namespace dw {
 class DW_API Program : public Resource {
@@ -31,7 +31,7 @@ public:
     rhi::ProgramHandle internalHandle() const;
 
 private:
-    rhi::Renderer* r;
+    rhi::RHIRenderer* r;
     SharedPtr<Shader> vertex_shader_;
     SharedPtr<Shader> fragment_shader_;
     Array<SharedPtr<Texture>, 8> texture_units_;

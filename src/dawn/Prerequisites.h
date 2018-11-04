@@ -36,6 +36,13 @@
 #include <chrono>
 #include <type_traits>
 
+//
+// Platform headers
+//
+#ifdef DW_EMSCRIPTEN
+#include <emscripten.h>
+#endif
+
 // Re-enable warnings
 #if defined(DW_MSVC)
 #pragma warning(pop)

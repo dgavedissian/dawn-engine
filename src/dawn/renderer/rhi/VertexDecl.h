@@ -38,7 +38,7 @@ private:
     Vector<Pair<u16, byte*>> attributes_;
     u16 stride_;
 
-    friend class Renderer;
+    friend class RHIRenderer;
     friend class GLRenderContext;
 };
 }  // namespace rhi

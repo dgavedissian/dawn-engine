@@ -24,6 +24,9 @@
 #define DW_PLATFORM DW_WIN32
 #elif defined(__APPLE_CC__)
 #define DW_PLATFORM DW_MACOS
+#elif defined(__EMSCRIPTEN__)
+#define DW_PLATFORM DW_LINUX
+#define DW_EMSCRIPTEN
 #else
 #define DW_PLATFORM DW_LINUX
 #endif

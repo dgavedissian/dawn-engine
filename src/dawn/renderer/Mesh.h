@@ -8,7 +8,7 @@
 #include "renderer/VertexBuffer.h"
 #include "renderer/IndexBuffer.h"
 #include "resource/Resource.h"
-#include "renderer/rhi/Renderer.h"
+#include "renderer/rhi/RHIRenderer.h"
 
 namespace dw {
 

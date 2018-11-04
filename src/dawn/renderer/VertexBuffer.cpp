@@ -22,7 +22,7 @@ void VertexBuffer::update(Memory data, uint vertex_count, uint offset) {
     context_->module<Renderer>()->rhi()->updateVertexBuffer(handle_, std::move(data), offset);
 }
 
-void VertexBuffer::bind(rhi::Renderer* r) {
+void VertexBuffer::bind(rhi::RHIRenderer* r) {
     r->setVertexBuffer(handle_);
 }
 

@@ -32,7 +32,7 @@ public:
     virtual void render() = 0;
     virtual void stop() = 0;
 
-    rhi::Renderer* r;
+    rhi::RHIRenderer* r;
     const Engine* engine_;
     const GameSession* session_;
 };
@@ -137,7 +137,7 @@ Mat4 createProjMatrix(float n, float f, float fov_y, float aspect) {
     return Mat4::OpenGLPerspProjRH(n, f, h, v);
 }
 
-uint createFullscreenQuad(rhi::Renderer* r, rhi::VertexBufferHandle& vb) {
+uint createFullscreenQuad(rhi::RHIRenderer* r, rhi::VertexBufferHandle& vb) {
     // clang-format off
     float vertices[] = {
     	// Position   | UV
@@ -524,7 +524,7 @@ TEST_CLASS(RHIDeferredShading) {
         }
 
     private:
-        rhi::Renderer* r;
+        rhi::RHIRenderer* r;
         SharedPtr<CustomMeshRenderable> sphere_;
         rhi::ProgramHandle program_;
 

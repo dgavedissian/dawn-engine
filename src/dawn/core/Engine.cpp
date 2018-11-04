@@ -111,9 +111,13 @@ void Engine::setup(const CommandLine& cmdline) {
     // Create the engine subsystems.
     auto* renderer = context_->addModule<Renderer>();
     if (!headless_) {
+        bool use_multithreading = true;
+#ifdef DW_EMSCRIPTEN
+        use_multithreading = false;
+#endif
         renderer->rhi()->init(
             rhi::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
-            context_->config().at("window_height").get<u16>(), window_title, false);
+            context_->config().at("window_height").get<u16>(), window_title, use_multithreading);
         context_->addModule<Input>();
     } else {
         renderer->rhi()->init(
@@ -196,7 +200,7 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
     time::TimePoint previous_time = time::beginTiming();
     time::TimePoint last_fps_update = time::beginTiming();
     double accumulated_time = 0.0;
-    while (running_) {
+    auto main_loop = [&] {
         time::TimePoint current_time = time::beginTiming();
         frame_time_ = time::elapsed(previous_time, current_time);
         previous_time = current_time;
@@ -219,8 +223,8 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         }
 
         // Render a frame.
-        float interpolation = accumulated_time / time_per_update;
-        forEachSession([this, interpolation](GameSession* session) {
+        double interpolation = accumulated_time / time_per_update;
+        forEachSession([interpolation](GameSession* session) {
             session->preRender();
             session->render(interpolation);
             session->postRender();
@@ -241,7 +245,18 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
             frames_per_second_ = frame_counter_;
             frame_counter_ = 0;
         }
+    };
+
+#ifdef DW_EMSCRIPTEN
+    // void emscripten_set_main_loop(em_callback_func func, int fps, int simulate_infinite_loop);
+    emscripten_set_main_loop_arg(
+        [](void* arg) { (*reinterpret_cast<decltype(main_loop)*>(arg))(); },
+        reinterpret_cast<void*>(&main_loop), 0, 1);
+#else
+    while (running_) {
+        main_loop();
     }
+#endif
 }
 
 SessionId Engine::addSession(UniquePtr<GameSession> session) {
@@ -288,7 +303,11 @@ void Engine::printSystemInfo() {
 #elif DW_PLATFORM == DW_MACOS
     String platform = "macOS";
 #elif DW_PLATFORM == DW_LINUX
+#ifdef DW_EMSCRIPTEN
+    String platform = "Emscripten";
+#else
     String platform = "Linux";
+#endif
 #endif
     log().info("Platform: %s", platform);
     log().info("Base Path: %s", context()->basePath());
@@ -378,6 +397,7 @@ String Engine::basePath() const {
     str_path += "../../../";
     return str_path;
 #elif DW_PLATFORM == DW_LINUX
+#ifndef DW_EMSCRIPTEN
     String executable_path;
 
     // Is a Linux-style /proc filesystem available?
@@ -396,6 +416,10 @@ String Engine::basePath() const {
     auto len = executable_path.find_last_of('/');
     executable_path = executable_path.substr(0, len);
     return executable_path;
+#else
+    // Use root directory for emscripten.
+    return "/";
+#endif
 #endif
 }
 

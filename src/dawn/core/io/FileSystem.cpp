@@ -25,15 +25,16 @@ FileSystem::~FileSystem() {
 }
 
 bool FileSystem::setWorkingDir(const Path& path) const {
+    auto simplfied_path = simplifyAbsolutePath(path);
 #if DW_PLATFORM == DW_WIN32
-    if (::SetCurrentDirectoryA(path.c_str()) == FALSE) {
+    if (::SetCurrentDirectoryA(simplfied_path.c_str()) == FALSE) {
         // TODO(David): Error handling
-        log().error("Failed to change directory to %s", path);
+        log().error("Failed to change directory to %s", simplfied_path);
         return false;
     }
 #else
-    if (::chdir(path.c_str()) != 0) {
-        log().error("Failed to change directory to %s (errno %i)", path, errno);
+    if (::chdir(simplfied_path.c_str()) != 0) {
+        log().error("Failed to change directory to %s (errno %i)", simplfied_path, errno);
         return false;
     }
 #endif

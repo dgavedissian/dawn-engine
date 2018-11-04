@@ -5,7 +5,7 @@
 #pragma once
 
 #include "renderer/Texture.h"
-#include "renderer/rhi/Renderer.h"
+#include "renderer/rhi/RHIRenderer.h"
 
 namespace dw {
 class DW_API FrameBuffer : public Object {

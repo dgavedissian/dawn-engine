@@ -262,7 +262,7 @@ void RenderPipeline::render(float interpolation, SceneGraph* scene_graph, u32 ca
 RenderPipeline::PClearStep::PClearStep(Colour colour) : colour_(colour) {
 }
 
-void RenderPipeline::PClearStep::execute(Logger& log, rhi::Renderer* r, float interpolation,
+void RenderPipeline::PClearStep::execute(Logger& log, rhi::RHIRenderer* r, float interpolation,
                                          SceneGraph* scene_graph, u32 camera_id, uint view) {
     log.debug("Setting view clear to %s", colour_.rgba().ToString());
     r->setViewClear(view, colour_);
@@ -271,8 +271,9 @@ void RenderPipeline::PClearStep::execute(Logger& log, rhi::Renderer* r, float in
 RenderPipeline::PRenderQueueStep::PRenderQueueStep(u32 mask) : mask_(mask) {
 }
 
-void RenderPipeline::PRenderQueueStep::execute(Logger& log, rhi::Renderer* r, float interpolation,
-                                               SceneGraph* scene_graph, u32 camera_id, uint view) {
+void RenderPipeline::PRenderQueueStep::execute(Logger& log, rhi::RHIRenderer* r,
+                                               float interpolation, SceneGraph* scene_graph,
+                                               u32 camera_id, uint view) {
     log.debug("Rendering scene from camera %d (mask: 0x%x) to view %d", camera_id, mask_, view);
     scene_graph->renderSceneFromCamera(interpolation, camera_id, view, mask_);
 }
@@ -285,7 +286,7 @@ RenderPipeline::PRenderQuadStep::PRenderQuadStep(SharedPtr<VertexBuffer> fullscr
       input_samplers_(input_samplers) {
 }
 
-void RenderPipeline::PRenderQuadStep::execute(Logger& log, rhi::Renderer* r, float interpolation,
+void RenderPipeline::PRenderQuadStep::execute(Logger& log, rhi::RHIRenderer* r, float interpolation,
                                               SceneGraph* scene_graph, u32 camera_id, uint view) {
     log.debug("Rendering full screen quad to view %d", view);
     // Set up inputs.
@@ -302,7 +303,7 @@ void RenderPipeline::PRenderQuadStep::execute(Logger& log, rhi::Renderer* r, flo
 RenderPipeline::PNode::PNode() {
 }
 
-void RenderPipeline::PNode::prepareForRendering(rhi::Renderer* r, uint view) {
+void RenderPipeline::PNode::prepareForRendering(rhi::RHIRenderer* r, uint view) {
     r->setViewFrameBuffer(view, output_frame_buffer_ ? output_frame_buffer_->internalHandle()
                                                      : rhi::FrameBufferHandle{0});
 }

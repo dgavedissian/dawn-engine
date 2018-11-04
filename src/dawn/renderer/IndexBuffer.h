@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/rhi/Renderer.h"
+#include "renderer/rhi/RHIRenderer.h"
 
 namespace dw {
 class DW_API IndexBuffer : public Object {
@@ -18,7 +18,7 @@ public:
     // Will resize.
     void update(Memory data, uint offset);
 
-    void bind(rhi::Renderer* r);
+    void bind(rhi::RHIRenderer* r);
 
     rhi::IndexBufferHandle internalHandle() const;
     u32 indexCount() const;

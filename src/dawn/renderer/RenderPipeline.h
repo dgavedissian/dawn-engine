@@ -7,7 +7,7 @@
 #include "renderer/Material.h"
 #include "renderer/CustomMeshRenderable.h"
 #include "renderer/FrameBuffer.h"
-#include "renderer/rhi/Renderer.h"
+#include "renderer/rhi/RHIRenderer.h"
 
 namespace dw {
 class DW_API SceneGraph;
@@ -65,7 +65,7 @@ private:
     class PStep {
     public:
         virtual ~PStep() = default;
-        virtual void execute(Logger& log, rhi::Renderer* r, float interpolation,
+        virtual void execute(Logger& log, rhi::RHIRenderer* r, float interpolation,
                              SceneGraph* scene_graph, u32 camera_id, uint view) = 0;
     };
 
@@ -73,7 +73,7 @@ private:
     public:
         PClearStep(Colour colour);
 
-        void execute(Logger& log, rhi::Renderer* r, float interpolation, SceneGraph* scene_graph,
+        void execute(Logger& log, rhi::RHIRenderer* r, float interpolation, SceneGraph* scene_graph,
                      u32 camera_id, uint view) override;
 
         Colour colour_;
@@ -83,7 +83,7 @@ private:
     public:
         PRenderQueueStep(u32 mask);
 
-        void execute(Logger& log, rhi::Renderer* r, float interpolation, SceneGraph* scene_graph,
+        void execute(Logger& log, rhi::RHIRenderer* r, float interpolation, SceneGraph* scene_graph,
                      u32 camera_id, uint view) override;
 
         u32 mask_;
@@ -94,7 +94,7 @@ private:
         PRenderQuadStep(SharedPtr<VertexBuffer> fullscreen_quad, SharedPtr<Material> material,
                         const HashMap<String, uint>& input_samplers);
 
-        void execute(Logger& log, rhi::Renderer* r, float interpolation, SceneGraph* scene_graph,
+        void execute(Logger& log, rhi::RHIRenderer* r, float interpolation, SceneGraph* scene_graph,
                      u32 camera_id, uint view) override;
 
         SharedPtr<VertexBuffer> fullscreen_quad_;
@@ -107,7 +107,7 @@ private:
         PNode();
         ~PNode() = default;
 
-        void prepareForRendering(rhi::Renderer* r, uint view);
+        void prepareForRendering(rhi::RHIRenderer* r, uint view);
 
         Vector<UniquePtr<PStep>> steps_;
 
