@@ -22,12 +22,8 @@ Material::Material(Context* ctx, SharedPtr<Program> program)
 Material::~Material() {
 }
 
-bool Material::beginLoad(const String& asset_name, InputStream& src) {
-    log().error("Material loading unimplemented");
-    return false;
-}
-
-void Material::endLoad() {
+    Result<None> Material::beginLoad(const String& asset_name, InputStream& src) {
+    return {"Material loading unimplemented"};
 }
 
 void Material::setPolygonMode(rhi::PolygonMode polygon_mode) {

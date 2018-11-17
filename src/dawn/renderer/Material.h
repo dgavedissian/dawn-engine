@@ -18,8 +18,7 @@ public:
     Material(Context* ctx, SharedPtr<Program> program);
     ~Material() override;
 
-    bool beginLoad(const String& asset_name, InputStream& src) override;
-    void endLoad() override;
+    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
 
     void setPolygonMode(rhi::PolygonMode polygon_mode);
     void setDepthWrite(bool depth_write_enabled);

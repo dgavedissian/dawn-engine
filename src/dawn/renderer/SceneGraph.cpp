@@ -25,7 +25,7 @@ SceneGraph::SceneGraph(Context* ctx)
                            {},
                            {RenderPipelineDesc::NodeInstance{
                                "Default", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}}};
-    setRenderPipeline(RenderPipeline::createFromDesc(ctx, default_render_pipeline));
+    setRenderPipeline(*RenderPipeline::createFromDesc(ctx, default_render_pipeline));
     assert(render_pipeline_);
 }
 

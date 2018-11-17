@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include "core/Result.h"
 #include "core/io/InputStream.h"
 #include "core/io/OutputStream.h"
 
@@ -15,10 +16,10 @@ public:
     Resource(Context* context);
     virtual ~Resource() = default;
 
-    bool load(const String& asset_name, InputStream& src);
-    virtual bool beginLoad(const String& asset_name, InputStream& src) = 0;
-    virtual void endLoad();
-    virtual void save(OutputStream& dest);
+    Result<None> load(const String& asset_name, InputStream& src);
+    virtual Result<None> beginLoad(const String& asset_name, InputStream& src) = 0;
+    virtual Result<None> endLoad();
+    virtual Result<None> save(OutputStream& dest);
 
     bool hasLoaded() const;
 

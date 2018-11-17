@@ -122,7 +122,7 @@ namespace dw {
 Shader::Shader(Context* context, rhi::ShaderStage type) : Resource{context}, type_{type} {
 }
 
-bool Shader::beginLoad(const String&, InputStream& src) {
+Result<None> Shader::beginLoad(const String&, InputStream& src) {
     u32 src_len = static_cast<u32>(src.size());
     assert(src_len != 0);
     char* src_data = new char[src_len + 1];
@@ -155,29 +155,24 @@ bool Shader::beginLoad(const String&, InputStream& src) {
         // Error when compiling.
         log().error("GLSL Compile error: %s", shader.getInfoLog());
         log().error("GLSL Debug log: %s", shader.getInfoDebugLog());
-        return false;
+        return {str::format("Error during compile. GLSL compile error: %s\nGLSL debug log: %s", shader.getInfoLog(), shader.getInfoDebugLog())};
     }
     glslang::TProgram program;
     program.addShader(&shader);
     if (!program.link(EShMsgDefault)) {
         // Error when linking.
-        log().error("GLSL Compile error: %s", program.getInfoLog());
-        log().error("GLSL Debug log: %s", program.getInfoDebugLog());
-        return false;
+        return {str::format("Error during link. GLSL compile error: %s\nGLSL debug log: %s", program.getInfoLog(), program.getInfoDebugLog())};
     }
 
     // Convert to SPIR-V and hand to renderer.
     if (!module<Renderer>()) {
-        return false;
+        return {"Renderer module missing."};
     }
     Vector<u32> spirv_out;
     glslang::GlslangToSpv(*program.getIntermediate(stage), spirv_out);
     handle_ = module<Renderer>()->rhi()->createShader(type_, Memory(spirv_out));
 
-    return true;
-}
-
-void Shader::endLoad() {
+    return None{};
 }
 
 rhi::ShaderHandle Shader::internalHandle() const {

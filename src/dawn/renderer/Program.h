@@ -17,8 +17,8 @@ public:
     Program(Context* ctx, SharedPtr<VertexShader> vs, SharedPtr<FragmentShader> fs);
     ~Program();
 
-    bool beginLoad(const String& asset_name, InputStream& src) override;
-    void endLoad() override;
+    // Resource.
+    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
 
     void setTextureUnit(SharedPtr<Texture> texture, uint unit = 0);
 

@@ -18,8 +18,8 @@ public:
     static SharedPtr<Texture> createTexture2D(Context* ctx, const Vec2i& size,
                                               rhi::TextureFormat format, Memory data = {});
 
-    bool beginLoad(const String& asset_name, InputStream& src) override;
-    void endLoad() override;
+    // Resource.
+    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
 
     rhi::TextureHandle internalHandle() const;
 

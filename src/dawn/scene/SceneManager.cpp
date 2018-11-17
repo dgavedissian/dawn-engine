@@ -38,12 +38,12 @@ SceneManager::~SceneManager() {
 }
 
 void SceneManager::createStarSystem() {
-    auto vs = module<ResourceCache>()->get<VertexShader>("base:space/skybox.vs");
-    auto fs = module<ResourceCache>()->get<FragmentShader>("base:space/skybox_starfield.fs");
+    auto vs = *module<ResourceCache>()->get<VertexShader>("base:space/skybox.vs");
+    auto fs = *module<ResourceCache>()->get<FragmentShader>("base:space/skybox_starfield.fs");
     auto background_material =
         makeShared<Material>(context(), makeShared<Program>(context(), vs, fs));
     background_material->setTexture(
-        module<ResourceCache>()->get<Texture>("base:space/starfield.jpg"));
+        *module<ResourceCache>()->get<Texture>("base:space/starfield.jpg"));
     background_material->setUniform<int>("starfield_sampler", 0);
     background_material->setDepthWrite(false);
     auto skybox = MeshBuilder{context()}.normals(false).texcoords(true).createBox(-100.0f);

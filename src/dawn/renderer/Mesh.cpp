@@ -90,7 +90,7 @@ Mesh::Mesh(Context* context)
 Mesh::~Mesh() {
 }
 
-bool Mesh::beginLoad(const String& asset_name, InputStream& is) {
+Result<None> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     // Read stream.
     assert(is.size() > 0);
     u64 size = is.size();
@@ -110,8 +110,7 @@ bool Mesh::beginLoad(const String& asset_name, InputStream& is) {
     const aiScene* scene = importer.ReadFileFromMemory(data, size, flags, asset_name.c_str());
     Assimp::DefaultLogger::kill();
     if (!scene) {
-        log().error("Unable to load mesh %s. Reason: %s", asset_name, importer.GetErrorString());
-        return false;
+        return {str::format("Unable to load mesh %s. Reason: %s", asset_name, importer.GetErrorString())};
     }
 
     // TODO: Load materials.
@@ -120,8 +119,8 @@ bool Mesh::beginLoad(const String& asset_name, InputStream& is) {
         context(),
         makeShared<Program>(
             context(),
-            module<ResourceCache>()->get<VertexShader>("base:materials/basic-no-texture.vs"),
-            module<ResourceCache>()->get<FragmentShader>("base:materials/basic-no-texture.fs")));
+            *module<ResourceCache>()->get<VertexShader>("base:materials/basic-no-texture.vs"),
+            *module<ResourceCache>()->get<FragmentShader>("base:materials/basic-no-texture.fs")));
     material_->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
 
     // Build a vertex and index buffer containing all the mesh data.
@@ -136,16 +135,13 @@ bool Mesh::beginLoad(const String& asset_name, InputStream& is) {
 
         // Check the mesh for any issues, and abort if so.
         if (!mesh->HasPositions()) {
-            log().error("Unable to load mesh %s. Submesh %d has no positions.", asset_name, i);
-            return false;
+            return {str::format("Unable to load mesh %s. Submesh %d has no positions.", asset_name, i)};
         }
         if (!mesh->HasNormals()) {
-            log().error("Unable to load mesh %s. Submesh %d has no normals.", asset_name, i);
-            return false;
+            return {str::format("Unable to load mesh %s. Submesh %d has no normals.", asset_name, i)};
         }
         if (!mesh->HasFaces()) {
-            log().error("Unable to load mesh %s. Submesh %d has no faces.", asset_name, i);
-            return false;
+            return {str::format("Unable to load mesh %s. Submesh %d has no faces.", asset_name, i)};
         }
 
         const uint vertex_offset = vertices.size();
@@ -160,11 +156,10 @@ bool Mesh::beginLoad(const String& asset_name, InputStream& is) {
         for (uint f = 0; f < mesh->mNumFaces; ++f) {
             aiFace& face = mesh->mFaces[f];
             if (face.mNumIndices != 3) {
-                log().error(
+                return {str::format(
                     "Unable to load mesh %s. Face %d in submesh %d has %d indices (must be exactly "
                     "3).",
-                    asset_name, f, i, face.mNumIndices);
-                return false;
+                    asset_name, f, i, face.mNumIndices)};
             }
             indices.emplace_back(face.mIndices[0] + vertex_offset);
             indices.emplace_back(face.mIndices[1] + vertex_offset);
@@ -224,10 +219,7 @@ bool Mesh::beginLoad(const String& asset_name, InputStream& is) {
     };
     root_node_ = create_node_tree(scene->mRootNode, nullptr);
 
-    return true;
-}
-
-void Mesh::endLoad() {
+    return None{};
 }
 
 void Mesh::draw(Renderer* renderer, uint view, detail::Transform&, const Mat4& model_matrix,

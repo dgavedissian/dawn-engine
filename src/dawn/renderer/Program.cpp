@@ -19,16 +19,12 @@ Program::Program(Context* ctx, SharedPtr<VertexShader> vs, SharedPtr<FragmentSha
 Program::~Program() {
 }
 
-bool Program::beginLoad(const String&, InputStream&) {
-    log().error("Program loading unimplemented");
-    return false;
-}
-
-void Program::endLoad() {
+Result<None> Program::beginLoad(const String&, InputStream&) {
+    return {"Program loading unimplemented."};
 }
 
 void Program::setTextureUnit(SharedPtr<Texture> texture, uint unit) {
-    texture_units_[unit] = texture;
+    texture_units_[unit] = std::move(texture);
 }
 
 rhi::ProgramHandle Program::internalHandle() const {

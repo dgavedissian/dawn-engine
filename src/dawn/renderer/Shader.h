@@ -15,8 +15,8 @@ public:
     Shader(Context* context, rhi::ShaderStage type);
     virtual ~Shader() = default;
 
-    bool beginLoad(const String& asset_name, InputStream& src) override;
-    void endLoad() override;
+    // Resource.
+    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
 
     rhi::ShaderHandle internalHandle() const;
 

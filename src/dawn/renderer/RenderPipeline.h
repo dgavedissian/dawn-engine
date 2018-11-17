@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include "core/Result.h"
 #include "renderer/Material.h"
 #include "renderer/CustomMeshRenderable.h"
 #include "renderer/FrameBuffer.h"
@@ -54,10 +55,10 @@ public:
     RenderPipeline(Context* ctx);
     ~RenderPipeline() override = default;
 
-    static SharedPtr<RenderPipeline> createFromDesc(Context* ctx, const RenderPipelineDesc& desc);
+    static Result<SharedPtr<RenderPipeline>, String> createFromDesc(Context* ctx, const RenderPipelineDesc& desc);
 
-    bool beginLoad(const String& asset_name, InputStream& src) override;
-    void endLoad() override;
+    // Resource.
+    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
 
     void render(float interpolation, SceneGraph* scene_graph, u32 camera_id);
 

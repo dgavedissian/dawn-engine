@@ -49,7 +49,7 @@ SharedPtr<Texture> Texture::createTexture2D(Context* ctx, const Vec2i& size,
     return texture;
 }
 
-bool Texture::beginLoad(const String&, InputStream& src) {
+Result<None> Texture::beginLoad(const String&, InputStream& src) {
     stbi_io_callbacks callbacks = {
         &imageCallbackRead,
         &imageCallbackSkip,
@@ -63,10 +63,7 @@ bool Texture::beginLoad(const String&, InputStream& src) {
     handle_ = module<Renderer>()->rhi()->createTexture2D(
         static_cast<u16>(width), static_cast<u16>(height), rhi::TextureFormat::RGBA8,
         std::move(data));
-    return true;
-}
-
-void Texture::endLoad() {
+    return None{};
 }
 
 rhi::TextureHandle Texture::internalHandle() const {

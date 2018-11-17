@@ -4,17 +4,7 @@
  */
 #pragma once
 
-#if defined(DW_MSVC)
-#pragma warning(push)
-#pragma warning(disable : 4127 4100)
-#endif
-
-#define TINYFORMAT_USE_VARIADIC_TEMPLATES
-#include <tinyformat.h>
-
-#if defined(DW_MSVC)
-#pragma warning(pop)
-#endif
+#include "core/StringUtils.h"
 
 namespace dw {
 
@@ -40,7 +30,6 @@ public:
 
     void addLogMessageHandler(UniquePtr<LogMessageHandler> handler);
 
-    template <typename... Args> String formatMessage(const String& format, const Args&... args);
     template <typename... Args> void log(LogLevel level, const String& format, const Args&... args);
     template <typename... Args> void debug(const String& format, const Args&... args);
     template <typename... Args> void info(const String& format, const Args&... args);
@@ -56,13 +45,8 @@ private:
 };
 
 template <typename... Args>
-String Logger::formatMessage(const String& format, const Args&... args) {
-    return tfm::format(format.c_str(), args...);
-}
-
-template <typename... Args>
 void Logger::log(LogLevel level, const String& format, const Args&... args) {
-    dispatchLogMessage(level, formatMessage(format, args...));
+    dispatchLogMessage(level, str::format(format, args...));
 }
 
 template <typename... Args> void Logger::debug(const String& format, const Args&... args) {

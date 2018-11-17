@@ -90,6 +90,7 @@ set(SOURCE_FILES
     core/Object.h
     core/Option.h
     core/Preprocessor.h
+    core/Result.h
     core/StringUtils.cpp
     core/StringUtils.h
     core/Timer.cpp

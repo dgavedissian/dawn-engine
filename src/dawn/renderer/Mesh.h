@@ -19,8 +19,8 @@ public:
     Mesh(Context* context);
     ~Mesh();
 
-    bool beginLoad(const String& asset_name, InputStream& src) override;
-    void endLoad() override;
+    // Resource.
+    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
 
     void draw(Renderer* renderer, uint view, detail::Transform& camera, const Mat4& model_matrix,
               const Mat4& view_projection_matrix) override;

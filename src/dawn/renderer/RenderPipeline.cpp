@@ -12,13 +12,15 @@
 #include "renderer/SceneGraph.h"
 #include "resource/ResourceCache.h"
 
+#define ENABLE_DEBUG_LOGGING
+
 namespace dw {
 const char* RenderPipelineDesc::PipelineOutput = "__OUTPUT__";
 
 RenderPipeline::RenderPipeline(Context* ctx) : Resource{ctx} {
 }
 
-SharedPtr<RenderPipeline> RenderPipeline::createFromDesc(Context* ctx,
+Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(Context* ctx,
                                                          const RenderPipelineDesc& desc) {
     auto& log = ctx->module<Logger>()->withObjectName("dw::RenderPipeline");
 
@@ -26,28 +28,22 @@ SharedPtr<RenderPipeline> RenderPipeline::createFromDesc(Context* ctx,
     for (auto& node_instance : desc.pipeline) {
         auto node_it = desc.nodes.find(node_instance.node);
         if (node_it == desc.nodes.end()) {
-            auto error = tfm::format("Node '%s' does not exist.", node_instance.node);
-            log.error(error);
-            return nullptr;
+            return {str::format("Node '%s' does not exist.", node_instance.node)};
         }
 
         auto& node = node_it->second;
 
         // Verify that all inputs and outputs are bound.
         if (node.inputs.size() != node_instance.input_bindings.size()) {
-            auto error = tfm::format(
-                "Mismatching input bindings. Number of input is %d but number of bindings is %d.",
-                node.inputs.size(), node_instance.input_bindings.size());
-            log.error(error);
-            return nullptr;
+            return {str::format(
+                    "Mismatching input bindings. Number of input is %d but number of bindings is %d.",
+                    node.inputs.size(), node_instance.input_bindings.size())};
         }
         if (node.outputs.size() != node_instance.output_bindings.size()) {
-            auto error = tfm::format(
-                "Mismatching output bindings. Number of outputs is %d but number of bindings is "
-                "%d.",
-                node.outputs.size(), node_instance.output_bindings.size());
-            log.error(error);
-            return nullptr;
+            return {str::format(
+                    "Mismatching output bindings. Number of outputs is %d but number of bindings is "
+                    "%d.",
+                    node.outputs.size(), node_instance.output_bindings.size())};
         }
 
         // Verify that the bindings make sense.
@@ -56,38 +52,27 @@ SharedPtr<RenderPipeline> RenderPipeline::createFromDesc(Context* ctx,
         for (auto& binding : node_instance.input_bindings) {
             auto input_it = node.inputs.find(binding.first);
             if (input_it == node.inputs.end()) {
-                auto error = tfm::format("Input '%s' does not exist.", binding.first);
-                log.error(error);
-                return nullptr;
+                return {str::format("Input '%s' does not exist.", binding.first)};
             }
 
             if (inputs_bound.count(binding.first) > 0) {
-                auto error = tfm::format("Input '%s' is already bound.", binding.first);
-                log.error(error);
-                return nullptr;
+                return {str::format("Input '%s' is already bound.", binding.first)};
             }
 
             if (textures_bound_to_inputs.count(binding.second) > 0) {
-                auto error = tfm::format("Texture '%s' is already bound.", binding.second);
-                log.error(error);
-                return nullptr;
+                return {str::format("Texture '%s' is already bound.", binding.second)};
             }
 
             auto texture_it = desc.textures.find(binding.second);
             if (texture_it == desc.textures.end()) {
-                auto error = tfm::format("Texture '%s' bound to '%s' doesn't exist.",
-                                         binding.second, binding.first);
-                log.error(error);
-                return nullptr;
+                return {str::format("Texture '%s' bound to '%s' doesn't exist.",
+                                    binding.second, binding.first)};
             }
 
             if (input_it->second != texture_it->second.format) {
-                auto error =
-                    tfm::format("Texture format mismatch. Input: %s (%d). Texture: %s (%d)",
-                                input_it->first, static_cast<int>(input_it->second),
-                                texture_it->first, static_cast<int>(texture_it->second.format));
-                log.error(error);
-                return nullptr;
+                return {str::format("Texture format mismatch. Input: %s (%d). Texture: %s (%d)",
+                                    input_it->first, static_cast<int>(input_it->second),
+                                    texture_it->first, static_cast<int>(texture_it->second.format))};
             }
         }
         HashSet<String> outputs_bound;
@@ -99,47 +84,34 @@ SharedPtr<RenderPipeline> RenderPipeline::createFromDesc(Context* ctx,
                                  return item.first == binding.first;
                              });
             if (output_it == node.outputs.end()) {
-                auto error = tfm::format("Output '%s' does not exist.", binding.first);
-                log.error(error);
-                return nullptr;
+                return {str::format("Output '%s' does not exist.", binding.first)};
             }
 
             if (outputs_bound.count(binding.first) > 0) {
-                auto error = tfm::format("Output '%s' is already bound.", binding.first);
-                log.error(error);
-                return nullptr;
+                return {str::format("Output '%s' is already bound.", binding.first)};
             }
 
             if (textures_bound_to_outputs.count(binding.second) > 0) {
-                auto error = tfm::format("Texture '%s' is already bound.", binding.second);
-                log.error(error);
-                return nullptr;
+                return {str::format("Texture '%s' is already bound.", binding.second)};
             }
 
             if (binding.second == RenderPipelineDesc::PipelineOutput) {
                 if (output_it->second != rhi::TextureFormat::RGBA8) {
-                    auto error = tfm::format(
-                        "Texture format mismatch. Output: %s (%d). Texture: Output (RGBA8)",
-                        output_it->first, static_cast<int>(output_it->second));
-                    log.error(error);
-                    return nullptr;
+                    return {str::format(
+                            "Texture format mismatch. Output: %s (%d). Texture: Output (RGBA8)",
+                            output_it->first, static_cast<int>(output_it->second))};
                 }
             } else {
                 auto texture_it = desc.textures.find(binding.second);
                 if (texture_it == desc.textures.end()) {
-                    auto error = tfm::format("Texture '%s' bound to '%s' doesn't exist.",
-                                             binding.second, binding.first);
-                    log.error(error);
-                    return nullptr;
+                    return {str::format("Texture '%s' bound to '%s' doesn't exist.",
+                                        binding.second, binding.first)};
                 }
 
                 if (output_it->second != texture_it->second.format) {
-                    auto error =
-                        tfm::format("Texture format mismatch. Output: %s (%d). Texture: %s (%d)",
-                                    output_it->first, static_cast<int>(output_it->second),
-                                    texture_it->first, static_cast<int>(texture_it->second.format));
-                    log.error(error);
-                    return nullptr;
+                    return {str::format("Texture format mismatch. Output: %s (%d). Texture: %s (%d)",
+                                        output_it->first, static_cast<int>(output_it->second),
+                                        texture_it->first, static_cast<int>(texture_it->second.format))};
                 }
             }
         }
@@ -221,9 +193,13 @@ SharedPtr<RenderPipeline> RenderPipeline::createFromDesc(Context* ctx,
             }
             if (step_desc.is<RenderPipelineDesc::RenderQuadStep>()) {
                 auto render_quad_step_desc = step_desc.get<RenderPipelineDesc::RenderQuadStep>();
+                auto material = ctx->module<ResourceCache>()->get<Material>(render_quad_step_desc.material_name);
+                if (material.hasError())
+                {
+                    return {str::format("Unable to set up material in render quad step. Reason: %s", material.getError())};
+                }
                 step = makeUnique<PRenderQuadStep>(render_pipeline->fullscreen_quad_,
-                                                   ctx->module<ResourceCache>()->get<Material>(
-                                                       render_quad_step_desc.material_name),
+                                                   *material,
                                                    node->input_samplers_);
             }
             node->steps_.push_back(std::move(step));
@@ -240,11 +216,8 @@ SharedPtr<RenderPipeline> RenderPipeline::createFromDesc(Context* ctx,
     return render_pipeline;
 }
 
-bool RenderPipeline::beginLoad(const String& asset_name, InputStream& src) {
-    return false;
-}
-
-void RenderPipeline::endLoad() {
+Result<None> RenderPipeline::beginLoad(const String& asset_name, InputStream& src) {
+    return {"Render pipeline loading unimplemented."};
 }
 
 void RenderPipeline::render(float interpolation, SceneGraph* scene_graph, u32 camera_id) {
@@ -254,7 +227,7 @@ void RenderPipeline::render(float interpolation, SceneGraph* scene_graph, u32 ca
     }
     for (uint view = 0; view < nodes_.size(); ++view) {
         for (auto& step : nodes_[view]->steps_) {
-            step->execute(log(), rhi, interpolation, scene_graph, camera_id, view);
+            step->execute(log().withObjectName("dw::RenderPipeline"), rhi, interpolation, scene_graph, camera_id, view);
         }
     }
 }
@@ -264,7 +237,9 @@ RenderPipeline::PClearStep::PClearStep(Colour colour) : colour_(colour) {
 
 void RenderPipeline::PClearStep::execute(Logger& log, rhi::RHIRenderer* r, float interpolation,
                                          SceneGraph* scene_graph, u32 camera_id, uint view) {
+#ifdef ENABLE_DEBUG_LOGGING
     log.debug("Setting view clear to %s", colour_.rgba().ToString());
+#endif
     r->setViewClear(view, colour_);
 }
 
@@ -274,7 +249,9 @@ RenderPipeline::PRenderQueueStep::PRenderQueueStep(u32 mask) : mask_(mask) {
 void RenderPipeline::PRenderQueueStep::execute(Logger& log, rhi::RHIRenderer* r,
                                                float interpolation, SceneGraph* scene_graph,
                                                u32 camera_id, uint view) {
+#ifdef ENABLE_DEBUG_LOGGING
     log.debug("Rendering scene from camera %d (mask: 0x%x) to view %d", camera_id, mask_, view);
+#endif
     scene_graph->renderSceneFromCamera(interpolation, camera_id, view, mask_);
 }
 
@@ -288,7 +265,9 @@ RenderPipeline::PRenderQuadStep::PRenderQuadStep(SharedPtr<VertexBuffer> fullscr
 
 void RenderPipeline::PRenderQuadStep::execute(Logger& log, rhi::RHIRenderer* r, float interpolation,
                                               SceneGraph* scene_graph, u32 camera_id, uint view) {
+#ifdef ENABLE_DEBUG_LOGGING
     log.debug("Rendering full screen quad to view %d", view);
+#endif
     // Set up inputs.
     for (auto& input : input_samplers_) {
         r->setUniform(input.first + "_sampler", static_cast<int>(input.second));
