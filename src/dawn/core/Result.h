@@ -6,8 +6,7 @@
 
 #include "core/Collections.h"
 #include "core/Option.h"
-
-#include <iostream>
+#include "core/Log.h"
 
 namespace dw {
 struct None {};
@@ -38,7 +37,8 @@ public:
     /// Returns true if Result contains a value, therefore doesn't have an error. */
     bool hasValue() const;
 
-    /// Returns the value contained in Result if hasError is false. Otherwise, return a default value.
+    /// Returns the value contained in Result if hasError is false. Otherwise, return a default
+    /// value.
     const T& value(const T& default_value = T()) const;
 
     /// Returns the value contained in Result if hasError is false. It is a fatal error to call
@@ -112,15 +112,15 @@ template <typename T, typename E> bool Result<T, E>::hasValue() const {
     return value_.isPresent();
 }
 
-template <typename T, typename E> const T& Result<T, E>::value(const T& default_value) const
-{
+template <typename T, typename E> const T& Result<T, E>::value(const T& default_value) const {
     return hasError() ? default_value : *value_;
 }
 
 template <typename T, typename E> const T& Result<T, E>::value() const {
     if (hasError()) {
+        detail::DisplayFatalError(
+            str::format("getValue called when an error is present: %s", *error_));
         assert(!"getValue called when an error is present.");
-        std::cerr << "getValue called when an error is present: " << *error_ << std::endl;
         std::terminate();
     }
     return *value_;
@@ -128,7 +128,8 @@ template <typename T, typename E> const T& Result<T, E>::value() const {
 
 template <typename T, typename E> T& Result<T, E>::value() {
     if (hasError()) {
-        std::cerr << "getValue called when an error is present: " << *error_ << std::endl;
+        detail::DisplayFatalError(
+            str::format("getValue called when an error is present: %s", *error_));
         assert(!"getValue called when an error is present.");
         std::terminate();
     }

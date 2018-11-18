@@ -22,7 +22,7 @@ Material::Material(Context* ctx, SharedPtr<Program> program)
 Material::~Material() {
 }
 
-    Result<None> Material::beginLoad(const String& asset_name, InputStream& src) {
+Result<None> Material::beginLoad(const String& asset_name, InputStream& src) {
     return {"Material loading unimplemented"};
 }
 

@@ -19,7 +19,8 @@ Pair<String, Path> parseResourcePath(const ResourcePath& resource_path) {
 ResourcePackage::ResourcePackage(Context* ctx, const Path& package) : Object(ctx) {
 }
 
-Result<SharedPtr<InputStream>, String> ResourcePackage::getFile(const ResourcePath& path_within_location) {
+Result<SharedPtr<InputStream>, String> ResourcePackage::getFile(
+    const ResourcePath& path_within_location) {
     return {"ResourcePackage::getFile() - Loading from a ResourcePackage is unimplemented."};
 }
 
@@ -27,7 +28,8 @@ ResourceFilesystemPath::ResourceFilesystemPath(Context* ctx, const Path& path)
     : Object(ctx), path_{path} {
 }
 
-Result<SharedPtr<InputStream>, String> ResourceFilesystemPath::getFile(const ResourcePath& path_within_location) {
+Result<SharedPtr<InputStream>, String> ResourceFilesystemPath::getFile(
+    const ResourcePath& path_within_location) {
     Path full_path = path_ + path_within_location;
     log().info("Loading resource from filesystem at " + full_path);
     if (module<FileSystem>()->fileExists(full_path)) {
@@ -57,7 +59,8 @@ void ResourceCache::addPackage(const String& package, UniquePtr<ResourcePackage>
     resource_packages_.emplace(makePair(package, std::move(file)));
 }
 
-    Result<SharedPtr<InputStream>, String> ResourceCache::getResourceData(const ResourcePath& resource_path) {
+Result<SharedPtr<InputStream>, String> ResourceCache::getResourceData(
+    const ResourcePath& resource_path) {
     // Parse resource path.
     auto path = parseResourcePath(resource_path);
     String package = path.first;

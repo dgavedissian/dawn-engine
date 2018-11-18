@@ -110,7 +110,8 @@ Result<None> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     const aiScene* scene = importer.ReadFileFromMemory(data, size, flags, asset_name.c_str());
     Assimp::DefaultLogger::kill();
     if (!scene) {
-        return {str::format("Unable to load mesh %s. Reason: %s", asset_name, importer.GetErrorString())};
+        return {str::format("Unable to load mesh %s. Reason: %s", asset_name,
+                            importer.GetErrorString())};
     }
 
     // TODO: Load materials.
@@ -135,10 +136,12 @@ Result<None> Mesh::beginLoad(const String& asset_name, InputStream& is) {
 
         // Check the mesh for any issues, and abort if so.
         if (!mesh->HasPositions()) {
-            return {str::format("Unable to load mesh %s. Submesh %d has no positions.", asset_name, i)};
+            return {
+                str::format("Unable to load mesh %s. Submesh %d has no positions.", asset_name, i)};
         }
         if (!mesh->HasNormals()) {
-            return {str::format("Unable to load mesh %s. Submesh %d has no normals.", asset_name, i)};
+            return {
+                str::format("Unable to load mesh %s. Submesh %d has no normals.", asset_name, i)};
         }
         if (!mesh->HasFaces()) {
             return {str::format("Unable to load mesh %s. Submesh %d has no faces.", asset_name, i)};

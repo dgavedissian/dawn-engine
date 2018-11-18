@@ -67,9 +67,9 @@ void ShooterGameMode::onStart() {
     // Random thing.
     auto rc = module<ResourceCache>();
     auto material = makeShared<Material>(
-        context(), makeShared<Program>(context(), rc->get<VertexShader>("base:space/planet.vs").value(),
-                                       rc->get<FragmentShader>("base:space/planet.fs").value()));
-    material->setTexture(rc->get<Texture>("base:space/planet.jpg").value());
+        context(), makeShared<Program>(context(), *rc->get<VertexShader>("base:space/planet.vs"),
+                                       *rc->get<FragmentShader>("base:space/planet.fs")));
+    material->setTexture(*rc->get<Texture>("base:space/planet.jpg"));
     material->setUniform("light_direction", Vec3{0.0f, 0.0f, 1.0f});
     material->setUniform("surface_sampler", 0);
     auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(4000.0f);

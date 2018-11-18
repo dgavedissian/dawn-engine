@@ -155,13 +155,15 @@ Result<None> Shader::beginLoad(const String&, InputStream& src) {
         // Error when compiling.
         log().error("GLSL Compile error: %s", shader.getInfoLog());
         log().error("GLSL Debug log: %s", shader.getInfoDebugLog());
-        return {str::format("Error during compile. GLSL compile error: %s\nGLSL debug log: %s", shader.getInfoLog(), shader.getInfoDebugLog())};
+        return {str::format("Error during compile. GLSL compile error: %s\nGLSL debug log: %s",
+                            shader.getInfoLog(), shader.getInfoDebugLog())};
     }
     glslang::TProgram program;
     program.addShader(&shader);
     if (!program.link(EShMsgDefault)) {
         // Error when linking.
-        return {str::format("Error during link. GLSL compile error: %s\nGLSL debug log: %s", program.getInfoLog(), program.getInfoDebugLog())};
+        return {str::format("Error during link. GLSL compile error: %s\nGLSL debug log: %s",
+                            program.getInfoLog(), program.getInfoDebugLog())};
     }
 
     // Convert to SPIR-V and hand to renderer.

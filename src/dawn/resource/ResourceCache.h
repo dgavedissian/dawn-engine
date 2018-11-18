@@ -82,15 +82,16 @@ public:
         // Load the file which contains this resource data.
         auto resource_data = getResourceData(resource_path);
         if (resource_data.hasError()) {
-            return {str::format("Cannot find resource %s. Reason: %s", resource_path, resource_data.error())};
+            return {str::format("Cannot find resource %s. Reason: %s", resource_path,
+                                resource_data.error())};
         }
         SharedPtr<T> resource = makeShared<T>(context());
         resource_cache_.emplace(name, resource);
         log().info("Loading asset '%s'", resource_path);
         auto load_result = resource->load(resource_path, *resource_data.value().get());
-        if (load_result.hasError())
-        {
-            return {str::format("Failed to load resource %s. Reason: %s", resource_path, load_result.error())};
+        if (load_result.hasError()) {
+            return {str::format("Failed to load resource %s. Reason: %s", resource_path,
+                                load_result.error())};
         }
         return resource;
     }

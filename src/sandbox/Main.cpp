@@ -95,8 +95,9 @@ public:
 
         // Set up material.
         auto material = makeShared<Material>(
-            context(), makeShared<Program>(context(), *rc->get<VertexShader>("base:space/planet.vs"),
-                                           *rc->get<FragmentShader>("base:space/planet.fs")));
+            context(),
+            makeShared<Program>(context(), *rc->get<VertexShader>("base:space/planet.vs"),
+                                *rc->get<FragmentShader>("base:space/planet.fs")));
         material->setTexture(*rc->get<Texture>("base:space/planet.jpg"));
         material->setUniform("light_direction", Vec3{1.0f, 0.0f, 0.0f});
         material->setUniform("surface_sampler", 0);
@@ -301,7 +302,8 @@ private:
     void uploadTerrainDataToGpu(Vector<PlanetTerrainPatch::Vertex>&& vertices,
                                 Vector<u32>&& indices) {
         // Upload to GPU.
-        custom_mesh_renderable_->vertexBuffer()->update(Memory{std::move(vertices)}, vertices.size(), 0);
+        custom_mesh_renderable_->vertexBuffer()->update(Memory{std::move(vertices)},
+                                                        vertices.size(), 0);
         custom_mesh_renderable_->indexBuffer()->update(Memory{std::move(indices)}, 0);
     }
 

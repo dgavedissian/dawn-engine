@@ -69,13 +69,13 @@ template <class T> Option<T>& Option<T>::operator=(Option<T>&& other) noexcept {
 
 template <class T> Option<T>& Option<T>::operator=(const T& other) {
     set_ = true;
-    get() = other.get();
+    get() = other;
     return *this;
 }
 
 template <class T> Option<T>& Option<T>::operator=(T&& other) {
     set_ = true;
-    get() = std::move(other.get());
+    get() = std::move(other);
     return *this;
 }
 

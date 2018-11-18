@@ -13,11 +13,22 @@
 */
 #include "Common.h"
 #include "core/Log.h"
+
 #if DW_PLATFORM == DW_WIN32
 #include "core/platform/Windows.h"
 #endif
 
 namespace dw {
+namespace detail {
+void DisplayFatalError(String error_message) {
+    error_message += "\n";
+    std::cerr << error_message;
+#if DW_PLATFORM == DW_WIN32
+    OutputDebugStringA(error_message.c_str());
+#endif
+}
+}  // namespace detail
+
 class PlatformLogMessageHandler : public LogMessageHandler {
 public:
     void onMessage(LogLevel level, const String& message) override {

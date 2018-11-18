@@ -67,11 +67,12 @@ template <typename T>
 Memory::Memory(const Vector<T>& data) : Memory(data.data(), data.size() * sizeof(T)) {
 }
 
-template<typename T>
-Memory::Memory(Vector<T>&& data) {
+template <typename T> Memory::Memory(Vector<T>&& data) {
     SharedPtr<Vector<T>> vector_holder = makeShared<Vector<T>>(std::move(data));
-    // SharedPtr shouldn't own any memory, the memory is owned by vector_holder. As a result, we pass a no-op deleter.
-    data_ = SharedPtr<byte>(static_cast<byte*>(static_cast<void*>(vector_holder->data())), [](byte*) {});
+    // SharedPtr shouldn't own any memory, the memory is owned by vector_holder. As a result, we
+    // pass a no-op deleter.
+    data_ = SharedPtr<byte>(static_cast<byte*>(static_cast<void*>(vector_holder->data())),
+                            [](byte*) {});
     size_ = vector_holder->size() * sizeof(T);
     holder_ = vector_holder;
 }

@@ -36,8 +36,14 @@ public:
         scene_manager_->addSystem<SProjectile>(
             scene_manager_.get(), net_instance_.get(), frame,
             HashMap<int, ProjectileTypeInfo>{
-                {0, {100.0f, {6.0f, 15.0f}, rc->get<Texture>("shooter:weapons/projectile1.jpg").value()}},
-                {1, {100.0f, {6.0f, 15.0f}, rc->get<Texture>("shooter:weapons/projectile2.jpg").value()}}});
+                {0,
+                 {100.0f,
+                  {6.0f, 15.0f},
+                  rc->get<Texture>("shooter:weapons/projectile1.jpg").value()}},
+                {1,
+                 {100.0f,
+                  {6.0f, 15.0f},
+                  rc->get<Texture>("shooter:weapons/projectile2.jpg").value()}}});
         scene_manager_->addSystem<SWeapon>();
 
         // Start the game.

@@ -12,7 +12,7 @@
 #include "renderer/SceneGraph.h"
 #include "resource/ResourceCache.h"
 
-#define ENABLE_DEBUG_LOGGING
+//#define ENABLE_DEBUG_LOGGING
 
 namespace dw {
 const char* RenderPipelineDesc::PipelineOutput = "__OUTPUT__";
@@ -20,8 +20,8 @@ const char* RenderPipelineDesc::PipelineOutput = "__OUTPUT__";
 RenderPipeline::RenderPipeline(Context* ctx) : Resource{ctx} {
 }
 
-Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(Context* ctx,
-                                                         const RenderPipelineDesc& desc) {
+Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
+    Context* ctx, const RenderPipelineDesc& desc) {
     auto& log = ctx->module<Logger>()->withObjectName("dw::RenderPipeline");
 
     // Verify that the pipeline nodes fit together.
@@ -36,14 +36,14 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(Context
         // Verify that all inputs and outputs are bound.
         if (node.inputs.size() != node_instance.input_bindings.size()) {
             return {str::format(
-                    "Mismatching input bindings. Number of input is %d but number of bindings is %d.",
-                    node.inputs.size(), node_instance.input_bindings.size())};
+                "Mismatching input bindings. Number of input is %d but number of bindings is %d.",
+                node.inputs.size(), node_instance.input_bindings.size())};
         }
         if (node.outputs.size() != node_instance.output_bindings.size()) {
             return {str::format(
-                    "Mismatching output bindings. Number of outputs is %d but number of bindings is "
-                    "%d.",
-                    node.outputs.size(), node_instance.output_bindings.size())};
+                "Mismatching output bindings. Number of outputs is %d but number of bindings is "
+                "%d.",
+                node.outputs.size(), node_instance.output_bindings.size())};
         }
 
         // Verify that the bindings make sense.
@@ -65,18 +65,20 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(Context
 
             auto texture_it = desc.textures.find(binding.second);
             if (texture_it == desc.textures.end()) {
-                return {str::format("Texture '%s' bound to '%s' doesn't exist.",
-                                    binding.second, binding.first)};
+                return {str::format("Texture '%s' bound to '%s' doesn't exist.", binding.second,
+                                    binding.first)};
             }
 
             if (input_it->second != texture_it->second.format) {
                 return {str::format("Texture format mismatch. Input: %s (%d). Texture: %s (%d)",
                                     input_it->first, static_cast<int>(input_it->second),
-                                    texture_it->first, static_cast<int>(texture_it->second.format))};
+                                    texture_it->first,
+                                    static_cast<int>(texture_it->second.format))};
             }
         }
         HashSet<String> outputs_bound;
         HashSet<String> textures_bound_to_outputs;
+        Option<rhi::TextureFormat> output_format;
         for (auto& binding : node_instance.output_bindings) {
             auto output_it =
                 std::find_if(node.outputs.begin(), node.outputs.end(),
@@ -95,23 +97,37 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(Context
                 return {str::format("Texture '%s' is already bound.", binding.second)};
             }
 
+            // As all outputs are bound to a single render target (called a multiple render target),
+            // we should ensure that the formats are identical.
+            if (output_format.isPresent()) {
+                if (output_it->second != *output_format) {
+                    return {str::format(
+                        "Texture format mismatch. Invalid MRT. Output %s is %d, but expecting %d.",
+                        output_it->first, static_cast<int>(output_it->second),
+                        static_cast<int>(*output_format))};
+                }
+            } else {
+                output_format = output_it->second;
+            }
+
             if (binding.second == RenderPipelineDesc::PipelineOutput) {
                 if (output_it->second != rhi::TextureFormat::RGBA8) {
                     return {str::format(
-                            "Texture format mismatch. Output: %s (%d). Texture: Output (RGBA8)",
-                            output_it->first, static_cast<int>(output_it->second))};
+                        "Texture format mismatch. Output: %s (%d). Texture: Output (RGBA8)",
+                        output_it->first, static_cast<int>(output_it->second))};
                 }
             } else {
                 auto texture_it = desc.textures.find(binding.second);
                 if (texture_it == desc.textures.end()) {
-                    return {str::format("Texture '%s' bound to '%s' doesn't exist.",
-                                        binding.second, binding.first)};
+                    return {str::format("Texture '%s' bound to '%s' doesn't exist.", binding.second,
+                                        binding.first)};
                 }
 
                 if (output_it->second != texture_it->second.format) {
-                    return {str::format("Texture format mismatch. Output: %s (%d). Texture: %s (%d)",
-                                        output_it->first, static_cast<int>(output_it->second),
-                                        texture_it->first, static_cast<int>(texture_it->second.format))};
+                    return {str::format(
+                        "Texture format mismatch. Output: %s (%d). Texture: %s (%d)",
+                        output_it->first, static_cast<int>(output_it->second), texture_it->first,
+                        static_cast<int>(texture_it->second.format))};
                 }
             }
         }
@@ -198,20 +214,22 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(Context
             }
             if (step_desc.is<RenderPipelineDesc::RenderQuadStep>()) {
                 auto render_quad_step_desc = step_desc.get<RenderPipelineDesc::RenderQuadStep>();
-                auto material = ctx->module<ResourceCache>()->get<Material>(render_quad_step_desc.material_name);
-                if (material.hasError())
-                {
-                    return {str::format("Unable to set up material in render quad step. Reason: %s", material.error())};
+                auto material = ctx->module<ResourceCache>()->get<Material>(
+                    render_quad_step_desc.material_name);
+                if (material.hasError()) {
+                    return {str::format("Unable to set up material in render quad step. Reason: %s",
+                                        material.error())};
                 }
-                // TODO: create material instance from material (to avoid modifying src material, so affecting all uses of it).
+                // TODO: create material instance from material (to avoid modifying src material, so
+                // affecting all uses of it).
                 auto material_instance = *material;
                 for (auto& sampler : node->input_samplers_) {
                     material_instance->setUniform<int>(sampler.first + "_sampler", sampler.second);
-                    material_instance->setTexture(node->input_textures_.at(sampler.first), sampler.second);
+                    material_instance->setTexture(node->input_textures_.at(sampler.first),
+                                                  sampler.second);
                 }
                 step = makeUnique<PRenderQuadStep>(render_pipeline->fullscreen_quad_,
-                                                   material_instance,
-                                                   node->input_samplers_);
+                                                   material_instance, node->input_samplers_);
             }
             node->steps_.push_back(std::move(step));
         }
@@ -238,7 +256,8 @@ void RenderPipeline::render(float interpolation, SceneGraph* scene_graph, u32 ca
     }
     for (uint view = 0; view < nodes_.size(); ++view) {
         for (auto& step : nodes_[view]->steps_) {
-            step->execute(log().withObjectName("dw::RenderPipeline"), rhi, interpolation, scene_graph, camera_id, view);
+            step->execute(log().withObjectName("dw::RenderPipeline"), rhi, interpolation,
+                          scene_graph, camera_id, view);
         }
     }
 }

@@ -7,6 +7,9 @@
 #include "core/StringUtils.h"
 
 namespace dw {
+namespace detail {
+void DisplayFatalError(String error_message);
+}
 
 enum class LogLevel { Debug, Info, Warning, Error };
 

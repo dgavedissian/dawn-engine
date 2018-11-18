@@ -55,7 +55,8 @@ public:
     RenderPipeline(Context* ctx);
     ~RenderPipeline() override = default;
 
-    static Result<SharedPtr<RenderPipeline>, String> createFromDesc(Context* ctx, const RenderPipelineDesc& desc);
+    static Result<SharedPtr<RenderPipeline>, String> createFromDesc(Context* ctx,
+                                                                    const RenderPipelineDesc& desc);
 
     // Resource.
     Result<None> beginLoad(const String& asset_name, InputStream& src) override;
