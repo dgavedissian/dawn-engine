@@ -38,17 +38,20 @@ public:
     /// Returns true if Result contains a value, therefore doesn't have an error. */
     bool hasValue() const;
 
-    /// Returns the value contained in Result if HasError is false. It is a fatal error to call
-    /// if HasError is true.
-    const T& getValue() const;
+    /// Returns the value contained in Result if hasError is false. Otherwise, return a default value.
+    const T& value(const T& default_value = T()) const;
 
-    /// Returns the value contained in Result if HasError is false. It is a fatal error to call
+    /// Returns the value contained in Result if hasError is false. It is a fatal error to call
     /// if HasError is true.
-    T& getValue();
+    const T& value() const;
 
-    /// Returns the error code contained in Result if HasError is true. It is a fatal error to call
+    /// Returns the value contained in Result if hasError is false. It is a fatal error to call
+    /// if HasError is true.
+    T& value();
+
+    /// Returns the error code contained in Result if hasError is true. It is a fatal error to call
     /// if HasError is false.
-    const E& getError() const;
+    const E& error() const;
 
     /// Returns true if Result contains a value
     explicit operator bool() const;
@@ -70,19 +73,19 @@ public:
     T* operator->();
 
 private:
-    Option<T> value;
-    Option<E> error;
+    Option<T> value_;
+    Option<E> error_;
 };
 }  // namespace dw
 
 namespace dw {
-template <typename T, typename E> Result<T, E>::Result(const T& value) : value(value) {
+template <typename T, typename E> Result<T, E>::Result(const T& value) : value_(value) {
 }
-template <typename T, typename E> Result<T, E>::Result(T&& value) : value(std::move(value)) {
+template <typename T, typename E> Result<T, E>::Result(T&& value) : value_(std::move(value)) {
 }
-template <typename T, typename E> Result<T, E>::Result(const E& error) : error(error) {
+template <typename T, typename E> Result<T, E>::Result(const E& error) : error_(error) {
 }
-template <typename T, typename E> Result<T, E>::Result(E&& error) : error(std::move(error)) {
+template <typename T, typename E> Result<T, E>::Result(E&& error) : error_(std::move(error)) {
 }
 
 template <typename T, typename E> Result<T, E> Result<T, E>::success(const T& value) {
@@ -102,37 +105,42 @@ template <typename T, typename E> Result<T, E> Result<T, E>::failure(E&& error) 
 };
 
 template <typename T, typename E> bool Result<T, E>::hasError() const {
-    return error.isPresent();
+    return error_.isPresent();
 }
 
 template <typename T, typename E> bool Result<T, E>::hasValue() const {
-    return value.isPresent();
+    return value_.isPresent();
 }
 
-template <typename T, typename E> const T& Result<T, E>::getValue() const {
+template <typename T, typename E> const T& Result<T, E>::value(const T& default_value) const
+{
+    return hasError() ? default_value : *value_;
+}
+
+template <typename T, typename E> const T& Result<T, E>::value() const {
     if (hasError()) {
         assert(!"getValue called when an error is present.");
-        std::cerr << "getValue called when an error is present: " << *error << std::endl;
+        std::cerr << "getValue called when an error is present: " << *error_ << std::endl;
         std::terminate();
     }
-    return *value;
+    return *value_;
 }
 
-template <typename T, typename E> T& Result<T, E>::getValue() {
+template <typename T, typename E> T& Result<T, E>::value() {
     if (hasError()) {
-        std::cerr << "getValue called when an error is present: " << *error << std::endl;
+        std::cerr << "getValue called when an error is present: " << *error_ << std::endl;
         assert(!"getValue called when an error is present.");
         std::terminate();
     }
-    return *value;
+    return *value_;
 }
 
-template <typename T, typename E> const E& Result<T, E>::getError() const {
+template <typename T, typename E> const E& Result<T, E>::error() const {
     if (!hasError()) {
         assert(!"getError called when no error is present.");
         std::terminate();
     }
-    return error.get();
+    return error_.get();
 }
 
 template <typename T, typename E> Result<T, E>::operator bool() const {
@@ -140,19 +148,19 @@ template <typename T, typename E> Result<T, E>::operator bool() const {
 };
 
 template <typename T, typename E> const T& Result<T, E>::operator*() const {
-    return getValue();
+    return value();
 };
 
 template <typename T, typename E> T& Result<T, E>::operator*() {
-    return getValue();
+    return value();
 }
 
 template <typename T, typename E> const T* Result<T, E>::operator->() const {
-    return &getValue();
+    return &value();
 }
 
 template <typename T, typename E> T* Result<T, E>::operator->() {
-    return &getValue();
+    return &value();
 }
 
 }  // namespace dw

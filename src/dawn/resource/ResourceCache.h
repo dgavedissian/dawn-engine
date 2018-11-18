@@ -54,11 +54,12 @@ public:
     void addPackage(const String& package, UniquePtr<ResourcePackage> file);
 
     template <typename T>
-    Result<SharedPtr<T>, String> addCustomResource(const ResourcePath& resource_path, SharedPtr<T> resource) {
+    SharedPtr<T> addCustomResource(const ResourcePath& resource_path, SharedPtr<T> resource) {
         String name(resource_path);
 
         if (!resource) {
-            return {str::format("NULL resource provided at %s. Skipping.", name)};
+            log().warn("NULL resource provided at %s. Skipping.", name);
+            return nullptr;
         }
 
         if (resource_cache_.find(name) != resource_cache_.end()) {
@@ -66,7 +67,7 @@ public:
                        resource->typeName());
         }
         resource_cache_[name] = resource;
-        return {resource};
+        return resource;
     }
 
     template <typename T> Result<SharedPtr<T>, String> get(const ResourcePath& resource_path) {
@@ -81,15 +82,15 @@ public:
         // Load the file which contains this resource data.
         auto resource_data = getResourceData(resource_path);
         if (resource_data.hasError()) {
-            return {str::format("Cannot find resource %s. Reason: %s", resource_path, resource_data.getError())};
+            return {str::format("Cannot find resource %s. Reason: %s", resource_path, resource_data.error())};
         }
         SharedPtr<T> resource = makeShared<T>(context());
         resource_cache_.emplace(name, resource);
         log().info("Loading asset '%s'", resource_path);
-        auto load_result = resource->load(resource_path, *resource_data.getValue().get());
+        auto load_result = resource->load(resource_path, *resource_data.value().get());
         if (load_result.hasError())
         {
-            return {str::format("Failed to load resource %s. Reason: %s", resource_path, load_result.getError())};
+            return {str::format("Failed to load resource %s. Reason: %s", resource_path, load_result.error())};
         }
         return resource;
     }

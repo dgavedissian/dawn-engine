@@ -50,7 +50,9 @@ void Logger::log(LogLevel level, const String& format, const Args&... args) {
 }
 
 template <typename... Args> void Logger::debug(const String& format, const Args&... args) {
+#ifdef DW_DEBUG
     log(LogLevel::Debug, format, args...);
+#endif
 }
 
 template <typename... Args> void Logger::info(const String& format, const Args&... args) {

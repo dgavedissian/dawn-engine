@@ -147,6 +147,11 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(Context
             texture_desc.second.format);
     }
 
+    // Add textures to the render pipeline (so they are not destroyed).
+    for (auto& texture : textures) {
+        render_pipeline->textures_.emplace_back(texture.second);
+    }
+
     // Build nodes.
     for (auto& node_instance : desc.pipeline) {
         HashMap<String, SharedPtr<Texture>> input_textures;
@@ -196,10 +201,16 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(Context
                 auto material = ctx->module<ResourceCache>()->get<Material>(render_quad_step_desc.material_name);
                 if (material.hasError())
                 {
-                    return {str::format("Unable to set up material in render quad step. Reason: %s", material.getError())};
+                    return {str::format("Unable to set up material in render quad step. Reason: %s", material.error())};
+                }
+                // TODO: create material instance from material (to avoid modifying src material, so affecting all uses of it).
+                auto material_instance = *material;
+                for (auto& sampler : node->input_samplers_) {
+                    material_instance->setUniform<int>(sampler.first + "_sampler", sampler.second);
+                    material_instance->setTexture(node->input_textures_.at(sampler.first), sampler.second);
                 }
                 step = makeUnique<PRenderQuadStep>(render_pipeline->fullscreen_quad_,
-                                                   *material,
+                                                   material_instance,
                                                    node->input_samplers_);
             }
             node->steps_.push_back(std::move(step));
@@ -268,11 +279,6 @@ void RenderPipeline::PRenderQuadStep::execute(Logger& log, rhi::RHIRenderer* r, 
 #ifdef ENABLE_DEBUG_LOGGING
     log.debug("Rendering full screen quad to view %d", view);
 #endif
-    // Set up inputs.
-    for (auto& input : input_samplers_) {
-        r->setUniform(input.first + "_sampler", static_cast<int>(input.second));
-    }
-
     // Bind vertex buffer and material, then submit.
     fullscreen_quad_->bind(r);
     material_->applyRendererState(Mat4::identity, Mat4::identity);

@@ -672,8 +672,8 @@ TEST_CLASS(MovingSphere) {
         // Create an object.
         auto material = makeShared<Material>(
             context(),
-            makeShared<Program>(context(), rc->get<VertexShader>("examples:shaders/cube_solid.vs"),
-                                rc->get<FragmentShader>("examples:shaders/cube_solid.fs")));
+            makeShared<Program>(context(), rc->get<VertexShader>("examples:shaders/cube_solid.vs").value(),
+                                rc->get<FragmentShader>("examples:shaders/cube_solid.fs").value()));
         auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
         renderable->setMaterial(material);
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
@@ -712,8 +712,98 @@ TEST_CLASS(MovingSphere) {
     }
 };
 
-TEST_CLASS(PostProcessPipeline) {
-    TEST_BODY(PostProcessPipeline);
+TEST_CLASS(PostProcessInvert) {
+    TEST_BODY(PostProcessInvert);
+
+    Entity* object;
+    Entity* camera;
+
+    void start() override {
+        using rds = RenderPipelineDesc;
+
+        /*
+        auto default_render_pipeline_node = RenderPipelineDesc::Node{
+            {},
+            {{"out", rhi::TextureFormat::RGBA8}},
+            {RenderPipelineDesc::ClearStep{}, RenderPipelineDesc::RenderQueueStep{}} };
+        auto default_render_pipeline =
+            RenderPipelineDesc{ {{"Default", default_render_pipeline_node}},
+                               {},
+                               {RenderPipelineDesc::NodeInstance{
+                                   "Default", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}} };
+
+        */
+
+        auto render_scene = RenderPipelineDesc::Node{
+            {},
+            {{"out", rhi::TextureFormat::RGBA8}},
+            {RenderPipelineDesc::ClearStep{}, RenderPipelineDesc::RenderQueueStep{}} };
+        auto render_invert =
+            rds::Node{ {{"in", rhi::TextureFormat::RGBA8}},
+                      {{"out", rhi::TextureFormat::RGBA8}},
+                      {rds::RenderQuadStep{"examples:custom/postprocess_inverse"}}};
+        HashMap<String, rds::Node> nodes = { {"RenderScene", render_scene},
+                                            {"RenderInvert", render_invert} };
+        rds desc = { nodes,
+                    {{"scene", rds::Texture{rhi::TextureFormat::RGBA8}}},
+                    {rds::NodeInstance{"RenderScene", {}, {{"out", "scene"}}},
+                     rds::NodeInstance{"RenderInvert",
+                                       {{"in", "scene"}},
+                                       {{"out", rds::PipelineOutput}}}} };
+
+        auto rc = module<ResourceCache>();
+        auto scene = session_->sceneManager();
+        auto scene_graph = session_->sceneGraph();
+
+        // Set up resource cache.
+        assert(rc);
+        rc->addPath("base", "../media/base");
+        rc->addPath("examples", "../media/examples");
+
+        // Create material for inverting the output.
+        auto object_gbuffer = rc->addCustomResource(
+            "examples:custom/postprocess_inverse",
+            makeShared<Material>(
+                context(),
+                makeShared<Program>(
+                    context(), rc->get<VertexShader>("examples:shaders/post_process.vs").value(),
+                    rc->get<FragmentShader>("examples:shaders/post_process.fs").value())));
+        object_gbuffer->setUniform("wall_sampler", 0);
+        object_gbuffer->setUniform("texcoord_scale", Vec2{ 10.0f, 10.0f });
+
+        // Set up render pipeline.
+        session_->sceneGraph()->setRenderPipeline(RenderPipeline::createFromDesc(context(), desc).value());
+
+        // Set up the environment.
+        auto* frame = scene_graph->addFrame(&scene_graph->root());
+
+        // Create an object.
+        auto material = makeShared<Material>(
+            context(),
+            makeShared<Program>(context(), rc->get<VertexShader>("examples:shaders/cube_solid.vs").value(),
+                rc->get<FragmentShader>("examples:shaders/cube_solid.fs").value()));
+        auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
+        renderable->setMaterial(material);
+        material->program()->setUniform("light_direction", Vec3{ 1.0f, 1.0f, 1.0f }.Normalized());
+
+        object = &scene->createEntity(0, Vec3::zero, Quat::identity, *frame, renderable);
+
+        // Create a camera.
+        camera = &scene->createEntity(1, { 0.0f, 0.0f, 60.0f }, Quat::identity, *frame);
+        camera->addComponent<CCamera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+    }
+
+    void render() override {
+    }
+
+    void stop() override {
+        session_->sceneManager()->removeEntity(object);
+        session_->sceneManager()->removeEntity(camera);
+    }
+};
+
+TEST_CLASS(DeferredLighting) {
+    TEST_BODY(DeferredLighting);
 
     SharedPtr<CustomMeshRenderable> ground_;
 
@@ -757,8 +847,8 @@ TEST_CLASS(PostProcessPipeline) {
             makeShared<Material>(
                 context(),
                 makeShared<Program>(
-                    context(), rc->get<VertexShader>("examples:shaders/object_gbuffer.vs"),
-                    rc->get<FragmentShader>("examples:shaders/object_gbuffer.fs"))));
+                    context(), rc->get<VertexShader>("examples:shaders/object_gbuffer.vs").value(),
+                    rc->get<FragmentShader>("examples:shaders/object_gbuffer.fs").value())));
         object_gbuffer->setUniform("wall_sampler", 0);
         object_gbuffer->setUniform("texcoord_scale", Vec2{10.0f, 10.0f});
 
@@ -768,8 +858,8 @@ TEST_CLASS(PostProcessPipeline) {
             makeShared<Material>(
                 context(),
                 makeShared<Program>(
-                    context(), rc->get<VertexShader>("examples:shaders/post_process.vs"),
-                    rc->get<FragmentShader>("examples:shaders/deferred_ambient_light_pass.fs"))));
+                    context(), rc->get<VertexShader>("examples:shaders/post_process.vs").value(),
+                    rc->get<FragmentShader>("examples:shaders/deferred_ambient_light_pass.fs").value())));
         ambient_light_pass->setUniform("ambient_light", Vec3{0.02f, 0.02f, 0.02f});
 
         // Create ground.
@@ -834,5 +924,5 @@ TEST_CLASS(PostProcessPipeline) {
 using ExampleApp =
     ExampleAppContainer<RHIBasicVertexBuffer, RHIBasicIndexBuffer, RHITransientIndexBuffer,
                         RHITextured3DCube, RHIPostProcessing, RHIDeferredShading, MovingSphere,
-                        PostProcessPipeline>;
+    PostProcessInvert, DeferredLighting>;
 DW_IMPLEMENT_MAIN(ExampleApp)
