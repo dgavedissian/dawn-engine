@@ -23,7 +23,7 @@ struct DW_API RenderPipelineDesc {
         Colour colour = Colour{};
     };
     struct DW_API RenderQueueStep {
-        u32 mask = 0;
+        u32 mask = 0x1;
     };
     struct DW_API RenderQuadStep {
         String material_name = "";

@@ -8,9 +8,9 @@ gb0: |diffuse.rgb|X|
 gb1: |position.xyz|X|
 gb2: |normal.xyz|X|
 */
-uniform sampler2D gb0;
-uniform sampler2D gb1;
-uniform sampler2D gb2;
+uniform sampler2D gb0_sampler;
+uniform sampler2D gb1_sampler;
+uniform sampler2D gb2_sampler;
 uniform vec2 screen_size;
 
 uniform vec3 light_position;
@@ -26,9 +26,9 @@ void main()
 {
     vec2 screenCoord = calcScreenCoord();
 
-    vec3 colour = texture(gb0, screenCoord).rgb;
-    vec3 position = texture(gb1, screenCoord).rgb;
-    vec3 normal = normalize(texture(gb2, screenCoord).rgb);
+    vec3 colour = texture(gb0_sampler, screenCoord).rgb;
+    vec3 position = texture(gb1_sampler, screenCoord).rgb;
+    vec3 normal = normalize(texture(gb2_sampler, screenCoord).rgb);
 
     // Calculate shading. Source: https://imdoingitwrong.wordpress.com/2011/01/31/light-attenuation/
     vec3 light_direction = light_position - position;
