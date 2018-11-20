@@ -662,12 +662,21 @@ bool GLRenderContext::frame(const Frame* frame) {
             }
 
             // Bind textures.
-            for (uint j = 0; j < current->textures.size(); ++j) {
-                if (!current->textures[j].handle.isValid()) {
-                    break;
-                }
+            uint texture_count =
+                std::max(previous ? previous->textures.size() : 0, current->textures.size());
+            for (uint j = 0; j < texture_count; ++j) {
                 glActiveTexture(GL_TEXTURE0 + j);
-                glBindTexture(GL_TEXTURE_2D, texture_map_.at(current->textures[j].handle));
+                if (j >= current->textures.size()) {
+                    // If the iterator is greater than the number of current textures, this means we
+                    // are hitting texture units used by the previous render item. Unbind it as it's
+                    // no longer in use.
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                } else if (!current->textures[j].handle.isValid()) {
+                    // Unbind the texture if the handle is invalid.
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                } else {
+                    glBindTexture(GL_TEXTURE_2D, texture_map_.at(current->textures[j].handle));
+                }
                 GL_CHECK();
             }
 

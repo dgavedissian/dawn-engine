@@ -28,9 +28,10 @@ public:
         return context()->config().at("window_height").get<u16>();
     }
 
-    virtual void start() = 0;
-    virtual void render() = 0;
-    virtual void stop() = 0;
+    virtual void start(){};
+    virtual void render() {
+    }
+    virtual void stop(){};
 
     rhi::RHIRenderer* r;
     const Engine* engine_;
@@ -720,20 +721,6 @@ TEST_CLASS(PostProcessInvert) {
 
     void start() override {
         using rds = RenderPipelineDesc;
-
-        /*
-        auto default_render_pipeline_node = RenderPipelineDesc::Node{
-            {},
-            {{"out", rhi::TextureFormat::RGBA8}},
-            {RenderPipelineDesc::ClearStep{}, RenderPipelineDesc::RenderQueueStep{}} };
-        auto default_render_pipeline =
-            RenderPipelineDesc{ {{"Default", default_render_pipeline_node}},
-                               {},
-                               {RenderPipelineDesc::NodeInstance{
-                                   "Default", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}} };
-
-        */
-
         auto render_scene = RenderPipelineDesc::Node{
             {},
             {{"out", rhi::TextureFormat::RGBA8}},
@@ -791,9 +778,6 @@ TEST_CLASS(PostProcessInvert) {
         // Create a camera.
         camera = &scene->createEntity(1, {0.0f, 0.0f, 60.0f}, Quat::identity, *frame);
         camera->addComponent<CCamera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
-    }
-
-    void render() override {
     }
 
     void stop() override {
@@ -888,7 +872,7 @@ TEST_CLASS(DeferredLighting) {
                 makeShared<Program>(
                     context(), *rc->get<VertexShader>("examples:shaders/post_process.vs"),
                     *rc->get<FragmentShader>("examples:shaders/deferred_ambient_light_pass.fs"))));
-        ambient_light_pass_material->setUniform("ambient_light", Vec3{0.02f, 0.02f, 0.02f});
+        ambient_light_pass_material->setUniform("ambient_light", Vec3{0.05f, 0.05f, 0.05f});
 
         // Create material for displaying the gbuffer in debug mode.
         auto debug_gbuffer_material = rc->addCustomResource(
@@ -903,7 +887,7 @@ TEST_CLASS(DeferredLighting) {
         deferred_lighting_pipeline =
             *RenderPipeline::createFromDesc(context(), deferred_lighting_desc);
         deferred_debug_pipeline = *RenderPipeline::createFromDesc(context(), deferred_debug_desc);
-        session_->sceneGraph()->setRenderPipeline(deferred_debug_pipeline);
+        session_->sceneGraph()->setRenderPipeline(deferred_lighting_pipeline);
 
         //////////////////
 
@@ -921,17 +905,24 @@ TEST_CLASS(DeferredLighting) {
         auto ground_renderable =
             MeshBuilder{context_}.normals(true).texcoords(true).createPlane(250.0f, 250.0f);
         ground_renderable->setMaterial(ground_material);
-        ground = &scene->createEntity(0, Vec3{0.0f, -10.0f, 0.0f}, Quat::RotateX(math::pi * -0.5f),
+        ground = &scene->createEntity(0, Vec3{0.0f, 0.0f, 0.0f}, Quat::RotateX(math::pi * -0.5f),
                                       *frame, ground_renderable);
 
         // Create lights.
-        const float light_radius = 10.0f;
+        const float light_radius = 60.0f;
         auto light_material = makeShared<Material>(
             context(),
             makeShared<Program>(context(), *rc->get<VertexShader>("examples:shaders/light_pass.vs"),
                                 *rc->get<FragmentShader>("examples:shaders/point_light_pass.fs")));
-        light_material->setUniform("screen_size", Vec2(width(), height()));
-        light_material->setUniform("radius", light_radius);
+        light_material->setUniform("screen_size",
+                                   Vec2(r->backbufferSize().x, r->backbufferSize().y));
+        light_material->setUniform("radius", light_radius * 2.0f);
+        light_material->setUniform<int>("gb0_sampler", 0);
+        light_material->setUniform<int>("gb1_sampler", 1);
+        light_material->setUniform<int>("gb2_sampler", 2);
+        light_material->setTexture(deferred_lighting_pipeline->texture("gb0"), 0);
+        light_material->setTexture(deferred_lighting_pipeline->texture("gb1"), 1);
+        light_material->setTexture(deferred_lighting_pipeline->texture("gb2"), 2);
         light_material->setDepthWrite(false);
         light_material->setStateDisable(rhi::RenderState::Depth);
         light_material->setStateEnable(rhi::RenderState::Blending);
@@ -939,108 +930,53 @@ TEST_CLASS(DeferredLighting) {
                                          rhi::BlendFunc::One);
         light_material->setMask(kLightMask);
 
-        for (int x = -3; x <= 3; ++x) {
-            for (int z = -3; z <= 3; ++z) {
+        for (int x = -2; x <= 2; ++x) {
+            for (int z = -2; z <= 2; ++z) {
                 auto light_renderable =
                     MeshBuilder{context_}.normals(false).texcoords(false).createSphere(light_radius,
                                                                                        8, 8);
-                light_renderable->setMaterial(makeShared<Material>(light_material));
+                light_renderable->setMaterial(makeShared<Material>(*light_material));
                 lights.emplace_back(&scene->createEntity(0,
-                                                         Vec3(x * 30.0f, -9.0f, z * 30.0f - 40.0f),
+                                                         Vec3(x * 40.0f, 1.0f, z * 40.0f - 40.0f),
                                                          Quat::identity, *frame, light_renderable));
             }
         }
 
-        /*
-
-        PointLight(Context* ctx, float radius, const Vec2& screen_size)
-            : Object{ ctx }, r{ module<Renderer>()->rhi() }, light_sphere_radius_{ radius * 4 } {
-            setPosition(Vec3::zero);
-
-            // Load shaders.
-            auto vs =
-                util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/light_pass.vs");
-            auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment,
-                "shaders/point_light_pass.fs");
-            program_ = r->createProgram();
-            r->attachShader(program_, vs);
-            r->attachShader(program_, fs);
-            r->linkProgram(program_);
-            r->setUniform("screen_size", screen_size);
-            r->setUniform("gb0", 0);
-            r->setUniform("gb1", 1);
-            r->setUniform("gb2", 2);
-            r->setUniform("radius", radius);
-            r->submit(0, program_);
-            sphere_ = MeshBuilder{ context_ }.normals(false).texcoords(false).createSphere(
-                light_sphere_radius_, 8, 8);
-        }
-
-        ~PointLight() {
-            r->deleteProgram(program_);
-        }
-
-        void setPosition(const Vec3& position) {
-            position_ = position;
-            model_ = Mat4::Translate(position);
-        }
-
-        void draw(uint view, const Mat4& view_matrix, const Mat4& proj_matrix) {
-            Mat4 mvp = proj_matrix * view_matrix * model_;
-
-            // Invert culling when inside the light sphere.
-            Vec3 view_space_position = (view_matrix * Vec4(position_, 1.0f)).xyz();
-            if (view_space_position.LengthSq() < (light_sphere_radius_ * light_sphere_radius_)) {
-                r->setStateCullFrontFace(rhi::CullFrontFace::CW);
-            }
-
-            // Disable depth, and enable blending.
-            r->setStateDisable(rhi::RenderState::Depth);
-            r->setStateEnable(rhi::RenderState::Blending);
-            r->setStateBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::One,
-                rhi::BlendFunc::One);
-
-            // Draw sphere.
-            r->setVertexBuffer(sphere_->vertexBuffer()->internalHandle());
-            r->setIndexBuffer(sphere_->indexBuffer()->internalHandle());
-            r->setUniform("mvp_matrix", mvp);
-            r->setUniform("light_position", position_);
-            r->submit(view, program_, sphere_->indexBuffer()->indexCount());
-        }
-        */
-
         // Create a camera.
-        camera = &scene->createEntity(1, {0.0f, 0.0f, 60.0f}, Quat::identity, *frame);
+        camera = &scene->createEntity(1, {0.0f, 10.0f, 60.0f}, Quat::identity, *frame);
         camera->addComponent<CCamera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
-    }
 
-    void render() override {
-        // Update point lights.
-        static float angle = 0.0f;
-        angle += engine_->frameTime();
-        int light_counter = 0;
-        for (int x = -3; x <= 3; x++) {
-            for (int z = -3; z <= 3; z++) {
-                auto light_position = Vec3(x * 20.0f + sin(angle) * 10.0f, -8.0f,
-                                           z * 20.0f - 30.0f + cos(angle) * 10.0f);
-                lights[light_counter]->transform()->position = light_position;
-                lights[light_counter]
-                    ->component<CTransform>()
-                    ->renderable()
-                    ->material()
-                    ->setUniform("light_position", light_position);
-                light_counter++;
+        // Set up render camera callback.
+        scene_graph->preRenderCameraCallback =
+            [this, light_radius](const detail::Transform&, const Mat4& view_matrix, const Mat4&) {
+                // Update point lights.
+                static float angle = 0.0f;
+                angle += engine_->frameTime();
+                int light_counter = 0;
+                for (int x = -2; x <= 2; x++) {
+                    for (int z = -2; z <= 2; z++) {
+                        auto light_position = Vec3(x * 30.0f + sin(angle) * 10.0f, 4.0f,
+                                                   z * 30.0f - 30.0f + cos(angle) * 10.0f);
+                        lights[light_counter]->transform()->position = light_position;
+                        lights[light_counter]
+                            ->component<CTransform>()
+                            ->renderable()
+                            ->material()
+                            ->setUniform("light_position", light_position);
+                        light_counter++;
 
-                // Invert culling when inside the light sphere.
-                // TODO: Find a place for this.
-                // TODO: Actually take the mask into account in the render pipeline.
-                Vec3 view_space_position = (view_matrix * Vec4(position_, 1.0f)).xyz();
-                if (view_space_position.LengthSq() <
-                    (light_sphere_radius_ * light_sphere_radius_)) {
-                    r->setStateCullFrontFace(rhi::CullFrontFace::CW);
+                        // Invert culling when inside the light sphere.
+                        // TODO:
+                        // Implement a "ProgramInstance" resource which allows multiple programs to
+                        // have their own uniforms etc. Alternatively just move the uniform setting
+                        // code to the material itself.
+                        Vec3 view_space_position = (view_matrix * Vec4(light_position, 1.0f)).xyz();
+                        if (view_space_position.LengthSq() < (light_radius * light_radius)) {
+                            r->setStateCullFrontFace(rhi::CullFrontFace::CW);
+                        }
+                    }
                 }
-            }
-        }
+            };
     }
 
     void stop() override {

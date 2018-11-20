@@ -156,19 +156,14 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
         makeShared<VertexBuffer>(ctx, Memory(vertices, sizeof(vertices)), 3, decl);
 
     // Create textures.
-    HashMap<String, SharedPtr<Texture>> textures;
     for (auto& texture_desc : desc.textures) {
-        textures[texture_desc.first] = Texture::createTexture2D(
+        render_pipeline->textures_[texture_desc.first] = Texture::createTexture2D(
             ctx, ctx->module<Renderer>()->rhi()->backbufferSize() * texture_desc.second.ratio,
             texture_desc.second.format);
     }
 
-    // Add textures to the render pipeline (so they are not destroyed).
-    for (auto& texture : textures) {
-        render_pipeline->textures_.emplace_back(texture.second);
-    }
-
     // Build nodes.
+    const auto& textures = render_pipeline->textures_;
     for (auto& node_instance : desc.pipeline) {
         HashMap<String, SharedPtr<Texture>> input_textures;
         Vector<SharedPtr<Texture>> output_textures;
@@ -220,9 +215,7 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
                     return {str::format("Unable to set up material in render quad step. Reason: %s",
                                         material.error())};
                 }
-                // TODO: create material instance from material (to avoid modifying src material, so
-                // affecting all uses of it).
-                auto material_instance = *material;
+                auto material_instance = makeShared<Material>(**material);
                 for (auto& sampler : node->input_samplers_) {
                     material_instance->setUniform<int>(sampler.first + "_sampler", sampler.second);
                     material_instance->setTexture(node->input_textures_.at(sampler.first),
@@ -260,6 +253,11 @@ void RenderPipeline::render(float interpolation, SceneGraph* scene_graph, u32 ca
                           scene_graph, camera_id, view);
         }
     }
+}
+
+SharedPtr<Texture> RenderPipeline::texture(const String& name) {
+    auto it = textures_.find(name);
+    return it != textures_.end() ? it->second : nullptr;
 }
 
 RenderPipeline::PClearStep::PClearStep(Colour colour) : colour_(colour) {

@@ -63,6 +63,8 @@ public:
 
     void render(float interpolation, SceneGraph* scene_graph, u32 camera_id);
 
+    SharedPtr<Texture> texture(const String& name);
+
 private:
     class PStep {
     public:
@@ -119,7 +121,7 @@ private:
         UniquePtr<FrameBuffer> output_frame_buffer_;
     };
 
-    Vector<SharedPtr<Texture>> textures_;
+    HashMap<String, SharedPtr<Texture>> textures_;
     Vector<UniquePtr<PNode>> nodes_;
     SharedPtr<VertexBuffer> fullscreen_quad_;
 };

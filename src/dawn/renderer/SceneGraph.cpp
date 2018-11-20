@@ -106,8 +106,14 @@ void SceneGraph::updateSceneGraph() {
 }
 
 void SceneGraph::renderScene(float interpolation) {
-    if (camera_entity_system_->cameras.size() > 0) {
+    if (preRenderSceneCallback) {
+        preRenderSceneCallback();
+    }
+    if (!camera_entity_system_->cameras.empty()) {
         render_pipeline_->render(interpolation, this, 0);
+    }
+    if (postRenderSceneCallback) {
+        postRenderSceneCallback();
     }
 }
 
@@ -117,14 +123,23 @@ void SceneGraph::renderSceneFromCamera(float, u32 camera_id, uint view, u32 mask
     assert(camera_id < cameras.size());
 
     // All rendering is done relative to the cameras own frame. Get transform within the frame.
-    Mat4& camera_model_matrix = model_matrix_cache_.at(cameras[camera_id].scene_node);
-    Mat4 view_matrix = camera_model_matrix.Inverted();
+    const Mat4& camera_model_matrix = model_matrix_cache_.at(cameras[camera_id].scene_node);
+
+    // Calculate matrices.
+    const Mat4 view_matrix = camera_model_matrix.Inverted();
+    const Mat4& proj_matrix = cameras[camera_id].projection_matrix;
+    const Mat4 view_proj_matrix = proj_matrix * view_matrix;
     auto camera_transform = detail::Transform::fromMat4(camera_model_matrix);
 
     // Process all render operations.
+    if (preRenderCameraCallback) {
+        preRenderCameraCallback(camera_transform, view_matrix, proj_matrix);
+    }
     for (auto& op : render_operations_per_camera_[camera_id]) {
-        op.renderable->draw(module<Renderer>(), view, camera_transform, op.model,
-                            cameras[camera_id].projection_matrix * view_matrix);
+        if (op.renderable->material()->mask() & mask) {
+            op.renderable->draw(module<Renderer>(), view, camera_transform, op.model,
+                                view_proj_matrix);
+        }
     }
 }
 

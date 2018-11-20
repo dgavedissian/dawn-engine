@@ -39,6 +39,13 @@ public:
     Frame* frame(int i);
     int frameCount() const;
 
+    // Callbacks.
+    Function<void()> preRenderSceneCallback;
+    Function<void()> postRenderSceneCallback;
+    Function<void(const detail::Transform& camera_transform, const Mat4& view_matrix,
+                  const Mat4& proj_matrix)>
+        preRenderCameraCallback;
+
     // Root system node.
     SystemNode& root();
 
