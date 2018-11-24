@@ -910,13 +910,14 @@ TEST_CLASS(DeferredLighting) {
 
         // Create lights.
         const float light_radius = 60.0f;
+        const float light_mesh_radius = light_radius * 3.0f;
         auto light_material = makeShared<Material>(
             context(),
             makeShared<Program>(context(), *rc->get<VertexShader>("examples:shaders/light_pass.vs"),
                                 *rc->get<FragmentShader>("examples:shaders/point_light_pass.fs")));
         light_material->setUniform("screen_size",
                                    Vec2(r->backbufferSize().x, r->backbufferSize().y));
-        light_material->setUniform("radius", light_radius * 2.0f);
+        light_material->setUniform("radius", light_radius);
         light_material->setUniform<int>("gb0_sampler", 0);
         light_material->setUniform<int>("gb1_sampler", 1);
         light_material->setUniform<int>("gb2_sampler", 2);
@@ -933,8 +934,8 @@ TEST_CLASS(DeferredLighting) {
         for (int x = -2; x <= 2; ++x) {
             for (int z = -2; z <= 2; ++z) {
                 auto light_renderable =
-                    MeshBuilder{context_}.normals(false).texcoords(false).createSphere(light_radius,
-                                                                                       8, 8);
+                    MeshBuilder{context_}.normals(false).texcoords(false).createSphere(
+                        light_mesh_radius, 8, 8);
                 light_renderable->setMaterial(makeShared<Material>(*light_material));
                 lights.emplace_back(&scene->createEntity(0,
                                                          Vec3(x * 40.0f, 1.0f, z * 40.0f - 40.0f),
@@ -947,36 +948,32 @@ TEST_CLASS(DeferredLighting) {
         camera->addComponent<CCamera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
 
         // Set up render camera callback.
-        scene_graph->preRenderCameraCallback =
-            [this, light_radius](const detail::Transform&, const Mat4& view_matrix, const Mat4&) {
-                // Update point lights.
-                static float angle = 0.0f;
-                angle += engine_->frameTime();
-                int light_counter = 0;
-                for (int x = -2; x <= 2; x++) {
-                    for (int z = -2; z <= 2; z++) {
-                        auto light_position = Vec3(x * 30.0f + sin(angle) * 10.0f, 4.0f,
-                                                   z * 30.0f - 30.0f + cos(angle) * 10.0f);
-                        lights[light_counter]->transform()->position = light_position;
-                        lights[light_counter]
-                            ->component<CTransform>()
-                            ->renderable()
-                            ->material()
-                            ->setUniform("light_position", light_position);
-                        light_counter++;
+        scene_graph->preRenderCameraCallback = [this, light_mesh_radius](
+                                                   const detail::Transform& camera_transform,
+                                                   const Mat4&, const Mat4&) {
+            // Update point lights.
+            static float angle = 0.0f;
+            angle += engine_->frameTime();
+            int light_counter = 0;
+            for (int x = -2; x <= 2; x++) {
+                for (int z = -2; z <= 2; z++) {
+                    auto light_position = Vec3(x * 30.0f + sin(angle) * 10.0f, 4.0f,
+                                               z * 30.0f - 30.0f + cos(angle) * 10.0f);
+                    auto* material =
+                        lights[light_counter]->component<CTransform>()->renderable()->material();
+                    lights[light_counter]->transform()->position = light_position;
+                    light_counter++;
 
-                        // Invert culling when inside the light sphere.
-                        // TODO:
-                        // Implement a "ProgramInstance" resource which allows multiple programs to
-                        // have their own uniforms etc. Alternatively just move the uniform setting
-                        // code to the material itself.
-                        Vec3 view_space_position = (view_matrix * Vec4(light_position, 1.0f)).xyz();
-                        if (view_space_position.LengthSq() < (light_radius * light_radius)) {
-                            r->setStateCullFrontFace(rhi::CullFrontFace::CW);
-                        }
-                    }
+                    // Update material.
+                    material->setUniform("light_position", light_position);
+                    bool should_invert_sphere =
+                        camera_transform.position.DistanceSq(light_position) <
+                        light_mesh_radius * light_mesh_radius;
+                    material->setCullFrontFace(should_invert_sphere ? rhi::CullFrontFace::CW
+                                                                    : rhi::CullFrontFace::CCW);
                 }
-            };
+            }
+        };
     }
 
     void stop() override {

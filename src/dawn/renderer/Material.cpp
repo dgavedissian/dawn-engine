@@ -84,7 +84,7 @@ void Material::setMask(u32 mask) {
 }
 
 void Material::setTexture(SharedPtr<Texture> texture, uint unit) {
-    program_->setTextureUnit(texture, unit);
+    texture_units_[unit] = std::move(texture);
 }
 
 void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_projection_matrix) {
@@ -109,7 +109,21 @@ void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_pro
     setUniform("model_matrix", model_matrix);
     setUniform("mvp_matrix", view_projection_matrix * model_matrix);
 
-    // Apply program render state (textures and uniforms).
+    // Set textures.
+    for (size_t i = 0; i < texture_units_.size(); i++) {
+        if (!texture_units_[i]) {
+            break;
+        }
+        renderer->setTexture(texture_units_[i]->internalHandle(), i);
+    }
+
+    // Set uniforms.
+    for (auto& uniform_pair : uniforms_) {
+        renderer->setUniform(uniform_pair.first, uniform_pair.second);
+    }
+    uniforms_.clear();
+
+    // Apply program render state.
     program_->applyRendererState();
 }
 

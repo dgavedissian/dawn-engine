@@ -36,7 +36,7 @@ public:
     void setTexture(SharedPtr<Texture> texture, uint unit = 0);
 
     template <typename T> void setUniform(const String& name, const T& value) {
-        program_->setUniform(name, value);
+        uniforms_[name] = value;
     }
 
     void applyRendererState(const Mat4& model_matrix, const Mat4& view_projection_matrix);
@@ -63,5 +63,8 @@ private:
     bool depth_write_;
 
     u32 mask_;
+
+    Array<SharedPtr<Texture>, 8> texture_units_;
+    HashMap<String, rhi::UniformData> uniforms_;
 };
 }  // namespace dw
