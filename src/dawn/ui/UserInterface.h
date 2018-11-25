@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/rhi/Renderer.h"
+#include "renderer/rhi/RHIRenderer.h"
 #include "renderer/Program.h"
 #include "input/Input.h"
 #include "ui/Imgui.h"
@@ -26,7 +26,7 @@ public:
     void render();
 
 private:
-    rhi::Renderer* rhi_;
+    rhi::RHIRenderer* rhi_;
     EventSystem* event_system_;
 
     // ImGui.

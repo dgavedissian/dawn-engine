@@ -21,7 +21,7 @@
 
 #   if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
 #       define ONTOLOGY_PLATFORM_WINDOWS
-#   elif defined(linux) || defined(__linux)
+#   elif defined(linux) || defined(__linux) || defined(__EMSCRIPTEN__)
 #       define ONTOLOGY_PLATFORM_LINUX
 #   elif defined(__APPLE__) || defined(MACOSX) || defined(macintosh) || defined(Macintosh)
 #       define ONTOLOGY_PLATFORM_MAC

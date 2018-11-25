@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "Renderer.h"
+#include "RHIRenderer.h"
 
 namespace dw {
 namespace rhi {
@@ -29,8 +29,6 @@ public:
     void stopRendering() override;
     void processCommandList(Vector<RenderCommand>& command_list) override;
     bool frame(const Frame* frame) override;
-
-private:
 };
 }  // namespace rhi
 }  // namespace dw

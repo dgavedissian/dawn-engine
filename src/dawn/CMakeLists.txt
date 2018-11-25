@@ -90,6 +90,7 @@ set(SOURCE_FILES
     core/Object.h
     core/Option.h
     core/Preprocessor.h
+    core/Result.h
     core/StringUtils.cpp
     core/StringUtils.h
     core/Timer.cpp
@@ -124,8 +125,8 @@ set(SOURCE_FILES
     renderer/rhi/GLRenderContext.h
     renderer/rhi/NullRenderContext.cpp
     renderer/rhi/NullRenderContext.h
-    renderer/rhi/Renderer.cpp
-    renderer/rhi/Renderer.h
+    renderer/rhi/RHIRenderer.cpp
+    renderer/rhi/RHIRenderer.h
     renderer/rhi/SPIRV.h
     renderer/rhi/VertexDecl.cpp
     renderer/rhi/VertexDecl.h
@@ -135,6 +136,8 @@ set(SOURCE_FILES
     renderer/CCamera.h
     renderer/CustomMeshRenderable.cpp
     renderer/CustomMeshRenderable.h
+    renderer/FrameBuffer.cpp
+    renderer/FrameBuffer.h
     renderer/GLSL.h
     renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h
@@ -152,6 +155,8 @@ set(SOURCE_FILES
     renderer/Renderable.cpp
     renderer/Renderer.cpp
     renderer/Renderer.h
+    renderer/RenderPipeline.cpp
+    renderer/RenderPipeline.h
     renderer/SceneGraph.cpp
     renderer/SceneGraph.h
     renderer/Shader.cpp
@@ -198,34 +203,34 @@ set(SOURCE_FILES
 add_definitions(-DONTOLOGY_WITH_ASSERT)
 set (SOURCE_FILES
     ${SOURCE_FILES}
-        scene/ontology/include/ontology/Config.hpp
-        scene/ontology/include/ontology/Component.hpp
-        scene/ontology/include/ontology/Entity.hpp
-        scene/ontology/include/ontology/Entity.hxx
-        scene/ontology/include/ontology/EntityManager.hpp
-        scene/ontology/include/ontology/EntityManagerInterface.hpp
-        scene/ontology/include/ontology/EntityManagerListener.hpp
-        scene/ontology/include/ontology/Exception.hpp
-        scene/ontology/include/ontology/ListenerDispatcher.hpp
-        scene/ontology/include/ontology/ListenerDispatcher.hxx
-        scene/ontology/include/ontology/System.hpp
-        scene/ontology/include/ontology/System.hxx
-        scene/ontology/include/ontology/SystemManager.hpp
-        scene/ontology/include/ontology/SystemManager.hxx
-        scene/ontology/include/ontology/Type.hpp
-        scene/ontology/include/ontology/Type.hxx
-        scene/ontology/include/ontology/TypeContainers.hpp
-        scene/ontology/include/ontology/World.hpp
-        scene/ontology/include/ontology/Ontology.hpp
-        scene/ontology/src/Component.cpp
-        scene/ontology/src/Entity.cpp
-        scene/ontology/src/EntityManager.cpp
-        scene/ontology/src/EntityManagerListener.cpp
-        scene/ontology/src/Exception.cpp
-        scene/ontology/src/System.cpp
-        scene/ontology/src/SystemManager.cpp
-        scene/ontology/src/Type.cpp
-        scene/ontology/src/World.cpp)
+    scene/ontology/include/ontology/Config.hpp
+    scene/ontology/include/ontology/Component.hpp
+    scene/ontology/include/ontology/Entity.hpp
+    scene/ontology/include/ontology/Entity.hxx
+    scene/ontology/include/ontology/EntityManager.hpp
+    scene/ontology/include/ontology/EntityManagerInterface.hpp
+    scene/ontology/include/ontology/EntityManagerListener.hpp
+    scene/ontology/include/ontology/Exception.hpp
+    scene/ontology/include/ontology/ListenerDispatcher.hpp
+    scene/ontology/include/ontology/ListenerDispatcher.hxx
+    scene/ontology/include/ontology/System.hpp
+    scene/ontology/include/ontology/System.hxx
+    scene/ontology/include/ontology/SystemManager.hpp
+    scene/ontology/include/ontology/SystemManager.hxx
+    scene/ontology/include/ontology/Type.hpp
+    scene/ontology/include/ontology/Type.hxx
+    scene/ontology/include/ontology/TypeContainers.hpp
+    scene/ontology/include/ontology/World.hpp
+    scene/ontology/include/ontology/Ontology.hpp
+    scene/ontology/src/OnComponent.cpp
+    scene/ontology/src/OnEntity.cpp
+    scene/ontology/src/EntityManager.cpp
+    scene/ontology/src/EntityManagerListener.cpp
+    scene/ontology/src/Exception.cpp
+    scene/ontology/src/OnSystem.cpp
+    scene/ontology/src/SystemManager.cpp
+    scene/ontology/src/Type.cpp
+    scene/ontology/src/World.cpp)
 
 # Project
 set(BUILD_SHARED_LIBS OFF)

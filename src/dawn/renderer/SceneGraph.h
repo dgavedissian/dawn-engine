@@ -5,6 +5,7 @@
 #pragma once
 
 #include "renderer/Node.h"
+#include "renderer/RenderPipeline.h"
 #include "scene/EntitySystem.h"
 
 namespace dw {
@@ -27,14 +28,23 @@ public:
     void setupEntitySystems(SceneManager* scene_manager);
 
     // Rendering.
+    void setRenderPipeline(SharedPtr<RenderPipeline> render_pipeline);
     void updateSceneGraph();
     void renderScene(float interpolation);
+    void renderSceneFromCamera(float interpolation, u32 camera_id, uint view, u32 mask);
 
     // Frames.
     Frame* addFrame(SystemNode* frame_node);
     void removeFrame(Frame* frame);
     Frame* frame(int i);
     int frameCount() const;
+
+    // Callbacks.
+    Function<void()> preRenderSceneCallback;
+    Function<void()> postRenderSceneCallback;
+    Function<void(const detail::Transform& camera_transform, const Mat4& view_matrix,
+                  const Mat4& proj_matrix)>
+        preRenderCameraCallback;
 
     // Root system node.
     SystemNode& root();
@@ -54,9 +64,13 @@ private:
 
     SCamera* camera_entity_system_;
 
+    // Rendering information.
     Vector<HashMap<SystemNode*, Mat4>> system_model_matrices_per_frame_;
     HashMap<Node*, Mat4> model_matrix_cache_;
     Vector<Vector<detail::RenderOperation>> render_operations_per_camera_;
+
+    // Render pipeline.
+    SharedPtr<RenderPipeline> render_pipeline_;
 
     void renderTree(Node* node, const Mat4& frame_model_matrix, const Mat4& parent, bool dirty,
                     int camera_id);

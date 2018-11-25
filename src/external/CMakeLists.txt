@@ -25,24 +25,25 @@ set(EXTERNAL_PREFIX ${CMAKE_BINARY_DIR}/dependencies)
 set(EXTERNAL_INSTALL ${EXTERNAL_PREFIX}/install)
 
 # Arguments to be passed to all calls to CMake
-set(EXTERNAL_ARGS
+set(HOST_EXTERNAL_ARGS
     -G ${CMAKE_GENERATOR}
     -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL}
-    # ExternalProject needs to have these passed in.
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-    -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     -DBUILD_SHARED_LIBS=0)
 if(APPLE)
-    set(EXTERNAL_ARGS ${EXTERNAL_ARGS}
-        -DCMAKE_OSX_ARCHITECTURES=x86_64
-        -DCMAKE_C_FLAGS=-fPIC\ -stdlib=libc++
-        -DCMAKE_CXX_FLAGS=-fPIC\ -std=c++11\ -stdlib=libc++)
+    set(HOST_EXTERNAL_ARGS ${HOST_EXTERNAL_ARGS}
+            -DCMAKE_OSX_ARCHITECTURES=x86_64
+            -DCMAKE_C_FLAGS=-fPIC\ -stdlib=libc++\ -w
+            -DCMAKE_CXX_FLAGS=-fPIC\ -std=c++11\ -stdlib=libc++\ -w)
 elseif(UNIX)
-    set(EXTERNAL_ARGS ${EXTERNAL_ARGS}
-        -DCMAKE_C_FLAGS=-fPIC
-        -DCMAKE_CXX_FLAGS=-fPIC)
+    set(HOST_EXTERNAL_ARGS ${HOST_EXTERNAL_ARGS}
+            -DCMAKE_C_FLAGS=-fPIC\ -w
+            -DCMAKE_CXX_FLAGS=-fPIC\ -std=c++11\ -w)
 endif()
+set(EXTERNAL_ARGS ${HOST_EXTERNAL_ARGS}
+    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+    -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
 
 # Note that "set_property(TARGET <target> PROPERTY INTERFACE_INCLUDE_DIRECTORIES ...)" checks for the
 # existence of the path. Therefore, we create the path beforehand.
@@ -110,6 +111,9 @@ ExternalProject_Add(Bullet-external
         -DINSTALL_CMAKE_FILES=0
         -DINSTALL_LIBS=1
         -DUSE_MSVC_RUNTIME_LIBRARY_DLL=1
+        -DUSE_GLUT=0
+        # Needed to bypass a buggy find script inside Bullet on certain platforms.
+        -D_FIND_LIB_PYTHON_PY=${CMALE_CURRENT_SOURCE_DIR}/bullet/build3/cmake/FindLibPython.py
         # Needed on Linux
         -DCMAKE_RELWITHDEBINFO_POSTFIX=
         -DCMAKE_DEBUG_POSTFIX=_d
@@ -145,8 +149,13 @@ add_dependencies(MathGeoLib MathGeoLib-external)
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/MathGeoLib)
 set_property(TARGET MathGeoLib PROPERTY INTERFACE_INCLUDE_DIRECTORIES
     ${EXTERNAL_INSTALL}/include/MathGeoLib)
-set_property(TARGET MathGeoLib PROPERTY INTERFACE_LINK_LIBRARIES
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}MathGeoLib$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+if(EMSCRIPTEN)
+    set_property(TARGET MathGeoLib PROPERTY INTERFACE_LINK_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/MathGeoLib.bc)
+else()
+    set_property(TARGET MathGeoLib PROPERTY INTERFACE_LINK_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}MathGeoLib$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
 set(LIBS ${LIBS} MathGeoLib)
 
 # Luajit
@@ -183,7 +192,28 @@ set_property(TARGET Luajit PROPERTY INTERFACE_LINK_LIBRARIES
     ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(LIBS ${LIBS} Luajit)
 
-# Flatbuffers needs to be build with the host compiler options, not the target (if cross compiling).
+# We build flatbuffers twice, first with the host toolchain to get flatc, then again against the target toolchain
+# without flatc.
+ExternalProject_Add(flatc-external
+    PREFIX ${EXTERNAL_PREFIX}
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
+    INSTALL_DIR ${EXTERNAL_INSTALL}
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target flatc --config $<CONFIG>
+    EXCLUDE_FROM_ALL 1
+    CMAKE_ARGS ${HOST_EXTERNAL_ARGS}
+        -DFLATBUFFERS_BUILD_FLATC=1
+        -DFLATBUFFERS_BUILD_FLATHASH=0
+        -DFLATBUFFERS_BUILD_SHAREDLIB=0
+        -DFLATBUFFERS_BUILD_TESTS=0
+)
+if(MSVC)
+    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatc-external-build/$<CONFIG>/flatc PARENT_SCOPE)
+else()
+    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatc-external-build/flatc PARENT_SCOPE)
+endif()
 ExternalProject_Add(flatbuffers-external
     PREFIX ${EXTERNAL_PREFIX}
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
@@ -194,20 +224,15 @@ ExternalProject_Add(flatbuffers-external
     INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
     EXCLUDE_FROM_ALL 1
     CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DFLATBUFFERS_BUILD_FLATC=1
+        -DFLATBUFFERS_BUILD_FLATC=0
         -DFLATBUFFERS_BUILD_FLATHASH=0
         -DFLATBUFFERS_BUILD_SHAREDLIB=0
         -DFLATBUFFERS_BUILD_TESTS=0
 )
-if(MSVC)
-    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/$<CONFIG>/flatc PARENT_SCOPE)
-else()
-    set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatbuffers-external-build/flatc PARENT_SCOPE)
-endif()
 add_library(flatbuffers INTERFACE)
-add_dependencies(flatbuffers flatbuffers-external)
+add_dependencies(flatbuffers flatbuffers-external flatc-external)
 set_property(TARGET flatbuffers PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-if (UNIX AND NOT APPLE AND (NOT EXISTS "/etc/debian_version"))
+if (UNIX AND NOT APPLE AND (NOT EXISTS "/etc/debian_version") AND NOT EMSCRIPTEN)
     set_property(TARGET flatbuffers PROPERTY INTERFACE_LINK_LIBRARIES
             ${EXTERNAL_INSTALL}/lib64/${CMAKE_STATIC_LIBRARY_PREFIX}flatbuffers${CMAKE_STATIC_LIBRARY_SUFFIX})
 else()
@@ -240,21 +265,29 @@ add_library(FastDelegate INTERFACE)
 target_include_directories(FastDelegate INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/FastDelegate)
 set(LIBS ${LIBS} FastDelegate)
 
-# gl3w
-add_library(gl3w EXCLUDE_FROM_ALL gl3w/gl3w.c gl3w/GL/gl3w.h gl3w/GL/glcorearb.h)
-target_include_directories(gl3w PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gl3w)
-set(LIBS ${LIBS} gl3w)
+# glad
+if(NOT EMSCRIPTEN)
+    add_library(glad EXCLUDE_FROM_ALL glad/src/glad.c)
+    target_include_directories(glad PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glad/include)
+    set(LIBS ${LIBS} glad)
+endif()
 
 # glfw
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-set(GLFW_USE_CHDIR OFF CACHE BOOL "" FORCE)
-set(USE_MSVC_RUNTIME_LIBRARY_DLL OFF CACHE BOOL "" FORCE)
-add_subdirectory(glfw EXCLUDE_FROM_ALL)
-target_include_directories(glfw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
+if(NOT EMSCRIPTEN)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+    set(USE_MSVC_RUNTIME_LIBRARY_DLL OFF CACHE BOOL "" FORCE)
+    add_subdirectory(glfw EXCLUDE_FROM_ALL)
+    target_include_directories(glfw PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
+else()
+    add_library(glfw INTERFACE)
+    target_include_directories(glfw INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/glfw/include)
+    target_link_libraries(glfw INTERFACE "-s USE_GLFW=3" "-s USE_WEBGL2=1" "-s FULL_ES3=1")
+endif()
 set(LIBS ${LIBS} glfw)
+
 
 # glslang
 ExternalProject_Add(glslang-external
@@ -375,7 +408,7 @@ set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
     ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mbedcrypto$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
 
 # yojimbo_sodium
-if (MSVC)
+if(MSVC)
     ExternalProject_Add(yojimbo_sodium-external
         PREFIX ${EXTERNAL_PREFIX}
         URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.15-msvc.zip
@@ -384,7 +417,7 @@ if (MSVC)
         INSTALL_COMMAND ""
         UPDATE_COMMAND ""
     )
-else()
+elseif(NOT EMSCRIPTEN)
     ExternalProject_Add(yojimbo_sodium-external
         PREFIX ${EXTERNAL_PREFIX}
         URL ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo_sodium
@@ -394,6 +427,16 @@ else()
         INSTALL_COMMAND make install
         UPDATE_COMMAND ""
     )
+else()
+    ExternalProject_Add(yojimbo_sodium-external
+        PREFIX ${EXTERNAL_PREFIX}
+        URL ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo_sodium
+        BUILD_IN_SOURCE 1
+        CONFIGURE_COMMAND emconfigure ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no
+        BUILD_COMMAND emmake make
+        INSTALL_COMMAND emmake make install
+        UPDATE_COMMAND ""
+        )
 endif()
 set_target_properties(yojimbo_sodium-external PROPERTIES EXCLUDE_FROM_ALL TRUE)
 add_library(yojimbo_sodium INTERFACE)
@@ -437,6 +480,9 @@ target_include_directories(yojimbo PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo/netcode.io
     ${CMAKE_CURRENT_SOURCE_DIR}/yojimbo/reliable.io)
 target_link_libraries(yojimbo yojimbo_mbedtls yojimbo_sodium)
+if(EMSCRIPTEN)
+    target_compile_definitions(yojimbo PRIVATE -D__linux=1)
+endif()
 set(LIBS ${LIBS} yojimbo)
 
 ##############################################################

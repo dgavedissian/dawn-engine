@@ -95,9 +95,10 @@ public:
 
         // Set up material.
         auto material = makeShared<Material>(
-            context(), makeShared<Program>(context(), rc->get<VertexShader>("base:space/planet.vs"),
-                                           rc->get<FragmentShader>("base:space/planet.fs")));
-        material->setTexture(rc->get<Texture>("base:space/planet.jpg"));
+            context(),
+            makeShared<Program>(context(), *rc->get<VertexShader>("base:space/planet.vs"),
+                                *rc->get<FragmentShader>("base:space/planet.fs")));
+        material->setTexture(*rc->get<Texture>("base:space/planet.jpg"));
         material->setUniform("light_direction", Vec3{1.0f, 0.0f, 0.0f});
         material->setUniform("surface_sampler", 0);
         material->setPolygonMode(rhi::PolygonMode::Wireframe);
@@ -124,8 +125,6 @@ public:
                     terrain_dirty_ = false;
 
                     LockGuard<Mutex> terrain_data_lock{t_output_lock_};
-                    t_output_vertices_.clear();
-                    t_output_indices_.clear();
                     generateTerrainData(t_output_vertices_, t_output_indices_);
                     t_output_ready_ = true;
                 }
@@ -157,7 +156,9 @@ public:
         // If we have any new terrain data ready, upload to GPU.
         if (t_output_ready_) {
             LockGuard<Mutex> terrain_data_lock{t_output_lock_};
-            uploadTerrainDataToGpu(t_output_vertices_, t_output_indices_);
+            uploadTerrainDataToGpu(std::move(t_output_vertices_), std::move(t_output_indices_));
+            t_output_vertices_.clear();
+            t_output_indices_.clear();
             t_output_ready_ = false;
         }
     }
@@ -279,7 +280,7 @@ private:
         Vector<PlanetTerrainPatch::Vertex> vertex_data;
         Vector<u32> index_data;
         generateTerrainData(vertex_data, index_data);
-        uploadTerrainDataToGpu(vertex_data, index_data);
+        uploadTerrainDataToGpu(std::move(vertex_data), std::move(index_data));
     }
 
     void updateTerrain(const Vec3& offset) {
@@ -298,11 +299,12 @@ private:
         }
     }
 
-    void uploadTerrainDataToGpu(const Vector<PlanetTerrainPatch::Vertex>& vertices,
-                                const Vector<u32>& indices) {
+    void uploadTerrainDataToGpu(Vector<PlanetTerrainPatch::Vertex>&& vertices,
+                                Vector<u32>&& indices) {
         // Upload to GPU.
-        custom_mesh_renderable_->vertexBuffer()->update(Memory{vertices}, vertices.size(), 0);
-        custom_mesh_renderable_->indexBuffer()->update(Memory{indices}, 0);
+        custom_mesh_renderable_->vertexBuffer()->update(Memory{std::move(vertices)},
+                                                        vertices.size(), 0);
+        custom_mesh_renderable_->indexBuffer()->update(Memory{std::move(indices)}, 0);
     }
 
     friend class PlanetTerrainPatch;
@@ -623,7 +625,7 @@ public:
     }
 
     String gameVersion() override {
-        return "1.0.0";
+        return DW_VERSION_STR;
     }
 };
 

@@ -7,12 +7,15 @@ add_subdirectory(external)
 message("========== DAWN ENGINE ==========")
 add_subdirectory(dawn)
 
-message("========== RENDERER TEST ==========")
-add_subdirectory(renderer-test)
+message("========== EXAMPLES ==========")
+add_subdirectory(examples)
 
 message("========== SANDBOX ==========")
 add_subdirectory(sandbox)
 
 message("========== SHOOTER ==========")
 add_subdirectory(shooter)
+
+message("========== VIEWER ==========")
+add_subdirectory(viewer)
 

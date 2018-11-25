@@ -14,14 +14,14 @@
 
 namespace dw {
 Renderer::Renderer(Context* ctx) : Module(ctx) {
-    rhi_ = makeUnique<rhi::Renderer>(ctx);
+    rhi_ = makeUnique<rhi::RHIRenderer>(ctx);
 }
 
 bool Renderer::frame() const {
     return rhi_->frame();
 }
 
-rhi::Renderer* Renderer::rhi() const {
+rhi::RHIRenderer* Renderer::rhi() const {
     return rhi_.get();
 }
 }  // namespace dw

@@ -8,6 +8,7 @@
 #include "scene/CTransform.h"
 #include "renderer/CCamera.h"
 #include "renderer/SceneGraph.h"
+#include "renderer/RenderPipeline.h"
 
 using namespace dw;
 
@@ -27,11 +28,12 @@ public:
         return context()->config().at("window_height").get<u16>();
     }
 
-    virtual void start() = 0;
-    virtual void render() = 0;
-    virtual void stop() = 0;
+    virtual void start(){};
+    virtual void render() {
+    }
+    virtual void stop(){};
 
-    rhi::Renderer* r;
+    rhi::RHIRenderer* r;
     const Engine* engine_;
     const GameSession* session_;
 };
@@ -69,7 +71,7 @@ public:
         }
 
         // Display FPS information.
-        ImGui::SetNextWindowPos({ 0, 0 });
+        ImGui::SetNextWindowPos({0, 0});
         ImGui::SetNextWindowSize({280, 130});
         ImGui::Begin("FPS");
         ImGui::Text("FPS: %f", current_fps);
@@ -77,7 +79,7 @@ public:
         ImGui::End();
 
         // Display example list.
-        ImGui::SetNextWindowPos({ 0, 130 });
+        ImGui::SetNextWindowPos({0, 130});
         ImGui::SetNextWindowSize({180, 250});
         ImGui::Begin("Examples");
         for (auto& example : examples_) {
@@ -111,11 +113,11 @@ public:
     }
 
     String gameName() override {
-        return "RendererTest";
+        return "Examples Viewer";
     }
 
     String gameVersion() override {
-        return "1.0.0";
+        return DW_VERSION_STR;
     }
 };
 
@@ -136,7 +138,7 @@ Mat4 createProjMatrix(float n, float f, float fov_y, float aspect) {
     return Mat4::OpenGLPerspProjRH(n, f, h, v);
 }
 
-uint createFullscreenQuad(rhi::Renderer* r, rhi::VertexBufferHandle& vb) {
+uint createFullscreenQuad(rhi::RHIRenderer* r, rhi::VertexBufferHandle& vb) {
     // clang-format off
     float vertices[] = {
     	// Position   | UV
@@ -164,14 +166,14 @@ rhi::ShaderHandle loadShader(Context* ctx, rhi::ShaderStage type, const String& 
 }
 }  // namespace util
 
-TEST_CLASS(BasicVertexBuffer) {
-    TEST_BODY(BasicVertexBuffer);
+TEST_CLASS(RHIBasicVertexBuffer) {
+    TEST_BODY(RHIBasicVertexBuffer);
 
     rhi::VertexBufferHandle vb_;
     rhi::ProgramHandle program_;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
@@ -212,15 +214,15 @@ TEST_CLASS(BasicVertexBuffer) {
     }
 };
 
-TEST_CLASS(BasicIndexBuffer) {
-    TEST_BODY(BasicIndexBuffer);
+TEST_CLASS(RHIBasicIndexBuffer) {
+    TEST_BODY(RHIBasicIndexBuffer);
 
     rhi::VertexBufferHandle vb_;
     rhi::IndexBufferHandle ib_;
     rhi::ProgramHandle program_;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
@@ -259,13 +261,13 @@ TEST_CLASS(BasicIndexBuffer) {
     }
 };
 
-TEST_CLASS(TransientIndexBuffer) {
-    TEST_BODY(TransientIndexBuffer);
+TEST_CLASS(RHITransientIndexBuffer) {
+    TEST_BODY(RHITransientIndexBuffer);
 
     rhi::ProgramHandle program_;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
@@ -312,8 +314,8 @@ TEST_CLASS(TransientIndexBuffer) {
     }
 };
 
-TEST_CLASS(Textured3DCube) {
-    TEST_BODY(Textured3DCube);
+TEST_CLASS(RHITextured3DCube) {
+    TEST_BODY(RHITextured3DCube);
 
     SharedPtr<CustomMeshRenderable> box_;
     rhi::ProgramHandle program_;
@@ -322,7 +324,7 @@ TEST_CLASS(Textured3DCube) {
     UniquePtr<Texture> texture_resource_;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/cube_textured.vs");
@@ -370,8 +372,8 @@ TEST_CLASS(Textured3DCube) {
     }
 };
 
-TEST_CLASS(PostProcessing) {
-    TEST_BODY(PostProcessing);
+TEST_CLASS(RHIPostProcessing) {
+    TEST_BODY(RHIPostProcessing);
 
     SharedPtr<CustomMeshRenderable> box_;
     rhi::ProgramHandle box_program_;
@@ -381,7 +383,7 @@ TEST_CLASS(PostProcessing) {
     rhi::FrameBufferHandle fb_handle_;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/cube_solid.vs");
@@ -449,8 +451,8 @@ TEST_CLASS(PostProcessing) {
     }
 };
 
-TEST_CLASS(DeferredShading) {
-    TEST_BODY(DeferredShading);
+TEST_CLASS(RHIDeferredShading) {
+    TEST_BODY(RHIDeferredShading);
 
     SharedPtr<CustomMeshRenderable> ground_;
     rhi::ProgramHandle cube_program_;
@@ -523,7 +525,7 @@ TEST_CLASS(DeferredShading) {
         }
 
     private:
-        rhi::Renderer* r;
+        rhi::RHIRenderer* r;
         SharedPtr<CustomMeshRenderable> sphere_;
         rhi::ProgramHandle program_;
 
@@ -536,7 +538,7 @@ TEST_CLASS(DeferredShading) {
     Vector<UniquePtr<PointLight>> point_lights;
 
     void start() override {
-        module<FileSystem>()->setWorkingDir("../media/renderer-test");
+        module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
         auto vs =
@@ -648,8 +650,8 @@ TEST_CLASS(DeferredShading) {
     }
 };
 
-TEST_CLASS(MovingSphereHighLevel) {
-    TEST_BODY(MovingSphereHighLevel);
+TEST_CLASS(MovingSphere) {
+    TEST_BODY(MovingSphere);
 
     Entity* object;
     Entity* camera;
@@ -663,16 +665,16 @@ TEST_CLASS(MovingSphereHighLevel) {
         // Set up resource cache.
         assert(rc);
         rc->addPath("base", "../media/base");
-        rc->addPath("renderer-test", "../media/renderer-test");
+        rc->addPath("examples", "../media/examples");
 
         // Set up the environment.
         auto* frame = scene_graph->addFrame(&scene_graph->root());
 
         // Create an object.
         auto material = makeShared<Material>(
-            context(), makeShared<Program>(
-                           context(), rc->get<VertexShader>("renderer-test:shaders/cube_solid.vs"),
-                           rc->get<FragmentShader>("renderer-test:shaders/cube_solid.fs")));
+            context(),
+            makeShared<Program>(context(), *rc->get<VertexShader>("examples:shaders/cube_solid.vs"),
+                                *rc->get<FragmentShader>("examples:shaders/cube_solid.fs")));
         auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
         renderable->setMaterial(material);
         material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
@@ -711,6 +713,275 @@ TEST_CLASS(MovingSphereHighLevel) {
     }
 };
 
-using ExampleApp = ExampleAppContainer<BasicVertexBuffer, BasicIndexBuffer, TransientIndexBuffer, Textured3DCube,
-                PostProcessing, DeferredShading, MovingSphereHighLevel>;
+TEST_CLASS(PostProcessInvert) {
+    TEST_BODY(PostProcessInvert);
+
+    Entity* object;
+    Entity* camera;
+
+    void start() override {
+        using rds = RenderPipelineDesc;
+        auto render_scene = RenderPipelineDesc::Node{
+            {},
+            {{"out", rhi::TextureFormat::RGBA8}},
+            {RenderPipelineDesc::ClearStep{}, RenderPipelineDesc::RenderQueueStep{}}};
+        auto render_invert =
+            rds::Node{{{"in", rhi::TextureFormat::RGBA8}},
+                      {{"out", rhi::TextureFormat::RGBA8}},
+                      {rds::RenderQuadStep{"examples:custom/postprocess_inverse"}}};
+        HashMap<String, rds::Node> nodes = {{"RenderScene", render_scene},
+                                            {"RenderInvert", render_invert}};
+        rds desc = {
+            nodes,
+            {{"scene", rds::Texture{rhi::TextureFormat::RGBA8}}},
+            {rds::NodeInstance{"RenderScene", {}, {{"out", "scene"}}},
+             rds::NodeInstance{"RenderInvert", {{"in", "scene"}}, {{"out", rds::PipelineOutput}}}}};
+
+        auto rc = module<ResourceCache>();
+        auto scene = session_->sceneManager();
+        auto scene_graph = session_->sceneGraph();
+
+        // Set up resource cache.
+        assert(rc);
+        rc->addPath("base", "../media/base");
+        rc->addPath("examples", "../media/examples");
+
+        // Create material for inverting the output.
+        auto object_gbuffer = rc->addCustomResource(
+            "examples:custom/postprocess_inverse",
+            makeShared<Material>(
+                context(),
+                makeShared<Program>(context(),
+                                    *rc->get<VertexShader>("examples:shaders/post_process.vs"),
+                                    *rc->get<FragmentShader>("examples:shaders/post_process.fs"))));
+        object_gbuffer->setUniform("wall_sampler", 0);
+        object_gbuffer->setUniform("texcoord_scale", Vec2{10.0f, 10.0f});
+
+        // Set up render pipeline.
+        session_->sceneGraph()->setRenderPipeline(
+            RenderPipeline::createFromDesc(context(), desc).value());
+
+        // Set up the environment.
+        auto* frame = scene_graph->addFrame(&scene_graph->root());
+
+        // Create an object.
+        auto material = makeShared<Material>(
+            context(),
+            makeShared<Program>(context(), *rc->get<VertexShader>("examples:shaders/cube_solid.vs"),
+                                *rc->get<FragmentShader>("examples:shaders/cube_solid.fs")));
+        auto renderable = MeshBuilder(context()).normals(true).createSphere(10.0f);
+        renderable->setMaterial(material);
+        material->program()->setUniform("light_direction", Vec3{1.0f, 1.0f, 1.0f}.Normalized());
+
+        object = &scene->createEntity(0, Vec3::zero, Quat::identity, *frame, renderable);
+
+        // Create a camera.
+        camera = &scene->createEntity(1, {0.0f, 0.0f, 60.0f}, Quat::identity, *frame);
+        camera->addComponent<CCamera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+    }
+
+    void stop() override {
+        session_->sceneManager()->removeEntity(object);
+        session_->sceneManager()->removeEntity(camera);
+    }
+};
+
+TEST_CLASS(DeferredLighting) {
+    TEST_BODY(DeferredLighting);
+
+    SharedPtr<RenderPipeline> deferred_lighting_pipeline;
+    SharedPtr<RenderPipeline> deferred_debug_pipeline;
+
+    Entity* ground;
+    Vector<Entity*> lights;
+    Entity* camera;
+
+    const u32 kDiffuseMask = 0x1;
+    const u32 kLightMask = 0x2;
+
+    void start() override {
+        using rds = RenderPipelineDesc;
+        auto generate_gbuffer = rds::Node{{},
+                                          {{"gb0", rhi::TextureFormat::RGBA32F},
+                                           {"gb1", rhi::TextureFormat::RGBA32F},
+                                           {"gb2", rhi::TextureFormat::RGBA32F}},
+                                          {rds::ClearStep{}, rds::RenderQueueStep{kDiffuseMask}}};
+        auto lighting =
+            rds::Node{{{"gb0", rhi::TextureFormat::RGBA32F},
+                       {"gb1", rhi::TextureFormat::RGBA32F},
+                       {"gb2", rhi::TextureFormat::RGBA32F}},
+                      {{"out", rhi::TextureFormat::RGBA8}},
+                      {rds::RenderQuadStep{"examples:custom/deferred_ambient_light_pass"},
+                       rds::RenderQueueStep{kLightMask}}};
+        HashMap<String, rds::Node> nodes = {{"GenerateGBuffer", generate_gbuffer},
+                                            {"Lighting", lighting}};
+        auto debug_gbuffer =
+            rds::Node{{{"gb0", rhi::TextureFormat::RGBA32F},
+                       {"gb1", rhi::TextureFormat::RGBA32F},
+                       {"gb2", rhi::TextureFormat::RGBA32F}},
+                      {{"out", rhi::TextureFormat::RGBA8}},
+                      {rds::RenderQuadStep{"examples:custom/deferred_debug_gbuffer"}}};
+
+        rds deferred_lighting_desc = {
+            {{"GenerateGBuffer", generate_gbuffer}, {"Lighting", lighting}},
+            {{"gb0", rds::Texture{rhi::TextureFormat::RGBA32F}},
+             {"gb1", rds::Texture{rhi::TextureFormat::RGBA32F}},
+             {"gb2", rds::Texture{rhi::TextureFormat::RGBA32F}}},
+            {rds::NodeInstance{
+                 "GenerateGBuffer", {}, {{"gb0", "gb0"}, {"gb1", "gb1"}, {"gb2", "gb2"}}},
+             rds::NodeInstance{"Lighting",
+                               {{"gb0", "gb0"}, {"gb1", "gb1"}, {"gb2", "gb2"}},
+                               {{"out", rds::PipelineOutput}}}}};
+
+        rds deferred_debug_desc = {
+            {{"GenerateGBuffer", generate_gbuffer}, {"DebugGBuffer", debug_gbuffer}},
+            {{"gb0", rds::Texture{rhi::TextureFormat::RGBA32F}},
+             {"gb1", rds::Texture{rhi::TextureFormat::RGBA32F}},
+             {"gb2", rds::Texture{rhi::TextureFormat::RGBA32F}}},
+            {rds::NodeInstance{
+                 "GenerateGBuffer", {}, {{"gb0", "gb0"}, {"gb1", "gb1"}, {"gb2", "gb2"}}},
+             rds::NodeInstance{"DebugGBuffer",
+                               {{"gb0", "gb0"}, {"gb1", "gb1"}, {"gb2", "gb2"}},
+                               {{"out", rds::PipelineOutput}}}}};
+
+        auto rc = module<ResourceCache>();
+        auto scene = session_->sceneManager();
+        auto scene_graph = session_->sceneGraph();
+
+        // Set up resource cache.
+        assert(rc);
+        rc->addPath("base", "../media/base");
+        rc->addPath("examples", "../media/examples");
+
+        // Create material for outputting object information to the gbuffer.
+        auto object_gbuffer = rc->addCustomResource(
+            "examples:custom/object_gbuffer",
+            makeShared<Material>(
+                context(),
+                makeShared<Program>(
+                    context(), *rc->get<VertexShader>("examples:shaders/object_gbuffer.vs"),
+                    *rc->get<FragmentShader>("examples:shaders/object_gbuffer.fs"))));
+        object_gbuffer->setUniform("wall_sampler", 0);
+        object_gbuffer->setUniform("texcoord_scale", Vec2{10.0f, 10.0f});
+
+        // Create material for processing the ambient light in the deferred shading.
+        auto ambient_light_pass_material = rc->addCustomResource(
+            "examples:custom/deferred_ambient_light_pass",
+            makeShared<Material>(
+                context(),
+                makeShared<Program>(
+                    context(), *rc->get<VertexShader>("examples:shaders/post_process.vs"),
+                    *rc->get<FragmentShader>("examples:shaders/deferred_ambient_light_pass.fs"))));
+        ambient_light_pass_material->setUniform("ambient_light", Vec3{0.05f, 0.05f, 0.05f});
+
+        // Create material for displaying the gbuffer in debug mode.
+        auto debug_gbuffer_material = rc->addCustomResource(
+            "examples:custom/deferred_debug_gbuffer",
+            makeShared<Material>(
+                context(),
+                makeShared<Program>(
+                    context(), *rc->get<VertexShader>("examples:shaders/post_process.vs"),
+                    *rc->get<FragmentShader>("examples:shaders/deferred_debug_gbuffer.fs"))));
+
+        // Create render pipelines.
+        deferred_lighting_pipeline =
+            *RenderPipeline::createFromDesc(context(), deferred_lighting_desc);
+        deferred_debug_pipeline = *RenderPipeline::createFromDesc(context(), deferred_debug_desc);
+        session_->sceneGraph()->setRenderPipeline(deferred_lighting_pipeline);
+
+        //////////////////
+
+        // Set up the environment.
+        auto* frame = scene_graph->addFrame(&scene_graph->root());
+
+        // Create ground.
+        auto ground_material = makeShared<Material>(
+            context(), makeShared<Program>(
+                           context(), *rc->get<VertexShader>("examples:shaders/object_gbuffer.vs"),
+                           *rc->get<FragmentShader>("examples:shaders/object_gbuffer.fs")));
+        ground_material->setTexture(*rc->get<Texture>("examples:wall.jpg"), 0);
+        ground_material->setUniform("wall_sampler", 0);
+        ground_material->setUniform("texcoord_scale", Vec2{10.0f, 10.0f});
+        auto ground_renderable =
+            MeshBuilder{context_}.normals(true).texcoords(true).createPlane(250.0f, 250.0f);
+        ground_renderable->setMaterial(ground_material);
+        ground = &scene->createEntity(0, Vec3{0.0f, 0.0f, 0.0f}, Quat::RotateX(math::pi * -0.5f),
+                                      *frame, ground_renderable);
+
+        // Create lights.
+        const float light_radius = 60.0f;
+        const float light_mesh_radius = light_radius * 3.0f;
+        auto light_material = makeShared<Material>(
+            context(),
+            makeShared<Program>(context(), *rc->get<VertexShader>("examples:shaders/light_pass.vs"),
+                                *rc->get<FragmentShader>("examples:shaders/point_light_pass.fs")));
+        light_material->setUniform("screen_size",
+                                   Vec2(r->backbufferSize().x, r->backbufferSize().y));
+        light_material->setUniform("radius", light_radius);
+        light_material->setUniform<int>("gb0_sampler", 0);
+        light_material->setUniform<int>("gb1_sampler", 1);
+        light_material->setUniform<int>("gb2_sampler", 2);
+        light_material->setTexture(deferred_lighting_pipeline->texture("gb0"), 0);
+        light_material->setTexture(deferred_lighting_pipeline->texture("gb1"), 1);
+        light_material->setTexture(deferred_lighting_pipeline->texture("gb2"), 2);
+        light_material->setDepthWrite(false);
+        light_material->setStateDisable(rhi::RenderState::Depth);
+        light_material->setStateEnable(rhi::RenderState::Blending);
+        light_material->setBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::One,
+                                         rhi::BlendFunc::One);
+        light_material->setMask(kLightMask);
+
+        for (int x = -2; x <= 2; ++x) {
+            for (int z = -2; z <= 2; ++z) {
+                auto light_renderable =
+                    MeshBuilder{context_}.normals(false).texcoords(false).createSphere(
+                        light_mesh_radius, 8, 8);
+                light_renderable->setMaterial(makeShared<Material>(*light_material));
+                lights.emplace_back(&scene->createEntity(0,
+                                                         Vec3(x * 40.0f, 1.0f, z * 40.0f - 40.0f),
+                                                         Quat::identity, *frame, light_renderable));
+            }
+        }
+
+        // Create a camera.
+        camera = &scene->createEntity(1, {0.0f, 10.0f, 60.0f}, Quat::identity, *frame);
+        camera->addComponent<CCamera>(0.1f, 1000.0f, 60.0f, 1280.0f / 800.0f);
+
+        // Set up render camera callback.
+        scene_graph->preRenderCameraCallback = [this, light_mesh_radius](
+                                                   const detail::Transform& camera_transform,
+                                                   const Mat4&, const Mat4&) {
+            // Update point lights.
+            static float angle = 0.0f;
+            angle += engine_->frameTime();
+            int light_counter = 0;
+            for (int x = -2; x <= 2; x++) {
+                for (int z = -2; z <= 2; z++) {
+                    auto light_position = Vec3(x * 30.0f + sin(angle) * 10.0f, 4.0f,
+                                               z * 30.0f - 30.0f + cos(angle) * 10.0f);
+                    auto* material =
+                        lights[light_counter]->component<CTransform>()->renderable()->material();
+                    lights[light_counter]->transform()->position = light_position;
+                    light_counter++;
+
+                    // Update material.
+                    material->setUniform("light_position", light_position);
+                    bool should_invert_sphere =
+                        camera_transform.position.DistanceSq(light_position) <
+                        light_mesh_radius * light_mesh_radius;
+                    material->setCullFrontFace(should_invert_sphere ? rhi::CullFrontFace::CW
+                                                                    : rhi::CullFrontFace::CCW);
+                }
+            }
+        };
+    }
+
+    void stop() override {
+    }
+};
+
+using ExampleApp =
+    ExampleAppContainer<RHIBasicVertexBuffer, RHIBasicIndexBuffer, RHITransientIndexBuffer,
+                        RHITextured3DCube, RHIPostProcessing, RHIDeferredShading, MovingSphere,
+                        PostProcessInvert, DeferredLighting>;
 DW_IMPLEMENT_MAIN(ExampleApp)

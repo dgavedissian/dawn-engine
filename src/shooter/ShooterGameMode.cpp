@@ -67,9 +67,9 @@ void ShooterGameMode::onStart() {
     // Random thing.
     auto rc = module<ResourceCache>();
     auto material = makeShared<Material>(
-        context(), makeShared<Program>(context(), rc->get<VertexShader>("base:space/planet.vs"),
-                                       rc->get<FragmentShader>("base:space/planet.fs")));
-    material->setTexture(rc->get<Texture>("base:space/planet.jpg"));
+        context(), makeShared<Program>(context(), *rc->get<VertexShader>("base:space/planet.vs"),
+                                       *rc->get<FragmentShader>("base:space/planet.fs")));
+    material->setTexture(*rc->get<Texture>("base:space/planet.jpg"));
     material->setUniform("light_direction", Vec3{0.0f, 0.0f, 1.0f});
     material->setUniform("surface_sampler", 0);
     auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(4000.0f);
@@ -87,8 +87,9 @@ void ShooterGameMode::onStart() {
 
     // If we're running a local-only game, spawn a player.
     if (!session_->net()) {
-        auto new_ship = makeShared<Ship>(context(), session_->net(), session_->sceneManager(), frame_,
-            session_->sceneManager()->reserveEntityId(), NetRole::None);
+        auto new_ship =
+            makeShared<Ship>(context(), session_->net(), session_->sceneManager(), frame_,
+                             session_->sceneManager()->reserveEntityId(), NetRole::None);
         camera_controller_->follow(new_ship->entity());
         entity_pipeline_->ship_list_.emplace_back(new_ship);
     }

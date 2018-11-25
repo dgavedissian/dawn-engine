@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/rhi/Renderer.h"
+#include "renderer/rhi/RHIRenderer.h"
 
 namespace dw {
 class DW_API VertexBuffer : public Object {
@@ -17,6 +17,8 @@ public:
 
     // Will resize.
     void update(Memory data, uint vertex_count, uint offset);
+
+    void bind(rhi::RHIRenderer* r);
 
     rhi::VertexBufferHandle internalHandle() const;
     u32 vertexCount() const;

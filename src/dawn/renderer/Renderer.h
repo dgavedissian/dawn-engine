@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "renderer/rhi/Renderer.h"
+#include "renderer/rhi/RHIRenderer.h"
 
 namespace dw {
 class DW_API Renderer : public Module {
@@ -18,9 +18,9 @@ public:
     bool frame() const;
 
     /// Get the renderer hardware interface.
-    rhi::Renderer* rhi() const;
+    rhi::RHIRenderer* rhi() const;
 
 private:
-    UniquePtr<rhi::Renderer> rhi_;
+    UniquePtr<rhi::RHIRenderer> rhi_;
 };
 }  // namespace dw

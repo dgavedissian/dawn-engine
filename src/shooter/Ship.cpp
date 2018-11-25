@@ -22,8 +22,8 @@ Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* f
     auto rc = module<ResourceCache>();
     assert(rc);
 
-    auto part_core = rc->get<Mesh>("shooter:models/part_corelarge.3ds");
-    auto part_wing = rc->get<Mesh>("shooter:models/part_wing.3ds");
+    auto part_core = rc->get<Mesh>("shooter:models/part_corelarge.3ds").value();
+    auto part_wing = rc->get<Mesh>("shooter:models/part_wing.3ds").value();
 
     // Hack to fix the weird orientation issue in the meshes.
     part_core->rootNode()->setTransform(Mat4::identity);

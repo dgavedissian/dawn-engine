@@ -123,12 +123,12 @@ void CShipEngines::onAddToEntity(Entity* parent) {
 
     glow_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
     glow_billboards_->material()->setTexture(
-        module<ResourceCache>()->get<Texture>("shooter:engine/glow.png"), 0);
+        module<ResourceCache>()->get<Texture>("shooter:engine/glow.png").value(), 0);
     transform->node->newChild()->data.renderable = glow_billboards_;
 
     trail_billboards_ = makeShared<BillboardSet>(context(), total_engines, Vec2{10.0f, 10.0f});
     trail_billboards_->material()->setTexture(
-        module<ResourceCache>()->get<Texture>("shooter:engine/trail.png"), 0);
+        module<ResourceCache>()->get<Texture>("shooter:engine/trail.png").value(), 0);
     trail_billboards_->setBillboardType(BillboardType::Directional);
     transform->node->newChild()->data.renderable = trail_billboards_;
 }
