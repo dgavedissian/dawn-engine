@@ -451,15 +451,11 @@ void Renderer::createSDLWindow(const String& windowTitle, const Vec2i& displayMo
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     // Create the window
-    int windowFlags = SDL_WINDOW_OPENGL;
+    int windowFlags = 0;
     if (fullscreen)
         windowFlags |= SDL_WINDOW_FULLSCREEN;
     mWindow = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                displayMode.x, displayMode.y, windowFlags);
-    SDL_GLContext sdl_gl_context = SDL_GL_CreateContext(mWindow);
-    if(!sdl_gl_context)
-        throw std::runtime_error("Couldn't create SDL OpenGL context: ");
-    Ogre::String gl_context_handle = Ogre::StringConverter::toString((unsigned long)sdl_gl_context);
 
     // Check that the window was successfully created
     if (mWindow == nullptr)
@@ -498,11 +494,10 @@ void Renderer::createSDLWindow(const String& windowTitle, const Vec2i& displayMo
         break;
     }
 
-    options["externalGLContext"] = gl_context_handle;
-#if DW_PLATFORM == DW_LINUX
-    options["parentWindowHandle"] = winHandle;
-#else
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
     options["externalWindowHandle"] = winHandle;
+#else
+    options["parentWindowHandle"] = winHandle;
 #endif
 }
 

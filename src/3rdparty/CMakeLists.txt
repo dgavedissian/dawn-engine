@@ -210,10 +210,13 @@ ExternalProject_Add(MathGeoLib
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
     URL https://github.com/davedissian/dawnengine-MathGeoLib/archive/master.zip
-    URL_MD5 d1fd2ed6aa2284049234f377c6a6f1e9
+    URL_MD5 4faf63986e910f1e0f76c286d585c881
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DBUILD_SHARED_LIBS=0)
+        -DBUILD_SHARED_LIBS=0
+        -DCMAKE_DEBUG_POSTFIX=_d
+        -DMATH_TESTS_EXECUTABLE=0
+        -DVS_BUG=1)
 set_target_properties(MathGeoLib PROPERTIES FOLDER "3rdparty")
 set(INCLUDE_DIRS ${INCLUDE_DIRS}
     ${EXTERNAL_INSTALL}/include/MathGeoLib)
@@ -254,7 +257,7 @@ ExternalProject_Add(LibRocket
     DEPENDS OgreDeps
     PREFIX ${EXTERNAL_PREFIX}
     INSTALL_DIR ${EXTERNAL_INSTALL}
-    URL https://github.com/libRocket/libRocket/archive/master.zip
+    URL https://github.com/davedissian/dawnengine-libRocket/archive/develop.zip
     SOURCE_SUBDIR ../LibRocket/Build
     UPDATE_COMMAND ""
     CMAKE_ARGS ${EXTERNAL_ARGS}

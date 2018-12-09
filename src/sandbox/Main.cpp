@@ -13,7 +13,8 @@ int main(int argc, char** argv)
 
 	// Add resource locations
 	// TODO: move this out of the renderer class
-	engine->getRenderer()->addResourceLocation(engine->getBasePath() + "media/sandbox", "sandbox");
+    engine->getRenderer()->addResourceLocation(engine->getBasePath() + "media/ui", "ui");
+    engine->getRenderer()->addResourceLocation(engine->getBasePath() + "media/textures", "textures");
 
 	// Register the sandbox state and switch to it
 	engine->getStateMgr()->registerState(dw::makeShared<SandboxState>(engine));
