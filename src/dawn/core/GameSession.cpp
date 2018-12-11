@@ -75,9 +75,9 @@ void GameSession::preRender() {
     ui_->preRender();
 }
 
-void GameSession::render(float interpolation) {
+void GameSession::render(float dt, float interpolation) {
     if (!gsi_.headless) {
-        scene_graph_->renderScene(interpolation);
+        scene_graph_->renderScene(dt, interpolation);
     }
 }
 

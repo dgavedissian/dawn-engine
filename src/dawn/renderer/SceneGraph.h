@@ -30,19 +30,19 @@ public:
     // Rendering.
     void setRenderPipeline(SharedPtr<RenderPipeline> render_pipeline);
     void updateSceneGraph();
-    void renderScene(float interpolation);
-    void renderSceneFromCamera(float interpolation, u32 camera_id, uint view, u32 mask);
+    void renderScene(float dt, float interpolation);
+    void renderSceneFromCamera(float dt, float interpolation, u32 camera_id, uint view, u32 mask);
 
     // Frames.
     Frame* addFrame(SystemNode* frame_node);
     void removeFrame(Frame* frame);
     Frame* frame(int i);
-    int frameCount() const;
+    uint frameCount() const;
 
-    // Callbacks.
-    Function<void()> preRenderSceneCallback;
-    Function<void()> postRenderSceneCallback;
-    Function<void(const detail::Transform& camera_transform, const Mat4& view_matrix,
+    // Callbacks. All take delta time (dt) as first parameter.
+    Function<void(float)> preRenderSceneCallback;
+    Function<void(float)> postRenderSceneCallback;
+    Function<void(float, const detail::Transform& camera_transform, const Mat4& view_matrix,
                   const Mat4& proj_matrix)>
         preRenderCameraCallback;
 

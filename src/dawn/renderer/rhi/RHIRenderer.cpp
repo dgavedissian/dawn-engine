@@ -627,8 +627,8 @@ uint RHIRenderer::backbufferView() const {
             return view_index;
         }
     }
-    log().error("backbufferView() returned -1.");
-    return -1;
+    log().error("No views are bound to the backbuffer.");
+    return static_cast<uint>(-1);
 }
 }  // namespace rhi
 }  // namespace dw

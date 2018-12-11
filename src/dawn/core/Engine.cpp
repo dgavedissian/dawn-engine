@@ -18,24 +18,37 @@
 #endif
 
 namespace dw {
-SessionId::SessionId(int session_index) : session_index_(session_index) {
+SessionId::SessionId(u32 session_index) : session_index_(session_index) {
 }
 
 u32 SessionId::index() const {
     return session_index_;
 }
 
-Engine::Engine(const String& game, const String& version)
+int Engine::runApp(UniquePtr<App> app, int argc, char** argv) {
+    // TODO(David) Load config.
+
+    CommandLine cmdline(argc, argv);
+    Engine engine{std::move(app)};
+    engine.setup(cmdline);
+    auto exit_code = engine.run();
+
+    // If we're running in the browser, engine.run() will return immediately. We should not shut
+    // down in this case.
+#ifndef DW_EMSCRIPTEN
+    engine.shutdown();
+#endif
+
+    return exit_code;
+}
+
+Engine::Engine(UniquePtr<App> app)
     : Object{nullptr},
       initialised_{false},
       running_{true},
       save_config_on_exit_{true},
       headless_{false},
-      game_name_{game},
-      game_version_{version},
-      frame_time_{0.0f},
-      frames_per_second_{0},
-      frame_counter_(0),
+      app_(std::move(app)),
       log_file_{"engine.log"},
       config_file_{"engine.cfg"} {
 }
@@ -51,6 +64,8 @@ void Engine::setup(const CommandLine& cmdline) {
 
     // Create context.
     context_ = new Context(basePath(), "");
+    app_->context_ = context_;
+    app_->engine_ = this;
 
     // Initialise file system.
     context_->addModule<FileSystem>();
@@ -88,9 +103,9 @@ void Engine::setup(const CommandLine& cmdline) {
     }
 
     // Build window title.
-    String window_title{game_name_};
+    String window_title{app_->gameName()};
     window_title += " ";
-    window_title += game_version_;
+    window_title += app_->gameVersion();
 #ifdef DW_DEBUG
     window_title += " (debug)";
 #endif
@@ -167,10 +182,13 @@ void Engine::setup(const CommandLine& cmdline) {
 
     // The engine is now initialised
     initialised_ = true;
-    log().info("Engine initialised. Starting %s %s", game_name_, game_version_);
+    log().info("Engine initialised. Starting %s %s", app_->gameName(), app_->gameVersion());
 
     // Register delegate.
     event_system_->addListener(this, &Engine::onExit);
+
+    // Initialise app.
+    app_->init(cmdline);
 }
 
 void Engine::shutdown() {
@@ -182,6 +200,9 @@ void Engine::shutdown() {
     if (save_config_on_exit_) {
         context_->saveConfig(config_file_);
     }
+
+    // Shutdown app.
+    app_->shutdown();
 
     ui_.reset();
     event_system_.reset();
@@ -195,11 +216,11 @@ void Engine::shutdown() {
     initialised_ = false;
 }
 
-void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_callback) {
+int Engine::run() {
     float time_per_update = 1.0f / 60.0f;
     time::TimePoint previous_time = time::beginTiming();
-    time::TimePoint last_fps_update = time::beginTiming();
     double accumulated_time = 0.0;
+    double frame_time_ = 0.0;
     auto main_loop = [&] {
         time::TimePoint current_time = time::beginTiming();
         frame_time_ = time::elapsed(previous_time, current_time);
@@ -208,42 +229,24 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
 
         // Update game logic.
         while (accumulated_time >= time_per_update) {
-            // Pre update.
             forEachSession([time_per_update](GameSession* session) {
                 session->preUpdate();
                 session->update(time_per_update);
                 session->postUpdate();
             });
-
-            ui_->preUpdate();
-            tick_callback(time_per_update);
-            ui_->postUpdate();
-
             accumulated_time -= time_per_update;
         }
 
         // Render a frame.
         double interpolation = accumulated_time / time_per_update;
-        forEachSession([interpolation](GameSession* session) {
+        forEachSession([&](GameSession* session) {
             session->preRender();
-            session->render(interpolation);
+            session->render(static_cast<float>(frame_time_), interpolation);
             session->postRender();
         });
-        ui_->preRender();
-        render_callback(interpolation);
-        ui_->postRender();
         ui_->render();
         if (!context_->module<Renderer>()->frame()) {
             running_ = false;
-        }
-
-        // Update frame counter.
-        frame_counter_++;
-        current_time = time::beginTiming();
-        if (time::elapsed(last_fps_update, current_time) > 1.0) {
-            last_fps_update = current_time;
-            frames_per_second_ = frame_counter_;
-            frame_counter_ = 0;
         }
     };
 
@@ -257,12 +260,14 @@ void Engine::run(EngineTickCallback tick_callback, EngineRenderCallback render_c
         main_loop();
     }
 #endif
+
+    return EXIT_SUCCESS;
 }
 
 SessionId Engine::addSession(UniquePtr<GameSession> session) {
     // TODO: Initialise session.
     game_sessions_.emplace_back(std::move(session));
-    return SessionId(static_cast<u32>(game_sessions_.size() - 1));
+    return {static_cast<u32>(game_sessions_.size()) - 1};
 }
 
 void Engine::replaceSession(SessionId session_id, UniquePtr<GameSession> session) {
@@ -273,14 +278,6 @@ void Engine::replaceSession(SessionId session_id, UniquePtr<GameSession> session
 
 void Engine::removeSession(SessionId session_id) {
     game_sessions_[session_id.index()].reset();
-}
-
-double Engine::frameTime() const {
-    return frame_time_;
-}
-
-int Engine::framesPerSecond() const {
-    return frames_per_second_;
 }
 
 const Set<String>& Engine::flags() const {

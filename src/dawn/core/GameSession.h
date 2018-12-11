@@ -51,7 +51,7 @@ public:
     virtual void update(float dt);
     virtual void postUpdate();
     virtual void preRender();
-    virtual void render(float interpolation);
+    virtual void render(float dt, float interpolation);
     virtual void postRender();
 
     /// Access the current game mode.

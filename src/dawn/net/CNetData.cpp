@@ -43,6 +43,7 @@ void RepLayout::onAddToEntity(Entity& entity) {
         rpc.second->onAddToEntity(entity, rpc.first);
     }
 }
+
 CNetData::CNetData(NetInstance* net, RepLayout rep_layout)
     : entity_(nullptr),
       net_(net),

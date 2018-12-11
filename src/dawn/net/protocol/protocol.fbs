@@ -16,7 +16,7 @@ table ServerSpawnRequest {
 // TODO: Merge this with SpawnRequest. Add RpcResponse message instead of SpawnResponse.
 table ServerRpc {
   entity_id: uint64;
-  rpc_id: uint64;
+  rpc_id: uint16;
   payload: [uint8];
 }
 

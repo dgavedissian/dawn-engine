@@ -16,8 +16,9 @@
 namespace dw {
 class GameSession;
 enum class NetMode { Server, Client };
-
 enum class Transport { Yojimbo, InMemory };
+
+using RequestId = u64;
 
 class DW_API NetInstance : public Object, public yojimbo::Adapter {
 public:
@@ -80,9 +81,9 @@ private:
     HashSet<EntityId> replicated_entities_;
 
     // Client only.
-    u32 spawn_request_id_;
-    HashMap<u32, std::function<void(Entity&)>> outgoing_spawn_requests_;
-    HashMap<EntityId, u32> pending_entity_spawns_;
+    RequestId spawn_request_id_;
+    HashMap<RequestId, std::function<void(Entity&)>> outgoing_spawn_requests_;
+    HashMap<EntityId, RequestId> pending_entity_spawns_;
 
     // Server only.
 

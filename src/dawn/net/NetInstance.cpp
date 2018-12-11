@@ -149,7 +149,7 @@ void NetInstance::serverUpdate(float dt) {
         Entity& entity = *session_->sceneManager()->findEntity(id);
         OutputBitStream properties;
         entity.component<CNetData>()->serialise(properties);
-        for (int i = 0; i < server_->numConnections(); ++i) {
+        for (ClientId i = 0; i < server_->numConnections(); ++i) {
             sendServerPropertyReplication(i, entity, properties);
         }
     }
@@ -310,7 +310,7 @@ void NetInstance::replicateEntity(const Entity& entity, int authoritative_proxy_
         entity.component<CNetData>()->serialise(properties);
 
         // Send create entity message to clients.
-        for (int i = 0; i < server_->numConnections(); ++i) {
+        for (ClientId i = 0; i < server_->numConnections(); ++i) {
             sendServerCreateEntity(
                 i, entity, properties,
                 i == authoritative_proxy_client ? NetRole::AuthoritativeProxy : NetRole::Proxy);
