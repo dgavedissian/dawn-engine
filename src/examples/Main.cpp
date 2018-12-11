@@ -68,6 +68,8 @@ public:
         }
 
         void render(float dt, float interpolation) override {
+            GameSession::render(dt, interpolation);
+
             // Store FPS history.
             float current_fps = module<Renderer>()->framesPerSecond();
             static const int FPS_HISTORY_COUNT = 100;

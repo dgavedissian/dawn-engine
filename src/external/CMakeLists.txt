@@ -1,6 +1,9 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
 
+include(FetchContent)
+include(ExternalProject)
+
 # Use GLVND if possible.
 if(POLICY CMP0072)
     cmake_policy(SET CMP0072 NEW)
@@ -13,12 +16,26 @@ set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 # Force everything to be statically linked
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
+# Patch tool
+if(WIN32)
+    FetchContent_Declare(
+        PatchTool
+        URL https://vorboss.dl.sourceforge.net/project/gnuwin32/patch/2.5.9-7/patch-2.5.9-7-bin.zip
+        URL_MD5 b9c8b31d62f4b2e4f1887bbb63e8a905
+    )
+    FetchContent_GetProperties(PatchTool)
+    if(NOT patchtool_POPULATED)
+        FetchContent_Populate(PatchTool)
+    endif()
+    set(PATCH_TOOL ${patchtool_SOURCE_DIR}/bin/patch.exe)
+else()
+    set(PATCH_TOOL patch)
+endif()
+
 
 ##############################################################
 # External Projects
 ##############################################################
-
-include(ExternalProject)
 
 # External directories
 set(EXTERNAL_PREFIX ${CMAKE_BINARY_DIR}/dependencies)
