@@ -41,9 +41,7 @@ void NetGameMode::onStart() {
 }
 
 void NetGameMode::onEnd() {
-    session_->eventSystem()->removeListener(this, &NetGameMode::eventOnJoinServer);
-    session_->eventSystem()->removeListener(this, &NetGameMode::eventOnServerClientConnected);
-    session_->eventSystem()->removeListener(this, &NetGameMode::eventOnServerClientDisconnected);
+    session_->eventSystem()->removeAllListeners(this);
 
     if (server_started_) {
         serverOnEnd();

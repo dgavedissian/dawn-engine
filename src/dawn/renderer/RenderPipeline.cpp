@@ -22,7 +22,6 @@ RenderPipeline::RenderPipeline(Context* ctx) : Resource{ctx} {
 
 Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
     Context* ctx, const RenderPipelineDesc& desc) {
-
     // Verify that the pipeline nodes fit together.
     for (auto& node_instance : desc.pipeline) {
         auto node_it = desc.nodes.find(node_instance.node);
@@ -262,8 +261,9 @@ SharedPtr<Texture> RenderPipeline::texture(const String& name) {
 RenderPipeline::PClearStep::PClearStep(Colour colour) : colour_(colour) {
 }
 
-void RenderPipeline::PClearStep::execute(Logger& log, rhi::RHIRenderer* r, float dt, float interpolation,
-                                         SceneGraph* scene_graph, u32 camera_id, uint view) {
+void RenderPipeline::PClearStep::execute(Logger& log, rhi::RHIRenderer* r, float dt,
+                                         float interpolation, SceneGraph* scene_graph,
+                                         u32 camera_id, uint view) {
 #ifdef ENABLE_DEBUG_LOGGING
     log.debug("Setting view clear to %s", colour_.rgba().ToString());
 #endif
@@ -273,8 +273,8 @@ void RenderPipeline::PClearStep::execute(Logger& log, rhi::RHIRenderer* r, float
 RenderPipeline::PRenderQueueStep::PRenderQueueStep(u32 mask) : mask_(mask) {
 }
 
-void RenderPipeline::PRenderQueueStep::execute(Logger& log, rhi::RHIRenderer* r,
-                                               float dt, float interpolation, SceneGraph* scene_graph,
+void RenderPipeline::PRenderQueueStep::execute(Logger& log, rhi::RHIRenderer* r, float dt,
+                                               float interpolation, SceneGraph* scene_graph,
                                                u32 camera_id, uint view) {
 #ifdef ENABLE_DEBUG_LOGGING
     log.debug("Rendering scene from camera %d (mask: 0x%x) to view %d", camera_id, mask_, view);
@@ -290,8 +290,9 @@ RenderPipeline::PRenderQuadStep::PRenderQuadStep(SharedPtr<VertexBuffer> fullscr
       input_samplers_(input_samplers) {
 }
 
-void RenderPipeline::PRenderQuadStep::execute(Logger& log, rhi::RHIRenderer* r, float dt, float interpolation,
-                                              SceneGraph* scene_graph, u32 camera_id, uint view) {
+void RenderPipeline::PRenderQuadStep::execute(Logger& log, rhi::RHIRenderer* r, float dt,
+                                              float interpolation, SceneGraph* scene_graph,
+                                              u32 camera_id, uint view) {
 #ifdef ENABLE_DEBUG_LOGGING
     log.debug("Rendering full screen quad to view %d", view);
 #endif

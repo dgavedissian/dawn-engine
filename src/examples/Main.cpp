@@ -55,7 +55,12 @@ public:
         float accumulated_time_;
 
         ExampleGameSession(Context* ctx)
-            : GameSession(ctx, GameSessionInfo{}), current_example_(nullptr), frame_id_(0), frame_count_(0), last_fps_(0), accumulated_time_(0.0f) {
+            : GameSession(ctx, GameSessionInfo{}),
+              current_example_(nullptr),
+              frame_id_(0),
+              frame_count_(0),
+              last_fps_(0),
+              accumulated_time_(0.0f) {
             examples_ = {makeShared<T>(context_, this)...};
         }
 

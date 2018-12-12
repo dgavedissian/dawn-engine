@@ -14,7 +14,24 @@ EventDelegate makeEventDelegate(T* ptr, void (T::*handler)(const E&)) {
     return EventDelegate(ptr, handler);
 }
 
+template <typename E, typename T> using EventHandler = void (T::*)(const E&);
+
+using EventHandlerId = uint;
+
 class DW_API EventSystem : public Object {
+private:
+    struct EventHandlerBinding {
+        void* listener;
+        EventHandlerId id;
+        EventDelegate event_delegate;
+
+        EventHandlerBinding(void* listener, EventHandlerId id, EventDelegate event_delegate)
+            : listener(listener), id(id), event_delegate(std::move(event_delegate)) {
+        }
+    };
+
+    using EventHandlerBindingList = Vector<EventHandlerBinding>;
+
 public:
     DW_OBJECT(EventSystem);
 
@@ -22,14 +39,15 @@ public:
     virtual ~EventSystem();
 
     /// Registers a delegate function that will get called when the event type is triggered.
-    template <typename E, typename T> bool addListener(T* listener, void (T::*handler)(const E&));
+    template <typename E, typename T>
+    EventHandlerId addListener(T* listener, EventHandler<E, T> handler);
 
     /// Removes a delegate / event type pairing from the internal tables. Returns false if the
     /// pairing was not found.
-    template <typename E, typename T>
-    bool removeListener(T* listener, void (T::*handler)(const E&));
+    bool removeListener(EventHandlerId event_handler_id);
 
-    // TODO: Remove all delegates for a given listener.
+    /// Removes all delegate / event type pairings for a given listener.
+    template <typename T> bool removeAllListeners(T* listener);
 
     /// Fire off event NOW. This bypasses the queue entirely and immediately calls all delegate
     /// functions registered for the event.
@@ -57,32 +75,52 @@ public:
     bool update(double max_duration);
 
 private:
-    bool addDelegate(EventDelegate event_delegate, EventType type);
-    bool removeDelegate(EventDelegate event_delegate, EventType type);
+    void addDelegate(EventType type, EventHandlerBinding binding);
 
-    Map<EventType, List<EventDelegate>> event_listeners_;
-    List<EventDataPtr> queues_[EVENTSYSTEM_NUM_QUEUES];
+    // Event listeners.
+    EventHandlerId next_event_handler_id_;
+    HashMap<EventType, EventHandlerBindingList> event_listeners_;
 
-    // Index of actively processing queue; events enque to the opposing queue
+    // Queues and index of actively processing queue; events enque to the opposing queue.
+    Deque<EventDataPtr> queues_[EVENTSYSTEM_NUM_QUEUES];
     int active_queue_;
 
-    // This flag is used to prevent add/removeListener from changing the eventListener List whilst
-    // events are being processed as this causes a crash
+    // This flag is set when events are being processed. In this case, we queue changes to the event
+    // listeners hash maps.
     bool processing_events_;
-    Map<EventType, List<EventDelegate>> added_event_listeners_;
-    Map<EventType, List<EventDelegate>> remove_event_listeners_;
+    Vector<Pair<EventType, EventHandlerBinding>> pending_added_event_listeners_;
+    Vector<EventHandlerId> pending_remove_event_listeners_;
 };
 
 template <typename E, typename T>
-bool EventSystem::addListener(T* listener, void (T::*handler)(const E&)) {
+EventHandlerId EventSystem::addListener(T* listener, EventHandler<E, T> handler) {
     EventDelegate event_delegate = makeEventDelegate<T, E>(listener, handler);
-    return addDelegate(event_delegate, E::typeStatic());
+    auto handler_id = next_event_handler_id_++;
+    addDelegate(E::typeStatic(),
+                EventHandlerBinding(static_cast<void*>(listener), handler_id, event_delegate));
+    return handler_id;
 }
 
-template <typename E, typename T>
-bool EventSystem::removeListener(T* listener, void (T::*handler)(const E&)) {
-    EventDelegate event_delegate = makeEventDelegate<T, E>(listener, handler);
-    return removeDelegate(event_delegate, E::typeStatic());
+template <typename T> bool EventSystem::removeAllListeners(T* listener) {
+    // Search all event types for this listener, and erase once found.
+    bool result = false;
+    for (auto& event_type_pair : event_listeners_) {
+        auto& binding_list = event_type_pair.second;
+        for (auto it = binding_list.begin(); it != binding_list.end();) {
+            if (it->listener == listener) {
+                if (processing_events_) {
+                    pending_remove_event_listeners_.emplace_back(it->id);
+                    ++it;
+                } else {
+                    it = binding_list.erase(it);
+                }
+                result = true;
+            } else {
+                ++it;
+            }
+        }
+    }
+    return result;
 }
 
 template <typename T, typename... Args> bool EventSystem::triggerEvent(Args&&... args) const {
@@ -90,11 +128,11 @@ template <typename T, typename... Args> bool EventSystem::triggerEvent(Args&&...
 
     auto event_data = makeShared<T>(std::forward<Args>(args)...);
 
-    auto find_it = event_listeners_.find(event_data->type());
-    if (find_it != event_listeners_.end()) {
-        auto& listeners = find_it->second;
-        for (const auto& delegate_function : listeners) {
-            delegate_function(event_data);
+    auto event_type_listeners = event_listeners_.find(event_data->type());
+    if (event_type_listeners != event_listeners_.end()) {
+        auto& listeners = event_type_listeners->second;
+        for (const auto& binding : listeners) {
+            binding.event_delegate(event_data);
             processed = true;
         }
     }
@@ -108,8 +146,8 @@ template <typename T, typename... Args> bool EventSystem::queueEvent(Args&&... a
 
     auto event_data = makeShared<T>(std::forward<Args>(args)...);
 
-    auto find_it = event_listeners_.find(event_data->type());
-    if (find_it != event_listeners_.end()) {
+    auto event_type_listeners = event_listeners_.find(event_data->type());
+    if (event_type_listeners != event_listeners_.end()) {
         queues_[active_queue_].push_back(event_data);
         return true;
     }

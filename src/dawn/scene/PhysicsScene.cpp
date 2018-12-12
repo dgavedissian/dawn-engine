@@ -47,7 +47,7 @@ PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr, EventSyste
 }
 
 PhysicsScene::~PhysicsScene() {
-    event_system_->removeListener(this, &PhysicsScene::onKey);
+    event_system_->removeAllListeners(this);
     world_.reset();
     solver_.reset();
     dispatcher_.reset();

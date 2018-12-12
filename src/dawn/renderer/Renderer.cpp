@@ -9,10 +9,10 @@
 namespace dw {
 Renderer::Renderer(Context* ctx)
     : Module(ctx),
-    frame_time_(0.0f),
-    frames_per_second_(0),
-    frame_counter_(0),
-    last_fps_update_(time::beginTiming()) {
+      frame_time_(0.0f),
+      frames_per_second_(0),
+      frame_counter_(0),
+      last_fps_update_(time::beginTiming()) {
     rhi_ = makeUnique<rhi::RHIRenderer>(ctx);
 }
 

@@ -124,10 +124,7 @@ UserInterface::UserInterface(Context* ctx, EventSystem* event_system)
 }
 
 UserInterface::~UserInterface() {
-    event_system_->removeListener(this, &UserInterface::onKey);
-    event_system_->removeListener(this, &UserInterface::onCharInput);
-    event_system_->removeListener(this, &UserInterface::onMouseButton);
-    event_system_->removeListener(this, &UserInterface::onMouseScroll);
+    event_system_->removeAllListeners(this);
 }
 
 void UserInterface::preUpdate() const {

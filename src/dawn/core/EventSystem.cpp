@@ -8,36 +8,57 @@
 
 namespace dw {
 EventSystem::EventSystem(Context* context)
-    : Object(context), active_queue_(0), processing_events_(false) {
+    : Object(context), next_event_handler_id_(1), active_queue_(0), processing_events_(false) {
 }
 
 EventSystem::~EventSystem() {
+}
+
+bool EventSystem::removeListener(EventHandlerId event_handler_id) {
+    if (processing_events_) {
+        pending_remove_event_listeners_.emplace_back(event_handler_id);
+        return true;
+    }
+
+    // Search all event types for this handler ID, and erase once found.
+    for (auto& event_type_pair : event_listeners_) {
+        auto& binding_list = event_type_pair.second;
+        for (auto it = binding_list.begin(); it != binding_list.end(); ++it) {
+            if (it->id == event_handler_id) {
+                binding_list.erase(it);
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool EventSystem::abortEvent(const EventType& type, bool all_of_type /*= false*/) {
     assert(active_queue_ >= 0);
     assert(active_queue_ < EVENTSYSTEM_NUM_QUEUES);
 
+    const auto event_type_listeners = event_listeners_.find(type);
+
+    if (event_type_listeners == event_listeners_.end()) {
+        return false;
+    }
+
     bool success = false;
-    auto event_listener_it = event_listeners_.find(type);
+    auto& event_queue = queues_[active_queue_];
+    auto it = event_queue.begin();
 
-    if (event_listener_it != event_listeners_.end()) {
-        auto& event_queue = queues_[active_queue_];
-        auto it = event_queue.begin();
+    while (it != event_queue.end()) {
+        // Removing an item from the queue will invalidate the iterator, so have it point to the
+        // next member. All work inside this loop will be done using this iterator.
+        auto current_it = it;
+        ++it;
 
-        while (it != event_queue.end()) {
-            // Removing an item from the queue will invalidate the iterator, so have it point to the
-            // next member. All work inside this loop will be done using thisIt.
-            auto current_it = it;
-            ++it;
+        if ((*current_it)->type() == type) {
+            event_queue.erase(current_it);
+            success = true;
 
-            if ((*current_it)->type() == type) {
-                event_queue.erase(current_it);
-                success = true;
-
-                if (!all_of_type) {
-                    break;
-                }
+            if (!all_of_type) {
+                break;
             }
         }
     }
@@ -48,102 +69,66 @@ bool EventSystem::abortEvent(const EventType& type, bool all_of_type /*= false*/
 bool EventSystem::update(double max_duration) {
     time::TimePoint now = time::beginTiming();
 
-    // swap active queues and clear the new queue after the swap
-    int queue_to_process = active_queue_;
+    // swap active queues and clear the new queue after the swap.
+    const int queue_to_process = active_queue_;
     active_queue_ = (active_queue_ + 1) % EVENTSYSTEM_NUM_QUEUES;
-    queues_[active_queue_].clear();
+    auto& current_queue = queues_[queue_to_process];
+    auto& next_queue = queues_[active_queue_];
+    next_queue.clear();
 
-    // Process the queue
+    // Process the queue, and record how many events processed.
     processing_events_ = true;
-    while (!queues_[queue_to_process].empty()) {
-        // Pop the front of the queue
-        EventDataPtr event_data = queues_[queue_to_process].front();
-        queues_[queue_to_process].pop_front();
-        const EventType& event_type = event_data->type();
+    while (!current_queue.empty()) {
+        const auto event_data = current_queue.front();
+        current_queue.pop_front();
 
-        // Find all the delegate functions registered for this event
-        auto find_it = event_listeners_.find(event_type);
+        // Find all the delegate functions registered for this event.
+        auto find_it = event_listeners_.find(event_data->type());
         if (find_it != event_listeners_.end()) {
-            // Call each Listener
+            // Call each Listener.
             auto& event_listeners = (*find_it).second;
-            for (const auto& delegate_function : event_listeners)
-                delegate_function(event_data);
+            for (const auto& binding : event_listeners) {
+                binding.event_delegate(event_data);
+            }
         }
 
         // Check to see if time ran out
-        if (time::elapsed(now) >= max_duration)
+        if (time::elapsed(now) >= max_duration) {
             break;
+        }
     }
-
     processing_events_ = false;
 
     // If we couldn't process all of the events, push the remaining events to the new active queue
     // Note: To preserve sequencing, go back-to-front, inserting them at the head of the active
     // queue
-    bool queue_flushed = queues_[queue_to_process].empty();
+    bool queue_flushed = current_queue.empty();
     if (!queue_flushed) {
-        while (!queues_[queue_to_process].empty()) {
-            EventDataPtr pEvent = queues_[queue_to_process].back();
-            queues_[queue_to_process].pop_back();
-            queues_[active_queue_].push_front(pEvent);
+        while (!current_queue.empty()) {
+            EventDataPtr event_data = current_queue.back();
+            current_queue.pop_back();
+            next_queue.push_front(event_data);
         }
     }
 
-    // If any Listeners were queued for addition or removal whilst processing events, add them now
-    for (auto listener : added_event_listeners_) {
-        for (const auto& delegate_function : listener.second) {
-            addDelegate(delegate_function, listener.first);
-        }
+    // If any changes to the lists were queued, process them now.
+    for (const auto pending_listener : pending_added_event_listeners_) {
+        addDelegate(pending_listener.first, pending_listener.second);
     }
-    added_event_listeners_.clear();
-
-    for (auto listener : remove_event_listeners_) {
-        for (const auto& delegate_function : listener.second) {
-            removeDelegate(delegate_function, listener.first);
-        }
+    pending_added_event_listeners_.clear();
+    for (auto id : pending_remove_event_listeners_) {
+        removeListener(id);
     }
-    remove_event_listeners_.clear();
-
+    pending_remove_event_listeners_.clear();
     return queue_flushed;
 }
 
-bool EventSystem::addDelegate(EventDelegate event_delegate, EventType type) {
+void EventSystem::addDelegate(EventType type, EventHandlerBinding binding) {
     if (processing_events_) {
-        added_event_listeners_[type].push_back(event_delegate);
+        pending_added_event_listeners_.emplace_back(type, binding);
     } else {
-        // This will find or create the entry
         auto& event_listener_list = event_listeners_[type];
-        for (const auto& delegate_function : event_listener_list) {
-            if (event_delegate.equals(delegate_function)) {
-                // WARNING: Attempting to double-register a delegate
-                return false;
-            }
-        }
-
-        event_listener_list.push_back(event_delegate);
+        event_listener_list.emplace_back(binding);
     }
-
-    return true;
-}
-
-bool EventSystem::removeDelegate(EventDelegate event_delegate, EventType type) {
-    if (processing_events_) {
-        remove_event_listeners_[type].push_back(event_delegate);
-        return true;
-    }
-    bool success = false;
-    auto find_it = event_listeners_.find(type);
-    if (find_it != event_listeners_.end()) {
-        auto& listeners = find_it->second;
-        for (auto it = listeners.begin(); it != listeners.end(); ++it) {
-            if (event_delegate.equals(*it)) {
-                listeners.erase(it);
-                success = true;
-                break;
-            }
-        }
-    }
-
-    return success;
 }
 }  // namespace dw
