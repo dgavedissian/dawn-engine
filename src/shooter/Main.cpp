@@ -70,7 +70,7 @@ public:
             ImGui::End();
             return;
         }
-        ImGui::Text("FPS:   %d", 1.0f / dt);
+        ImGui::Text("FPS:   %f", 1.0f / dt);
         ImGui::Text("Frame: %.4f ms", dt);
         ImGui::End();
     }

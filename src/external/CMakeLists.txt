@@ -390,6 +390,22 @@ add_library(stb INTERFACE)
 target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
 set(LIBS ${LIBS} stb)
 
+# nanovg
+FetchContent_Declare(
+    nanovg
+    GIT_REPOSITORY https://github.com/memononen/nanovg.git
+    GIT_TAG f4069e6a1ad5da430fb0a9c57476d5ddc2ff89b2
+)
+FetchContent_GetProperties(nanovg)
+if(NOT nanovg_POPULATED)
+    FetchContent_Populate(nanovg)
+    add_library(nanovg EXCLUDE_FROM_ALL
+        ${nanovg_SOURCE_DIR}/src/fontstash.h
+        ${nanovg_SOURCE_DIR}/src/nanovg.c
+        ${nanovg_SOURCE_DIR}/src/nanovg.h)
+    target_include_directories(nanovg PUBLIC ${nanovg_SOURCE_DIR}/src)
+endif()
+
 # tinyformat
 add_library(tinyformat INTERFACE)
 target_include_directories(tinyformat INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tinyformat)
