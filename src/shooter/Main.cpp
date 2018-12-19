@@ -58,12 +58,30 @@ public:
 
     void update(float dt) override {
         GameSession::update(dt);
+
+        module<Renderer>()->rhi()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
+
+        // Display FPS information.
+        ImGui::SetNextWindowPos({10, 10});
+        ImGui::SetNextWindowSize({140, 40});
+        if (!ImGui::Begin("FPS", nullptr,
+                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                              ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
+            ImGui::End();
+            return;
+        }
+        ImGui::Text("FPS:   %f", 1.0f / dt);
+        ImGui::Text("Frame: %.4f ms", dt);
+        ImGui::End();
     }
 };
 
 class Shooter : public App {
 public:
     DW_OBJECT(Shooter);
+
+    Shooter() : App(typeNameStatic(), "1.0.0") {
+    }
 
     void init(const CommandLine& cmdline) override {
         auto rc = module<ResourceCache>();
@@ -100,35 +118,7 @@ public:
         }
     }
 
-    void update(float dt) override {
-    }
-
-    void render(float) override {
-        module<Renderer>()->rhi()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
-
-        // Display FPS information.
-        ImGui::SetNextWindowPos({10, 10});
-        ImGui::SetNextWindowSize({140, 40});
-        if (!ImGui::Begin("FPS", nullptr,
-                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-                              ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
-            ImGui::End();
-            return;
-        }
-        ImGui::Text("FPS:   %d", engine_->framesPerSecond());
-        ImGui::Text("Frame: %.4f ms", engine_->frameTime());
-        ImGui::End();
-    }
-
     void shutdown() override {
-    }
-
-    String gameName() override {
-        return typeName();
-    }
-
-    String gameVersion() override {
-        return "1.0.0";
     }
 };
 

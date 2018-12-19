@@ -61,7 +61,7 @@ public:
     // Resource.
     Result<None> beginLoad(const String& asset_name, InputStream& src) override;
 
-    void render(float interpolation, SceneGraph* scene_graph, u32 camera_id);
+    void render(float dt, float interpolation, SceneGraph* scene_graph, u32 camera_id);
 
     SharedPtr<Texture> texture(const String& name);
 
@@ -69,7 +69,7 @@ private:
     class PStep {
     public:
         virtual ~PStep() = default;
-        virtual void execute(Logger& log, rhi::RHIRenderer* r, float interpolation,
+        virtual void execute(Logger& log, rhi::RHIRenderer* r, float dt, float interpolation,
                              SceneGraph* scene_graph, u32 camera_id, uint view) = 0;
     };
 
@@ -77,8 +77,8 @@ private:
     public:
         PClearStep(Colour colour);
 
-        void execute(Logger& log, rhi::RHIRenderer* r, float interpolation, SceneGraph* scene_graph,
-                     u32 camera_id, uint view) override;
+        void execute(Logger& log, rhi::RHIRenderer* r, float dt, float interpolation,
+                     SceneGraph* scene_graph, u32 camera_id, uint view) override;
 
         Colour colour_;
     };
@@ -87,8 +87,8 @@ private:
     public:
         PRenderQueueStep(u32 mask);
 
-        void execute(Logger& log, rhi::RHIRenderer* r, float interpolation, SceneGraph* scene_graph,
-                     u32 camera_id, uint view) override;
+        void execute(Logger& log, rhi::RHIRenderer* r, float dt, float interpolation,
+                     SceneGraph* scene_graph, u32 camera_id, uint view) override;
 
         u32 mask_;
     };
@@ -98,8 +98,8 @@ private:
         PRenderQuadStep(SharedPtr<VertexBuffer> fullscreen_quad, SharedPtr<Material> material,
                         const HashMap<String, uint>& input_samplers);
 
-        void execute(Logger& log, rhi::RHIRenderer* r, float interpolation, SceneGraph* scene_graph,
-                     u32 camera_id, uint view) override;
+        void execute(Logger& log, rhi::RHIRenderer* r, float dt, float interpolation,
+                     SceneGraph* scene_graph, u32 camera_id, uint view) override;
 
         SharedPtr<VertexBuffer> fullscreen_quad_;
         SharedPtr<Material> material_;

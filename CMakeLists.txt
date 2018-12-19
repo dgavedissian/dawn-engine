@@ -1,6 +1,6 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.11)
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CFlagOverrides.cmake)
 set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CXXFlagOverrides.cmake)

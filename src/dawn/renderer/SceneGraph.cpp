@@ -105,19 +105,19 @@ void SceneGraph::updateSceneGraph() {
     }
 }
 
-void SceneGraph::renderScene(float interpolation) {
+void SceneGraph::renderScene(float dt, float interpolation) {
     if (preRenderSceneCallback) {
-        preRenderSceneCallback();
+        preRenderSceneCallback(dt);
     }
     if (!camera_entity_system_->cameras.empty()) {
-        render_pipeline_->render(interpolation, this, 0);
+        render_pipeline_->render(dt, interpolation, this, 0);
     }
     if (postRenderSceneCallback) {
-        postRenderSceneCallback();
+        postRenderSceneCallback(dt);
     }
 }
 
-void SceneGraph::renderSceneFromCamera(float, u32 camera_id, uint view, u32 mask) {
+void SceneGraph::renderSceneFromCamera(float dt, float, u32 camera_id, uint view, u32 mask) {
     // Render stuff.
     auto& cameras = camera_entity_system_->cameras;
     assert(camera_id < cameras.size());
@@ -133,7 +133,7 @@ void SceneGraph::renderSceneFromCamera(float, u32 camera_id, uint view, u32 mask
 
     // Process all render operations.
     if (preRenderCameraCallback) {
-        preRenderCameraCallback(camera_transform, view_matrix, proj_matrix);
+        preRenderCameraCallback(dt, camera_transform, view_matrix, proj_matrix);
     }
     for (auto& op : render_operations_per_camera_[camera_id]) {
         if (op.renderable->material()->mask() & mask) {
@@ -157,7 +157,7 @@ Frame* SceneGraph::frame(int i) {
     return frames_[i].get();
 }
 
-int SceneGraph::frameCount() const {
+uint SceneGraph::frameCount() const {
     return frames_.size();
 }
 

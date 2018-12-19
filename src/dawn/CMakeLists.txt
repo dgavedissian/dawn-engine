@@ -58,7 +58,6 @@ set(SOURCE_FILES
     core/script/LuaState.cpp
     core/script/LuaState.h
     core/script/Sol.h
-    core/App.cpp
     core/App.h
     core/Collections.h
     core/CommandLine.cpp

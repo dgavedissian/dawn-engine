@@ -557,32 +557,13 @@ public:
         planet_->update(dt);
     }
 
-    void render(float interpolation) override {
-        GameSession::render(interpolation);
-    }
-};
+    void render(float dt, float interpolation) override {
+        GameSession::render(dt, interpolation);
 
-class Sandbox : public App {
-public:
-    DW_OBJECT(Sandbox);
-
-    void init(const CommandLine& cmdline) override {
-        auto rc = module<ResourceCache>();
-        assert(rc);
-        rc->addPath("base", "../media/base");
-        rc->addPath("sandbox", "../media/sandbox");
-
-        engine_->addSession(makeUnique<SandboxSession>(context(), GameSessionInfo{}));
-    }
-
-    void update(float dt) override {
-    }
-
-    void render(float) override {
         module<Renderer>()->rhi()->setViewClear(0, {0.0f, 0.0f, 0.1f, 0.2f});
 
         // Calculate average FPS.
-        float current_fps = 1.0 / engine_->frameTime();
+        float current_fps = 1.0 / dt;
         static const int FPS_HISTORY_COUNT = 100;
         static float fps_history[FPS_HISTORY_COUNT];
         for (int i = 1; i < FPS_HISTORY_COUNT; ++i) {
@@ -597,7 +578,7 @@ public:
         // Update displayed FPS information every 100ms.
         static double accumulated_time = 0.0;
         static float displayed_fps = 60.0f;
-        accumulated_time += engine_->frameTime();
+        accumulated_time += dt;
         if (accumulated_time > 1.0f / 30.0f) {
             accumulated_time = 0;
             displayed_fps = average_fps;
@@ -616,16 +597,25 @@ public:
         ImGui::Text("Frame: %.4f ms", 1000.0f / displayed_fps);
         ImGui::End();
     }
+};
+
+class Sandbox : public App {
+public:
+    DW_OBJECT(Sandbox);
+
+    Sandbox() : App("Sandbox", DW_VERSION_STR) {
+    }
+
+    void init(const CommandLine& cmdline) override {
+        auto rc = module<ResourceCache>();
+        assert(rc);
+        rc->addPath("base", "../media/base");
+        rc->addPath("sandbox", "../media/sandbox");
+
+        engine_->addSession(makeUnique<SandboxSession>(context(), GameSessionInfo{}));
+    }
 
     void shutdown() override {
-    }
-
-    String gameName() override {
-        return "Sandbox";
-    }
-
-    String gameVersion() override {
-        return DW_VERSION_STR;
     }
 };
 

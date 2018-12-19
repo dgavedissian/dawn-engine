@@ -40,12 +40,12 @@ public:
 
     static RepLayout repLayout() {
         return {{},
-                {Rpc::bind<CShipControls>(&CShipControls::setLinearVelocity,
-                                          &CShipControls::setLinearVelocityImpl),
-                 Rpc::bind<CShipControls>(&CShipControls::setAngularVelocity,
-                                          &CShipControls::setAngularVelocityImpl),
-                 Rpc::bind<CShipControls>(&CShipControls::toggleWeapon,
-                                          &CShipControls::toggleWeaponImpl)}};
+                {Rpc::bind<CShipControls, RpcType::Client, Vec3>(
+                     &CShipControls::setLinearVelocity, &CShipControls::setLinearVelocityImpl),
+                 Rpc::bind<CShipControls, RpcType::Client, Vec3>(
+                     &CShipControls::setAngularVelocity, &CShipControls::setAngularVelocityImpl),
+                 Rpc::bind<CShipControls, RpcType::Client, bool>(
+                     &CShipControls::toggleWeapon, &CShipControls::toggleWeaponImpl)}};
     }
 };
 

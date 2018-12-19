@@ -16,8 +16,8 @@ class Example : public Object {
 public:
     DW_OBJECT(Example);
 
-    Example(Context* ctx, const Engine* engine, const GameSession* session)
-        : Object(ctx), r{ctx->module<Renderer>()->rhi()}, engine_{engine}, session_{session} {
+    Example(Context* ctx, const GameSession* session)
+        : Object(ctx), r{ctx->module<Renderer>()->rhi()}, session_{session} {
     }
 
     u16 width() const {
@@ -28,13 +28,14 @@ public:
         return context()->config().at("window_height").get<u16>();
     }
 
-    virtual void start(){};
-    virtual void render() {
+    virtual void start() {
     }
-    virtual void stop(){};
+    virtual void render(float dt) {
+    }
+    virtual void stop() {
+    }
 
     rhi::RHIRenderer* r;
-    const Engine* engine_;
     const GameSession* session_;
 };
 
@@ -42,91 +43,102 @@ template <typename... T> class ExampleAppContainer : public App {
 public:
     DW_OBJECT(ExampleAppContainer<T...>);
 
-    Vector<SharedPtr<Example>> examples_;
-    Example* current_example_;
-    int frame_id_;
+    SessionId example_session;
 
-    ExampleAppContainer() : current_example_(nullptr), frame_id_(0) {
+    class ExampleGameSession : public GameSession {
+    public:
+        Vector<SharedPtr<Example>> examples_;
+        Example* current_example_;
+        int frame_id_;
+        int frame_count_;
+        int last_fps_;
+        float accumulated_time_;
+
+        ExampleGameSession(Context* ctx)
+            : GameSession(ctx, GameSessionInfo{}),
+              current_example_(nullptr),
+              frame_id_(0),
+              frame_count_(0),
+              last_fps_(0),
+              accumulated_time_(0.0f) {
+            examples_ = {makeShared<T>(context_, this)...};
+        }
+
+        ~ExampleGameSession() {
+            if (current_example_) {
+                current_example_->stop();
+                current_example_ = nullptr;
+            }
+            examples_.clear();
+        }
+
+        void render(float dt, float interpolation) override {
+            GameSession::render(dt, interpolation);
+
+            // Store FPS history.
+            float current_fps = module<Renderer>()->framesPerSecond();
+            static const int FPS_HISTORY_COUNT = 100;
+            static float fps_history[FPS_HISTORY_COUNT];
+            static double accumulated_time = 0.0;
+            accumulated_time += dt;
+            if (accumulated_time > 1.0 / 20.0) {
+                accumulated_time = 0.0;
+                for (int i = 1; i < FPS_HISTORY_COUNT; ++i) {
+                    fps_history[i - 1] = fps_history[i];
+                }
+                fps_history[FPS_HISTORY_COUNT - 1] = current_fps;
+            }
+
+            // Display FPS information.
+            ImGui::SetNextWindowPos({0, 0});
+            ImGui::SetNextWindowSize({280, 130});
+            ImGui::Begin("FPS");
+            ImGui::Text("FPS: %f", current_fps);
+            ImGui::PlotLines("", fps_history, FPS_HISTORY_COUNT, 0, nullptr, 0.0f, 1000.0f,
+                             {250, 80});
+            ImGui::End();
+
+            // Display example list.
+            ImGui::SetNextWindowPos({0, 130});
+            ImGui::SetNextWindowSize({180, 250});
+            ImGui::Begin("Examples");
+            for (auto& example : examples_) {
+                if (ImGui::Button(example->typeName().c_str())) {
+                    if (current_example_) {
+                        current_example_->stop();
+                    }
+                    current_example_ = example.get();
+                    current_example_->start();
+                    frame_id_ = 0;
+                }
+            }
+            ImGui::End();
+
+            // Render example.
+            if (current_example_) {
+                current_example_->render(dt);
+                frame_id_++;
+            }
+        }
+    };
+
+    ExampleAppContainer() : App("Examples Viewer", DW_VERSION_STR), example_session(0) {
     }
 
     void init(const CommandLine&) override {
-        auto session = makeUnique<GameSession>(context(), GameSessionInfo{});
-        examples_ = {makeShared<T>(context_, engine_, session.get())...};
-        engine_->addSession(std::move(session));
-    }
-
-    void render(float) override {
-        // Store FPS history.
-        float current_fps = engine_->framesPerSecond();
-        static const int FPS_HISTORY_COUNT = 100;
-        static float fps_history[FPS_HISTORY_COUNT];
-        static double accumulated_time = 0.0;
-        accumulated_time += engine_->frameTime();
-        if (accumulated_time > 1.0 / 20.0) {
-            accumulated_time = 0.0;
-            for (int i = 1; i < FPS_HISTORY_COUNT; ++i) {
-                fps_history[i - 1] = fps_history[i];
-            }
-            fps_history[FPS_HISTORY_COUNT - 1] = current_fps;
-        }
-
-        // Display FPS information.
-        ImGui::SetNextWindowPos({0, 0});
-        ImGui::SetNextWindowSize({280, 130});
-        ImGui::Begin("FPS");
-        ImGui::Text("FPS: %f", current_fps);
-        ImGui::PlotLines("", fps_history, FPS_HISTORY_COUNT, 0, nullptr, 0.0f, 1000.0f, {250, 80});
-        ImGui::End();
-
-        // Display example list.
-        ImGui::SetNextWindowPos({0, 130});
-        ImGui::SetNextWindowSize({180, 250});
-        ImGui::Begin("Examples");
-        for (auto& example : examples_) {
-            if (ImGui::Button(example->typeName().c_str())) {
-                if (current_example_) {
-                    current_example_->stop();
-                }
-                current_example_ = example.get();
-                current_example_->start();
-                frame_id_ = 0;
-            }
-        }
-        ImGui::End();
-
-        // Render example.
-        if (current_example_) {
-            current_example_->render();
-            frame_id_++;
-        }
-    }
-
-    void update(float) override {
+        example_session = engine_->addSession(makeUnique<ExampleGameSession>(context()));
     }
 
     void shutdown() override {
-        if (current_example_) {
-            current_example_->stop();
-            current_example_ = nullptr;
-        }
-        examples_.clear();
-    }
-
-    String gameName() override {
-        return "Examples Viewer";
-    }
-
-    String gameVersion() override {
-        return DW_VERSION_STR;
+        engine_->removeSession(example_session);
     }
 };
 
 #define TEST_CLASS(test_name) class test_name : public Example
-#define TEST_BODY(test_name)                                                  \
-public:                                                                       \
-    DW_OBJECT(test_name)                                                      \
-    test_name(Context* ctx, const Engine* engine, const GameSession* session) \
-        : Example(ctx, engine, session) {                                     \
+#define TEST_BODY(test_name)                                                      \
+public:                                                                           \
+    DW_OBJECT(test_name)                                                          \
+    test_name(Context* ctx, const GameSession* session) : Example(ctx, session) { \
     }
 
 // Utils
@@ -202,7 +214,7 @@ TEST_CLASS(RHIBasicVertexBuffer) {
         vb_ = r->createVertexBuffer(Memory(vertices, sizeof(vertices)), decl);
     }
 
-    void render() override {
+    void render(float) override {
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
         r->setVertexBuffer(vb_);
         r->submit(0, program_, 3);
@@ -249,7 +261,7 @@ TEST_CLASS(RHIBasicIndexBuffer) {
         ib_ = r->createIndexBuffer(Memory(elements, sizeof(elements)), rhi::IndexBufferType::U32);
     }
 
-    void render() override {
+    void render(float) override {
         r->setVertexBuffer(vb_);
         r->setIndexBuffer(ib_);
         r->submit(0, program_, 6);
@@ -278,11 +290,11 @@ TEST_CLASS(RHITransientIndexBuffer) {
         r->linkProgram(program_);
     }
 
-    void render() override {
+    void render(float dt) override {
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
 
         static float angle = 0.0f;
-        angle += engine_->frameTime();
+        angle += dt;
         float size_multiplier = 1.0f;  //((float)sin(angle) + 1.0f) * 0.25f;
         float vertices[] = {
             -0.5f * size_multiplier, 0.5f * size_multiplier,  1.0f, 0.0f, 0.0f,  // Top-left
@@ -347,10 +359,10 @@ TEST_CLASS(RHITextured3DCube) {
         box_ = MeshBuilder{context()}.normals(true).texcoords(true).createBox(10.0f);
     }
 
-    void render() override {
+    void render(float dt) override {
         // Calculate matrices.
         static float angle = 0.0f;
-        angle += M_PI / 3.0f * engine_->frameTime();  // 60 degrees per second.
+        angle += M_PI / 3.0f * dt;  // 60 degrees per second.
         Mat4 model = Mat4::Translate(Vec3{0.0f, 0.0f, -50.0f}).ToFloat4x4() * Mat4::RotateY(angle);
         static Mat4 view = Mat4::identity;
         static Mat4 proj =
@@ -415,10 +427,10 @@ TEST_CLASS(RHIPostProcessing) {
         r->submit(0, post_process_);
     }
 
-    void render() override {
+    void render(float dt) override {
         // Calculate matrices.
         static float angle = 0.0f;
-        angle += M_PI / 3.0f * engine_->frameTime();  // 60 degrees per second.
+        angle += M_PI / 3.0f * dt;  // 60 degrees per second.
         Mat4 model = Mat4::Translate(Vec3{0.0f, 0.0f, -50.0f}).ToFloat4x4() * Mat4::RotateY(angle);
         static Mat4 view = Mat4::identity;
         static Mat4 proj =
@@ -597,7 +609,7 @@ TEST_CLASS(RHIDeferredShading) {
         }
     }
 
-    void render() override {
+    void render(float dt) override {
         // Set up views.
         r->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
         r->setViewFrameBuffer(0, gbuffer_);
@@ -628,7 +640,7 @@ TEST_CLASS(RHIDeferredShading) {
 
         // Update and draw point lights.
         static float angle = 0.0f;
-        angle += engine_->frameTime();
+        angle += dt;
         int light_counter = 0;
         for (int x = -3; x <= 3; x++) {
             for (int z = -3; z <= 3; z++) {
@@ -700,9 +712,9 @@ TEST_CLASS(MovingSphere) {
         session_->sceneManager()->removeEntity(camera);
     }
 
-    void render() override {
+    void render(float dt) override {
         static float angle = 0.0f;
-        angle += engine_->frameTime();
+        angle += dt;
 
         // Move some objects.
         camera->transform()->position.x = sin(angle) * 30.0f;
@@ -949,11 +961,12 @@ TEST_CLASS(DeferredLighting) {
 
         // Set up render camera callback.
         scene_graph->preRenderCameraCallback = [this, light_mesh_radius](
+                                                   float dt,
                                                    const detail::Transform& camera_transform,
                                                    const Mat4&, const Mat4&) {
             // Update point lights.
             static float angle = 0.0f;
-            angle += engine_->frameTime();
+            angle += dt;
             int light_counter = 0;
             for (int x = -2; x <= 2; x++) {
                 for (int z = -2; z <= 2; z++) {

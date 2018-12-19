@@ -49,6 +49,10 @@ BillboardSet::BillboardSet(Context* ctx, u32 particle_count, const Vec2& particl
     fragment_shader->load("billboard_set.fs", fs_source);
     setMaterial(
         makeShared<Material>(ctx, makeShared<Program>(ctx, vertex_shader, fragment_shader)));
+    material_->setStateEnable(rhi::RenderState::Blending);
+    material_->setBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::SrcAlpha,
+                                rhi::BlendFunc::OneMinusSrcAlpha);
+    material_->setDepthWrite(false);
     material_->setUniform<int>("billboard_texture", 0);
 
     // Create vertex and index buffers.
@@ -127,12 +131,7 @@ void BillboardSet::draw(Renderer* renderer, uint view, detail::Transform& camera
     auto rhi = renderer->rhi();
     rhi->setVertexBuffer(vb_->internalHandle());
     rhi->setIndexBuffer(ib_->internalHandle());
-    rhi->setStateEnable(rhi::RenderState::Blending);
-    rhi->setStateBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::SrcAlpha,
-                               rhi::BlendFunc::OneMinusSrcAlpha);
-    rhi->setDepthWrite(false);
-    material_->setUniform("mvp_matrix", view_projection_matrix);
-    material_->program()->applyRendererState();
+    material_->applyRendererState(Mat4::identity, view_projection_matrix);
     rhi->submit(view, material_->program()->internalHandle(), particle_count_ * 6);
 }
 

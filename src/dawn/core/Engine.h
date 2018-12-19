@@ -7,16 +7,26 @@
 #include "CommandLine.h"
 #include "ui/UserInterface.h"
 
+#if DW_PLATFORM == DW_WIN32
+#include "platform/Windows.h"
+#define DW_IMPLEMENT_MAIN(AppClass)                                        \
+    int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {                 \
+        return dw::Engine::runApp(makeUnique<AppClass>(), __argc, __argv); \
+    }
+#else
+#define DW_IMPLEMENT_MAIN(AppClass)                                    \
+    int main(int argc, char** argv) {                                  \
+        return dw::Engine::runApp(makeUnique<AppClass>(), argc, argv); \
+    }
+#endif
+
 namespace dw {
 class App;
 class GameSession;
 
-typedef Function<void(float)> EngineTickCallback;
-typedef Function<void(float)> EngineRenderCallback;
-
 class DW_API SessionId {
 public:
-    SessionId(int session_index);
+    SessionId(u32 session_index);
 
     u32 index() const;
 
@@ -30,7 +40,10 @@ class DW_API Engine : public Object {
 public:
     DW_OBJECT(Engine);
 
-    Engine(const String& game, const String& version);
+    /// Runs an app.
+    static int runApp(UniquePtr<App> app, int argc, char** argv);
+
+    Engine(UniquePtr<App> app);
     ~Engine();
 
     /// Sets up the engine
@@ -40,9 +53,8 @@ public:
     void shutdown();
 
     /// Run the main loop
-    /// @param tick_callback Function to run every time the game logic is updated.
-    /// @param render_callback Function to run every time a frame is rendered.
-    void run(EngineTickCallback tick_callback, EngineRenderCallback render_callback);
+    /// @returns Exit code to return to the operating system.
+    int run();
 
     // Add a session.
     SessionId addSession(UniquePtr<GameSession> session);
@@ -52,12 +64,6 @@ public:
 
     // Remove a session.
     void removeSession(SessionId session_id);
-
-    /// Access the frame time
-    double frameTime() const;
-
-    /// Access the frames per second metric.
-    int framesPerSecond() const;
 
     /// Get the list of command line flags.
     const Set<String>& flags() const;
@@ -71,12 +77,7 @@ private:
     bool save_config_on_exit_;
     bool headless_;
 
-    String game_name_;
-    String game_version_;
-
-    double frame_time_;
-    int frames_per_second_;
-    int frame_counter_;
+    UniquePtr<App> app_;
 
     // Engine events and UI.
     UniquePtr<EventSystem> event_system_;

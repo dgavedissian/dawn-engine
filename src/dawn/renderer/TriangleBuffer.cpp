@@ -83,7 +83,9 @@ SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
 
     // Create custom mesh.
     auto custom_mesh = makeShared<CustomMeshRenderable>(
-        context_, makeShared<VertexBuffer>(context_, std::move(data), vertices_.size(), decl),
+        context_,
+        makeShared<VertexBuffer>(context_, std::move(data), static_cast<uint>(vertices_.size()),
+                                 decl),
         makeShared<IndexBuffer>(context_, Memory(indices_), rhi::IndexBufferType::U32));
 
     return custom_mesh;

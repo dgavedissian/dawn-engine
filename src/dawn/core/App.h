@@ -6,44 +6,31 @@
 
 #include "CommandLine.h"
 
-#if DW_PLATFORM == DW_WIN32
-#include "platform/Windows.h"
-#define DW_IMPLEMENT_MAIN(AppClass)                                \
-    int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {         \
-        return dw::runApp(makeUnique<AppClass>(), __argc, __argv); \
-    }
-#else
-#define DW_IMPLEMENT_MAIN(AppClass)                            \
-    int main(int argc, char** argv) {                          \
-        return dw::runApp(makeUnique<AppClass>(), argc, argv); \
-    }
-#endif
-
 namespace dw {
-
 class Engine;
 
 class DW_API App : public Object {
 public:
-    App() : Object{nullptr} {
+    App(String game_name, String game_version)
+        : Object{nullptr}, engine_{nullptr}, game_name_{game_name}, game_version_{game_version} {
     }
-    virtual ~App() {
-    }
+    virtual ~App() = default;
 
     virtual void init(const CommandLine& cmdline) = 0;
-    virtual void update(float dt) = 0;
-    virtual void render(float) {
-    }
     virtual void shutdown() = 0;
 
-    virtual String gameName() = 0;
-    virtual String gameVersion() = 0;
+    String gameName() const {
+        return game_name_;
+    }
+    String gameVersion() const {
+        return game_version_;
+    }
 
-    friend DW_API int runApp(UniquePtr<App> app, int argc, char** argv);
+    friend class Engine;
 
 protected:
     Engine* engine_;
+    String game_name_;
+    String game_version_;
 };
-
-DW_API int runApp(UniquePtr<App> app, int argc, char** argv);
 }  // namespace dw

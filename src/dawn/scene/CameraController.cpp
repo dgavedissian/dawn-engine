@@ -17,7 +17,7 @@ CameraController::CameraController(Context* context, EventSystem* event_system, 
 }
 
 CameraController::~CameraController() {
-    event_system_->removeListener(this, &CameraController::onMouseMove);
+    event_system_->removeAllListeners(this);
 }
 
 void CameraController::setAcceleration(float acceleration) {

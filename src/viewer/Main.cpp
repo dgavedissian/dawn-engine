@@ -10,21 +10,13 @@ class Viewer : public App {
 public:
     DW_OBJECT(Viewer);
 
+    Viewer() : App("Viewer", DW_VERSION_STR) {
+    }
+
     void init(const CommandLine&) override {
     }
 
-    void update(float) override {
-    }
-
     void shutdown() override {
-    }
-
-    String gameName() override {
-        return "Viewer";
-    }
-
-    String gameVersion() override {
-        return DW_VERSION_STR;
     }
 };
 
