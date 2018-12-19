@@ -51,7 +51,7 @@ BillboardSet::BillboardSet(Context* ctx, u32 particle_count, const Vec2& particl
         makeShared<Material>(ctx, makeShared<Program>(ctx, vertex_shader, fragment_shader)));
     material_->setStateEnable(rhi::RenderState::Blending);
     material_->setBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::SrcAlpha,
-                               rhi::BlendFunc::OneMinusSrcAlpha);
+                                rhi::BlendFunc::OneMinusSrcAlpha);
     material_->setDepthWrite(false);
     material_->setUniform<int>("billboard_texture", 0);
 

@@ -2,9 +2,10 @@
 PATHS=(
     cmake
     src/dawn
-    src/renderer-test
+    src/examples
     src/sandbox
     src/shooter
+    src/viewer
     test
     tools
 )
