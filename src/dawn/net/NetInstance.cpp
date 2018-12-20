@@ -16,6 +16,7 @@
 #include "protocol_generated.h"
 #include "to_server_generated.h"
 #include "to_client_generated.h"
+#include "NetInstance.h"
 
 namespace dw {
 namespace {
@@ -53,8 +54,8 @@ NetInstance::~NetInstance() {
 
 void NetInstance::connect(const String& host, u16 port) {
     auto connected = [this]() { session_->eventSystem()->triggerEvent<JoinServerEvent>(); };
-    auto connection_failed = [this]() {};
-    auto disconnected = [this]() {};
+    auto connection_failed = []() {};
+    auto disconnected = []() {};
     client_ = makeUnique<YojimboClient>(context(), connected, connection_failed, disconnected);
     client_->connect(host, port);
     is_server_ = false;
@@ -71,9 +72,9 @@ void NetInstance::listen(const String& host, u16 port, u16 max_clients) {
 }
 
 void NetInstance::disconnect() {
-    if (isServer()) {
+    if (server_ != nullptr) {
         server_.reset();
-    } else if (isClient()) {
+    } else if (client_ != nullptr) {
         client_.reset();
     }
 }
@@ -172,7 +173,7 @@ void NetInstance::clientUpdate(float dt) {
                                   create_entity_message->payload()->size());
                 EntityId entity_id = create_entity_message->entity_id();
                 EntityType entity_type = create_entity_message->entity_type();
-                NetRole role = static_cast<NetRole>(create_entity_message->role());
+                auto role = static_cast<NetRole>(create_entity_message->role());
                 if (entity_pipeline_) {
                     Entity* entity =
                         entity_pipeline_->createEntityFromType(entity_id, entity_type, role);
@@ -275,16 +276,20 @@ void NetInstance::clientUpdate(float dt) {
     }
 }
 
-bool NetInstance::isClient() const {
-    return client_ != nullptr;
-}
-
-bool NetInstance::isServer() const {
-    return server_ != nullptr;
+NetMode NetInstance::netMode() const {
+    if (client_ != nullptr) {
+        return NetMode::Client;
+    } else if (server_ != nullptr) {
+        return NetMode::Server;
+    } else {
+        return NetMode::None;
+    }
 }
 
 bool NetInstance::isConnected() const {
-    return isClient() ? client_->connectionState() == ClientConnectionState::Connected : isServer();
+    return netMode() == NetMode::Client
+               ? client_->connectionState() == ClientConnectionState::Connected
+               : netMode() == NetMode::Server;
 }
 
 void NetInstance::replicateEntity(const Entity& entity, int authoritative_proxy_client) {
@@ -324,7 +329,7 @@ void NetInstance::setEntityPipeline(SharedPtr<NetEntityPipeline> entity_pipeline
 
 void NetInstance::sendSpawnRequest(EntityType type, std::function<void(Entity&)> callback,
                                    bool authoritative_proxy) {
-    assert(isClient());
+    assert(netMode() == NetMode::Client);
     assert(isConnected());
     outgoing_spawn_requests_[spawn_request_id_] = std::move(callback);
 
@@ -341,7 +346,7 @@ void NetInstance::sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type,
                           const Vector<byte>& payload) {
     assert(isConnected());
     if (type == RpcType::Client) {
-        assert(isClient());
+        assert(netMode() == NetMode::Client);
 
         flatbuffers::FlatBufferBuilder builder(1024);
         auto rpc_message =
@@ -351,14 +356,14 @@ void NetInstance::sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type,
         builder.Finish(message);
         client_->send(builder.GetBufferPointer(), builder.GetSize());
     } else {
-        assert(isServer());
+        assert(netMode() == NetMode::Server);
         log().warn("Server RPCs not implemented.");
     }
 }
 
 void NetInstance::sendServerCreateEntity(ClientId client_id, const Entity& entity,
                                          const OutputBitStream& properties, NetRole role) {
-    assert(isServer());
+    assert(netMode() == NetMode::Server);
 
     flatbuffers::FlatBufferBuilder builder(1024);
     // TODO: Reserve entity ID which the client will have free.
@@ -373,7 +378,7 @@ void NetInstance::sendServerCreateEntity(ClientId client_id, const Entity& entit
 
 void NetInstance::sendServerPropertyReplication(ClientId client_id, const Entity& entity,
                                                 const OutputBitStream& properties) {
-    assert(isServer());
+    assert(netMode() == NetMode::Server);
 
     flatbuffers::FlatBufferBuilder builder(1024);
     auto property_update_message = CreateClientPropertyUpdateMessage(

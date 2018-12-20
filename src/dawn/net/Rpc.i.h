@@ -10,7 +10,7 @@ template <RpcType Type, typename... Args>
 template <typename Component>
 RpcSenderImpl<Type, Args...>::RpcSenderImpl(RpcReceiverFuncPtr<Component, Args...> receiver) {
     receiver_ = [receiver](const Entity& entity, const Args&... args) {
-        entity.component<Component>()->*receiver(args...);
+        (entity.component<Component>()->*receiver)(args...);
     };
 }
 

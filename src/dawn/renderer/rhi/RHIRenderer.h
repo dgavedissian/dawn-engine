@@ -9,6 +9,7 @@
 #include "core/Memory.h"
 #include "core/math/Colour.h"
 #include "core/math/Vec2i.h"
+#include "core/Result.h"
 #include "VertexDecl.h"
 
 #define DW_MAX_TEXTURE_SAMPLERS 8
@@ -376,7 +377,8 @@ public:
     virtual ~RenderContext() = default;
 
     // Window management. Executed on the main thread.
-    virtual void createWindow(u16 width, u16 height, const String& title) = 0;
+    // TODO: Make this return a Window object instead.
+    virtual Result<None> createWindow(u16 width, u16 height, const String& title) = 0;
     virtual void destroyWindow() = 0;
     virtual void processEvents() = 0;
     virtual bool isWindowClosed() const = 0;
@@ -401,8 +403,8 @@ public:
     ~RHIRenderer();
 
     /// Initialise.
-    void init(RendererType type, u16 width, u16 height, const String& title,
-              bool use_render_thread);
+    Result<None> init(RendererType type, u16 width, u16 height, const String& title,
+                      bool use_render_thread);
 
     /// Create vertex buffer.
     VertexBufferHandle createVertexBuffer(Memory data, const VertexDecl& decl,

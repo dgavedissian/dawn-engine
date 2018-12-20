@@ -125,19 +125,24 @@ void Engine::setup(const CommandLine& cmdline) {
 
     // Create the engine subsystems.
     auto* renderer = context_->addModule<Renderer>();
+    Result<None> renderer_result = None();
     if (!headless_) {
         bool use_multithreading = true;
 #ifdef DW_EMSCRIPTEN
         use_multithreading = false;
 #endif
-        renderer->rhi()->init(
+        renderer_result = renderer->rhi()->init(
             rhi::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
             context_->config().at("window_height").get<u16>(), window_title, use_multithreading);
         context_->addModule<Input>();
     } else {
-        renderer->rhi()->init(
+        renderer_result = renderer->rhi()->init(
             rhi::RendererType::Null, context_->config().at("window_width").get<u16>(),
             context_->config().at("window_height").get<u16>(), window_title, false);
+    }
+    if (!renderer_result) {
+        log().error("Renderer failed to initialise: %s", renderer_result.error());
+        std::abort();
     }
     context_->addModule<ResourceCache>();
 

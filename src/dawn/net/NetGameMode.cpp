@@ -34,7 +34,7 @@ void NetGameMode::onStart() {
     session_->eventSystem()->addListener(this, &NetGameMode::eventOnServerClientConnected);
     session_->eventSystem()->addListener(this, &NetGameMode::eventOnServerClientDisconnected);
 
-    if (session_->net() && session_->net()->isServer()) {
+    if (session_->net() && session_->net()->netMode() == NetMode::Server) {
         serverOnStart();
         server_started_ = true;
     }
@@ -49,11 +49,11 @@ void NetGameMode::onEnd() {
 }
 
 void NetGameMode::update(float) {
-    if (session_->net() && session_->net()->isServer() && !server_started_) {
+    if (session_->net() && session_->net()->netMode() == NetMode::Server && !server_started_) {
         serverOnStart();
         server_started_ = true;
     }
-    if (session_->net() && !session_->net()->isServer() && server_started_) {
+    if (session_->net() && session_->net()->netMode() != NetMode::Server && server_started_) {
         serverOnEnd();
         server_started_ = false;
     }

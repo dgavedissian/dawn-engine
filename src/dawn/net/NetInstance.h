@@ -7,6 +7,7 @@
 #include "net/Yojimbo.h"
 
 #include "scene/Entity.h"
+#include "net/NetMode.h"
 #include "net/CNetData.h"
 #include "net/NetEntityPipeline.h"
 #include "scene/SceneManager.h"
@@ -15,7 +16,6 @@
 
 namespace dw {
 class GameSession;
-enum class NetMode { Server, Client };
 enum class Transport { Yojimbo, InMemory };
 
 using RequestId = u64;
@@ -44,17 +44,16 @@ public:
     // Send/receive messages.
     void update(float dt);
 
+private:
     // Server update.
     void serverUpdate(float dt);
 
     // Client update.
     void clientUpdate(float dt);
 
-    // Returns true if connected to a server as a client.
-    bool isClient() const;
-
-    // Returns true if running as a server.
-    bool isServer() const;
+public:
+    // Return current net mode.
+    NetMode netMode() const;
 
     // Returns true if networking is active.
     bool isConnected() const;

@@ -6,6 +6,7 @@
 #include "net/Rpc.h"
 #include "net/NetRole.h"
 #include "net/CNetData.h"
+#include "net/NetInstance.h"
 
 namespace dw {
 RpcSender::RpcSender() : entity_(nullptr), net_data_(nullptr), logger_(nullptr), rpc_id_(0) {
@@ -19,12 +20,11 @@ void RpcSender::onAddToEntity(Entity& entity, RpcId rpc_id) {
 }
 
 bool RpcSender::shouldShortCircuit(RpcType type) const {
-    // TODO: Check this.
     assert(net_data_);
-    if (type == RpcType::Server && net_data_->role() == NetRole::Authority) {
+    if (type == RpcType::Server && net_data_->netMode() == NetMode::Server) {
         return true;
     }
-    if (type == RpcType::Client && net_data_->role() == NetRole::AuthoritativeProxy) {
+    if (type == RpcType::Client && net_data_->netMode() == NetMode::Client) {
         return true;
     }
     return false;

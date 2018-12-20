@@ -11,6 +11,7 @@
 
 #include "net/BitStream.h"
 #include "net/NetRole.h"
+#include "net/NetMode.h"
 #include "net/RepProperty.h"
 #include "net/Rpc.h"
 
@@ -58,6 +59,8 @@ public:
 
     NetRole role() const;
     NetRole remoteRole() const;
+
+    NetMode netMode() const;
 
 private:
     Entity* entity_;

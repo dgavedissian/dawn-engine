@@ -5,6 +5,7 @@
 #include "Common.h"
 #include "net/CNetData.h"
 #include "net/NetInstance.h"
+#include "CNetData.h"
 
 namespace dw {
 RepLayout::RepLayout() : next_rpc_id_(0) {
@@ -88,5 +89,9 @@ NetRole CNetData::role() const {
 
 NetRole CNetData::remoteRole() const {
     return remote_role_;
+}
+
+NetMode CNetData::netMode() const {
+    return net_->netMode();
 }
 }  // namespace dw
