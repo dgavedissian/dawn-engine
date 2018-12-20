@@ -20,32 +20,29 @@ class CShipControls : public Component {
 public:
     WeakPtr<Ship> ship;
 
-    ClientRpc<Vec3> setLinearVelocity;
-    void setLinearVelocityImpl(const Vec3& v) {
-        target_linear_velocity = v;
-    }
-    ClientRpc<Vec3> setAngularVelocity;
-    void setAngularVelocityImpl(const Vec3& v) {
-        target_angular_velocity = v;
-    }
-
-    ClientRpc<bool> toggleWeapon;
-    void toggleWeaponImpl(const bool& toggle) {
-        firing_weapon = toggle;
-    }
-
     Vec3 target_linear_velocity;
     Vec3 target_angular_velocity;
     bool firing_weapon;
 
+    void setLinearVelocityImpl(const Vec3& v) {
+        target_linear_velocity = v;
+    }
+    void setAngularVelocityImpl(const Vec3& v) {
+        target_angular_velocity = v;
+    }
+    void toggleWeaponImpl(const bool& toggle) {
+        firing_weapon = toggle;
+    }
+
+    ClientRpc<Vec3> setLinearVelocity = CShipControls::setLinearVelocityImpl;
+    ClientRpc<Vec3> setAngularVelocity = CShipControls::setAngularVelocityImpl;
+    ClientRpc<bool> toggleWeapon = CShipControls::toggleWeaponImpl;
+
     static RepLayout repLayout() {
         return {{},
-                {Rpc::bind<CShipControls, RpcType::Client, Vec3>(
-                     &CShipControls::setLinearVelocity, &CShipControls::setLinearVelocityImpl),
-                 Rpc::bind<CShipControls, RpcType::Client, Vec3>(
-                     &CShipControls::setAngularVelocity, &CShipControls::setAngularVelocityImpl),
-                 Rpc::bind<CShipControls, RpcType::Client, bool>(
-                     &CShipControls::toggleWeapon, &CShipControls::toggleWeaponImpl)}};
+                {Rpc::bind<CShipControls, RpcType::Client, Vec3>(&CShipControls::setLinearVelocity),
+                 Rpc::bind<CShipControls, RpcType::Client, Vec3>(&CShipControls::setAngularVelocity),
+                 Rpc::bind<CShipControls, RpcType::Client, bool>(&CShipControls::toggleWeapon)}};
     }
 };
 

@@ -8,6 +8,11 @@
 namespace dw {
 template <RpcType Type, typename... Args>
 void RpcSender<Type, Args...>::operator()(const Args&... args) {
+    send(args...);
+}
+
+template<RpcType Type, typename... Args>
+void RpcSender<Type, Args...>::send(const Args &... args) {
     // Pack arguments.
     OutputBitStream bs;
     // Below is a hack to apply stream::write to all args as we can't use C++17 folds. We use
@@ -20,24 +25,23 @@ void RpcSender<Type, Args...>::operator()(const Args&... args) {
     // Send.
     switch (Type) {
         case RpcType::Server:
-            sendServerRpc(bs);
+            sendServerRpcPayload(bs);
             break;
         case RpcType::Client:
-            sendClientRpc(bs);
+            sendClientRpcPayload(bs);
             break;
     }
 }
 
-template <typename Component, RpcType Type, typename... Args>
-RpcBindingPtr Rpc::bind(Rpc::RpcFunctorPtr<Component, Type, Args...> functor,
-                        Rpc::RpcHandlerPtr<Component, Args...> handler) {
+    template <typename Component, RpcType Type, typename... Args>
+RpcBindingPtr Rpc::bind(RpcSenderMemberPtr<Component, Type, Args...> sender) {
     return makeShared<Rpc::RpcBindingImpl<Component, Type, Args...>>(functor, handler);
 }
 
 template <typename Component, RpcType Type, typename... Args>
 Rpc::RpcBindingImpl<Component, Type, Args...>::RpcBindingImpl(
-    Rpc::RpcFunctorPtr<Component, Type, Args...> functor,
-    Rpc::RpcHandlerPtr<Component, Args...> handler)
+    Rpc::RpcSenderMemberPtr<Component, Type, Args...> functor,
+    Rpc::RpcReceiverFuncPtr<Component, Args...> handler)
     : functor_(functor), handler_(handler), component_(nullptr) {
 }
 
