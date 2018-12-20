@@ -8,21 +8,34 @@
 #include "net/CNetData.h"
 
 namespace dw {
-RpcSenderBase::RpcSenderBase() : net_data_(nullptr), logger_(nullptr), rpc_id_(0) {
+RpcSender::RpcSender() : entity_(nullptr), net_data_(nullptr), logger_(nullptr), rpc_id_(0) {
 }
 
-void RpcSenderBase::initInternal(CNetData* net_data, Logger* logger, RpcId rpc_id) {
-    net_data_ = net_data;
-    logger_ = logger;
+void RpcSender::onAddToEntity(Entity& entity, RpcId rpc_id) {
+    entity_ = &entity;
+    net_data_ = entity.component<CNetData>();
+    logger_ = &entity.log();
     rpc_id_ = rpc_id;
 }
 
-void RpcSenderBase::sendServerRpcPayload(const OutputBitStream &payload) {
+bool RpcSender::shouldShortCircuit(RpcType type) const {
+    // TODO: Check this.
+    assert(net_data_);
+    if (type == RpcType::Server && net_data_->role() == NetRole::Authority) {
+        return true;
+    }
+    if (type == RpcType::Client && net_data_->role() == NetRole::AuthoritativeProxy) {
+        return true;
+    }
+    return false;
+}
+
+void RpcSender::sendServerRpcPayload(const OutputBitStream& payload) {
     assert(net_data_);
     net_data_->sendRpc(rpc_id_, RpcType::Server, payload.vec_data());
 }
 
-void RpcSenderBase::sendClientRpcPayload(const OutputBitStream &payload) {
+void RpcSender::sendClientRpcPayload(const OutputBitStream& payload) {
     assert(net_data_);
     if (net_data_->role() != NetRole::AuthoritativeProxy) {
         logger_->warn("Trying to send a client RPC from a non-authoritative proxy.");

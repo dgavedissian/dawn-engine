@@ -34,15 +34,15 @@ public:
         firing_weapon = toggle;
     }
 
-    ClientRpc<Vec3> setLinearVelocity = CShipControls::setLinearVelocityImpl;
-    ClientRpc<Vec3> setAngularVelocity = CShipControls::setAngularVelocityImpl;
-    ClientRpc<bool> toggleWeapon = CShipControls::toggleWeaponImpl;
+    ClientRpc<Vec3> setLinearVelocity = &CShipControls::setLinearVelocityImpl;
+    ClientRpc<Vec3> setAngularVelocity = &CShipControls::setAngularVelocityImpl;
+    ClientRpc<bool> toggleWeapon = &CShipControls::toggleWeaponImpl;
 
     static RepLayout repLayout() {
         return {{},
-                {Rpc::bind<CShipControls, RpcType::Client, Vec3>(&CShipControls::setLinearVelocity),
-                 Rpc::bind<CShipControls, RpcType::Client, Vec3>(&CShipControls::setAngularVelocity),
-                 Rpc::bind<CShipControls, RpcType::Client, bool>(&CShipControls::toggleWeapon)}};
+                {BindRpc<CShipControls, RpcType::Client, Vec3>(&CShipControls::setLinearVelocity),
+                 BindRpc<CShipControls, RpcType::Client, Vec3>(&CShipControls::setAngularVelocity),
+                 BindRpc<CShipControls, RpcType::Client, bool>(&CShipControls::toggleWeapon)}};
     }
 };
 
