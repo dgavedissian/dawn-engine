@@ -30,17 +30,12 @@ bool RpcSender::shouldShortCircuit(RpcType type) const {
     return false;
 }
 
-void RpcSender::sendServerRpcPayload(const OutputBitStream& payload) {
-    assert(net_data_);
-    net_data_->sendRpc(rpc_id_, RpcType::Server, payload.vec_data());
-}
-
-void RpcSender::sendClientRpcPayload(const OutputBitStream& payload) {
+void RpcSender::sendRpcPayload(RpcType type, const OutputBitStream& payload) const {
     assert(net_data_);
     if (net_data_->role() != NetRole::AuthoritativeProxy) {
         logger_->warn("Trying to send a client RPC from a non-authoritative proxy.");
-    } else {
-        net_data_->sendRpc(rpc_id_, RpcType::Client, payload.vec_data());
+        return;
     }
+    net_data_->sendRpc(rpc_id_, type, payload.vec_data());
 }
 }  // namespace dw

@@ -37,14 +37,7 @@ void RpcSenderImpl<Type, Args...>::send(const Args&... args) {
     (void)t;
 
     // Send.
-    switch (Type) {
-        case RpcType::Server:
-            sendServerRpcPayload(bs);
-            break;
-        case RpcType::Client:
-            sendClientRpcPayload(bs);
-            break;
-    }
+    sendRpcPayload(Type, bs);
 }
 
 template <RpcType Type, typename... Args>

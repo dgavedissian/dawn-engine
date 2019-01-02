@@ -13,7 +13,8 @@ class CNetData;
 using RpcId = u16;
 enum class RpcType {
     Server,  // RPCs sent from the server to the authoritative client.
-    Client   // RPCs sent from the authoritative client to the server.
+    Client,   // RPCs sent from the authoritative client to the server.
+    Multicast // RPCs sent from the server to all clients.
 };
 
 // An RPC receiver member function pointer.
@@ -38,10 +39,9 @@ public:
 protected:
     bool shouldShortCircuit(RpcType type) const;
 
-    // Helper functions that pass the data along to the CNetData component (which forwards it to the
+    // Helper function that pass the data along to the CNetData component (which forwards it to the
     // network layer).
-    void sendServerRpcPayload(const OutputBitStream& payload);
-    void sendClientRpcPayload(const OutputBitStream& payload);
+    void sendRpcPayload(RpcType type, const OutputBitStream& payload) const;
 
     // Entity that contains this RPC sender.
     Entity* entity_;
@@ -74,6 +74,7 @@ private:
 
 template <typename... Args> using ServerRpc = RpcSenderImpl<RpcType::Server, Args...>;
 template <typename... Args> using ClientRpc = RpcSenderImpl<RpcType::Client, Args...>;
+template <typename... Args> using MulticastRpc = RpcSenderImpl<RpcType::Multicast, Args...>;
 
 template <typename Component, RpcType Type, typename... Args>
 using RpcSenderMemberPtr = RpcSenderImpl<Type, Args...>(Component::*);
