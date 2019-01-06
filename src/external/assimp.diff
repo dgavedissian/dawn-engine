@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index dd2317cc..e719f3e3 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -329,7 +329,7 @@ ENDIF(NOT ZLIB_FOUND)
+ INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR})
+ 
+ # Search for unzip
+-use_pkgconfig(UNZIP minizip)
++#use_pkgconfig(UNZIP minizip)
+ 
+ IF ( ASSIMP_NO_EXPORT )
+   ADD_DEFINITIONS( -DASSIMP_BUILD_NO_EXPORT)

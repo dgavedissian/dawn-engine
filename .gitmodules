@@ -1,63 +1,9 @@
 [submodule "src/external/optional-lite"]
 	path = src/external/optional-lite
 	url = https://github.com/martinmoene/optional-lite.git
-[submodule "src/external/expected-lite"]
-	path = src/external/expected-lite
-	url = https://github.com/martinmoene/expected-lite.git
 [submodule "src/external/any-lite"]
 	path = src/external/any-lite
 	url = https://github.com/martinmoene/any-lite.git
-[submodule "src/external/stb"]
-	path = src/external/stb
-	url = https://github.com/nothings/stb.git
-[submodule "src/external/tinyformat"]
-	path = src/external/tinyformat
-	url = https://github.com/c42f/tinyformat.git
-[submodule "src/external/glfw"]
-	path = src/external/glfw
-	url = https://github.com/glfw/glfw.git
-[submodule "src/external/imgui"]
-	path = src/external/imgui
-	url = https://github.com/ocornut/imgui.git
-[submodule "src/external/sol2"]
-	path = src/external/sol2
-	url = https://github.com/ThePhD/sol2.git
-[submodule "src/external/glslang"]
-	path = src/external/glslang
-	url = https://github.com/KhronosGroup/glslang.git
-[submodule "src/external/json"]
-	path = src/external/json
-	url = https://github.com/nlohmann/json.git
-[submodule "src/external/SPIRV-Cross"]
-	path = src/external/SPIRV-Cross
-	url = https://github.com/KhronosGroup/SPIRV-Cross.git
-[submodule "src/external/googletest"]
-	path = src/external/googletest
-	url = https://github.com/google/googletest.git
 [submodule "src/external/variant"]
 	path = src/external/variant
 	url = https://github.com/mapbox/variant.git
-[submodule "src/external/yojimbo"]
-	path = src/external/yojimbo
-	url = https://github.com/networkprotocol/yojimbo.git
-[submodule "src/external/yojimbo_mbedtls"]
-	path = src/external/yojimbo_mbedtls
-	url = https://github.com/ARMmbed/mbedtls.git
-[submodule "src/external/yojimbo_sodium"]
-	path = src/external/yojimbo_sodium
-	url = https://github.com/jedisct1/libsodium.git
-[submodule "src/external/assimp"]
-	path = src/external/assimp
-	url = https://github.com/assimp/assimp.git
-[submodule "src/external/MathGeoLib"]
-	path = src/external/MathGeoLib
-	url = https://github.com/davedissian/dawnengine-MathGeoLib.git
-[submodule "src/external/bullet"]
-	path = src/external/bullet
-	url = https://github.com/bulletphysics/bullet3.git
-[submodule "src/external/luajit"]
-	path = src/external/luajit
-	url = http://luajit.org/git/luajit-2.0.git
-[submodule "src/external/flatbuffers"]
-	path = src/external/flatbuffers
-	url = https://github.com/google/flatbuffers.git
