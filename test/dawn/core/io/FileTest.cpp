@@ -35,7 +35,11 @@ TEST_F(FileTest, ReadSingleLine) {
 
 TEST_F(FileTest, ReadMultiLine) {
     dw::File file(context_, "core/io/testfiles/b.txt", dw::FileMode::Read);
+#if DW_PLATFORM == DW_WIN32
+    EXPECT_EQ("line1\r\nline2\r\n", dw::stream::read<dw::String>(file));
+#else
     EXPECT_EQ("line1\nline2\n", dw::stream::read<dw::String>(file));
+#endif
 }
 
 TEST_F(FileTest, WriteThenRead) {

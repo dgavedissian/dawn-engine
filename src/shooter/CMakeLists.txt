@@ -18,6 +18,6 @@ set(SOURCE_FILES
     ShooterGameMode.cpp
     ShooterGameMode.h)
 
-add_dawn_executable(Shooter
+add_dawn_executable(DwShooter
     SRCS ${SOURCE_FILES}
     RESOURCE_PKGS ${CMAKE_SOURCE_DIR}/media/shooter)

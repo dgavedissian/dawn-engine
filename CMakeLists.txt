@@ -102,8 +102,13 @@ function(add_dawn_executable GAME_NAME)
         set_target_properties(${GAME_NAME} PROPERTIES LINK_FLAGS ${link_flags})
     endif()
 
-    # Currently, Dawn can only be linked dynamically
     #set_target_properties(${GAME_NAME} PROPERTIES COMPILE_FLAGS "-DDW_DLL")
+
+    # Currently, macOS STL requires this to be defined to use std::visit before macOS 10.14.
+    # See: https://stackoverflow.com/questions/52310835/xcode-10-call-to-unavailable-function-stdvisit
+    if(APPLE)
+        set_target_properties(${GAME_NAME} PROPERTIES COMPILE_FLAGS "-D_LIBCPP_DISABLE_AVAILABILITY")
+    endif()
 
     # LuaJIT on 64-bit OS X requires these linker flags for executables
     if(APPLE)

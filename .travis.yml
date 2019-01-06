@@ -4,7 +4,7 @@
 
 # C++ project
 language: cpp
-dist: trusty
+dist: xenial
 sudo: false
 
 ################################
@@ -14,48 +14,25 @@ sudo: false
 matrix:
   include:
 
-  # OSX / Clang
+  # Windows / MSVC 2017 32-bit
+  - os: windows
+    env: CMAKE_CONFIGURE_OPTIONS="-A Win32" CMAKE_BUILD_OPTIONS="--config Release" CTEST_OPTIONS="-C Release"
 
+  # Windows / MSVC 2017 64-bit
+  - os: windows
+    env: CMAKE_CONFIGURE_OPTIONS="-A x64" CMAKE_BUILD_OPTIONS="--config Release" CTEST_OPTIONS="-C Release"
+
+  # macOS / Clang
   - os: osx
-    env: C_COMPILER=clang CXX_COMPILER=clang++
-    osx_image: xcode7.3
-
+    env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
+    osx_image: xcode10.1
   - os: osx
-    env: C_COMPILER=clang CXX_COMPILER=clang++
-    osx_image: xcode8.3
+    env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
+    osx_image: xcode9.4
 
-  # Linux / GCC 5
-
+  # Linux / GCC
   - os: linux
-    env: C_COMPILER=gcc-5 CXX_COMPILER=g++-5
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-        packages:
-          - gcc-5
-          - g++-5
-          - xorg-dev
-          - libgl1-mesa-dev
-
-  # Linux / GCC 6
-
-  - os: linux
-    env: C_COMPILER=gcc-6 CXX_COMPILER=g++-6
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-        packages:
-          - gcc-6
-          - g++-6
-          - xorg-dev
-          - libgl1-mesa-dev
-
-  # Linux / GCC 7
-
-  - os: linux
-    env: C_COMPILER=gcc-7 CXX_COMPILER=g++-7
+    env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=gcc-7 -DCMAKE_CXX_COMPILER=g++-7 -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     addons:
       apt:
         sources:
@@ -66,33 +43,15 @@ matrix:
           - xorg-dev
           - libgl1-mesa-dev
 
-  # Linux / Clang 3.5
-
+  # Linux / Clang
   - os: linux
-    env: C_COMPILER=clang CXX_COMPILER=clang++
+    env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     addons:
       apt:
         sources:
-          - ubuntu-toolchain-r-test
+          - llvm-toolchain-xenial-6.0
         packages:
-          - gcc-5
-          - g++-5
-          - xorg-dev
-          - libgl1-mesa-dev
-
-  # Linux / Clang 4.0
-
-  - os: linux
-    env: C_COMPILER=clang-4.0 CXX_COMPILER=clang++-4.0
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-4.0
-        packages:
-          - gcc-5
-          - g++-5
-          - clang-4.0
+          - clang-6.0
           - xorg-dev
           - libgl1-mesa-dev
 
@@ -100,18 +59,11 @@ matrix:
 # build script
 ################################
 
-before_install:
-  - pip install --user cpp-coveralls
-
 script:
-  - mkdir build
-  - cd build
-  - cmake -DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CXX_COMPILER -DCMAKE_BUILD_TYPE=Release ..
-  - make
-  - ctest -V
-
-#after_success:
-#  - coveralls --root ../src/dawn -E "old" -E "ecs/ontology"
+  - mkdir build && cd build
+  - cmake ${CMAKE_CONFIGURE_OPTIONS} ..
+  - cmake --build . ${CMAKE_BUILD_OPTIONS}
+  - ctest ${CTEST_OPTIONS}
 
 notifications:
   email: false

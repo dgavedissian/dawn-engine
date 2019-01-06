@@ -1,6 +1,9 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
 
+message(STATUS "Setting up external dependencies...")
+add_subdirectory(external)
+
 # Source: https://github.com/google/flatbuffers/blob/master/CMake/FindFlatBuffers.cmake
 function(FLATBUFFERS_GENERATE_C_HEADERS Name)
     set(FLATC_OUTPUTS)
@@ -239,6 +242,9 @@ enable_maximum_warnings(DwEngine)
 set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)
     set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
+endif()
+if(APPLE)
+    set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-D_LIBCPP_DISABLE_AVAILABILITY")
 endif()
 target_include_directories(DwEngine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
