@@ -94,7 +94,7 @@ void NetInstance::serverUpdate(float dt) {
     for (ClientId client_id = 0; client_id < server_->numConnections(); ++client_id) {
         while (true) {
             auto message = server_->receive(client_id);
-            if (!message.isPresent()) {
+            if (!message.has_value()) {
                 break;
             }
             auto server_message = GetServerMessage(message->data.data());
@@ -161,7 +161,7 @@ void NetInstance::clientUpdate(float dt) {
 
     while (true) {
         auto message = client_->receive();
-        if (!message.isPresent()) {
+        if (!message.has_value()) {
             break;
         }
         auto client_message = GetClientMessage(message->data.data());

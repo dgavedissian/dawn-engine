@@ -261,30 +261,6 @@ else()
 endif()
 set(LIBS ${LIBS} flatbuffers)
 
-##############################################################
-# Packaged Dependencies
-##############################################################
-
-# Build static libraries as PIC
-if(UNIX) # TODO: If is Clang or GCC
-    add_definitions(-fPIC)
-endif()
-
-# any-lite
-add_library(any-lite INTERFACE)
-target_include_directories(any-lite INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/any-lite/include)
-set(LIBS ${LIBS} any-lite)
-
-# expected-lite
-add_library(expected-lite INTERFACE)
-target_include_directories(expected-lite INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/expected-lite/include)
-set(LIBS ${LIBS} expected-lite)
-
-# FastDelegate
-add_library(FastDelegate INTERFACE)
-target_include_directories(FastDelegate INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/FastDelegate)
-set(LIBS ${LIBS} FastDelegate)
-
 # glad
 if(NOT EMSCRIPTEN)
     add_library(glad EXCLUDE_FROM_ALL glad/src/glad.c)

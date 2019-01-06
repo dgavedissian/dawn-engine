@@ -14,11 +14,11 @@ public:
     Memory();
 
     /// Create an uninitialised memory block.
-    explicit Memory(uint size);
+    explicit Memory(usize size);
 
     /// Creates a memory block by copying from existing data.
     /// Size in bytes.
-    template <typename T> Memory(const T* data, uint size);
+    template <typename T> Memory(const T* data, usize size);
 
     /// Creates a memory block by copying from existing data.
     template <typename T> Memory(const Vector<T>& data);
@@ -28,7 +28,7 @@ public:
 
     /// Takes ownership of an existing memory block, deleting it using the provided deleter.
     /// Size in bytes.
-    template <typename T, typename Deleter> Memory(T* data, uint size, Deleter deleter);
+    template <typename T, typename Deleter> Memory(T* data, usize size, Deleter deleter);
 
     /// Destroys memory block.
     ~Memory() = default;
@@ -48,16 +48,16 @@ public:
     byte* data() const;
 
     /// Size of the byte buffer.
-    uint size() const;
+    usize size() const;
 
 private:
     SharedPtr<byte> data_;
-    uint size_;
+    usize size_;
     // A type erased pointer which owns an object that holds some data.
     SharedPtr<void> holder_;
 };
 
-template <typename T> Memory::Memory(const T* data, uint size) : Memory(data ? size : 0) {
+template <typename T> Memory::Memory(const T* data, usize size) : Memory(data ? size : 0) {
     if (data != nullptr) {
         memcpy(data_.get(), data, size);
     }
@@ -78,7 +78,7 @@ template <typename T> Memory::Memory(Vector<T>&& data) {
 }
 
 template <typename T, typename Deleter>
-Memory::Memory(T* data, uint size, Deleter deleter) : size_{size} {
+Memory::Memory(T* data, usize size, Deleter deleter) : size_{size} {
     data_.reset(static_cast<byte*>(static_cast<void*>(data)), deleter);
 }
 }  // namespace dw

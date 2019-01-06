@@ -15,7 +15,7 @@ public:
 
     /// Write an arbitrary amount of bytes to the stream.
     /// @return Number of bytes written
-    virtual u32 writeData(const void* src, u32 size) = 0;
+    virtual usize writeData(const void* src, usize size) = 0;
 
 // Write for primitive types.
 #define IMPL_PRIMITIVE_WRITE(T)          \

@@ -1,9 +1,0 @@
-[submodule "src/external/optional-lite"]
-	path = src/external/optional-lite
-	url = https://github.com/martinmoene/optional-lite.git
-[submodule "src/external/any-lite"]
-	path = src/external/any-lite
-	url = https://github.com/martinmoene/any-lite.git
-[submodule "src/external/variant"]
-	path = src/external/variant
-	url = https://github.com/mapbox/variant.git

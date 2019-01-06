@@ -1,6 +1,6 @@
 # Useful CMake utility functions
-# Last Updated: 12/1/2017
-# Copyright (c) 2015-17 David Avedissian (git@dga.me.uk)
+# Last Updated: 06/01/2019
+# Copyright (c) 2015-19 David Avedissian (git@dga.me.uk)
 cmake_minimum_required(VERSION 3.1)
 
 # Create a vcproj userfile which correctly runs the binary in a specified working directory when debugging
@@ -59,28 +59,36 @@ endmacro()
 
 # Enable C++11
 macro(enable_cpp11 TARGET)
+    set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 11)
+    set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD_REQUIRED TRUE)
     if(UNIX)
-        set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 11)
-        set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD_REQUIRED TRUE)
         util_enable_libcpp(${TARGET})
     endif()
 endmacro()
 
 # Enable C++14
 macro(enable_cpp14 TARGET)
+    set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 14)
+    set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD_REQUIRED TRUE)
     if(UNIX)
-        set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 14)
-        set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD_REQUIRED TRUE)
         util_enable_libcpp(${TARGET})
     endif()
 endmacro()
 
-# If on macOS, enable the libc++ stdlib instead of the default one for more implementations of C++11/14
+# Enable C++17
+macro(enable_cpp17 TARGET)
+    set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 17)
+    set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD_REQUIRED TRUE)
+    if(UNIX)
+        util_enable_libcpp(${TARGET})
+    endif()
+endmacro()
+
+# If on macOS, enable the libc++ stdlib instead of the default one for more implementations of C++11/14/17
 macro(util_enable_libcpp TARGET)
     if(APPLE)
         target_compile_options(${TARGET} PUBLIC -stdlib=libc++)
         if(XCODE)
-            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
             set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
         endif()
     endif()

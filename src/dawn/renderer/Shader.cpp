@@ -171,7 +171,11 @@ Result<None> Shader::beginLoad(const String&, InputStream& src) {
         return {"Renderer module missing."};
     }
     Vector<u32> spirv_out;
-    glslang::GlslangToSpv(*program.getIntermediate(stage), spirv_out);
+    auto& intermediate = *program.getIntermediate(stage);
+    glslang::SpvVersion spv_version;
+    spv_version.spv = 0x10000;
+    intermediate.setSpv(spv_version);
+    glslang::GlslangToSpv(intermediate, spirv_out);
     handle_ = module<Renderer>()->rhi()->createShader(type_, Memory(spirv_out));
 
     return None{};

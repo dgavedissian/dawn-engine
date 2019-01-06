@@ -12,9 +12,9 @@ class CNetData;
 
 using RpcId = u16;
 enum class RpcType {
-    Server,  // RPCs sent from the server to the authoritative client.
-    Client,   // RPCs sent from the authoritative client to the server.
-    Multicast // RPCs sent from the server to all clients.
+    Server,    // RPCs sent from the server to the authoritative client.
+    Client,    // RPCs sent from the authoritative client to the server.
+    Multicast  // RPCs sent from the server to all clients.
 };
 
 // An RPC receiver member function pointer.

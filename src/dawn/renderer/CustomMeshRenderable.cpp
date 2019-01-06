@@ -19,7 +19,8 @@ CustomMeshRenderable::~CustomMeshRenderable() {
 void CustomMeshRenderable::draw(Renderer* renderer, uint view, detail::Transform&,
                                 const Mat4& model_matrix, const Mat4& view_projection_matrix) {
     auto rhi = renderer->rhi();
-    u32 vertex_count = index_buffer_ ? index_buffer_->indexCount() : vertex_buffer_->vertexCount();
+    usize vertex_count =
+        index_buffer_ ? index_buffer_->indexCount() : vertex_buffer_->vertexCount();
     rhi->setVertexBuffer(vertex_buffer_->internalHandle());
     if (index_buffer_) {
         rhi->setIndexBuffer(index_buffer_->internalHandle());

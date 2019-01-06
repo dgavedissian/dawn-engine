@@ -110,7 +110,7 @@ void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_pro
     setUniform("mvp_matrix", view_projection_matrix * model_matrix);
 
     // Set textures.
-    for (size_t i = 0; i < texture_units_.size(); i++) {
+    for (uint i = 0; i < static_cast<uint>(texture_units_.size()); i++) {
         if (!texture_units_[i]) {
             break;
         }

@@ -43,7 +43,7 @@ rhi::IndexBufferHandle IndexBuffer::internalHandle() const {
     return handle_;
 }
 
-u32 IndexBuffer::indexCount() const {
+usize IndexBuffer::indexCount() const {
     return index_count_;
 }
 }  // namespace dw

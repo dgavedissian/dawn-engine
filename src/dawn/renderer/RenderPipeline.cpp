@@ -97,7 +97,7 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
 
             // As all outputs are bound to a single render target (called a multiple render target),
             // we should ensure that the formats are identical.
-            if (output_format.isPresent()) {
+            if (output_format.has_value()) {
                 if (output_it->second != *output_format) {
                     return {str::format(
                         "Texture format mismatch. Invalid MRT. Output %s is %d, but expecting %d.",
@@ -196,33 +196,41 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
 
         // Set up steps.
         for (auto& step_desc : node_desc.steps) {
-            UniquePtr<PStep> step;
-            if (step_desc.is<RenderPipelineDesc::ClearStep>()) {
-                auto clear_step_desc = step_desc.get<RenderPipelineDesc::ClearStep>();
-                step = makeUnique<PClearStep>(clear_step_desc.colour);
+            auto step_result = visit(
+                Overloaded{
+                    [](const RenderPipelineDesc::ClearStep& desc)
+                        -> Result<UniquePtr<PStep>, String> {
+                        return makeUnique<PClearStep>(desc.colour);
+                    },
+                    [](const RenderPipelineDesc::RenderQueueStep& desc)
+                        -> Result<UniquePtr<PStep>, String> {
+                        return makeUnique<PRenderQueueStep>(desc.mask);
+                    },
+                    [ctx, &node, &render_pipeline](const RenderPipelineDesc::RenderQuadStep& desc)
+                        -> Result<UniquePtr<PStep>, String> {
+                        auto material =
+                            ctx->module<ResourceCache>()->get<Material>(desc.material_name);
+                        if (material.hasError()) {
+                            return {str::format(
+                                "Unable to set up material in render quad step. Reason: %s",
+                                material.error())};
+                        }
+                        auto material_instance = makeShared<Material>(**material);
+                        for (auto& sampler : node->input_samplers_) {
+                            material_instance->setUniform<int>(sampler.first + "_sampler",
+                                                               sampler.second);
+                            material_instance->setTexture(node->input_textures_.at(sampler.first),
+                                                          sampler.second);
+                        }
+                        return makeUnique<PRenderQuadStep>(render_pipeline->fullscreen_quad_,
+                                                           material_instance,
+                                                           node->input_samplers_);
+                    }},
+                step_desc);
+            if (step_result.hasError()) {
+                return step_result.error();
             }
-            if (step_desc.is<RenderPipelineDesc::RenderQueueStep>()) {
-                auto render_queue_step_desc = step_desc.get<RenderPipelineDesc::RenderQueueStep>();
-                step = makeUnique<PRenderQueueStep>(render_queue_step_desc.mask);
-            }
-            if (step_desc.is<RenderPipelineDesc::RenderQuadStep>()) {
-                auto render_quad_step_desc = step_desc.get<RenderPipelineDesc::RenderQuadStep>();
-                auto material = ctx->module<ResourceCache>()->get<Material>(
-                    render_quad_step_desc.material_name);
-                if (material.hasError()) {
-                    return {str::format("Unable to set up material in render quad step. Reason: %s",
-                                        material.error())};
-                }
-                auto material_instance = makeShared<Material>(**material);
-                for (auto& sampler : node->input_samplers_) {
-                    material_instance->setUniform<int>(sampler.first + "_sampler", sampler.second);
-                    material_instance->setTexture(node->input_textures_.at(sampler.first),
-                                                  sampler.second);
-                }
-                step = makeUnique<PRenderQuadStep>(render_pipeline->fullscreen_quad_,
-                                                   material_instance, node->input_samplers_);
-            }
-            node->steps_.push_back(std::move(step));
+            node->steps_.push_back(std::move(*step_result));
         }
 
         // Create output frame buffer.

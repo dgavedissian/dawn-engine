@@ -5,7 +5,6 @@
 #pragma once
 
 #include "core/Collections.h"
-#include "core/Option.h"
 #include "core/Log.h"
 
 namespace dw {
@@ -105,11 +104,11 @@ template <typename T, typename E> Result<T, E> Result<T, E>::failure(E&& error) 
 };
 
 template <typename T, typename E> bool Result<T, E>::hasError() const {
-    return error_.isPresent();
+    return error_.has_value();
 }
 
 template <typename T, typename E> bool Result<T, E>::hasValue() const {
-    return value_.isPresent();
+    return value_.has_value();
 }
 
 template <typename T, typename E> const T& Result<T, E>::value(const T& default_value) const {
@@ -141,7 +140,7 @@ template <typename T, typename E> const E& Result<T, E>::error() const {
         assert(!"getError called when no error is present.");
         std::terminate();
     }
-    return error_.get();
+    return *error_;
 }
 
 template <typename T, typename E> Result<T, E>::operator bool() const {

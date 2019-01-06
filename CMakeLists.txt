@@ -75,8 +75,8 @@ function(add_dawn_executable GAME_NAME)
     add_executable(${GAME_NAME} ${TYPE} ${TARGET_SRCS})
     set_output_dir(${GAME_NAME} ${CMAKE_BINARY_DIR})
 
-    # Compile in C++14 mode
-    enable_cpp14(${GAME_NAME})
+    # Compile in C++17 mode
+    enable_cpp17(${GAME_NAME})
     enable_maximum_warnings(${GAME_NAME})
 
     # Add include directories

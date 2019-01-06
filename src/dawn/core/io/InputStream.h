@@ -11,16 +11,16 @@ namespace dw {
 class DW_API InputStream {
 public:
     InputStream();
-    explicit InputStream(u64 size);
+    explicit InputStream(usize size);
     virtual ~InputStream();
 
     /// Read an arbitrary amount of bytes from the stream.
     /// @return Number of bytes read
-    virtual u32 readData(void* dest, u32 size) = 0;
+    virtual usize readData(void* dest, usize size) = 0;
 
     /// Moves the position of the cursor in the stream.
     /// @param position Offset from the start of the stream, in bytes
-    virtual void seek(u64 position) = 0;
+    virtual void seek(usize position) = 0;
 
     /// Check if the end of the stream has been reached
     bool eof() const;
@@ -30,10 +30,10 @@ public:
     String readLine(char delim = '\n');
 
     /// Returns the current position in the input stream
-    u64 position() const;
+    usize position() const;
 
     /// Returns the size of the input stream
-    u64 size() const;
+    usize size() const;
 
 // Read for primitive types.
 #define IMPL_PRIMITIVE_READ(T)       \
@@ -89,8 +89,8 @@ public:
     }
 
 protected:
-    u64 position_;
-    u64 size_;
+    usize position_;
+    usize size_;
 };
 
 namespace stream {

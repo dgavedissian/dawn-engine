@@ -312,7 +312,7 @@ public:
 
     void updateUniform(GLint location, const UniformData& data) {
         uniform_location_ = location;
-        VariantApplyVisitor(*this, data);
+        visit(*this, data);
     }
 
 private:
@@ -320,7 +320,7 @@ private:
 };
 }  // namespace
 
-int last_error = 0;
+int last_error_code = 0;
 String last_error_description;
 
 GLRenderContext::GLRenderContext(Context* ctx) : RenderContext(ctx) {
@@ -346,7 +346,7 @@ Result<None> GLRenderContext::createWindow(u16 width, u16 height, const String& 
     }
 
     glfwSetErrorCallback([](int error, const char* description) {
-        last_error = error;
+        last_error_code = error;
         last_error_description = description;
     });
 
@@ -377,7 +377,7 @@ Result<None> GLRenderContext::createWindow(u16 width, u16 height, const String& 
                                nullptr, nullptr);
     if (!window_) {
         // Failed to create window.
-        return {str::format("glfwCreateWindow failed. Code: 0x%x. Description: %s", last_error,
+        return {str::format("glfwCreateWindow failed. Code: 0x%x. Description: %s", last_error_code,
                             last_error_description)};
     }
     Vec2i fb_size = backbufferSize();
@@ -511,7 +511,7 @@ void GLRenderContext::stopRendering() {
 void GLRenderContext::processCommandList(Vector<RenderCommand>& command_list) {
     assert(window_);
     for (auto& command : command_list) {
-        VariantApplyVisitor(*this, command);
+        visit(*this, command);
     }
 }
 
@@ -827,7 +827,7 @@ void GLRenderContext::operator()(const cmd::CreateShader& c) {
 #else
 #error "Unsupported DW_GL_VERSION"
 #endif
-    glsl_out.set_options(options);
+    glsl_out.set_common_options(options);
     String source = glsl_out.compile();
 
     // Postprocess the GLSL to remove a GL 4.2 extension, which doesn't exist on macOS.
@@ -981,7 +981,7 @@ void GLRenderContext::operator()(const cmd::CreateFrameBuffer& c) {
     frame_buffer_map_.emplace(c.handle, fb_data);
 }
 
-void GLRenderContext::operator()(const cmd::DeleteFrameBuffer& c) {
+void GLRenderContext::operator()(const cmd::DeleteFrameBuffer&) {
     // TODO: unimplemented.
 }
 

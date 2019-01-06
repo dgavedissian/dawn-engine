@@ -16,13 +16,15 @@ GameSession::GameSession(Context* ctx, const GameSessionInfo& gsi)
     scene_manager_ = makeUnique<SceneManager>(ctx, event_system_.get(), scene_graph_.get());
 
     // Initialise networking.
-    if (gsi.start_info.is<GameSessionInfo::CreateNetGame>()) {
-        auto& info = gsi.start_info.get<GameSessionInfo::CreateNetGame>();
-        net_instance_ = NetInstance::listen(ctx, this, info.host, info.port, info.max_clients);
-    } else if (gsi.start_info.is<GameSessionInfo::JoinNetGame>()) {
-        auto& info = gsi.start_info.get<GameSessionInfo::JoinNetGame>();
-        net_instance_ = NetInstance::connect(ctx, this, info.host, info.port);
-    }
+    visit(Overloaded{[](const GameSessionInfo::CreateLocalGame&) {},
+                     [this, ctx](const GameSessionInfo::CreateNetGame& info) {
+                         net_instance_ =
+                             NetInstance::listen(ctx, this, info.host, info.port, info.max_clients);
+                     },
+                     [this, ctx](const GameSessionInfo::JoinNetGame& info) {
+                         net_instance_ = NetInstance::connect(ctx, this, info.host, info.port);
+                     }},
+          gsi.start_info);
 }
 
 GameSession::~GameSession() {

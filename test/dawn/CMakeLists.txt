@@ -13,7 +13,7 @@ set(TEST_FILES
 
 add_executable(DwTestRunner ${TEST_FILES})
 mirror_physical_directories(${TEST_FILES})
-enable_cpp14(DwTestRunner)
+enable_cpp17(DwTestRunner)
 target_link_libraries(DwTestRunner DwEngine gtest gtest_main)
 target_include_directories(DwTestRunner SYSTEM PRIVATE . ${CMAKE_SOURCE_DIR}/src/dawn ${INCLUDE_DIRS})
 

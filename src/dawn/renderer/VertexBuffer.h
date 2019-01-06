@@ -11,20 +11,20 @@ class DW_API VertexBuffer : public Object {
 public:
     DW_OBJECT(VertexBuffer);
 
-    VertexBuffer(Context* context, Memory data, uint vertex_count, const rhi::VertexDecl& decl,
+    VertexBuffer(Context* context, Memory data, usize vertex_count, const rhi::VertexDecl& decl,
                  rhi::BufferUsage usage = rhi::BufferUsage::Static);
     ~VertexBuffer();
 
     // Will resize.
-    void update(Memory data, uint vertex_count, uint offset);
+    void update(Memory data, usize vertex_count, usize offset);
 
     void bind(rhi::RHIRenderer* r);
 
     rhi::VertexBufferHandle internalHandle() const;
-    u32 vertexCount() const;
+    usize vertexCount() const;
 
 private:
     rhi::VertexBufferHandle handle_;
-    u32 vertex_count_;
+    usize vertex_count_;
 };
 }  // namespace dw

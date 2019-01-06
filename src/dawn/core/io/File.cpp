@@ -24,7 +24,7 @@ File::~File() {
     close();
 }
 
-u32 File::readData(void* dest, u32 size) {
+usize File::readData(void* dest, usize size) {
     if (!handle_) {
         return 0;
     }
@@ -45,7 +45,7 @@ u32 File::readData(void* dest, u32 size) {
     return size;
 }
 
-void File::seek(u64 position) {
+void File::seek(usize position) {
     if (!handle_) {
         return;
     }
@@ -60,7 +60,7 @@ void File::seek(u64 position) {
     position_ = position;
 }
 
-u32 File::writeData(const void* src, u32 size) {
+usize File::writeData(const void* src, usize size) {
     if (!handle_) {
         return 0;
     }

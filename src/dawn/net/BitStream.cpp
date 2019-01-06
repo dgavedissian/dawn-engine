@@ -6,14 +6,14 @@
 #include "net/BitStream.h"
 
 namespace dw {
-InputBitStream::InputBitStream(const byte* data, u32 length) : data_(data), length_(length) {
+InputBitStream::InputBitStream(const byte* data, usize length) : data_(data), length_(length) {
 }
 
 InputBitStream::InputBitStream(const Vector<byte>& data)
     : data_(data.data()), length_(data.size()) {
 }
 
-u32 InputBitStream::readData(void* dest, u32 size) {
+usize InputBitStream::readData(void* dest, usize size) {
     memcpy(dest, data_ + position_, size);
     position_ += size;
     return size;
@@ -27,15 +27,15 @@ const byte* InputBitStream::data() const {
     return data_;
 }
 
-u32 InputBitStream::length() const {
+usize InputBitStream::length() const {
     return length_;
 }
 
-OutputBitStream::OutputBitStream(u32 bytes_to_reserve) {
+OutputBitStream::OutputBitStream(usize bytes_to_reserve) {
     data_.reserve(bytes_to_reserve);
 }
 
-u32 OutputBitStream::writeData(const void* src, u32 size) {
+usize OutputBitStream::writeData(const void* src, usize size) {
     size_t end = data_.size();
     data_.resize(data_.size() + size);
     memcpy(data_.data() + end, src, size);
@@ -50,7 +50,7 @@ const byte* OutputBitStream::data() const {
     return data_.data();
 }
 
-u32 OutputBitStream::length() const {
+usize OutputBitStream::length() const {
     return data_.size();
 }
 }  // namespace dw
