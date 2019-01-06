@@ -112,6 +112,7 @@ set(SOURCE_FILES
     net/NetGameMode.h
     net/NetInstance.cpp
     net/NetInstance.h
+    net/NetMode.h
     net/NetRole.h
     net/RepProperty.h
     net/RepProperty.i.h

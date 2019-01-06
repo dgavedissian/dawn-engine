@@ -57,13 +57,17 @@ template <class T> Option<T>::Option(T&& other) : set_{true} {
 
 template <class T> Option<T>& Option<T>::operator=(const Option<T>& other) {
     set_ = other.set_;
-    get() = other.get();
+    if (other.set_) {
+        get() = other.get();
+    }
     return *this;
 }
 
 template <class T> Option<T>& Option<T>::operator=(Option<T>&& other) noexcept {
     set_ = other.set_;
-    get() = std::move(other.get());
+    if (other.set_) {
+        get() = std::move(other.get());
+    }
     return *this;
 }
 

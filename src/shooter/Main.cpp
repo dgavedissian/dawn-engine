@@ -19,7 +19,7 @@ public:
     ShooterGameSession(Context* ctx, const GameSessionInfo& gsi) : GameSession(ctx, gsi) {
         auto rc = module<ResourceCache>();
 
-        if (!net_instance_ || net_instance_->isClient()) {
+        if (!net_instance_ || net_instance_->netMode() == NetMode::Client) {
             module<Input>()->registerEventSystem(event_system_.get());
         }
 
@@ -51,7 +51,7 @@ public:
     }
 
     ~ShooterGameSession() override {
-        if (!net_instance_ || net_instance_->isClient()) {
+        if (!net_instance_ || net_instance_->netMode() == NetMode::Client) {
             module<Input>()->unregisterEventSystem(event_system_.get());
         }
     }

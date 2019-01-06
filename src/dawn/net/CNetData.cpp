@@ -5,6 +5,7 @@
 #include "Common.h"
 #include "net/CNetData.h"
 #include "net/NetInstance.h"
+#include "CNetData.h"
 
 namespace dw {
 RepLayout::RepLayout() : next_rpc_id_(0) {
@@ -17,7 +18,7 @@ RepLayout::RepLayout(const RepPropertyList& property_list, const RpcBindingList&
     }
 }
 
-RepLayout RepLayout::operator+(const RepLayout& other) {
+RepLayout RepLayout::operator+(const RepLayout& other) const {
     RepLayout result;
     result.property_list_ = property_list_;
     result.rpc_map_ = rpc_map_;
@@ -40,7 +41,7 @@ void RepLayout::onAddToEntity(Entity& entity) {
         prop->onAddToEntity(entity);
     }
     for (auto& rpc : rpc_map_) {
-        rpc.second->onAddToEntity(entity, rpc.first);
+        rpc.second(entity).onAddToEntity(entity, rpc.first);
     }
 }
 
@@ -70,17 +71,13 @@ void CNetData::deserialise(InputStream& in) {
 }
 
 void CNetData::sendRpc(RpcId rpc_id, RpcType type, const Vector<byte>& payload) {
-    if (net_->isServer()) {
-        receiveRpc(rpc_id, payload);
-    } else {
-        net_->sendRpc(entity_->id(), rpc_id, type, payload);
-    }
+    net_->sendRpc(entity_->id(), rpc_id, type, payload);
 }
 
 void CNetData::receiveRpc(RpcId rpc_id, const Vector<byte>& payload) {
     auto rpc_func = rep_layout_.rpc_map_.find(rpc_id);
     if (rpc_func != rep_layout_.rpc_map_.end()) {
-        (*rpc_func).second->receiveRpc(payload);
+        (*rpc_func).second(*entity_).receiveRpcPayload(*entity_, payload);
     } else {
         entity_->log().warn("Received unregistered RPC with ID %s, ignoring.", rpc_id);
     }
@@ -92,5 +89,9 @@ NetRole CNetData::role() const {
 
 NetRole CNetData::remoteRole() const {
     return remote_role_;
+}
+
+NetMode CNetData::netMode() const {
+    return net_->netMode();
 }
 }  // namespace dw

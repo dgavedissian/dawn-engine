@@ -7,7 +7,26 @@
 
 namespace dw {
 template <RpcType Type, typename... Args>
-void RpcSender<Type, Args...>::operator()(const Args&... args) {
+template <typename Component>
+RpcSenderImpl<Type, Args...>::RpcSenderImpl(RpcReceiverFuncPtr<Component, Args...> receiver) {
+    receiver_ = [receiver](const Entity& entity, const Args&... args) {
+        (entity.component<Component>()->*receiver)(args...);
+    };
+}
+
+template <RpcType Type, typename... Args>
+void RpcSenderImpl<Type, Args...>::operator()(const Args&... args) {
+    send(args...);
+}
+
+template <RpcType Type, typename... Args>
+void RpcSenderImpl<Type, Args...>::send(const Args&... args) {
+    if (shouldShortCircuit(Type)) {
+        assert(entity_);
+        receiver_(*entity_, args...);
+        return;
+    }
+
     // Pack arguments.
     OutputBitStream bs;
     // Below is a hack to apply stream::write to all args as we can't use C++17 folds. We use
@@ -18,40 +37,18 @@ void RpcSender<Type, Args...>::operator()(const Args&... args) {
     (void)t;
 
     // Send.
-    switch (Type) {
-        case RpcType::Server:
-            sendServerRpc(bs);
-            break;
-        case RpcType::Client:
-            sendClientRpc(bs);
-            break;
-    }
+    sendRpcPayload(Type, bs);
 }
 
-template <typename Component, RpcType Type, typename... Args>
-RpcBindingPtr Rpc::bind(Rpc::RpcFunctorPtr<Component, Type, Args...> functor,
-                        Rpc::RpcHandlerPtr<Component, Args...> handler) {
-    return makeShared<Rpc::RpcBindingImpl<Component, Type, Args...>>(functor, handler);
-}
-
-template <typename Component, RpcType Type, typename... Args>
-Rpc::RpcBindingImpl<Component, Type, Args...>::RpcBindingImpl(
-    Rpc::RpcFunctorPtr<Component, Type, Args...> functor,
-    Rpc::RpcHandlerPtr<Component, Args...> handler)
-    : functor_(functor), handler_(handler), component_(nullptr) {
-}
-
-template <typename Component, RpcType Type, typename... Args>
-void Rpc::RpcBindingImpl<Component, Type, Args...>::onAddToEntity(Entity& entity, RpcId rpc_id) {
-    component_ = entity.component<Component>();
-    auto& rpc_sender = component_->*functor_;
-    rpc_sender.initInternal(entity.component<CNetData>(), &entity.log(), rpc_id);
-}
-
-template <typename Component, RpcType Type, typename... Args>
-void Rpc::RpcBindingImpl<Component, Type, Args...>::receiveRpc(const Vector<byte>& payload) {
+template <RpcType Type, typename... Args>
+void RpcSenderImpl<Type, Args...>::receiveRpcPayload(const Entity& entity,
+                                                     const Vector<byte>& payload) {
     InputBitStream bs(payload);
-    (component_->*handler_)(stream::read<Args>(bs)...);
+    receiver_(entity, stream::read<Args>(bs)...);
 }
 
+template <typename Component, RpcType Type, typename... Args>
+RpcBinding BindRpc(RpcSenderMemberPtr<Component, Type, Args...> sender) {
+    return [sender](const Entity& e) -> RpcSender& { return e.component<Component>()->*sender; };
+}
 }  // namespace dw

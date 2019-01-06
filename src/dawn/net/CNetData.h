@@ -11,6 +11,7 @@
 
 #include "net/BitStream.h"
 #include "net/NetRole.h"
+#include "net/NetMode.h"
 #include "net/RepProperty.h"
 #include "net/Rpc.h"
 
@@ -23,7 +24,7 @@ public:
     RepLayout();
     RepLayout(const RepPropertyList& property_list, const RpcBindingList& rpc_list);
 
-    RepLayout operator+(const RepLayout& other);
+    RepLayout operator+(const RepLayout& other) const;
     RepLayout& operator+=(const RepLayout& other);
 
     template <typename... Components> static RepLayout build() {
@@ -35,7 +36,7 @@ public:
 
 private:
     RepPropertyList property_list_;
-    Map<RpcId, SharedPtr<RpcBinding>> rpc_map_;
+    Map<RpcId, RpcBinding> rpc_map_;
     RpcId next_rpc_id_;
 
 private:
@@ -58,6 +59,8 @@ public:
 
     NetRole role() const;
     NetRole remoteRole() const;
+
+    NetMode netMode() const;
 
 private:
     Entity* entity_;

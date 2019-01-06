@@ -16,7 +16,7 @@ public:
     virtual ~NullRenderContext();
 
     // Window management. Executed on the main thread.
-    void createWindow(u16 width, u16 height, const String& title) override;
+    Result<None> createWindow(u16 width, u16 height, const String& title) override;
     void destroyWindow() override;
     void processEvents() override;
     bool isWindowClosed() const override;
