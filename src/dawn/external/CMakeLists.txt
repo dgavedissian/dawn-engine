@@ -536,95 +536,97 @@ if(NOT yojimbo_POPULATED)
     FetchContent_Populate(yojimbo)
 
     # mbedtls
-    ExternalProject_Add(yojimbo_mbedtls-external
-        PREFIX ${EXTERNAL_PREFIX}
+    FetchContent_Declare(
+        mbedtls
         URL https://github.com/ARMmbed/mbedtls/archive/mbedtls-2.16.0.tar.gz
         URL_MD5 331938f7bc54eabe1675d4cdf910f8d8
-        DOWNLOAD_NO_PROGRESS 1
-        INSTALL_DIR ${EXTERNAL_INSTALL}
-        BUILD_COMMAND ""
-        UPDATE_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
-        CMAKE_ARGS ${EXTERNAL_ARGS}
-            -DCMAKE_DEBUG_POSTFIX=_d
-            -DENABLE_TESTING=0
-            -DENABLE_PROGRAMS=0
     )
-    set_target_properties(yojimbo_mbedtls-external PROPERTIES EXCLUDE_FROM_ALL TRUE)
-    add_library(yojimbo_mbedtls INTERFACE)
-    add_dependencies(yojimbo_mbedtls yojimbo_mbedtls-external)
-    file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
-    set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-    set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mbedtls$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mbedx509$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mbedcrypto$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
-
-    # libsodium
-    if(MSVC)
-        ExternalProject_Add(yojimbo_sodium-external
-            PREFIX ${EXTERNAL_PREFIX}
-            URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.15-msvc.zip
-            URL_MD5 ddcf8c9ea41c035b9e609c324abd5973
-            DOWNLOAD_NO_PROGRESS 1
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            INSTALL_COMMAND ""
-            UPDATE_COMMAND ""
+    FetchContent_GetProperties(mbedtls)
+    if(NOT mbedtls_POPULATED)
+        message(STATUS "Populating mbedtls")
+        FetchContent_Populate(mbedtls)
+        set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+        set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
+        set(USE_STATIC_MBEDTLS_LIBRARY ON CACHE BOOL "" FORCE)
+        set(USE_SHARED_MBEDTLS_LIBRARY OFF CACHE BOOL "" FORCE)
+        mark_as_advanced(
+            ENABLE_TESTING
+            ENABLE_PROGRAMS
+            ENABLE_ZLIB_SUPPORT
+            INSTALL_MBEDTLS_HEADERS
+            LINK_WITH_PTHREAD
+            UNSAFE_BUILD
+            USE_PKCS11_HELPER_LIBRARY
+            USE_SHARED_MBEDTLS_LIBRARY
+            USE_STATIC_MBEDTLS_LIBRARY
         )
-    elseif(NOT EMSCRIPTEN)
-        ExternalProject_Add(yojimbo_sodium-external
-            PREFIX ${EXTERNAL_PREFIX}
-            URL https://github.com/jedisct1/libsodium/releases/download/1.0.15/libsodium-1.0.15.tar.gz
-            URL_MD5 070373e73a0b10bd96f412e1732ebc42
-            DOWNLOAD_NO_PROGRESS 1
-            BUILD_IN_SOURCE 1
-            CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no
-            BUILD_COMMAND make
-            INSTALL_COMMAND make install
-            UPDATE_COMMAND ""
-        )
-    else()
-        ExternalProject_Add(yojimbo_sodium-external
-            PREFIX ${EXTERNAL_PREFIX}
-            URL https://github.com/jedisct1/libsodium/releases/download/1.0.15/libsodium-1.0.15.tar.gz
-            URL_MD5 070373e73a0b10bd96f412e1732ebc42
-            DOWNLOAD_NO_PROGRESS 1
-            BUILD_IN_SOURCE 1
-            CONFIGURE_COMMAND emconfigure ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no
-            BUILD_COMMAND emmake make
-            INSTALL_COMMAND emmake make install
-            UPDATE_COMMAND ""
-            )
+        add_subdirectory(${mbedtls_SOURCE_DIR} ${mbedtls_BINARY_DIR} EXCLUDE_FROM_ALL)
     endif()
-    set_target_properties(yojimbo_sodium-external PROPERTIES EXCLUDE_FROM_ALL TRUE)
-    add_library(yojimbo_sodium INTERFACE)
-    add_dependencies(yojimbo_sodium yojimbo_sodium-external)
-    if(WIN32)
-        file(MAKE_DIRECTORY ${EXTERNAL_PREFIX}/src/yojimbo_sodium-external/include)
-        set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PREFIX}/src/yojimbo_sodium-external/include)
-        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-            set(SODIUM_ARCH x64)
-        elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-            set(SODIUM_ARCH Win32)
-        else()
-            message(FATAL_ERROR "Unsupported architecture. CMAKE_SIZEOF_VOID_P is ${CMAKE_SIZEOF_VOID_P}")
+    
+    # sodium
+    if(MSVC)
+        FetchContent_Declare(
+            sodium
+            URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.17-msvc.zip
+            URL_MD5 a90f193ac3ce21e9578aae9b9ff10343
+        )
+        FetchContent_GetProperties(sodium)
+        if(NOT sodium_POPULATED)
+            message(STATUS "Populating sodium")
+            FetchContent_Populate(sodium)
+            add_library(sodium INTERFACE)
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                set(SODIUM_ARCH x64)
+            elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+                set(SODIUM_ARCH Win32)
+            else()
+                message(FATAL_ERROR "Unsupported architecture. CMAKE_SIZEOF_VOID_P is ${CMAKE_SIZEOF_VOID_P}")
+            endif()
+            if(NOT(MSVC_VERSION LESS 1910))
+                # Visual Studio 15.0 (2017)
+                set(SODIUM_MSVC v141)
+            elseif(NOT(MSVC_VERSION LESS 1900))
+                # Visual Studio 14.0 (2015)
+                set(SODIUM_MSVC v140)
+            else()
+                message(FATAL_ERROR "Unsupported MSVC version: ${MSVC_VERSION}")
+            endif()
+            set_property(TARGET sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${sodium_SOURCE_DIR}/include)
+            set_property(TARGET sodium PROPERTY INTERFACE_LINK_LIBRARIES
+                ${sodium_SOURCE_DIR}/${SODIUM_ARCH}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/${SODIUM_MSVC}/static/libsodium.lib)
         endif()
-        if(NOT(MSVC_VERSION LESS 1910))
-            # Visual Studio 15.0 (2017)
-            set(SODIUM_MSVC v141)
-        elseif(NOT(MSVC_VERSION LESS 1900))
-            # Visual Studio 14.0 (2015)
-            set(SODIUM_MSVC v140)
-        else()
-            message(FATAL_ERROR "Unsupported MSVC version: ${MSVC_VERSION}")
-        endif()
-        set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_LINK_LIBRARIES
-            ${EXTERNAL_PREFIX}/src/yojimbo_sodium-external/${SODIUM_ARCH}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/${SODIUM_MSVC}/static/libsodium.lib)
     else()
+        if(EMSCRIPTEN)
+            ExternalProject_Add(sodium-external
+                PREFIX ${EXTERNAL_PREFIX}
+                URL https://github.com/jedisct1/libsodium/releases/download/1.0.15/libsodium-1.0.15.tar.gz
+                URL_MD5 070373e73a0b10bd96f412e1732ebc42
+                DOWNLOAD_NO_PROGRESS 1
+                BUILD_IN_SOURCE 1
+                CONFIGURE_COMMAND emconfigure ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no
+                BUILD_COMMAND emmake make
+                INSTALL_COMMAND emmake make install
+                UPDATE_COMMAND ""
+            )
+        else()
+            ExternalProject_Add(sodium-external
+                PREFIX ${EXTERNAL_PREFIX}
+                URL https://github.com/jedisct1/libsodium/releases/download/1.0.17/libsodium-1.0.17.tar.gz
+                URL_MD5 070373e73a0b10bd96f412e1732ebc42
+                DOWNLOAD_NO_PROGRESS 1
+                BUILD_IN_SOURCE 1
+                CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no
+                BUILD_COMMAND make
+                INSTALL_COMMAND make install
+                UPDATE_COMMAND ""
+            )
+        endif()
+        set_target_properties(sodium-external PROPERTIES EXCLUDE_FROM_ALL TRUE)
+        add_library(sodium INTERFACE)
+        add_dependencies(sodium sodium-external)
         file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
-        set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-        set_property(TARGET yojimbo_sodium PROPERTY INTERFACE_LINK_LIBRARIES ${EXTERNAL_INSTALL}/lib/libsodium.a)
+        set_property(TARGET sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
+        set_property(TARGET sodium PROPERTY INTERFACE_LINK_LIBRARIES ${EXTERNAL_INSTALL}/lib/libsodium.a)
     endif()
 
     # yojimbo
@@ -638,7 +640,8 @@ if(NOT yojimbo_POPULATED)
     target_include_directories(yojimbo PRIVATE
         ${yojimbo_SOURCE_DIR}/netcode.io
         ${yojimbo_SOURCE_DIR}/reliable.io)
-    target_link_libraries(yojimbo yojimbo_mbedtls yojimbo_sodium)
+    target_link_libraries(yojimbo mbedcrypto mbedx509 mbedtls sodium)
+    target_include_directories(yojimbo PRIVATE ${mbedtls_SOURCE_DIR}/include)
     if(EMSCRIPTEN)
         target_compile_definitions(yojimbo PRIVATE -D__linux=1)
     endif()
