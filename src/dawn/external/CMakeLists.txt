@@ -394,8 +394,8 @@ ExternalProject_Add(luajit-external
     # every time in VS without specifying this CONFIGURE_COMMAND.
     CONFIGURE_COMMAND
         ${CMAKE_COMMAND} -E copy_directory
-            ${EXTERNAL_PREFIX}/src/Luajit-external
-            ${EXTERNAL_PREFIX}/src/Luajit-external-build
+            ${EXTERNAL_PREFIX}/src/luajit-external
+            ${EXTERNAL_PREFIX}/src/luajit-external-build
     UPDATE_COMMAND ""
     BUILD_COMMAND ${LUAJIT_BUILD_COMMAND}
     INSTALL_COMMAND ${LUAJIT_INSTALL_COMMAND}

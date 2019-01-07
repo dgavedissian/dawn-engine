@@ -4,7 +4,14 @@
  */
 #pragma once
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmismatched-tags"
+#endif
 #include <nlohmann/json.hpp>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #include "core/Collections.h"
 #include "core/Type.h"

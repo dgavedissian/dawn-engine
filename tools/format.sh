@@ -20,5 +20,4 @@ PATHS=(
     src/shooter
     src/viewer
 )
-find "${PATHS[@]}" -name "*.h" -exec $CLANG_FORMAT -i {} \;
-find "${PATHS[@]}" -name "*.cpp" -exec $CLANG_FORMAT -i {} \;
+find "${PATHS[@]}" -name "*.h" -o -name "*.cpp" -not -path "./src/dawn/external/*" -exec $CLANG_FORMAT -i {} \;

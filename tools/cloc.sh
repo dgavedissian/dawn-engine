@@ -1,11 +1,7 @@
 #!/bin/bash
 PATHS=(
     cmake
-    src/dawn
-    src/examples
-    src/sandbox
-    src/shooter
-    src/viewer
+    src
     test
     tools
 )
