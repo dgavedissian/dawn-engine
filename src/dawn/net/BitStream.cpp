@@ -19,7 +19,7 @@ usize InputBitStream::readData(void* dest, usize size) {
     return size;
 }
 
-void InputBitStream::seek(u64 position) {
+void InputBitStream::seek(usize position) {
     position_ = position;
 }
 

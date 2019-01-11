@@ -200,11 +200,11 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
                 Overloaded{
                     [](const RenderPipelineDesc::ClearStep& desc)
                         -> Result<UniquePtr<PStep>, String> {
-                        return makeUnique<PClearStep>(desc.colour);
+                        return {makeUnique<PClearStep>(desc.colour)};
                     },
                     [](const RenderPipelineDesc::RenderQueueStep& desc)
                         -> Result<UniquePtr<PStep>, String> {
-                        return makeUnique<PRenderQueueStep>(desc.mask);
+                        return {makeUnique<PRenderQueueStep>(desc.mask)};
                     },
                     [ctx, &node, &render_pipeline](const RenderPipelineDesc::RenderQuadStep& desc)
                         -> Result<UniquePtr<PStep>, String> {
@@ -222,9 +222,9 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
                             material_instance->setTexture(node->input_textures_.at(sampler.first),
                                                           sampler.second);
                         }
-                        return makeUnique<PRenderQuadStep>(render_pipeline->fullscreen_quad_,
-                                                           material_instance,
-                                                           node->input_samplers_);
+                        return {makeUnique<PRenderQuadStep>(render_pipeline->fullscreen_quad_,
+                                                            material_instance,
+                                                            node->input_samplers_)};
                     }},
                 step_desc);
             if (step_result.hasError()) {
