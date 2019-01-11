@@ -81,46 +81,26 @@ set(EXTERNAL_ARGS ${HOST_EXTERNAL_ARGS}
 # existence of the path. Therefore, we create the path beforehand.
 
 # Assimp
-if(WIN32)
-    set(ASSIMP_PATCH_COMMAND)
-else()
-    set(ASSIMP_PATCH_COMMAND sed -e "/use_pkgconfig(UNZIP minizip)/s/^/#/g" -i CMakeLists.txt)
-endif()
-if(MSVC)
-    set(ASSIMP_OUTPUT_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/assimp-vc140-mt$<$<CONFIG:Debug>:_d>.lib
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/$<CONFIG>/IrrXML$<$<CONFIG:Debug>:_d>.lib
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/$<CONFIG>/zlibstatic$<$<CONFIG:Debug>:d>.lib)
-else()
-    set(ASSIMP_OUTPUT_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/libassimp$<$<CONFIG:Debug>:_d>.a
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/irrXML/libIrrXML$<$<CONFIG:Debug>:_d>.a
-        ${EXTERNAL_PREFIX}/src/Assimp-external-build/contrib/zlib/libzlibstatic$<$<CONFIG:Debug>:_d>.a)
-endif()
-ExternalProject_Add(Assimp-external
-    PREFIX ${EXTERNAL_PREFIX}
+FetchContent_Declare(
+    assimp
     URL https://github.com/assimp/assimp/archive/v4.1.0.tar.gz
     URL_MD5 83b53a10c38d964bd1e69da0606e2727
-    DOWNLOAD_NO_PROGRESS 1
-    INSTALL_DIR ${EXTERNAL_INSTALL}
     PATCH_COMMAND ${PATCH_TOOL} -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/assimp.diff
-    UPDATE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
-    EXCLUDE_FROM_ALL 1
-    CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DASSIMP_BUILD_ASSIMP_TOOLS=0
-        -DASSIMP_BUILD_TESTS=0
-        -DASSIMP_BUILD_ZLIB=1
-        -DASSIMP_INSTALL_PDB=0
-        -DCMAKE_DEBUG_POSTFIX=_d
 )
-add_library(Assimp INTERFACE)
-add_dependencies(Assimp Assimp-external)
-file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
-set_property(TARGET Assimp PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-set_property(TARGET Assimp PROPERTY INTERFACE_LINK_LIBRARIES ${ASSIMP_OUTPUT_LIBRARIES})
-set(LIBS ${LIBS} Assimp)
+FetchContent_GetProperties(assimp)
+if(NOT assimp_POPULATED)
+    message(STATUS "Populating assimp")
+    FetchContent_Populate(assimp)
+    set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+    set(ASSIMP_INSTALL_PDB OFF CACHE BOOL "" FORCE)
+    add_subdirectory(${assimp_SOURCE_DIR} ${assimp_BINARY_DIR} EXCLUDE_FROM_ALL)
+    target_include_directories(assimp PUBLIC
+        ${assimp_SOURCE_DIR}/include
+        ${assimp_BINARY_DIR}/include) # Generated assimp config.
+endif()
+set(LIBS ${LIBS} assimp)
 
 # Bullet
 FetchContent_Declare(
@@ -294,33 +274,26 @@ endif()
 set(LIBS ${LIBS} glfw)
 
 # glslang
-ExternalProject_Add(glslang-external
-    PREFIX ${EXTERNAL_PREFIX}
+FetchContent_Declare(
+    glslang
     URL https://github.com/KhronosGroup/glslang/archive/7.10.2984.tar.gz
     URL_MD5 865bad2658dd1d61f9c5583a4a1992e6
-    DOWNLOAD_NO_PROGRESS 1
-    INSTALL_DIR ${EXTERNAL_INSTALL}
-    UPDATE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
-    EXCLUDE_FROM_ALL 1
-    CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DBUILD_TESTING=0
-        -DCMAKE_DEBUG_POSTFIX=d
-        -DENABLE_GLSLANG_BINARIES=0
-        -DENABLE_HLSL=0
 )
-add_library(glslang INTERFACE)
-add_dependencies(glslang glslang-external)
-file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/glslang/Public)
-set_property(TARGET glslang PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-    ${EXTERNAL_INSTALL}/include/glslang/Public)
-set_property(TARGET glslang PROPERTY INTERFACE_LINK_LIBRARIES
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}SPIRV$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glslang$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}OGLCompiler$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}OSDependent$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX})
-set(LIBS ${LIBS} glslang)
+FetchContent_GetProperties(glslang)
+if(NOT glslang_POPULATED)
+    message(STATUS "Populating glslang")
+    FetchContent_Populate(glslang)
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
+    set(ENABLE_HLSL OFF CACHE BOOL "" FORCE)
+    mark_as_advanced(
+        BUILD_TESTING
+        ENABLE_GLSLANG_BINARIES
+        ENABLE_HLSL
+    )
+    add_subdirectory(${glslang_SOURCE_DIR} ${glslang_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+set(LIBS ${LIBS} glslang SPIRV)
 
 # googletest
 FetchContent_Declare(
@@ -410,33 +383,26 @@ set_property(TARGET luajit PROPERTY INTERFACE_LINK_LIBRARIES
 set(LIBS ${LIBS} luajit)
 
 # MathGeoLib
-ExternalProject_Add(MathGeoLib-external
-    PREFIX ${EXTERNAL_PREFIX}
+FetchContent_Declare(
+    mathgeolib
     URL https://github.com/juj/MathGeoLib/archive/01f92dd8fbd1fe2e405de713cfd985ff07d27dc9.tar.gz
     URL_MD5 bdab0f5b19661b7842501c738209e4fb
-    DOWNLOAD_NO_PROGRESS 1
-    INSTALL_DIR ${EXTERNAL_INSTALL}
     PATCH_COMMAND ${PATCH_TOOL} -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/MathGeoLib.diff
-    UPDATE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
-    EXCLUDE_FROM_ALL 1
-    CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DCMAKE_DEBUG_POSTFIX=_d
-        -DMATH_TESTS_EXECUTABLE=0
-        -DVS_BUG=1
 )
-add_library(MathGeoLib INTERFACE)
-add_dependencies(MathGeoLib MathGeoLib-external)
-file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include/MathGeoLib)
-set_property(TARGET MathGeoLib PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-    ${EXTERNAL_INSTALL}/include/MathGeoLib)
-if(EMSCRIPTEN)
-    set_property(TARGET MathGeoLib PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/MathGeoLib.bc)
-else()
-    set_property(TARGET MathGeoLib PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}MathGeoLib$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+FetchContent_GetProperties(mathgeolib)
+if(NOT mathgeolib_POPULATED)
+    message(STATUS "Populating MathGeoLib")
+    FetchContent_Populate(MathGeoLib)
+    set(VS_BUG ON CACHE BOOL "" FORCE)
+    set(MATH_TESTS_EXECUTABLE OFF CACHE BOOL "" FORCE)
+    mark_as_advanced(
+        VS_BUG
+        MATH_TESTS_EXECUTABLE
+        GENERATE_ASM_LISTING
+        INSTALL_CMAKE_DIR
+    )
+    add_subdirectory(${mathgeolib_SOURCE_DIR} ${mathgeolib_BINARY_DIR} EXCLUDE_FROM_ALL)
+    target_include_directories(MathGeoLib PUBLIC $<BUILD_INTERFACE:${mathgeolib_SOURCE_DIR}/src>)
 endif()
 set(LIBS ${LIBS} MathGeoLib)
 
@@ -456,26 +422,19 @@ endif()
 set(LIBS ${LIBS} sol2)
 
 # SPIRV-Cross
-ExternalProject_Add(SPIRVCross-external
-    PREFIX ${EXTERNAL_PREFIX}
+FetchContent_Declare(
+    spirv-cross
     URL https://github.com/KhronosGroup/SPIRV-Cross/archive/ed16b3e69985feaf565efbecea70a1cc2fca2a58.tar.gz
     URL_MD5 970fa559c40cee3ba603246a1696a6c9
-    DOWNLOAD_NO_PROGRESS 1
-    INSTALL_DIR ${EXTERNAL_INSTALL}
-    UPDATE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
-    CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DCMAKE_DEBUG_POSTFIX=_d
 )
-set_target_properties(SPIRVCross-external PROPERTIES EXCLUDE_FROM_ALL TRUE)
-add_library(SPIRVCross INTERFACE)
-add_dependencies(SPIRVCross SPIRVCross-external)
-set_property(TARGET SPIRVCross PROPERTY INTERFACE_LINK_LIBRARIES
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}spirv-cross-core$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}spirv-cross-glsl$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}spirv-cross-hlsl$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
-set(LIBS ${LIBS} SPIRVCross)
+FetchContent_GetProperties(spirv-cross)
+if(NOT spirv-cross_POPULATED)
+    message(STATUS "Populating spirv-cross")
+    FetchContent_Populate(spirv-cross)
+    add_subdirectory(${spirv-cross_SOURCE_DIR} ${spirv-cross_BINARY_DIR} EXCLUDE_FROM_ALL)
+    target_include_directories(spirv-cross-core PUBLIC $<BUILD_INTERFACE:${spirv-cross_SOURCE_DIR}/include/spirv_cross>)
+endif()
+set(LIBS ${LIBS} spirv-cross-glsl spirv-cross-hlsl)
 
 # stb
 FetchContent_Declare(
@@ -536,36 +495,27 @@ if(NOT yojimbo_POPULATED)
     FetchContent_Populate(yojimbo)
 
     # mbedtls
-    ExternalProject_Add(yojimbo_mbedtls-external
-        PREFIX ${EXTERNAL_PREFIX}
+    FetchContent_Declare(
+        mbedtls
         URL https://github.com/ARMmbed/mbedtls/archive/mbedtls-2.16.0.tar.gz
         URL_MD5 331938f7bc54eabe1675d4cdf910f8d8
-        DOWNLOAD_NO_PROGRESS 1
-        INSTALL_DIR ${EXTERNAL_INSTALL}
-        BUILD_COMMAND ""
-        UPDATE_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
-        CMAKE_ARGS ${EXTERNAL_ARGS}
-            -DCMAKE_DEBUG_POSTFIX=_d
-            -DENABLE_TESTING=0
-            -DENABLE_PROGRAMS=0
     )
-    set_target_properties(yojimbo_mbedtls-external PROPERTIES EXCLUDE_FROM_ALL TRUE)
-    add_library(yojimbo_mbedtls INTERFACE)
-    add_dependencies(yojimbo_mbedtls yojimbo_mbedtls-external)
-    file(MAKE_DIRECTORY ${EXTERNAL_INSTALL}/include)
-    set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-    set_property(TARGET yojimbo_mbedtls PROPERTY INTERFACE_LINK_LIBRARIES
-        ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mbedtls$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mbedx509$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mbedcrypto$<$<CONFIG:Debug>:_d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+    FetchContent_GetProperties(mbedtls)
+    if(NOT mbedtls_POPULATED)
+        message(STATUS "Populating mbedtls")
+        FetchContent_Populate(mbedtls)
+        set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+        set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
+        add_subdirectory(${mbedtls_SOURCE_DIR} ${mbedtls_BINARY_DIR} EXCLUDE_FROM_ALL)
+        target_include_directories(mbedtls PUBLIC ${mbedtls_SOURCE_DIR}/include)
+    endif()
 
     # libsodium
     if(MSVC)
         ExternalProject_Add(yojimbo_sodium-external
             PREFIX ${EXTERNAL_PREFIX}
-            URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.15-msvc.zip
-            URL_MD5 ddcf8c9ea41c035b9e609c324abd5973
+            URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.17-msvc.zip
+            URL_MD5 a90f193ac3ce21e9578aae9b9ff10343
             DOWNLOAD_NO_PROGRESS 1
             CONFIGURE_COMMAND ""
             BUILD_COMMAND ""
@@ -575,8 +525,8 @@ if(NOT yojimbo_POPULATED)
     elseif(NOT EMSCRIPTEN)
         ExternalProject_Add(yojimbo_sodium-external
             PREFIX ${EXTERNAL_PREFIX}
-            URL https://github.com/jedisct1/libsodium/releases/download/1.0.15/libsodium-1.0.15.tar.gz
-            URL_MD5 070373e73a0b10bd96f412e1732ebc42
+            URL https://github.com/jedisct1/libsodium/releases/download/1.0.17/libsodium-1.0.17.tar.gz
+            URL_MD5 0f71e2680187a1558b5461e6879342c5
             DOWNLOAD_NO_PROGRESS 1
             BUILD_IN_SOURCE 1
             CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no
@@ -587,8 +537,8 @@ if(NOT yojimbo_POPULATED)
     else()
         ExternalProject_Add(yojimbo_sodium-external
             PREFIX ${EXTERNAL_PREFIX}
-            URL https://github.com/jedisct1/libsodium/releases/download/1.0.15/libsodium-1.0.15.tar.gz
-            URL_MD5 070373e73a0b10bd96f412e1732ebc42
+            URL https://github.com/jedisct1/libsodium/releases/download/1.0.17/libsodium-1.0.17.tar.gz
+            URL_MD5 0f71e2680187a1558b5461e6879342c5
             DOWNLOAD_NO_PROGRESS 1
             BUILD_IN_SOURCE 1
             CONFIGURE_COMMAND emconfigure ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no
@@ -638,7 +588,7 @@ if(NOT yojimbo_POPULATED)
     target_include_directories(yojimbo PRIVATE
         ${yojimbo_SOURCE_DIR}/netcode.io
         ${yojimbo_SOURCE_DIR}/reliable.io)
-    target_link_libraries(yojimbo yojimbo_mbedtls yojimbo_sodium)
+    target_link_libraries(yojimbo mbedtls yojimbo_sodium)
     if(EMSCRIPTEN)
         target_compile_definitions(yojimbo PRIVATE -D__linux=1)
     endif()

@@ -11,8 +11,8 @@
 #pragma warning(push, 0)
 #endif
 
-#include <spirv_cross/spirv_glsl.hpp>
-#include <spirv_cross/spirv_hlsl.hpp>
+#include <spirv_glsl.hpp>
+#include <spirv_hlsl.hpp>
 
 // Re-enable warnings
 #if defined(DW_MSVC)
