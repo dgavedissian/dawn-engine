@@ -5,7 +5,7 @@
 #pragma once
 
 #include "net/transport/Transport.h"
-#include "net/Yojimbo.h"
+#include "net/transport/Yojimbo.h"
 
 namespace dw {
 class YojimboAdapter : public yojimbo::Adapter {
@@ -23,13 +23,13 @@ private:
     Function<void(ClientId)> client_disconnected_;
 };
 
-class YojimboServer : public Object, public TransportServer {
+class ReliableUDPServer : public Object, public TransportServer {
 public:
-    DW_OBJECT(YojimboServer);
+    DW_OBJECT(ReliableUDPServer);
 
-    YojimboServer(Context* ctx, Function<void(ClientId)> client_connected,
+    ReliableUDPServer(Context* ctx, Function<void(ClientId)> client_connected,
                   Function<void(ClientId)> client_disconnected);
-    ~YojimboServer();
+    ~ReliableUDPServer();
 
     void listen(const String& host, u16 port, u16 max_connections) override;
     void disconnect() override;
@@ -37,7 +37,7 @@ public:
     void update(float dt) override;
     void send(ClientId client, const byte* data, u32 length) override;
     Option<ServerPacket> receive(ClientId client) override;
-    int numConnections() const override;
+    usize numConnections() const override;
 
     ServerConnectionState connectionState() const override;
 
@@ -48,13 +48,13 @@ private:
     double time_;
 };
 
-class YojimboClient : public Object, public TransportClient {
+class ReliableUDPClient : public Object, public TransportClient {
 public:
-    DW_OBJECT(YojimboClient);
+    DW_OBJECT(ReliableUDPClient);
 
-    YojimboClient(Context* ctx, Function<void()> connected, Function<void()> connection_failed,
+    ReliableUDPClient(Context* ctx, Function<void()> connected, Function<void()> connection_failed,
                   Function<void()> disconnected);
-    ~YojimboClient();
+    ~ReliableUDPClient();
 
     void connect(const String& host, u16 port) override;
     void disconnect() override;

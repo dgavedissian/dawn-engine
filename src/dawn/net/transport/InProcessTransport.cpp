@@ -11,60 +11,38 @@
 #include "InProcessTransport.h"
 
 namespace dw {
-namespace
-{
-struct InProcessPacket
-{
-    byte* data;
-    usize length;
-};
-
-struct InProcessDataStream
-{
-    Vector<InProcessPacket> packets;
-    Vector<byte> storage;
-};
-
-struct InProcessConnection
-{
-    static Map<u16, UniquePtr<InProcessConnection>> endpoints;
-
-    Vector<InProcessDataStream> incoming_data_per_client;
-    Vector<InProcessDataStream> outgoing_data_per_client;
-};
-}
+Map<u16, InProcessServer*> InProcessServer::listening_connections;
 
 InProcessServer::InProcessServer(Context* ctx, Function<void(ClientId)> client_connected,
-                         Function<void(ClientId)> client_disconnected)
-    : Object(ctx),
-      server_connection_state_(ServerConnectionState::NotListening),
-      time_(100.0f) {
+                                 Function<void(ClientId)> client_disconnected)
+    : Object(ctx), server_connection_state_(ServerConnectionState::NotListening), time_(100.0f) {
 }
 
 InProcessServer::~InProcessServer() {
     disconnect();
 }
 
-void InProcessServer::listen(const String& host, u16 port, u16 max_connections) {
+void InProcessServer::listen(const String&, u16 port, u16 max_connections) {
     if (server_connection_state_ == ServerConnectionState::Listening) {
         disconnect();
     }
-    /*
-    yojimbo::ClientServerConfig config;
-    config.timeout = -1;  // Disable timeout.
 
-    uint8_t privateKey[yojimbo::KeyBytes];
-    memset(privateKey, 0, yojimbo::KeyBytes);
+    if (listening_connections.find(port) != listening_connections.end()) {
+        log().error("InProcessServer: Port %s is already bound.", port);
+        return;
+    }
 
-    server_ =
-        makeUnique<yojimbo::Server>(yojimbo::GetDefaultAllocator(), privateKey,
-                                    yojimbo::Address{host.c_str(), port}, config, *adapter_, time_);
-    server_->Start(max_connections);
-        */
+    client_streams_.resize(max_connections);
+    listening_connections.emplace(port, this);
+    port_ = port;
     server_connection_state_ = ServerConnectionState::Listening;
 }
 
 void InProcessServer::disconnect() {
+    listening_connections.erase(listening_connections.find(port_));
+    client_streams_.clear();
+    port_ = 0;
+    server_connection_state_ = ServerConnectionState::NotListening;
 }
 
 void InProcessServer::update(float dt) {
@@ -72,144 +50,122 @@ void InProcessServer::update(float dt) {
 }
 
 void InProcessServer::send(ClientId client, const byte* data, u32 length) {
-    auto* to_client_message =
-        static_cast<ToClientMessage*>(server_->CreateMessage(client, MT_ToClient));
-    to_client_message->payload.assign(data, data + length);
-    server_->SendMessage(client, 0, to_client_message);
+    if (client_streams_.size() >= client || client_streams_[client].client == nullptr) {
+        log().error("InProcessTransport: Sending packet of size %d to non-existent client %d",
+                    length, client);
+        return;
+    }
+    client_streams_[client].outgoing.enqueue(Vector<byte>(data, data + length));
 }
 
 Option<ServerPacket> InProcessServer::receive(ClientId client) {
-    if (!server_ || server_->GetNumConnectedClients() == 0) {
-        return {};
+    if (client_streams_.size() >= client || client_streams_[client].client == nullptr) {
+        log().error("InProcessTransport: Attempting to receive packets from non-existent client %d",
+                    client);
     }
 
-    // Fetch a message from the next client.
-    yojimbo::Message* message = server_->ReceiveMessage(client, 0);
-    if (!message) {
+    Vector<byte> data;
+    bool has_packet = client_streams_[client].incoming.try_dequeue(data);
+    if (!has_packet) {
+        return {ServerPacket{client, std::move(data)}};
+    } else {
         return {};
     }
-    assert(message->GetType() == MT_ToServer);
-    auto* to_server_message = static_cast<ToServerMessage*>(message);
-
-    // Extract the data.
-    ServerPacket packet;
-    packet.client = client;
-    packet.data = std::move(to_server_message->payload);
-
-    return {packet};
 }
 
-int InProcessServer::numConnections() const {
-    return server_->GetNumConnectedClients();
+usize InProcessServer::numConnections() const {
+    return client_streams_.size();
 }
 
 ServerConnectionState InProcessServer::connectionState() const {
     return server_connection_state_;
 }
 
+ClientId InProcessServer::clientConnect(InProcessClient* client) {
+    // Find a free client.
+    for (ClientId i = 0; i < client_streams_.size(); ++i) {
+        if (client_streams_[i].client == nullptr) {
+            client_streams_[i].client = client;
+            return i;
+        }
+    }
+
+    // If none was found, the host has too many clients connected.
+    return -1;
+}
+
+void InProcessServer::clientDisconnect(ClientId id) {
+    client_streams_[id] = InProcessDataStream();
+}
+
+InProcessDataStream& InProcessServer::clientStream(ClientId id) {
+    assert(client_streams_.size() < id);
+    return client_streams_[id];
+}
+
 InProcessClient::InProcessClient(Context* ctx, Function<void()> connected,
-                             Function<void()> connection_failed, Function<void()> disconnected)
+                                 Function<void()> connection_failed, Function<void()> disconnected)
     : Object(ctx),
-      adapter_(nullptr),
-      client_(nullptr),
       client_connection_state_(ClientConnectionState::Disconnected),
       time_(100.0f),
+      connected_server_(nullptr),
       connected_(connected),
       connection_failed_(connection_failed),
       disconnected_(disconnected) {
-    YojimboContext::addRef(ctx);
-    adapter_ = makeUnique<YojimboAdapter>();
 }
 
 InProcessClient::~InProcessClient() {
-    YojimboContext::release();
+    disconnect();
 }
 
-void InProcessClient::connect(const String& host, u16 port) {
-    yojimbo::ClientServerConfig config;
-    config.timeout = -1;  // Disable timeout.
+void InProcessClient::connect(const String&, u16 port) {
+    disconnect();
 
-    uint8_t privateKey[yojimbo::KeyBytes];
-    memset(privateKey, 0, yojimbo::KeyBytes);
-
-    client_ = makeUnique<yojimbo::Client>(yojimbo::GetDefaultAllocator(),
-                                          yojimbo::Address{"0.0.0.0"}, config, *adapter_, time_);
-
-    // Decide on client ID.
-    u64 clientId = 0;
-    yojimbo::random_bytes(reinterpret_cast<uint8_t*>(&clientId), 8);
-    log().info("Client id is %ull", clientId);
-
-    // Connect to server.
-    client_->InsecureConnect(privateKey, clientId, yojimbo::Address{host.c_str(), port});
-    client_connection_state_ = ClientConnectionState::Connecting;
+    auto server = InProcessServer::listening_connections.find(port);
+    if (server == InProcessServer::listening_connections.end()) {
+        log().error("InProcessClient: Failed to connect to port %d. No server is listening.", port);
+        return;
+    }
+    connected_server_ = server->second;
+    client_id_ = connected_server_->clientConnect(this);
+    if (client_id_ == ClientId(-1)) {
+        client_id_ = 0;
+        log().error("InProcessClient: Failed to connect to port %d. Server is full.", port);
+        client_connection_state_ = ClientConnectionState::Disconnected;
+    } else {
+        client_connection_state_ = ClientConnectionState::Connected;
+    }
 }
 
 void InProcessClient::disconnect() {
-    if (client_) {
+    if (connected_server_) {
         assert(client_connection_state_ > ClientConnectionState::Disconnected);
-        client_->Disconnect();
-        client_.reset();
         client_connection_state_ = ClientConnectionState::Disconnected;
+        connected_server_->clientDisconnect(client_id_);
+        connected_server_ = nullptr;
     }
 }
 
 void InProcessClient::update(float dt) {
-    client_->AdvanceTime(time_);
     time_ += dt;
-    client_->SendPackets();
-    client_->ReceivePackets();
-
-    // Handle Connecting -> Connected transition.
-    if (client_connection_state_ == ClientConnectionState::Connecting && client_->IsConnected()) {
-        client_connection_state_ = ClientConnectionState::Connected;
-        if (connected_) {
-            connected_();
-        }
-    }
-
-    // Handle Connecting -> Disconnected transition.
-    if (client_connection_state_ == ClientConnectionState::Connecting &&
-        client_->IsDisconnected()) {
-        client_connection_state_ = ClientConnectionState::Disconnected;
-        if (connection_failed_) {
-            connection_failed_();
-        }
-    }
-
-    // Handle Connected -> Disconnected transition.
-    if (client_connection_state_ == ClientConnectionState::Connected && client_->IsDisconnected()) {
-        client_connection_state_ = ClientConnectionState::Disconnected;
-        if (disconnected_) {
-            disconnected_();
-        }
-    }
 }
 
 void InProcessClient::send(const byte* data, u32 length) {
-    auto* to_server_message = static_cast<ToServerMessage*>(client_->CreateMessage(MT_ToServer));
-    to_server_message->payload.assign(data, data + length);
-    client_->SendMessage(0, to_server_message);
+    connected_server_->clientStream(client_id_).incoming.enqueue(Vector<byte>(data, data + length));
 }
 
 Option<ClientPacket> InProcessClient::receive() {
-    if (!client_ || !client_->IsConnected()) {
+    if (!connected_server_) {
         return {};
     }
 
-    // Fetch a message from the next client.
-    yojimbo::Message* message = client_->ReceiveMessage(0);
-    if (!message) {
+    Vector<byte> data;
+    bool has_packet = connected_server_->clientStream(client_id_).outgoing.try_dequeue(data);
+    if (has_packet) {
+        return {ClientPacket{std::move(data)}};
+    } else {
         return {};
     }
-    assert(message->GetType() == MT_ToClient);
-    auto* to_client_message = static_cast<ToClientMessage*>(message);
-
-    // Extract the data.
-    ClientPacket packet;
-    packet.data = std::move(to_client_message->payload);
-
-    return {packet};
 }
 
 ClientConnectionState InProcessClient::connectionState() const {

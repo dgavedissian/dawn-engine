@@ -4,6 +4,13 @@
  */
 #pragma once
 
+// Mark this header as a system header
+#if defined(DW_GCC) || defined(DW_CLANG)
+#pragma GCC system_header
+#elif defined(DW_MSVC)
+#pragma warning(push, 0)
+#endif
+
 #include <tuple>
 #include <vector>
 #include <list>
@@ -17,6 +24,11 @@
 #include <any>
 
 #include <concurrentqueue.h>
+
+// Re-enable warnings
+#if defined(DW_MSVC)
+#pragma warning(pop)
+#endif
 
 namespace dw {
 // If using GCC or Clang, create a hash wrapper to work around std::hash<T> not working for enum

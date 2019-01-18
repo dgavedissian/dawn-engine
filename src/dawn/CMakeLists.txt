@@ -104,6 +104,7 @@ set(SOURCE_FILES
     net/transport/ReliableUDPTransport.cpp
     net/transport/ReliableUDPTransport.h
     net/transport/Transport.h
+    net/transport/Yojimbo.h
     net/BitStream.cpp
     net/BitStream.h
     net/CNetData.cpp
@@ -123,7 +124,6 @@ set(SOURCE_FILES
     net/Rpc.cpp
     net/Rpc.h
     net/Rpc.i.h
-    net/Yojimbo.h
     renderer/rhi/GL.h
     renderer/rhi/GLRenderContext.cpp
     renderer/rhi/GLRenderContext.h

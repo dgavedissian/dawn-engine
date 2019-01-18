@@ -34,7 +34,8 @@ UniquePtr<NetInstance> NetInstance::connect(Context* context, GameSession* sessi
 }
 
 UniquePtr<NetInstance> NetInstance::listen(Context* context, GameSession* session,
-                                           const String& host, u16 port, u16 max_clients, NetTransport transport) {
+                                           const String& host, u16 port, u16 max_clients,
+                                           NetTransport transport) {
     auto instance = makeUnique<NetInstance>(context, session, transport);
     instance->listen(host, port, max_clients);
     return instance;
@@ -43,7 +44,7 @@ UniquePtr<NetInstance> NetInstance::listen(Context* context, GameSession* sessio
 NetInstance::NetInstance(Context* ctx, GameSession* session, NetTransport transport)
     : Object{ctx},
       session_(session),
-    transport_(transport),
+      transport_(transport),
       is_server_(false),
       client_(nullptr),
       server_(nullptr),
@@ -58,16 +59,17 @@ void NetInstance::connect(const String& host, u16 port) {
     auto connected = [this]() { (void)session_->eventSystem()->triggerEvent<JoinServerEvent>(); };
     auto connection_failed = []() {};
     auto disconnected = []() {};
-    switch (transport_)
-    {
-    case NetTransport::ReliableUDP:
-        client_ = makeUnique<ReliableUDPClient>(context(), connected, connection_failed, disconnected);
-        break;
-    case NetTransport::InProcess:
-        client_ = makeUnique<InProcessClient>(context(), connected, connection_failed, disconnected);
-        break;
-    default:
-        break;
+    switch (transport_) {
+        case NetTransport::ReliableUDP:
+            client_ = makeUnique<ReliableUDPClient>(context(), connected, connection_failed,
+                                                    disconnected);
+            break;
+        case NetTransport::InProcess:
+            client_ =
+                makeUnique<InProcessClient>(context(), connected, connection_failed, disconnected);
+            break;
+        default:
+            break;
     }
     client_->connect(host, port);
     is_server_ = false;
@@ -78,16 +80,16 @@ void NetInstance::listen(const String& host, u16 port, u16 max_clients) {
     auto client_disconnected = [this](ClientId client_id) {
         onServerClientDisconnected(client_id);
     };
-    switch (transport_)
-    {
-    case NetTransport::ReliableUDP:
-        server_ = makeUnique<ReliableUDPServer>(context(), client_connected, client_disconnected);
-        break;
-    case NetTransport::InProcess:
-        server_ = makeUnique<InProcessServer>(context(), client_connected, client_disconnected);
-        break;
-    default:
-        break;
+    switch (transport_) {
+        case NetTransport::ReliableUDP:
+            server_ =
+                makeUnique<ReliableUDPServer>(context(), client_connected, client_disconnected);
+            break;
+        case NetTransport::InProcess:
+            server_ = makeUnique<InProcessServer>(context(), client_connected, client_disconnected);
+            break;
+        default:
+            break;
     }
     server_->listen(host, port, max_clients);
     is_server_ = true;

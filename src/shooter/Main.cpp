@@ -95,11 +95,12 @@ public:
             const u16 port = 40000;
 
             GameSessionInfo server_session;
-            server_session.start_info =
-                GameSessionInfo::CreateNetGame{"127.0.0.1", port, 32, "TestScene"};
+            server_session.start_info = GameSessionInfo::CreateNetGame{
+                "127.0.0.1", port, 32, "TestScene", NetTransport::InProcess};
             server_session.headless = true;
             GameSessionInfo client_session;
-            client_session.start_info = GameSessionInfo::JoinNetGame{"127.0.0.1", port};
+            client_session.start_info =
+                GameSessionInfo::JoinNetGame{"127.0.0.1", port, NetTransport::InProcess};
 
             engine_->addSession(makeUnique<ShooterGameSession>(context(), server_session));
             engine_->addSession(makeUnique<ShooterGameSession>(context(), client_session));

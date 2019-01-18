@@ -147,7 +147,7 @@ void YojimboAdapter::OnServerClientDisconnected(int client_index) {
 }
 
 ReliableUDPServer::ReliableUDPServer(Context* ctx, Function<void(ClientId)> client_connected,
-                             Function<void(ClientId)> client_disconnected)
+                                     Function<void(ClientId)> client_disconnected)
     : Object(ctx),
       adapter_(nullptr),
       server_(nullptr),
@@ -224,7 +224,7 @@ Option<ServerPacket> ReliableUDPServer::receive(ClientId client) {
     return {packet};
 }
 
-int ReliableUDPServer::numConnections() const {
+usize ReliableUDPServer::numConnections() const {
     return server_->GetNumConnectedClients();
 }
 
@@ -233,7 +233,8 @@ ServerConnectionState ReliableUDPServer::connectionState() const {
 }
 
 ReliableUDPClient::ReliableUDPClient(Context* ctx, Function<void()> connected,
-                             Function<void()> connection_failed, Function<void()> disconnected)
+                                     Function<void()> connection_failed,
+                                     Function<void()> disconnected)
     : Object(ctx),
       adapter_(nullptr),
       client_(nullptr),

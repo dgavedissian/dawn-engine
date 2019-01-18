@@ -278,7 +278,7 @@ if(NOT glfw_POPULATED)
         set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
         set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
         set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-        set(USE_MSVC_RUNTIME_LIBRARY_DLL OFF CACHE BOOL "" FORCE)
+        set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
         add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR} EXCLUDE_FROM_ALL)
     else()
         add_library(glfw INTERFACE)
@@ -410,6 +410,7 @@ if(NOT mathgeolib_POPULATED)
     FetchContent_Populate(MathGeoLib)
     set(VS_BUG ON CACHE BOOL "" FORCE)
     set(MATH_TESTS_EXECUTABLE OFF CACHE BOOL "" FORCE)
+    set(INSTALL_CMAKE_DIR ${CMAKE_BINARY_DIR}/_deps/mathgeolib-build CACHE BOOL "" FORCE)
     mark_as_advanced(
         VS_BUG
         MATH_TESTS_EXECUTABLE
@@ -573,8 +574,8 @@ if(NOT yojimbo_POPULATED)
         if(EMSCRIPTEN)
             ExternalProject_Add(sodium-external
                 PREFIX ${EXTERNAL_PREFIX}
-                URL https://github.com/jedisct1/libsodium/releases/download/1.0.15/libsodium-1.0.15.tar.gz
-                URL_MD5 070373e73a0b10bd96f412e1732ebc42
+                URL https://github.com/jedisct1/libsodium/releases/download/1.0.15/libsodium-1.0.17.tar.gz
+                URL_MD5 0f71e2680187a1558b5461e6879342c5
                 DOWNLOAD_NO_PROGRESS 1
                 BUILD_IN_SOURCE 1
                 CONFIGURE_COMMAND emconfigure ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no
@@ -586,7 +587,7 @@ if(NOT yojimbo_POPULATED)
             ExternalProject_Add(sodium-external
                 PREFIX ${EXTERNAL_PREFIX}
                 URL https://github.com/jedisct1/libsodium/releases/download/1.0.17/libsodium-1.0.17.tar.gz
-                URL_MD5 070373e73a0b10bd96f412e1732ebc42
+                URL_MD5 0f71e2680187a1558b5461e6879342c5
                 DOWNLOAD_NO_PROGRESS 1
                 BUILD_IN_SOURCE 1
                 CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no

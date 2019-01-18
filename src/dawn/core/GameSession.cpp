@@ -18,11 +18,12 @@ GameSession::GameSession(Context* ctx, const GameSessionInfo& gsi)
     // Initialise networking.
     visit(Overloaded{[](const GameSessionInfo::CreateLocalGame&) {},
                      [this, ctx](const GameSessionInfo::CreateNetGame& info) {
-                         net_instance_ =
-                             NetInstance::listen(ctx, this, info.host, info.port, info.max_clients);
+                         net_instance_ = NetInstance::listen(ctx, this, info.host, info.port,
+                                                             info.max_clients, info.transport);
                      },
                      [this, ctx](const GameSessionInfo::JoinNetGame& info) {
-                         net_instance_ = NetInstance::connect(ctx, this, info.host, info.port);
+                         net_instance_ =
+                             NetInstance::connect(ctx, this, info.host, info.port, info.transport);
                      }},
           gsi.start_info);
 }
