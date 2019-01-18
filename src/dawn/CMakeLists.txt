@@ -99,9 +99,11 @@ set(SOURCE_FILES
     core/Type.h
     input/Input.cpp
     input/Input.h
+    net/transport/InProcessTransport.cpp
+    net/transport/InProcessTransport.h
+    net/transport/ReliableUDPTransport.cpp
+    net/transport/ReliableUDPTransport.h
     net/transport/Transport.h
-    net/transport/YojimboTransport.cpp
-    net/transport/YojimboTransport.h
     net/BitStream.cpp
     net/BitStream.h
     net/CNetData.cpp

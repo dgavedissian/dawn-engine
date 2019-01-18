@@ -16,6 +16,8 @@
 #include <optional>
 #include <any>
 
+#include <concurrentqueue.h>
+
 namespace dw {
 // If using GCC or Clang, create a hash wrapper to work around std::hash<T> not working for enum
 // classes.
@@ -51,6 +53,7 @@ template <typename... Ts> using Tuple = std::tuple<Ts...>;
 template <typename... Ts> using Variant = std::variant<Ts...>;
 template <typename T> using Option = std::optional<T>;
 using Any = std::any;
+template <typename T> using ConcurrentQueue = moodycamel::ConcurrentQueue<T>;
 
 // Helper type to combine a bunch of objects with operator() defined (such as lambdas) into a single
 // object.

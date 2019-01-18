@@ -168,6 +168,21 @@ if(NOT bullet_POPULATED)
 endif()
 set(LIBS ${LIBS} BulletDynamics BulletCollision LinearMath)
 
+# concurrent queue
+FetchContent_Declare(
+    concurrentqueue
+    URL https://github.com/cameron314/concurrentqueue/archive/dea078cf5b6e742cd67a0d725e36f872feca4de4.tar.gz
+    URL_MD5 02b83675f33f31dd070f386fc8f10ac9
+)
+FetchContent_GetProperties(concurrentqueue)
+if(NOT concurrentqueue_POPULATED)
+    message(STATUS "Populating concurrentqueue")
+    FetchContent_Populate(concurrentqueue)
+    add_library(concurrentqueue INTERFACE)
+    target_include_directories(concurrentqueue INTERFACE ${concurrentqueue_SOURCE_DIR})
+endif()
+set(LIBS ${LIBS} concurrentqueue)
+
 # expected-lite
 FetchContent_Declare(
     expected-lite
