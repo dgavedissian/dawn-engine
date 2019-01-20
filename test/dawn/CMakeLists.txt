@@ -13,7 +13,7 @@ set(TEST_FILES
 
 add_executable(DwEngineTests ${TEST_FILES})
 mirror_physical_directories(${TEST_FILES})
-enable_cpp17(DwEngineTests)
+enable_cpp14(DwEngineTests)
 target_link_libraries(DwEngineTests DwEngine gtest gtest_main)
 target_include_directories(DwEngineTests SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}

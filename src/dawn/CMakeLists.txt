@@ -239,7 +239,7 @@ set (SOURCE_FILES
 # Project
 set(BUILD_SHARED_LIBS OFF)
 add_library(DwEngine ${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES} ${NetProtocol_OUTPUTS})
-enable_cpp17(DwEngine)
+enable_cpp14(DwEngine)
 enable_maximum_warnings(DwEngine)
 set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)

@@ -196,37 +196,33 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
 
         // Set up steps.
         for (auto& step_desc : node_desc.steps) {
-            auto step_result = visit(
-                Overloaded{
-                    [](const RenderPipelineDesc::ClearStep& desc)
-                        -> Result<UniquePtr<PStep>, String> {
-                        return {makeUnique<PClearStep>(desc.colour)};
-                    },
-                    [](const RenderPipelineDesc::RenderQueueStep& desc)
-                        -> Result<UniquePtr<PStep>, String> {
-                        return {makeUnique<PRenderQueueStep>(desc.mask)};
-                    },
-                    [ctx, &node, &render_pipeline](const RenderPipelineDesc::RenderQuadStep& desc)
-                        -> Result<UniquePtr<PStep>, String> {
-                        auto material =
-                            ctx->module<ResourceCache>()->get<Material>(desc.material_name);
-                        if (material.hasError()) {
-                            return {str::format(
-                                "Unable to set up material in render quad step. Reason: %s",
-                                material.error())};
-                        }
-                        auto material_instance = makeShared<Material>(**material);
-                        for (auto& sampler : node->input_samplers_) {
-                            material_instance->setUniform<int>(sampler.first + "_sampler",
-                                                               sampler.second);
-                            material_instance->setTexture(node->input_textures_.at(sampler.first),
-                                                          sampler.second);
-                        }
-                        return {makeUnique<PRenderQuadStep>(render_pipeline->fullscreen_quad_,
-                                                            material_instance,
-                                                            node->input_samplers_)};
-                    }},
-                step_desc);
+            auto step_result = Result<UniquePtr<PStep>, String>::success(nullptr);
+            if (step_desc.is<RenderPipelineDesc::ClearStep>()) {
+                auto& clear_step = step_desc.get<RenderPipelineDesc::ClearStep>();
+                step_result = {makeUnique<PClearStep>(clear_step.colour)};
+            } else if (step_desc.is<RenderPipelineDesc::RenderQueueStep>()) {
+                auto& render_queue_step = step_desc.get<RenderPipelineDesc::RenderQueueStep>();
+                step_result = {makeUnique<PRenderQueueStep>(render_queue_step.mask)};
+            } else if (step_desc.is<RenderPipelineDesc::RenderQuadStep>()) {
+                auto& render_quad_step = step_desc.get<RenderPipelineDesc::RenderQuadStep>();
+                auto material =
+                        ctx->module<ResourceCache>()->get<Material>(render_quad_step.material_name);
+                if (material.hasError()) {
+                    return {str::format(
+                            "Unable to set up material in render quad step. Reason: %s",
+                            material.error())};
+                }
+                auto material_instance = makeShared<Material>(**material);
+                for (auto& sampler : node->input_samplers_) {
+                    material_instance->setUniform<int>(sampler.first + "_sampler",
+                                                       sampler.second);
+                    material_instance->setTexture(node->input_textures_.at(sampler.first),
+                                                  sampler.second);
+                }
+                step_result = {makeUnique<PRenderQuadStep>(render_pipeline->fullscreen_quad_,
+                                                    material_instance,
+                                                    node->input_samplers_)};
+            }
             if (step_result.hasError()) {
                 return step_result.error();
             }

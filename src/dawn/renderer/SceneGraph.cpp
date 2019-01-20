@@ -86,7 +86,7 @@ void SceneGraph::updateSceneGraph() {
         // TODO: Culling?
         Renderable* renderable = node->data.renderable.get();
         if (renderable) {
-            for (int c = 0; c < cameras.size(); ++c) {
+            for (usize c = 0; c < cameras.size(); ++c) {
                 int f = frame_to_frame_id.at(cameras[c].scene_node->frame());
                 Mat4& model_matrix = system_model_matrices_per_frame_[f][node];
                 render_operations_per_camera_[c].emplace_back(

@@ -80,6 +80,21 @@ set(EXTERNAL_ARGS ${HOST_EXTERNAL_ARGS}
 # Note that "set_property(TARGET <target> PROPERTY INTERFACE_INCLUDE_DIRECTORIES ...)" checks for the
 # existence of the path. Therefore, we create the path beforehand.
 
+# any-lite
+FetchContent_Declare(
+    any-lite
+    URL https://github.com/martinmoene/any-lite/archive/9a778bca7fc2fe214bc74976863d44f7d021b8da.tar.gz
+    URL_MD5 14d96033c998be1409f1a97ebd17bd24
+)
+FetchContent_GetProperties(any-lite)
+if(NOT any-lite_POPULATED)
+    message(STATUS "Populating any-lite")
+    FetchContent_Populate(any-lite)
+    add_library(any-lite INTERFACE)
+    target_include_directories(any-lite INTERFACE ${any-lite_SOURCE_DIR}/include)
+endif()
+set(LIBS ${LIBS} any-lite)
+
 # Assimp
 FetchContent_Declare(
     assimp
@@ -422,6 +437,21 @@ if(NOT mathgeolib_POPULATED)
 endif()
 set(LIBS ${LIBS} MathGeoLib)
 
+# optional-lite
+FetchContent_Declare(
+    optional-lite
+    URL https://github.com/martinmoene/optional-lite/archive/312dfe37e7cbbb563cf24e4674d8046cd080ce03.tar.gz
+    URL_MD5 b255874131bce8f5e6a4f8b0c1087a74
+)
+FetchContent_GetProperties(optional-lite)
+if(NOT optional-lite_POPULATED)
+    message(STATUS "optional expected-lite")
+    FetchContent_Populate(optional-lite)
+    add_library(optional-lite INTERFACE)
+    target_include_directories(optional-lite INTERFACE ${optional-lite_SOURCE_DIR}/include)
+endif()
+set(LIBS ${LIBS} optional-lite)
+
 # sol2
 FetchContent_Declare(
     sol2
@@ -498,6 +528,21 @@ if(NOT tinyformat_POPULATED)
     target_include_directories(tinyformat INTERFACE ${tinyformat_SOURCE_DIR})
 endif()
 set(LIBS ${LIBS} tinyformat)
+
+# variant
+FetchContent_Declare(
+    variant
+    URL https://github.com/mapbox/variant/archive/0f734f01e685a298e3756d30044a4164786c58c5.tar.gz
+    URL_MD5 46dbb17377e1e0fda856830d359889e6
+)
+FetchContent_GetProperties(variant)
+if(NOT variant_POPULATED)
+    message(STATUS "Populating variant")
+    FetchContent_Populate(variant)
+    add_library(variant INTERFACE)
+    target_include_directories(variant INTERFACE ${variant_SOURCE_DIR}/include)
+endif()
+set(LIBS ${LIBS} variant)
 
 # yojimbo
 FetchContent_Declare(

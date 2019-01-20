@@ -19,10 +19,11 @@
 #include <set>
 #include <unordered_set>
 #include <deque>
-#include <variant>
-#include <optional>
-#include <any>
 
+#include <nonstd/any.hpp>
+#include <nonstd/expected.hpp>
+#include <nonstd/optional.hpp>
+#include <mapbox/variant.hpp>
 #include <concurrentqueue.h>
 
 // Re-enable warnings
@@ -62,27 +63,28 @@ template <typename K> using Set = std::set<K>;
 template <typename K> using HashSet = std::unordered_set<K, HashFunction<K>>;
 template <typename T1, typename T2> using Pair = std::pair<T1, T2>;
 template <typename... Ts> using Tuple = std::tuple<Ts...>;
-template <typename... Ts> using Variant = std::variant<Ts...>;
-template <typename T> using Option = std::optional<T>;
-using Any = std::any;
+template <typename... T> using Variant = mapbox::util::variant<T...>;
+template <typename T> using Option = nonstd::optional<T>;
+using Any = nonstd::any;
 template <typename T> using ConcurrentQueue = moodycamel::ConcurrentQueue<T>;
 
-// Helper type to combine a bunch of objects with operator() defined (such as lambdas) into a single
-// object.
-template <class... Ts> struct Overloaded : Ts... { using Ts::operator()...; };
-// This is an example of a "User-defined deduction guide", which tells the compiler how to deduce
-// Overloaded<Ts...>.
-template <class... Ts> Overloaded(Ts...)->Overloaded<Ts...>;
-
-template <typename F, typename V> decltype(auto) visit(F&& f, V&& v) {
-    return std::visit(std::forward<F>(f), std::forward<V>(v));
+template <typename F, typename V>
+auto visit(F&& f, V const& v)
+    -> decltype(mapbox::util::apply_visitor(std::forward<F>(f), v)) {
+    return mapbox::util::apply_visitor(std::forward<F>(f), v);
 }
 
-template <typename T1, typename T2> decltype(auto) makePair(T1&& a, T2&& b) {
+template <typename F, typename V>
+auto visit(F&& f, V& v)
+    -> decltype(mapbox::util::apply_visitor(std::forward<F>(f), v)) {
+    return mapbox::util::apply_visitor(std::forward<F>(f), v);
+}
+
+template <typename T1, typename T2> Pair<T1, T2> makePair(T1&& a, T2&& b) {
     return std::pair<T1, T2>(std::forward<T1>(a), std::forward<T2>(b));
 }
 
-template <typename... T> decltype(auto) makeTuple(T&&... args) {
+template <typename... T> Tuple<T...> makeTuple(T&&... args) {
     return std::tuple<T...>(std::forward<T>(args)...);
 }
 }  // namespace dw
