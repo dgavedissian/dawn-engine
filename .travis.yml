@@ -27,7 +27,33 @@ matrix:
     env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     osx_image: xcode10.1
 
-  # Linux / GCC
+  # Linux / GCC 5
+  - os: linux
+    env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=gcc-5 -DCMAKE_CXX_COMPILER=g++-5 -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - gcc-5
+        - g++-5
+        - xorg-dev
+        - libgl1-mesa-dev
+
+  # Linux / GCC 6
+  - os: linux
+    env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=gcc-6 -DCMAKE_CXX_COMPILER=g++-6 -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - gcc-6
+        - g++-6
+        - xorg-dev
+        - libgl1-mesa-dev
+
+  # Linux / GCC 7
   - os: linux
     env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=gcc-7 -DCMAKE_CXX_COMPILER=g++-7 -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     addons:
@@ -40,7 +66,7 @@ matrix:
           - xorg-dev
           - libgl1-mesa-dev
 
-  # Linux / Clang
+  # Linux / Clang 6
   - os: linux
     env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     addons:
