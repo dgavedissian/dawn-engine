@@ -18,7 +18,7 @@ public:
     Material(Context* ctx, SharedPtr<Program> program);
     ~Material() override;
 
-    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
+    Result<void> beginLoad(const String& asset_name, InputStream& src) override;
 
     void setStateEnable(rhi::RenderState state);
     void setStateDisable(rhi::RenderState state);

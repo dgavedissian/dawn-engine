@@ -65,6 +65,8 @@ template <typename T1, typename T2> using Pair = std::pair<T1, T2>;
 template <typename... Ts> using Tuple = std::tuple<Ts...>;
 template <typename... T> using Variant = mapbox::util::variant<T...>;
 template <typename T> using Option = nonstd::optional<T>;
+template <typename T, typename E = String> using Result = nonstd::expected<T, E>;
+template <typename E> using UnexpectedType = nonstd::unexpected_type<E>;
 using Any = nonstd::any;
 template <typename T> using ConcurrentQueue = moodycamel::ConcurrentQueue<T>;
 
@@ -86,5 +88,9 @@ template <typename T1, typename T2> Pair<T1, T2> makePair(T1&& a, T2&& b) {
 
 template <typename... T> Tuple<T...> makeTuple(T&&... args) {
     return std::tuple<T...>(std::forward<T>(args)...);
+}
+
+template <typename E> UnexpectedType<E> makeError(E&& error) {
+    return UnexpectedType<E>(std::forward<E>(error));
 }
 }  // namespace dw

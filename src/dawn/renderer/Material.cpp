@@ -31,8 +31,8 @@ Material::Material(Context* ctx, SharedPtr<Program> program)
 Material::~Material() {
 }
 
-Result<None> Material::beginLoad(const String& asset_name, InputStream& src) {
-    return {"Material loading unimplemented"};
+Result<void> Material::beginLoad(const String& asset_name, InputStream& src) {
+    return makeError("Material loading unimplemented");
 }
 
 void Material::setStateEnable(rhi::RenderState state) {

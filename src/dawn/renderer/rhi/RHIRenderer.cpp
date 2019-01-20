@@ -111,7 +111,7 @@ RHIRenderer::~RHIRenderer() {
     }
 }
 
-Result<None> RHIRenderer::init(RendererType type, u16 width, u16 height, const String& title,
+Result<void> RHIRenderer::init(RendererType type, u16 width, u16 height, const String& title,
                                bool use_render_thread) {
     if (type == RendererType::Null) {
         use_render_thread = false;
@@ -162,7 +162,7 @@ Result<None> RHIRenderer::init(RendererType type, u16 width, u16 height, const S
     } else {
         shared_render_context_->startRendering();
     }
-    return None();
+    return Result<void>();
 }
 
 VertexBufferHandle RHIRenderer::createVertexBuffer(Memory data, const VertexDecl& decl,

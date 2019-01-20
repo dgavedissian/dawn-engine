@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "core/Result.h"
+#include "core/Collections.h"
 #include "renderer/Material.h"
 #include "renderer/CustomMeshRenderable.h"
 #include "renderer/FrameBuffer.h"
@@ -59,7 +59,7 @@ public:
                                                                     const RenderPipelineDesc& desc);
 
     // Resource.
-    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
+    Result<void> beginLoad(const String& asset_name, InputStream& src) override;
 
     void render(float dt, float interpolation, SceneGraph* scene_graph, u32 camera_id);
 

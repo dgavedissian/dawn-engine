@@ -330,7 +330,7 @@ GLRenderContext::~GLRenderContext() {
     // TODO: detect resource leaks.
 }
 
-Result<None> GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
+Result<void> GLRenderContext::createWindow(u16 width, u16 height, const String& title) {
     log().info("Creating window.");
 
     // Initialise GLFW.
@@ -341,8 +341,8 @@ Result<None> GLRenderContext::createWindow(u16 width, u16 height, const String& 
     if (!glfwInit()) {
         const char* last_error;
         int error_code = glfwGetError(&last_error);
-        return {str::format("Failed to initialise GLFW. Code: 0x%. Description: %s", error_code,
-                            last_error)};
+        return makeError(str::format("Failed to initialise GLFW. Code: 0x%. Description: %s",
+                                     error_code, last_error));
     }
 
     glfwSetErrorCallback([](int error, const char* description) {
@@ -377,8 +377,8 @@ Result<None> GLRenderContext::createWindow(u16 width, u16 height, const String& 
                                nullptr, nullptr);
     if (!window_) {
         // Failed to create window.
-        return {str::format("glfwCreateWindow failed. Code: 0x%x. Description: %s", last_error_code,
-                            last_error_description)};
+        return makeError(str::format("glfwCreateWindow failed. Code: 0x%x. Description: %s",
+                                     last_error_code, last_error_description));
     }
     Vec2i fb_size = backbufferSize();
     backbuffer_width_ = static_cast<u16>(fb_size.x);
@@ -445,7 +445,7 @@ Result<None> GLRenderContext::createWindow(u16 width, u16 height, const String& 
 #ifndef DW_EMSCRIPTEN
     // Initialise GL function pointers.
     if (!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress)) {
-        return {"gladLoadGLES2Loader failed."};
+        return makeError("gladLoadGLES2Loader failed.");
     }
 #endif
 
@@ -457,7 +457,7 @@ Result<None> GLRenderContext::createWindow(u16 width, u16 height, const String& 
     // Hand off context to render thread.
     glfwMakeContextCurrent(nullptr);
 
-    return None();
+    return Result<void>();
 }
 
 void GLRenderContext::destroyWindow() {

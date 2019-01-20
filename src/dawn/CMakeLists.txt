@@ -91,7 +91,6 @@ set(SOURCE_FILES
     core/Object.cpp
     core/Object.h
     core/Preprocessor.h
-    core/Result.h
     core/StringUtils.cpp
     core/StringUtils.h
     core/Timer.cpp

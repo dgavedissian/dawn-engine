@@ -16,7 +16,7 @@ public:
     virtual ~Shader() = default;
 
     // Resource.
-    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
+    Result<void> beginLoad(const String& asset_name, InputStream& src) override;
 
     rhi::ShaderHandle internalHandle() const;
 

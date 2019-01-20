@@ -21,7 +21,8 @@ ResourcePackage::ResourcePackage(Context* ctx, const Path& package) : Object(ctx
 
 Result<SharedPtr<InputStream>, String> ResourcePackage::getFile(
     const ResourcePath& path_within_location) {
-    return {"ResourcePackage::getFile() - Loading from a ResourcePackage is unimplemented."};
+    return makeError(
+        "ResourcePackage::getFile() - Loading from a ResourcePackage is unimplemented.");
 }
 
 ResourceFilesystemPath::ResourceFilesystemPath(Context* ctx, const Path& path)
@@ -35,7 +36,7 @@ Result<SharedPtr<InputStream>, String> ResourceFilesystemPath::getFile(
     if (module<FileSystem>()->fileExists(full_path)) {
         return {makeShared<File>(context(), full_path, FileMode::Read)};
     }
-    return {str::format("File %s does not exist.", full_path)};
+    return makeError(str::format("File %s does not exist.", full_path));
 }
 
 ResourceCache::ResourceCache(Context* context) : Module(context) {
@@ -68,8 +69,8 @@ Result<SharedPtr<InputStream>, String> ResourceCache::getResourceData(
     // Look up package and get the file within that package.
     auto package_it = resource_packages_.find(package);
     if (package_it == resource_packages_.end()) {
-        return {str::format("Attempting to load from unknown package: %s - Full path: %s", package,
-                            resource_path)};
+        return makeError(str::format("Attempting to load from unknown package: %s - Full path: %s",
+                                     package, resource_path));
     }
     return package_it->second->getFile(simplifyAbsolutePath(path.second));
 }

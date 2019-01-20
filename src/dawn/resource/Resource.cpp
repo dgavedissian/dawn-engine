@@ -11,7 +11,7 @@ namespace dw {
 Resource::Resource(Context* context) : Object(context), loaded_(false) {
 }
 
-Result<None> Resource::load(const String& asset_name, InputStream& src) {
+Result<void> Resource::load(const String& asset_name, InputStream& src) {
     auto begin_load_result = beginLoad(asset_name, src);
     if (!begin_load_result) {
         return begin_load_result;
@@ -21,15 +21,15 @@ Result<None> Resource::load(const String& asset_name, InputStream& src) {
         return end_load_result;
     }
     loaded_ = true;
-    return None{};
+    return Result<void>();
 }
 
-Result<None> Resource::endLoad() {
-    return None{};
+Result<void> Resource::endLoad() {
+    return Result<void>();
 }
 
-Result<None> Resource::save(OutputStream&) {
-    return {str::format("Save not supported for %s", typeName())};
+Result<void> Resource::save(OutputStream&) {
+    return makeError(str::format("Save not supported for %s", typeName()));
 }
 
 bool Resource::hasLoaded() const {
