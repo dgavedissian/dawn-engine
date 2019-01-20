@@ -87,7 +87,7 @@ void SceneGraph::updateSceneGraph() {
         Renderable* renderable = node->data.renderable.get();
         if (renderable) {
             for (usize c = 0; c < cameras.size(); ++c) {
-                int f = frame_to_frame_id.at(cameras[c].scene_node->frame());
+                usize f = frame_to_frame_id.at(cameras[c].scene_node->frame());
                 Mat4& model_matrix = system_model_matrices_per_frame_[f][node];
                 render_operations_per_camera_[c].emplace_back(
                     detail::RenderOperation{renderable, model_matrix});
@@ -154,7 +154,7 @@ void SceneGraph::removeFrame(Frame* frame) {
     });
 }
 
-Frame* SceneGraph::frame(int i) {
+Frame* SceneGraph::frame(usize i) {
     return frames_[i].get();
 }
 
@@ -186,7 +186,7 @@ void SceneGraph::renderTree(Node* node, const Mat4& frame_model_matrix,
     if (renderable) {
         if (camera_id == -1) {
             auto& cameras = camera_entity_system_->cameras;
-            for (int c = 0; c < cameras.size(); ++c) {
+            for (usize c = 0; c < cameras.size(); ++c) {
                 render_operations_per_camera_[c].emplace_back(
                     detail::RenderOperation{renderable, frame_model_matrix * model_matrix});
             }
@@ -196,7 +196,7 @@ void SceneGraph::renderTree(Node* node, const Mat4& frame_model_matrix,
         }
     }
 
-    for (int i = 0; i < node->childCount(); ++i) {
+    for (usize i = 0; i < node->childCount(); ++i) {
         renderTree(node->child(i), frame_model_matrix, model_matrix, dirty, camera_id);
     }
 }

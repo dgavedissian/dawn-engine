@@ -36,7 +36,7 @@ public:
     // Frames.
     Frame* addFrame(SystemNode* frame_node);
     void removeFrame(Frame* frame);
-    Frame* frame(int i);
+    Frame* frame(usize i);
     usize frameCount() const;
 
     // Callbacks. All take delta time (dt) as first parameter.
