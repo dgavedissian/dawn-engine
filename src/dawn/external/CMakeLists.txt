@@ -426,11 +426,13 @@ if(NOT mathgeolib_POPULATED)
     set(VS_BUG ON CACHE BOOL "" FORCE)
     set(MATH_TESTS_EXECUTABLE OFF CACHE BOOL "" FORCE)
     set(INSTALL_CMAKE_DIR ${CMAKE_BINARY_DIR}/_deps/mathgeolib-build CACHE BOOL "" FORCE)
+    set(INSTALL_INCLUDE_DIR ${CMAKE_BINARY_DIR}/_deps/mathgeolib-build CACHE BOOL "" FORCE)
     mark_as_advanced(
         VS_BUG
         MATH_TESTS_EXECUTABLE
         GENERATE_ASM_LISTING
         INSTALL_CMAKE_DIR
+        INSTALL_INCLUDE_DIR
     )
     add_subdirectory(${mathgeolib_SOURCE_DIR} ${mathgeolib_BINARY_DIR} EXCLUDE_FROM_ALL)
     target_include_directories(MathGeoLib PUBLIC $<BUILD_INTERFACE:${mathgeolib_SOURCE_DIR}/src>)
@@ -445,7 +447,7 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(optional-lite)
 if(NOT optional-lite_POPULATED)
-    message(STATUS "optional expected-lite")
+    message(STATUS "Populating optional-lite")
     FetchContent_Populate(optional-lite)
     add_library(optional-lite INTERFACE)
     target_include_directories(optional-lite INTERFACE ${optional-lite_SOURCE_DIR}/include)

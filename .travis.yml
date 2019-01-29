@@ -14,11 +14,12 @@ sudo: false
 matrix:
   include:
 
-  # Windows / MSVC 2017 32-bit
+  # Windows
+  # MSVC 2017 32-bit
   - os: windows
     env: CMAKE_CONFIGURE_OPTIONS="-A Win32" CMAKE_BUILD_OPTIONS="--config Release" CTEST_OPTIONS="-C Release"
 
-  # Windows / MSVC 2017 64-bit
+  # MSVC 2017 64-bit
   - os: windows
     env: CMAKE_CONFIGURE_OPTIONS="-A x64" CMAKE_BUILD_OPTIONS="--config Release" CTEST_OPTIONS="-C Release"
 
@@ -27,7 +28,12 @@ matrix:
     env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     osx_image: xcode10.1
 
-  # Linux / GCC 5
+  - os: osx
+    env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
+    osx_image: xcode8
+
+  # Linux
+  # gcc 5
   - os: linux
     env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=gcc-5 -DCMAKE_CXX_COMPILER=g++-5 -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     addons:
@@ -40,7 +46,7 @@ matrix:
         - xorg-dev
         - libgl1-mesa-dev
 
-  # Linux / GCC 6
+  # gcc 6
   - os: linux
     env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=gcc-6 -DCMAKE_CXX_COMPILER=g++-6 -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     addons:
@@ -53,7 +59,7 @@ matrix:
         - xorg-dev
         - libgl1-mesa-dev
 
-  # Linux / GCC 7
+  # gcc 7
   - os: linux
     env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=gcc-7 -DCMAKE_CXX_COMPILER=g++-7 -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     addons:
@@ -66,7 +72,7 @@ matrix:
           - xorg-dev
           - libgl1-mesa-dev
 
-  # Linux / Clang 6
+  # clang 6
   - os: linux
     env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     addons:
