@@ -264,5 +264,25 @@ mirror_physical_directories(${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES})
 set_target_properties(DwEngine PROPERTIES DEBUG_POSTFIX _d)
 
 # Add include dirs and libraries
-target_include_directories(DwEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
+target_include_directories(DwEngine PRIVATE ${INCLUDE_DIRS})
 target_link_libraries(DwEngine ${LIBS})
+
+# Tests.
+
+set(TEST_FILES
+    core/io/FileSystemTest.cpp
+    core/io/FileTest.cpp
+    core/io/StringInputStreamTest.cpp
+    testing/Testing.h)
+
+add_executable(DwEngineTests ${TEST_FILES})
+mirror_physical_directories(${TEST_FILES})
+enable_cpp14(DwEngineTests)
+target_link_libraries(DwEngineTests DwEngine gtest gtest_main)
+target_include_directories(DwEngineTests SYSTEM PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/testing)
+set_target_properties(DwEngineTests PROPERTIES DEBUG_POSTFIX "")
+
+include(GoogleTest)
+gtest_add_tests(
+    TARGET DwEngineTests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
