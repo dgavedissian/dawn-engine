@@ -18,10 +18,11 @@ GameSession::GameSession(Context* ctx, const GameSessionInfo& gsi)
     // Initialise networking.
     if (gsi.start_info.is<GameSessionInfo::CreateNetGame>()) {
         auto& info = gsi.start_info.get<GameSessionInfo::CreateNetGame>();
-        net_instance_ = NetInstance::listen(ctx, this, info.host, info.port, info.max_clients);
+        net_instance_ =
+            NetInstance::listen(ctx, this, info.host, info.port, info.max_clients, info.transport);
     } else if (gsi.start_info.is<GameSessionInfo::JoinNetGame>()) {
         auto& info = gsi.start_info.get<GameSessionInfo::JoinNetGame>();
-        net_instance_ = NetInstance::connect(ctx, this, info.host, info.port);
+        net_instance_ = NetInstance::connect(ctx, this, info.host, info.port, info.transport);
     }
 }
 

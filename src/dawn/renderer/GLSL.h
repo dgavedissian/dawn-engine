@@ -11,7 +11,7 @@
 #pragma warning(push, 0)
 #endif
 
-#include <ShaderLang.h>
+#include <glslang/Public/ShaderLang.h>
 #include <SPIRV/GlslangToSpv.h>
 
 // Re-enable warnings

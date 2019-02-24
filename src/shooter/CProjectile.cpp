@@ -75,19 +75,19 @@ Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const V
 
     // Allocate a billboard.
     Option<int> billboard_id = render_data.free_billboards.allocate();
-    if (!billboard_id.isPresent()) {
+    if (!billboard_id.has_value()) {
         log().warn("Unable to create billboard. Ran out of IDs. Size: %d",
                    render_data.free_billboards.size());
         return nullptr;
     }
 
-    render_data.billboard_set->setParticleVisible(billboard_id.get(), true);
+    render_data.billboard_set->setParticleVisible(billboard_id.value(), true);
 
     auto& entity = scene_manager_->createEntity(Hash("Projectile"));
     entity.addComponent<CProjectile>();
     auto& projectile = *entity.component<CProjectile>();
     projectile.type = type;
-    projectile.particle_id = billboard_id.get();
+    projectile.particle_id = billboard_id.value();
     projectile.position = position;
     projectile.direction = direction;
     projectile.velocity = velocity;

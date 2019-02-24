@@ -70,8 +70,8 @@ SystemNode* SystemNode::child(int i) {
     return children_[i];
 }
 
-int SystemNode::childCount() const {
-    return static_cast<int>(children_.size());
+usize SystemNode::childCount() const {
+    return children_.size();
 }
 
 void SystemNode::detachFromParent() {
@@ -120,8 +120,8 @@ Node* Node::child(int i) {
     return children_[i];
 }
 
-int Node::childCount() const {
-    return static_cast<int>(children_.size());
+usize Node::childCount() const {
+    return children_.size();
 }
 
 detail::Transform& Node::transform() {

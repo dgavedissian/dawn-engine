@@ -13,8 +13,8 @@ NullRenderContext::NullRenderContext(Context* ctx) : RenderContext(ctx) {
 NullRenderContext::~NullRenderContext() {
 }
 
-Result<None> NullRenderContext::createWindow(u16, u16, const String&) {
-    return None();
+Result<void> NullRenderContext::createWindow(u16, u16, const String&) {
+    return Result<void>();
 }
 
 void NullRenderContext::destroyWindow() {

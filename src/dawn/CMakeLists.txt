@@ -1,6 +1,9 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
 
+message(STATUS "Setting up external dependencies...")
+add_subdirectory(external)
+
 # Source: https://github.com/google/flatbuffers/blob/master/CMake/FindFlatBuffers.cmake
 function(FLATBUFFERS_GENERATE_C_HEADERS Name)
     set(FLATC_OUTPUTS)
@@ -87,9 +90,7 @@ set(SOURCE_FILES
     core/Module.h
     core/Object.cpp
     core/Object.h
-    core/Option.h
     core/Preprocessor.h
-    core/Result.h
     core/StringUtils.cpp
     core/StringUtils.h
     core/Timer.cpp
@@ -97,9 +98,12 @@ set(SOURCE_FILES
     core/Type.h
     input/Input.cpp
     input/Input.h
+    net/transport/InProcessTransport.cpp
+    net/transport/InProcessTransport.h
+    net/transport/ReliableUDPTransport.cpp
+    net/transport/ReliableUDPTransport.h
     net/transport/Transport.h
-    net/transport/YojimboTransport.cpp
-    net/transport/YojimboTransport.h
+    net/transport/Yojimbo.h
     net/BitStream.cpp
     net/BitStream.h
     net/CNetData.cpp
@@ -119,7 +123,6 @@ set(SOURCE_FILES
     net/Rpc.cpp
     net/Rpc.h
     net/Rpc.i.h
-    net/Yojimbo.h
     renderer/rhi/GL.h
     renderer/rhi/GLRenderContext.cpp
     renderer/rhi/GLRenderContext.h
@@ -240,6 +243,9 @@ enable_maximum_warnings(DwEngine)
 set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)
     set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
+endif()
+if(APPLE)
+    set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-D_LIBCPP_DISABLE_AVAILABILITY")
 endif()
 target_include_directories(DwEngine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

@@ -69,7 +69,7 @@ public:
     SystemNode* newChild(const SystemPosition& p = SystemPosition::origin,
                          const Quat& o = Quat::identity);
     SystemNode* child(int i);
-    int childCount() const;
+    usize childCount() const;
 
     // Transform.
     SystemPosition position;
@@ -105,7 +105,7 @@ public:
     Node* newChild(const Vec3& p = Vec3::zero, const Quat& o = Quat::identity,
                    const Vec3& s = Vec3::one);
     Node* child(int i);
-    int childCount() const;
+    usize childCount() const;
 
     // Transform.
     detail::Transform& transform();

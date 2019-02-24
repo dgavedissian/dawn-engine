@@ -19,8 +19,8 @@ Program::Program(Context* ctx, SharedPtr<VertexShader> vs, SharedPtr<FragmentSha
 Program::~Program() {
 }
 
-Result<None> Program::beginLoad(const String&, InputStream&) {
-    return {"Program loading unimplemented."};
+Result<void> Program::beginLoad(const String&, InputStream&) {
+    return makeError("Program loading unimplemented.");
 }
 
 void Program::setTextureUnit(SharedPtr<Texture> texture, uint unit) {
@@ -33,7 +33,7 @@ rhi::ProgramHandle Program::internalHandle() const {
 
 void Program::applyRendererState() {
     // Set textures.
-    for (size_t i = 0; i < texture_units_.size(); i++) {
+    for (uint i = 0; i < static_cast<uint>(texture_units_.size()); i++) {
         if (!texture_units_[i]) {
             break;
         }

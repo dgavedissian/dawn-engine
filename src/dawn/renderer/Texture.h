@@ -19,7 +19,7 @@ public:
                                               rhi::TextureFormat format, Memory data = {});
 
     // Resource.
-    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
+    Result<void> beginLoad(const String& asset_name, InputStream& src) override;
 
     rhi::TextureHandle internalHandle() const;
 

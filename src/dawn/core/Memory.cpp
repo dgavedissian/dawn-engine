@@ -10,7 +10,7 @@ namespace dw {
 Memory::Memory() : data_{nullptr}, size_{0} {
 }
 
-Memory::Memory(uint size) : size_{size} {
+Memory::Memory(usize size) : size_{size} {
     if (size > 0) {
         data_.reset(new byte[size], std::default_delete<byte[]>());
     }
@@ -24,7 +24,7 @@ byte* Memory::data() const {
     return data_.get();
 }
 
-uint Memory::size() const {
+usize Memory::size() const {
     return size_;
 }
 }  // namespace dw

@@ -1,0 +1,13 @@
+diff --git a/src/MathBuildConfig.h b/src/MathBuildConfig.h
+index abd279a..3126f08 100644
+--- a/src/MathBuildConfig.h
++++ b/src/MathBuildConfig.h
+@@ -27,7 +27,7 @@
+ // If MATH_AUTO_USE_NAMESPACE is defined, a 'using namespace math;' directive is issued in all header files, causing
+ // the math namespace to exist only for internal symbol hiding purposes, and not for external code.
+ // This flag does not have any effect if MATH_ENABLE_NAMESPACE is not defined.
+-#define MATH_AUTO_USE_NAMESPACE
++//#define MATH_AUTO_USE_NAMESPACE
+ 
+ // Detect if we're building on Windows 8 and mark it in define WIN8 if so.
+ #if defined(WINVER) && !defined(WIN8)

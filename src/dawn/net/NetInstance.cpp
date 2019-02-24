@@ -11,7 +11,8 @@
 #include "net/CNetData.h"
 #include "net/CNetTransform.h"
 #include "core/GameSession.h"
-#include "transport/YojimboTransport.h"
+#include "net/transport/InProcessTransport.h"
+#include "net/transport/ReliableUDPTransport.h"
 
 #include "protocol_generated.h"
 #include "to_server_generated.h"
@@ -26,22 +27,24 @@ Vector<byte> toVector(const flatbuffers::Vector<uint8_t>& v) {
 }  // namespace
 
 UniquePtr<NetInstance> NetInstance::connect(Context* context, GameSession* session,
-                                            const String& host, u16 port) {
-    auto instance = makeUnique<NetInstance>(context, session);
+                                            const String& host, u16 port, NetTransport transport) {
+    auto instance = makeUnique<NetInstance>(context, session, transport);
     instance->connect(host, port);
     return instance;
 }
 
 UniquePtr<NetInstance> NetInstance::listen(Context* context, GameSession* session,
-                                           const String& host, u16 port, u16 max_clients) {
-    auto instance = makeUnique<NetInstance>(context, session);
+                                           const String& host, u16 port, u16 max_clients,
+                                           NetTransport transport) {
+    auto instance = makeUnique<NetInstance>(context, session, transport);
     instance->listen(host, port, max_clients);
     return instance;
 }
 
-NetInstance::NetInstance(Context* ctx, GameSession* session)
+NetInstance::NetInstance(Context* ctx, GameSession* session, NetTransport transport)
     : Object{ctx},
       session_(session),
+      transport_(transport),
       is_server_(false),
       client_(nullptr),
       server_(nullptr),
@@ -53,10 +56,21 @@ NetInstance::~NetInstance() {
 }
 
 void NetInstance::connect(const String& host, u16 port) {
-    auto connected = [this]() { session_->eventSystem()->triggerEvent<JoinServerEvent>(); };
+    auto connected = [this]() { (void)session_->eventSystem()->triggerEvent<JoinServerEvent>(); };
     auto connection_failed = []() {};
     auto disconnected = []() {};
-    client_ = makeUnique<YojimboClient>(context(), connected, connection_failed, disconnected);
+    switch (transport_) {
+        case NetTransport::ReliableUDP:
+            client_ = makeUnique<ReliableUDPClient>(context(), connected, connection_failed,
+                                                    disconnected);
+            break;
+        case NetTransport::InProcess:
+            client_ =
+                makeUnique<InProcessClient>(context(), connected, connection_failed, disconnected);
+            break;
+        default:
+            break;
+    }
     client_->connect(host, port);
     is_server_ = false;
 }
@@ -66,7 +80,17 @@ void NetInstance::listen(const String& host, u16 port, u16 max_clients) {
     auto client_disconnected = [this](ClientId client_id) {
         onServerClientDisconnected(client_id);
     };
-    server_ = makeUnique<YojimboServer>(context(), client_connected, client_disconnected);
+    switch (transport_) {
+        case NetTransport::ReliableUDP:
+            server_ =
+                makeUnique<ReliableUDPServer>(context(), client_connected, client_disconnected);
+            break;
+        case NetTransport::InProcess:
+            server_ = makeUnique<InProcessServer>(context(), client_connected, client_disconnected);
+            break;
+        default:
+            break;
+    }
     server_->listen(host, port, max_clients);
     is_server_ = true;
 }
@@ -94,7 +118,7 @@ void NetInstance::serverUpdate(float dt) {
     for (ClientId client_id = 0; client_id < server_->numConnections(); ++client_id) {
         while (true) {
             auto message = server_->receive(client_id);
-            if (!message.isPresent()) {
+            if (!message.has_value()) {
                 break;
             }
             auto server_message = GetServerMessage(message->data.data());
@@ -161,7 +185,7 @@ void NetInstance::clientUpdate(float dt) {
 
     while (true) {
         auto message = client_->receive();
-        if (!message.isPresent()) {
+        if (!message.has_value()) {
             break;
         }
         auto client_message = GetClientMessage(message->data.data());

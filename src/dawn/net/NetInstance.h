@@ -4,8 +4,6 @@
  */
 #pragma once
 
-#include "net/Yojimbo.h"
-
 #include "scene/Entity.h"
 #include "net/NetMode.h"
 #include "net/CNetData.h"
@@ -16,20 +14,20 @@
 
 namespace dw {
 class GameSession;
-enum class Transport { Yojimbo, InMemory };
+enum class NetTransport { ReliableUDP, InProcess };
 
 using RequestId = u64;
 
-class DW_API NetInstance : public Object, public yojimbo::Adapter {
+class DW_API NetInstance : public Object {
 public:
     DW_OBJECT(NetInstance);
 
     static UniquePtr<NetInstance> connect(Context* context, GameSession* session,
-                                          const String& host, u16 port);
+                                          const String& host, u16 port, NetTransport transport = NetTransport::ReliableUDP);
     static UniquePtr<NetInstance> listen(Context* context, GameSession* session, const String& host,
-                                         u16 port, u16 max_clients);
+                                         u16 port, u16 max_clients, NetTransport transport = NetTransport::ReliableUDP);
 
-    NetInstance(Context* context, GameSession* session);
+    NetInstance(Context* context, GameSession* session, NetTransport transport);
     virtual ~NetInstance();
 
     // Connect to a server at ip:port.
@@ -71,6 +69,7 @@ public:
 
 private:
     GameSession* session_;
+    const NetTransport transport_;
 
     bool is_server_;
     UniquePtr<TransportClient> client_;

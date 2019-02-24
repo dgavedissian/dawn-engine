@@ -47,7 +47,7 @@ Mesh::Node* Mesh::Node::child(int i) {
     return children_[i].get();
 }
 
-int Mesh::Node::childCount() const {
+usize Mesh::Node::childCount() const {
     return children_.size();
 }
 
@@ -70,7 +70,7 @@ void Mesh::Node::draw(Renderer* renderer, uint view, const Mat4& model_matrix,
     }
 }
 
-Mesh::SubMesh::SubMesh(u32 index_buffer_offset, u32 index_count, SharedPtr<Material> material)
+Mesh::SubMesh::SubMesh(usize index_buffer_offset, usize index_count, SharedPtr<Material> material)
     : index_buffer_offset_(index_buffer_offset), index_count_(index_count), material_(material) {
 }
 
@@ -90,7 +90,7 @@ Mesh::Mesh(Context* context)
 Mesh::~Mesh() {
 }
 
-Result<None> Mesh::beginLoad(const String& asset_name, InputStream& is) {
+Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     // Read stream.
     assert(is.size() > 0);
     u64 size = is.size();
@@ -110,8 +110,8 @@ Result<None> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     const aiScene* scene = importer.ReadFileFromMemory(data, size, flags, asset_name.c_str());
     Assimp::DefaultLogger::kill();
     if (!scene) {
-        return {str::format("Unable to load mesh %s. Reason: %s", asset_name,
-                            importer.GetErrorString())};
+        return makeError(str::format("Unable to load mesh %s. Reason: %s", asset_name,
+                                     importer.GetErrorString()));
     }
 
     // TODO: Load materials.
@@ -136,33 +136,34 @@ Result<None> Mesh::beginLoad(const String& asset_name, InputStream& is) {
 
         // Check the mesh for any issues, and abort if so.
         if (!mesh->HasPositions()) {
-            return {
-                str::format("Unable to load mesh %s. Submesh %d has no positions.", asset_name, i)};
+            return makeError(
+                str::format("Unable to load mesh %s. Submesh %d has no positions.", asset_name, i));
         }
         if (!mesh->HasNormals()) {
-            return {
-                str::format("Unable to load mesh %s. Submesh %d has no normals.", asset_name, i)};
+            return makeError(
+                str::format("Unable to load mesh %s. Submesh %d has no normals.", asset_name, i));
         }
         if (!mesh->HasFaces()) {
-            return {str::format("Unable to load mesh %s. Submesh %d has no faces.", asset_name, i)};
+            return makeError(
+                str::format("Unable to load mesh %s. Submesh %d has no faces.", asset_name, i));
         }
 
-        const uint vertex_offset = vertices.size();
-        const uint index_offset = indices.size();
+        const u32 vertex_offset = static_cast<u32>(vertices.size());
+        const u32 index_offset = static_cast<u32>(indices.size());
 
-        for (uint v = 0; v < mesh->mNumVertices; ++v) {
+        for (usize v = 0; v < mesh->mNumVertices; ++v) {
             aiVector3D& position = mesh->mVertices[v];
             aiVector3D& normal = mesh->mNormals[v];
             vertices.emplace_back(
                 Vertex{{position.x, position.y, position.z}, {normal.x, normal.y, normal.z}});
         }
-        for (uint f = 0; f < mesh->mNumFaces; ++f) {
+        for (usize f = 0; f < mesh->mNumFaces; ++f) {
             aiFace& face = mesh->mFaces[f];
             if (face.mNumIndices != 3) {
-                return {str::format(
+                return makeError(str::format(
                     "Unable to load mesh %s. Face %d in submesh %d has %d indices (must be exactly "
                     "3).",
-                    asset_name, f, i, face.mNumIndices)};
+                    asset_name, f, i, face.mNumIndices));
             }
             indices.emplace_back(face.mIndices[0] + vertex_offset);
             indices.emplace_back(face.mIndices[1] + vertex_offset);
@@ -208,13 +209,13 @@ Result<None> Mesh::beginLoad(const String& asset_name, InputStream& is) {
         // Create node.
         Vector<SubMesh*> submeshes;
         submeshes.resize(ai_node->mNumMeshes);
-        for (int i = 0; i < ai_node->mNumMeshes; ++i) {
+        for (usize i = 0; i < ai_node->mNumMeshes; ++i) {
             submeshes[i] = submeshes_[ai_node->mMeshes[i]].get();
         }
         auto node = makeUnique<Node>(transform, parent, submeshes);
 
         // Add children.
-        for (int c = 0; c < ai_node->mNumChildren; ++c) {
+        for (usize c = 0; c < ai_node->mNumChildren; ++c) {
             node->addChild(create_node_tree(ai_node->mChildren[c], node.get()));
         }
 
@@ -222,12 +223,12 @@ Result<None> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     };
     root_node_ = create_node_tree(scene->mRootNode, nullptr);
 
-    return None{};
+    return Result<void>();
 }
 
 void Mesh::draw(Renderer* renderer, uint view, detail::Transform&, const Mat4& model_matrix,
                 const Mat4& view_projection_matrix) {
-    u32 vertex_count = index_buffer_->indexCount();
+    // usize vertex_count = index_buffer_->indexCount();
     auto rhi = renderer->rhi();
     rhi->setVertexBuffer(vertex_buffer_->internalHandle());
     rhi->setIndexBuffer(index_buffer_->internalHandle());

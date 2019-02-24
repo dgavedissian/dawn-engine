@@ -20,7 +20,7 @@ public:
     ~Mesh();
 
     // Resource.
-    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
+    Result<void> beginLoad(const String& asset_name, InputStream& src) override;
 
     void draw(Renderer* renderer, uint view, detail::Transform& camera, const Mat4& model_matrix,
               const Mat4& view_projection_matrix) override;
@@ -43,7 +43,7 @@ public:
 
     void addChild(UniquePtr<Node> node);
     Node* child(int i);
-    int childCount() const;
+    usize childCount() const;
 
     void setTransform(const Mat4& transform);
     const Mat4& transform() const;
@@ -60,14 +60,14 @@ private:
 
 class DW_API Mesh::SubMesh {
 public:
-    SubMesh(u32 index_buffer_offset, u32 index_count, SharedPtr<Material> material);
+    SubMesh(usize index_buffer_offset, usize index_count, SharedPtr<Material> material);
 
     void draw(Renderer* renderer, uint view, const Mat4& model_matrix,
               const Mat4& view_projection_matrix);
 
 private:
-    u32 index_buffer_offset_;
-    u32 index_count_;
+    usize index_buffer_offset_;
+    usize index_count_;
     SharedPtr<Material> material_;
 };
 }  // namespace dw

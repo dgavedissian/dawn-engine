@@ -10,7 +10,7 @@ StringInputStream::StringInputStream(const String& data)
     : InputStream{data.size() + 1}, data_{data} {
 }
 
-u32 StringInputStream::readData(void* dest, u32 size) {
+usize StringInputStream::readData(void* dest, usize size) {
     if (position_ + size > size_) {
         return 0;
     }
@@ -19,7 +19,7 @@ u32 StringInputStream::readData(void* dest, u32 size) {
     return size;
 }
 
-void StringInputStream::seek(u64 position) {
+void StringInputStream::seek(usize position) {
     position_ = std::min(position, size_);
 }
 }  // namespace dw

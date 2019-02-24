@@ -57,7 +57,7 @@ SharedPtr<CustomMeshRenderable> TriangleBuffer::end() {
 
         // Build packed buffer based on parameters.
         data = Memory(vertices_.size() * decl.stride());
-        uint stride =
+        const uint stride =
             decl.stride() / sizeof(float);  // convert stride in bytes to stride in floats.
         auto* packed_data = reinterpret_cast<float*>(data.data());
         for (size_t i = 0; i < vertices_.size(); ++i) {

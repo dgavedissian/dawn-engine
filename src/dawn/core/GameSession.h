@@ -22,13 +22,13 @@ struct DW_API GameSessionInfo {
         u16 port = 10000;
         u16 max_clients = 16;
         String scene_name = "unknown";
-        // TODO: Transport.
+        NetTransport transport = NetTransport::ReliableUDP;
     };
 
     struct JoinNetGame {
         String host = "localhost";
         u16 port = 10000;
-        // TODO: Transport.
+        NetTransport transport = NetTransport::ReliableUDP;
     };
 
     Variant<CreateLocalGame, CreateNetGame, JoinNetGame> start_info = CreateLocalGame{};

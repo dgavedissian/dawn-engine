@@ -28,6 +28,7 @@ using u64 = std::uint64_t;
 using byte = u8;
 using intptr = std::intptr_t;
 using uintptr = std::uintptr_t;
+using usize = std::size_t;
 
 // String
 using String = std::string;
@@ -41,18 +42,16 @@ template <typename T> using SharedPtr = std::shared_ptr<T>;
 template <typename T> using WeakPtr = std::weak_ptr<T>;
 template <typename T, typename D = std::default_delete<T>> using UniquePtr = std::unique_ptr<T, D>;
 template <typename T> using EnableSharedFromThis = std::enable_shared_from_this<T>;
-template <typename T, typename... Args> inline SharedPtr<T> makeShared(Args&&... args) {
+template <typename T, typename... Args> SharedPtr<T> makeShared(Args&&... args) {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
-template <typename T, typename... Args> inline UniquePtr<T> makeUnique(Args&&... args) {
+template <typename T, typename... Args> UniquePtr<T> makeUnique(Args&&... args) {
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
-template <typename T1, typename T2>
-inline SharedPtr<T1> staticPointerCast(const SharedPtr<T2>& other) {
+template <typename T1, typename T2> SharedPtr<T1> staticPointerCast(const SharedPtr<T2>& other) {
     return std::static_pointer_cast<T1, T2>(other);
 }
-template <typename T1, typename T2>
-inline SharedPtr<T1> dynamicPointerCast(const SharedPtr<T2>& other) {
+template <typename T1, typename T2> SharedPtr<T1> dynamicPointerCast(const SharedPtr<T2>& other) {
     return std::dynamic_pointer_cast<T1, T2>(other);
 }
 }  // namespace dw

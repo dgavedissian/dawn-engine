@@ -12,8 +12,8 @@ public:
     StringInputStream(const String& data);
     ~StringInputStream() = default;
 
-    u32 readData(void* dest, u32 size) override;
-    void seek(u64 position) override;
+    usize readData(void* dest, usize size) override;
+    void seek(usize position) override;
 
 private:
     String data_;

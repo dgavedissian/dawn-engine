@@ -4,6 +4,13 @@
  */
 #pragma once
 
+// Mark this header as a system header
+#if defined(DW_GCC) || defined(DW_CLANG)
+#pragma GCC system_header
+#elif defined(DW_MSVC)
+#pragma warning(push, 0)
+#endif
+
 #include <tuple>
 #include <vector>
 #include <list>
@@ -13,17 +20,18 @@
 #include <unordered_set>
 #include <deque>
 
-#if DW_PLATFORM == DW_WIN32
-#pragma warning(push)
-#pragma warning(disable : 4996)
-#endif
+#include <nonstd/any.hpp>
+#include <nonstd/expected.hpp>
+#include <nonstd/optional.hpp>
 #include <mapbox/variant.hpp>
-#if DW_PLATFORM == DW_WIN32
+#include <concurrentqueue.h>
+
+// Re-enable warnings
+#if defined(DW_MSVC)
 #pragma warning(pop)
 #endif
 
 namespace dw {
-
 // If using GCC or Clang, create a hash wrapper to work around std::hash<T> not working for enum
 // classes.
 #if (defined(DW_LIBSTDCPP) && (DW_LIBSTDCPP < 6100)) || (defined(DW_LIBCPP) && (DW_LIBCPP < 3500))
@@ -54,17 +62,22 @@ template <typename K, typename T> using HashMap = std::unordered_map<K, T, HashF
 template <typename K> using Set = std::set<K>;
 template <typename K> using HashSet = std::unordered_set<K, HashFunction<K>>;
 template <typename T1, typename T2> using Pair = std::pair<T1, T2>;
-template <typename... T> using Tuple = std::tuple<T...>;
+template <typename... Ts> using Tuple = std::tuple<Ts...>;
 template <typename... T> using Variant = mapbox::util::variant<T...>;
+template <typename T> using Option = nonstd::optional<T>;
+template <typename T, typename E = String> using Result = nonstd::expected<T, E>;
+template <typename E> using UnexpectedType = nonstd::unexpected_type<E>;
+using Any = nonstd::any;
+template <typename T> using ConcurrentQueue = moodycamel::ConcurrentQueue<T>;
 
 template <typename F, typename V>
-auto VariantApplyVisitor(F&& f, V const& v)
+auto visit(F&& f, V const& v)
     -> decltype(mapbox::util::apply_visitor(std::forward<F>(f), v)) {
     return mapbox::util::apply_visitor(std::forward<F>(f), v);
 }
 
 template <typename F, typename V>
-auto VariantApplyVisitor(F&& f, V& v)
+auto visit(F&& f, V& v)
     -> decltype(mapbox::util::apply_visitor(std::forward<F>(f), v)) {
     return mapbox::util::apply_visitor(std::forward<F>(f), v);
 }
@@ -75,5 +88,9 @@ template <typename T1, typename T2> Pair<T1, T2> makePair(T1&& a, T2&& b) {
 
 template <typename... T> Tuple<T...> makeTuple(T&&... args) {
     return std::tuple<T...>(std::forward<T>(args)...);
+}
+
+template <typename E> UnexpectedType<E> makeError(E&& error) {
+    return UnexpectedType<E>(std::forward<E>(error));
 }
 }  // namespace dw

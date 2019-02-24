@@ -18,7 +18,7 @@ public:
     ~Program();
 
     // Resource.
-    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
+    Result<void> beginLoad(const String& asset_name, InputStream& src) override;
 
     void setTextureUnit(SharedPtr<Texture> texture, uint unit = 0);
 

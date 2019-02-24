@@ -11,7 +11,7 @@
 #include "net/CNetData.h"
 #include "net/CNetTransform.h"
 #include "core/GameSession.h"
-#include "YojimboTransport.h"
+#include "ReliableUDPTransport.h"
 
 namespace dw {
 namespace {
@@ -146,8 +146,8 @@ void YojimboAdapter::OnServerClientDisconnected(int client_index) {
     }
 }
 
-YojimboServer::YojimboServer(Context* ctx, Function<void(ClientId)> client_connected,
-                             Function<void(ClientId)> client_disconnected)
+ReliableUDPServer::ReliableUDPServer(Context* ctx, Function<void(ClientId)> client_connected,
+                                     Function<void(ClientId)> client_disconnected)
     : Object(ctx),
       adapter_(nullptr),
       server_(nullptr),
@@ -157,12 +157,12 @@ YojimboServer::YojimboServer(Context* ctx, Function<void(ClientId)> client_conne
     adapter_ = makeUnique<YojimboAdapter>(client_connected, client_disconnected);
 }
 
-YojimboServer::~YojimboServer() {
+ReliableUDPServer::~ReliableUDPServer() {
     disconnect();
     YojimboContext::release();
 }
 
-void YojimboServer::listen(const String& host, u16 port, u16 max_connections) {
+void ReliableUDPServer::listen(const String& host, u16 port, u16 max_connections) {
     if (server_connection_state_ == ServerConnectionState::Listening) {
         disconnect();
     }
@@ -180,7 +180,7 @@ void YojimboServer::listen(const String& host, u16 port, u16 max_connections) {
     server_connection_state_ = ServerConnectionState::Listening;
 }
 
-void YojimboServer::disconnect() {
+void ReliableUDPServer::disconnect() {
     if (server_) {
         assert(server_connection_state_ == ServerConnectionState::Listening);
         server_->Stop();
@@ -189,21 +189,21 @@ void YojimboServer::disconnect() {
     }
 }
 
-void YojimboServer::update(float dt) {
+void ReliableUDPServer::update(float dt) {
     server_->AdvanceTime(time_);
     time_ += dt;
     server_->SendPackets();
     server_->ReceivePackets();
 }
 
-void YojimboServer::send(ClientId client, const byte* data, u32 length) {
+void ReliableUDPServer::send(ClientId client, const byte* data, u32 length) {
     auto* to_client_message =
         static_cast<ToClientMessage*>(server_->CreateMessage(client, MT_ToClient));
     to_client_message->payload.assign(data, data + length);
     server_->SendMessage(client, 0, to_client_message);
 }
 
-Option<ServerPacket> YojimboServer::receive(ClientId client) {
+Option<ServerPacket> ReliableUDPServer::receive(ClientId client) {
     if (!server_ || server_->GetNumConnectedClients() == 0) {
         return {};
     }
@@ -224,16 +224,17 @@ Option<ServerPacket> YojimboServer::receive(ClientId client) {
     return {packet};
 }
 
-int YojimboServer::numConnections() const {
+usize ReliableUDPServer::numConnections() const {
     return server_->GetNumConnectedClients();
 }
 
-ServerConnectionState YojimboServer::connectionState() const {
+ServerConnectionState ReliableUDPServer::connectionState() const {
     return server_connection_state_;
 }
 
-YojimboClient::YojimboClient(Context* ctx, Function<void()> connected,
-                             Function<void()> connection_failed, Function<void()> disconnected)
+ReliableUDPClient::ReliableUDPClient(Context* ctx, Function<void()> connected,
+                                     Function<void()> connection_failed,
+                                     Function<void()> disconnected)
     : Object(ctx),
       adapter_(nullptr),
       client_(nullptr),
@@ -246,11 +247,11 @@ YojimboClient::YojimboClient(Context* ctx, Function<void()> connected,
     adapter_ = makeUnique<YojimboAdapter>();
 }
 
-YojimboClient::~YojimboClient() {
+ReliableUDPClient::~ReliableUDPClient() {
     YojimboContext::release();
 }
 
-void YojimboClient::connect(const String& host, u16 port) {
+void ReliableUDPClient::connect(const String& host, u16 port) {
     yojimbo::ClientServerConfig config;
     config.timeout = -1;  // Disable timeout.
 
@@ -270,7 +271,7 @@ void YojimboClient::connect(const String& host, u16 port) {
     client_connection_state_ = ClientConnectionState::Connecting;
 }
 
-void YojimboClient::disconnect() {
+void ReliableUDPClient::disconnect() {
     if (client_) {
         assert(client_connection_state_ > ClientConnectionState::Disconnected);
         client_->Disconnect();
@@ -279,7 +280,7 @@ void YojimboClient::disconnect() {
     }
 }
 
-void YojimboClient::update(float dt) {
+void ReliableUDPClient::update(float dt) {
     client_->AdvanceTime(time_);
     time_ += dt;
     client_->SendPackets();
@@ -311,13 +312,13 @@ void YojimboClient::update(float dt) {
     }
 }
 
-void YojimboClient::send(const byte* data, u32 length) {
+void ReliableUDPClient::send(const byte* data, u32 length) {
     auto* to_server_message = static_cast<ToServerMessage*>(client_->CreateMessage(MT_ToServer));
     to_server_message->payload.assign(data, data + length);
     client_->SendMessage(0, to_server_message);
 }
 
-Option<ClientPacket> YojimboClient::receive() {
+Option<ClientPacket> ReliableUDPClient::receive() {
     if (!client_ || !client_->IsConnected()) {
         return {};
     }
@@ -337,7 +338,7 @@ Option<ClientPacket> YojimboClient::receive() {
     return {packet};
 }
 
-ClientConnectionState YojimboClient::connectionState() const {
+ClientConnectionState ReliableUDPClient::connectionState() const {
     return client_connection_state_;
 }
 }  // namespace dw

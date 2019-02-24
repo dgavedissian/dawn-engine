@@ -21,11 +21,11 @@ public:
     void bind(rhi::RHIRenderer* r);
 
     rhi::IndexBufferHandle internalHandle() const;
-    u32 indexCount() const;
+    usize indexCount() const;
 
 private:
     rhi::IndexBufferHandle handle_;
     rhi::IndexBufferType type_;
-    u32 index_count_;
+    usize index_count_;
 };
 }  // namespace dw

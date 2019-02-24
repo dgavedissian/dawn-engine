@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "core/Option.h"
+#include "core/Collections.h"
 #include "core/math/Defs.h"
 #include "renderer/Program.h"
 #include "renderer/Texture.h"
@@ -18,7 +18,7 @@ public:
     Material(Context* ctx, SharedPtr<Program> program);
     ~Material() override;
 
-    Result<None> beginLoad(const String& asset_name, InputStream& src) override;
+    Result<void> beginLoad(const String& asset_name, InputStream& src) override;
 
     void setStateEnable(rhi::RenderState state);
     void setStateDisable(rhi::RenderState state);

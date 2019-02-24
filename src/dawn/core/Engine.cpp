@@ -125,7 +125,7 @@ void Engine::setup(const CommandLine& cmdline) {
 
     // Create the engine subsystems.
     auto* renderer = context_->addModule<Renderer>();
-    Result<None> renderer_result = None();
+    auto renderer_result = Result<void>();
     if (!headless_) {
         bool use_multithreading = true;
 #ifdef DW_EMSCRIPTEN
