@@ -268,6 +268,7 @@ target_include_directories(DwEngine PRIVATE ${INCLUDE_DIRS})
 target_link_libraries(DwEngine ${LIBS})
 
 # Tests.
+enable_testing()
 
 set(TEST_FILES
     core/io/FileSystemTest.cpp
