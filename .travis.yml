@@ -28,10 +28,6 @@ matrix:
     env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     osx_image: xcode10.1
 
-  - os: osx
-    env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
-    osx_image: xcode8
-
   # Linux
   # gcc 5
   - os: linux
