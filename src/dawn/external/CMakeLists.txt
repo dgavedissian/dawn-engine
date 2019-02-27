@@ -1,5 +1,5 @@
 # Dawn Engine
-# Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+# Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
 
 include(FetchContent)
 include(ExternalProject)
@@ -630,7 +630,7 @@ if(NOT yojimbo_POPULATED)
         if(EMSCRIPTEN)
             ExternalProject_Add(sodium-external
                 PREFIX ${EXTERNAL_PREFIX}
-                URL https://github.com/jedisct1/libsodium/releases/download/1.0.15/libsodium-1.0.17.tar.gz
+                URL https://github.com/jedisct1/libsodium/releases/download/1.0.17/libsodium-1.0.17.tar.gz
                 URL_MD5 0f71e2680187a1558b5461e6879342c5
                 DOWNLOAD_NO_PROGRESS 1
                 BUILD_IN_SOURCE 1

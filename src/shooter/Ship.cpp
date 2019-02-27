@@ -1,11 +1,12 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
-#include "DawnEngine.h"
+#include "Core.h"
 #include "scene/CTransform.h"
 #include "net/CNetData.h"
 #include "net/CNetTransform.h"
+#include "resource/ResourceCache.h"
 #include "Ship.h"
 #include "ShipFlightComputer.h"
 #include "CWeapon.h"

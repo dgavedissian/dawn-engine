@@ -1,11 +1,17 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
-#include "Common.h"
+#include "Base.h"
+#include "core/io/FileSystem.h"
 #include "core/App.h"
-#include "core/Timer.h"
-#include "DawnEngine.h"
+#include "core/Engine.h"
+#include "core/GameSession.h"
+#include "input/Input.h"
+#include "renderer/Renderer.h"
+#include "resource/ResourceCache.h"
+#include "scene/SceneManager.h"
+#include "script/LuaState.h"
 
 // Required for getBasePath/getPrefPath.
 #if DW_PLATFORM == DW_WIN32
@@ -15,6 +21,10 @@
 #define MAX_PATH 256
 #elif DW_PLATFORM == DW_LINUX
 #include <unistd.h>
+#endif
+
+#ifdef DW_EMSCRIPTEN
+#include <emscripten.h>
 #endif
 
 namespace dw {

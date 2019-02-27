@@ -1,5 +1,5 @@
 # Dawn Engine
-# Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+# Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
 
 message(STATUS "Setting up external dependencies...")
 add_subdirectory(external)
@@ -58,9 +58,6 @@ set(SOURCE_FILES
     core/math/Vec4i.h
     core/platform/Defines.h
     core/platform/Windows.h
-    core/script/LuaState.cpp
-    core/script/LuaState.h
-    core/script/Sol.h
     core/App.h
     core/Collections.h
     core/CommandLine.cpp
@@ -195,12 +192,19 @@ set(SOURCE_FILES
     scene/SLinearMotion.h
     scene/SceneManager.cpp
     scene/SceneManager.h
+    script/LuaState.cpp
+    script/LuaState.h
+    script/Sol.h
     ui/Imgui.h
     ui/UserInterface.cpp
     ui/UserInterface.h
-    Common.h
-    DawnEngine.h
-    Prerequisites.h)
+    Base.h
+    Input.h
+    Net.h
+    Renderer.h
+    Resource.h
+    Scene.h
+    UI.h)
 
 # TODO: Replace prototype Ontology based ECS with custom implementation.
 add_definitions(-DONTOLOGY_WITH_ASSERT)

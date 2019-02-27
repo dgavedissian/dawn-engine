@@ -1,11 +1,12 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #include "ShooterGameMode.h"
 #include "core/GameSession.h"
 #include "renderer/CCamera.h"
 #include "renderer/SceneGraph.h"
+#include "resource/ResourceCache.h"
 
 ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx, SceneManager* scene_manager,
                                              NetInstance* net, Frame* frame)

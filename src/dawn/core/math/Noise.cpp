@@ -1,11 +1,12 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
-#include "Common.h"
-
+#include "Base.h"
 #include "Noise.h"
 #include "MathGeoLib.h"
+
+#include <random>
 
 namespace dw {
 fBmNoise::fBmNoise(uint octaves, float frequency, float amplitude, float lacunarity,

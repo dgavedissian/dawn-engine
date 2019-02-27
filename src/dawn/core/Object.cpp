@@ -1,8 +1,8 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
-#include "Common.h"
+#include "Base.h"
 #include "core/StringUtils.h"
 #if defined(DW_GCC) || defined(DW_CLANG)
 #include <cxxabi.h>
