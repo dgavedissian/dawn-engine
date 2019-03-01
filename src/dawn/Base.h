@@ -29,7 +29,6 @@
 #include "core/Preprocessor.h"
 
 #include "core/Context.h"
-#include "core/Exception.h"
 #include "core/Object.h"
 #include "core/Module.h"
 #include "core/Log.h"

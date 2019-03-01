@@ -31,7 +31,6 @@
 #include "core/Engine.h"
 #include "core/EventData.h"
 #include "core/EventSystem.h"
-#include "core/Exception.h"
 #include "core/FixedMemoryPool.h"
 #include "core/GameMode.h"
 #include "core/GameSession.h"
