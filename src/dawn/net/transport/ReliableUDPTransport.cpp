@@ -224,6 +224,10 @@ Option<ServerPacket> ReliableUDPServer::receive(ClientId client) {
     return {packet};
 }
 
+    bool ReliableUDPServer::isClientConnected(ClientId client) const {
+        return server_->IsClientConnected(client);
+    }
+
 usize ReliableUDPServer::numConnections() const {
     return server_->GetNumConnectedClients();
 }
@@ -232,7 +236,11 @@ ServerConnectionState ReliableUDPServer::connectionState() const {
     return server_connection_state_;
 }
 
-ReliableUDPClient::ReliableUDPClient(Context* ctx, Function<void()> connected,
+    usize ReliableUDPServer::maxConnections() const {
+        return server_->GetMaxClients();
+    }
+
+    ReliableUDPClient::ReliableUDPClient(Context* ctx, Function<void()> connected,
                                      Function<void()> connection_failed,
                                      Function<void()> disconnected)
     : Object(ctx),

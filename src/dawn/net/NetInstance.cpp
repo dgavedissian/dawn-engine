@@ -115,12 +115,14 @@ void NetInstance::serverUpdate(float dt) {
     server_->update(dt);
 
     // Process received messages.
-    for (ClientId client_id = 0; client_id < server_->numConnections(); ++client_id) {
-        while (true) {
-            auto message = server_->receive(client_id);
-            if (!message.has_value()) {
-                break;
-            }
+    for (ClientId client_id = 0; client_id < server_->maxConnections(); ++client_id) {
+        if (!server_->isClientConnected(client_id)) {
+            break;
+        }
+
+        // Process all messages from this client.
+        Option<ServerPacket> message = {};
+        while (message = server_->receive(client_id), message.has_value()) {
             auto server_message = GetServerMessage(message->data.data());
             switch (server_message->to_server_type()) {
                 case ServerMessageData_ServerSpawnRequest: {
@@ -139,7 +141,7 @@ void NetInstance::serverUpdate(float dt) {
                     // Send response.
                     flatbuffers::FlatBufferBuilder builder(1024);
                     auto response = CreateClientSpawnResponse(builder, spawn_message->request_id(),
-                                                              entity ? entity->id() + 10000 : 0);
+                                                              entity ? entity->id() : 0);
                     auto response_message = CreateClientMessage(
                         builder, ClientMessageData_ClientSpawnResponse, response.Union());
                     builder.Finish(response_message);
@@ -183,11 +185,8 @@ void NetInstance::serverUpdate(float dt) {
 void NetInstance::clientUpdate(float dt) {
     client_->update(dt);
 
-    while (true) {
-        auto message = client_->receive();
-        if (!message.has_value()) {
-            break;
-        }
+    Option<ClientPacket> message = {};
+    while (message = client_->receive(), message.has_value()) {
         auto client_message = GetClientMessage(message->data.data());
         switch (client_message->to_client_type()) {
             case ClientMessageData_ClientCreateEntity: {
@@ -195,42 +194,47 @@ void NetInstance::clientUpdate(float dt) {
                 auto* create_entity_message = client_message->to_client_as_ClientCreateEntity();
                 InputBitStream bs(create_entity_message->payload()->data(),
                                   create_entity_message->payload()->size());
-                EntityId entity_id = create_entity_message->entity_id();
+                EntityId remote_entity_id = create_entity_message->entity_id();
                 EntityType entity_type = create_entity_message->entity_type();
                 auto role = static_cast<NetRole>(create_entity_message->role());
                 if (entity_pipeline_) {
+                    EntityId local_entity_id = session_->sceneManager()->reserveEntityId();
                     Entity* entity =
-                        entity_pipeline_->createEntityFromType(entity_id, entity_type, role);
+                        entity_pipeline_->createEntityFromType(local_entity_id, entity_type, role);
                     if (entity) {
                         assert(entity->hasComponent<CNetData>());
                         entity->component<CNetData>()->deserialise(bs);
                         entity->component<CNetData>()->role_ = role;
                         entity->component<CNetData>()->remote_role_ = NetRole::Authority;
                         if (entity->transform()) {
-                            log().info("Created replicated entity %d at %d %d %d.", entity_id,
+                            log().info("Created replicated entity %d corresponding to remote entity %d at %d %d %d.", local_entity_id, remote_entity_id,
                                        entity->transform()->position.x,
                                        entity->transform()->position.y,
                                        entity->transform()->position.z);
                         } else {
-                            log().info("Created replicated entity %d with no transform.",
-                                       entity_id);
+                            log().info("Created replicated entity %d corresponding to remote entity %d with no transform.",
+                                       local_entity_id, remote_entity_id);
                         }
+
+                        // TODO(David): Handle when an entity is destroyed.
+                        local_to_remote_entity_id_[local_entity_id] = remote_entity_id;
+                        remote_to_local_entity_id_[remote_entity_id] = local_entity_id;
 
                         // If any spawn requests are waiting for an entity to be created,
                         // trigger the callback and clear.
-                        if (pending_entity_spawns_.count(entity->id()) > 0) {
+                        if (pending_entity_spawns_.count(remote_entity_id) > 0) {
                             auto it = outgoing_spawn_requests_.find(
-                                pending_entity_spawns_.at(entity->id()));
+                                pending_entity_spawns_.at(remote_entity_id));
                             if (it != outgoing_spawn_requests_.end()) {
                                 it->second(*entity);
                                 outgoing_spawn_requests_.erase(it);
-                                pending_entity_spawns_.erase(entity->id());
+                                pending_entity_spawns_.erase(remote_entity_id);
                             } else {
                                 log().error(
                                     "Attempting to trigger an spawn request callback which no "
                                     "longer exists. Entity ID: %s, Request ID: %s",
-                                    entity->id(), pending_entity_spawns_.at(entity->id()));
-                                pending_entity_spawns_.erase(entity->id());
+                                    entity->id(), pending_entity_spawns_.at(remote_entity_id));
+                                pending_entity_spawns_.erase(remote_entity_id);
                             }
                         }
                     } else {
@@ -248,15 +252,16 @@ void NetInstance::clientUpdate(float dt) {
                     client_message->to_client_as_ClientPropertyUpdateMessage();
                 InputBitStream bs(replication_message->payload()->data(),
                                   replication_message->payload()->size());
-                EntityId entity_id = replication_message->entity_id();
-                Entity* entity = session_->sceneManager()->findEntity(entity_id);
-                if (entity) {
+                EntityId remote_entity_id = replication_message->entity_id();
+                auto entity_id_pair = remote_to_local_entity_id_.find(remote_entity_id);
+                if (entity_id_pair != remote_to_local_entity_id_.end()) {
+                    Entity *entity = session_->sceneManager()->findEntity(entity_id_pair->second);
+                    assert(entity);
                     entity->component<CNetData>()->deserialise(bs);
                 } else {
                     log().warn(
-                        "Received replication update for entity %s which does not exist on "
-                        "this client. Ignoring.",
-                        entity_id);
+                            "Received replication update for entity %s (remote ID: %s) which does not exist on this client. Ignoring.",
+                            entity_id_pair->second, entity_id_pair->first);
                 }
                 break;
             }
@@ -271,25 +276,28 @@ void NetInstance::clientUpdate(float dt) {
                     log().warn("Failed to spawn entity on the server. Request ID: %s",
                                spawn_message->request_id());
                 } else {
-                    Entity* entity =
-                        session_->sceneManager()->findEntity(spawn_message->entity_id());
-                    if (entity) {
+                    auto entity_id_pair = remote_to_local_entity_id_.find(spawn_message->entity_id());
+                    if (entity_id_pair != remote_to_local_entity_id_.end()) {
+                        // first: remote ID
+                        // second: local ID
+                        Entity *entity =
+                                session_->sceneManager()->findEntity(entity_id_pair->second);
+                        assert(entity);
+
                         auto it = outgoing_spawn_requests_.find(spawn_message->request_id());
                         if (it != outgoing_spawn_requests_.end()) {
                             it->second(*entity);
                             outgoing_spawn_requests_.erase(it);
                         } else {
                             log().warn(
-                                "Received spawn response for an unknown spawn request. Entity "
-                                "ID: "
-                                "%s, Request ID: %s",
-                                spawn_message->entity_id(), spawn_message->request_id());
+                                    "Received spawn response for an unknown spawn request. Local entity ID: %s, Remote entity ID: %s, Request ID: %s",
+                                    entity_id_pair->second, entity_id_pair->first, spawn_message->request_id());
                         }
                     } else {
                         // Wait for the entity to be created.
                         pending_entity_spawns_[spawn_message->entity_id()] =
-                            spawn_message->request_id();
-                    };
+                                spawn_message->request_id();
+                    }
                 }
                 break;
             }
@@ -390,9 +398,8 @@ void NetInstance::sendServerCreateEntity(ClientId client_id, const Entity& entit
     assert(netMode() == NetMode::Server);
 
     flatbuffers::FlatBufferBuilder builder(1024);
-    // TODO: Reserve entity ID which the client will have free.
     auto create_entity_message = CreateClientCreateEntity(
-        builder, entity.id() + 10000, entity.typeId(), static_cast<::NetRole>(role),
+        builder, entity.id(), entity.typeId(), static_cast<::NetRole>(role),
         builder.CreateVector(properties.data(), properties.length()));
     auto message = CreateClientMessage(builder, ClientMessageData_ClientCreateEntity,
                                        create_entity_message.Union());
@@ -406,7 +413,7 @@ void NetInstance::sendServerPropertyReplication(ClientId client_id, const Entity
 
     flatbuffers::FlatBufferBuilder builder(1024);
     auto property_update_message = CreateClientPropertyUpdateMessage(
-        builder, entity.id() + 10000, builder.CreateVector(properties.data(), properties.length()));
+        builder, entity.id(), builder.CreateVector(properties.data(), properties.length()));
     auto message = CreateClientMessage(builder, ClientMessageData_ClientPropertyUpdateMessage,
                                        property_update_message.Union());
     builder.Finish(message);

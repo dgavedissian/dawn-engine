@@ -31,7 +31,9 @@ public:
     virtual void update(float dt) = 0;
     virtual void send(ClientId client, const byte* data, u32 length) = 0;
     virtual Option<ServerPacket> receive(ClientId client) = 0;
+    virtual bool isClientConnected(ClientId client) const = 0;
     virtual usize numConnections() const = 0;
+    virtual usize maxConnections() const = 0;
 
     virtual ServerConnectionState connectionState() const = 0;
 };

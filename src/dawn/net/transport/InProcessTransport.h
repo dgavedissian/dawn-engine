@@ -34,7 +34,9 @@ public:
     void update(float dt) override;
     void send(ClientId client, const byte* data, u32 length) override;
     Option<ServerPacket> receive(ClientId client) override;
+    bool isClientConnected(ClientId client) const override;
     usize numConnections() const override;
+    usize maxConnections() const override;
 
     ServerConnectionState connectionState() const override;
 
@@ -43,6 +45,10 @@ private:
     double time_;
     u16 port_;
     Vector<InProcessDataStream> client_streams_;
+    usize connected_clients_;
+
+    Function<void(ClientId)> client_connected_;
+    Function<void(ClientId)> client_disconnected_;
 
     // Servers indexed by port number.
     static Map<u16, InProcessServer*> listening_connections;

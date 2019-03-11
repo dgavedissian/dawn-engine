@@ -78,10 +78,14 @@ private:
     SharedPtr<NetEntityPipeline> entity_pipeline_;
     HashSet<EntityId> replicated_entities_;
 
+    // Entity ID mapper
+    HashMap<EntityId, EntityId> remote_to_local_entity_id_; // mapping from remote -> local
+    HashMap<EntityId, EntityId> local_to_remote_entity_id_; // mapping from local -> remote
+
     // Client only.
     RequestId spawn_request_id_;
     HashMap<RequestId, std::function<void(Entity&)>> outgoing_spawn_requests_;
-    HashMap<EntityId, RequestId> pending_entity_spawns_;
+    HashMap<EntityId, RequestId> pending_entity_spawns_; // mapping from remote entity ID -> request ID
 
     // Server only.
 

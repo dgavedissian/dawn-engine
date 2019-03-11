@@ -37,7 +37,9 @@ public:
     void update(float dt) override;
     void send(ClientId client, const byte* data, u32 length) override;
     Option<ServerPacket> receive(ClientId client) override;
+    bool isClientConnected(ClientId client) const override;
     usize numConnections() const override;
+    usize maxConnections() const override;
 
     ServerConnectionState connectionState() const override;
 
