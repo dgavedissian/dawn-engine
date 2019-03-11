@@ -9,9 +9,13 @@
 
 namespace dw {
 NetGameMode::NetGameMode(Context* ctx, GameSession* session) : GameMode(ctx, session) {
+    session_->eventSystem()->addListener(this, &NetGameMode::eventOnJoinServer);
+    session_->eventSystem()->addListener(this, &NetGameMode::eventOnServerClientConnected);
+    session_->eventSystem()->addListener(this, &NetGameMode::eventOnServerClientDisconnected);
 }
 
 NetGameMode::~NetGameMode() {
+    session_->eventSystem()->removeAllListeners(this);
 }
 
 void NetGameMode::clientOnJoinServer() {
@@ -30,10 +34,6 @@ void NetGameMode::serverOnClientDisconnected() {
 }
 
 void NetGameMode::onStart() {
-    session_->eventSystem()->addListener(this, &NetGameMode::eventOnJoinServer);
-    session_->eventSystem()->addListener(this, &NetGameMode::eventOnServerClientConnected);
-    session_->eventSystem()->addListener(this, &NetGameMode::eventOnServerClientDisconnected);
-
     if (session_->net() && session_->net()->netMode() == NetMode::Server) {
         serverOnStart();
         server_started_ = true;
@@ -41,8 +41,6 @@ void NetGameMode::onStart() {
 }
 
 void NetGameMode::onEnd() {
-    session_->eventSystem()->removeAllListeners(this);
-
     if (server_started_) {
         serverOnEnd();
     }

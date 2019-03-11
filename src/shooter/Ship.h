@@ -54,7 +54,7 @@ public:
 
     Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame);
     Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame,
-         EntityId reserved_entity_id, NetRole role);
+         NetRole role);
     ~Ship() = default;
 
     void update(float dt);

@@ -14,11 +14,10 @@
 using namespace dw;
 
 Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame)
-    : Ship(ctx, net, scene_manager, frame, scene_manager->reserveEntityId(), NetRole::Authority) {
+    : Ship(ctx, net, scene_manager, frame, NetRole::Authority) {
 }
 
-Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame,
-           EntityId reserved_entity_id, NetRole role)
+Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame, NetRole role)
     : Object(ctx), rb_(nullptr), ship_entity_(nullptr) {
     auto rc = module<ResourceCache>();
     assert(rc);
@@ -31,7 +30,7 @@ Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* f
     part_wing->rootNode()->setTransform(Mat4::identity);
 
     // Create ship entity.
-    ship_entity_ = &scene_manager->createEntity(Hash("Ship"), reserved_entity_id)
+    ship_entity_ = &scene_manager->createEntity(Hash("Ship"))
                         .addComponent<CTransform>(frame->newChild(), part_core)
                         .addComponent<CShipEngines>(
                             context(),

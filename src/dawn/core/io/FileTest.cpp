@@ -13,7 +13,8 @@ public:
         context_->addModule<dw::FileSystem>();
     }
 
-    void TearDown() override {}
+    void TearDown() override {
+    }
 
 protected:
     dw::Context* context_;

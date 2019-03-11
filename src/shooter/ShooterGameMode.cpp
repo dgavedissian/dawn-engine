@@ -13,13 +13,11 @@ ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx, SceneManager* scene_m
     : NetEntityPipeline(ctx), scene_manager_(scene_manager), net_(net), frame_(frame) {
 }
 
-Entity* ShooterEntityPipeline::createEntityFromType(EntityId entity_id, EntityType type,
-                                                    NetRole role) {
+Entity* ShooterEntityPipeline::createEntityFromType(EntityType type, NetRole role) {
     assert(frame_);
     switch (type) {
         case Hash("Ship"): {
-            SharedPtr<Ship> ship =
-                makeShared<Ship>(context(), net_, scene_manager_, frame_, entity_id, role);
+            SharedPtr<Ship> ship = makeShared<Ship>(context(), net_, scene_manager_, frame_, role);
             Entity* entity = ship->entity();
             entity->component<CShipControls>()->ship = ship;
             ship_list_.emplace_back(std::move(ship));
@@ -88,9 +86,8 @@ void ShooterGameMode::onStart() {
 
     // If we're running a local-only game, spawn a player.
     if (!session_->net()) {
-        auto new_ship =
-            makeShared<Ship>(context(), session_->net(), session_->sceneManager(), frame_,
-                             session_->sceneManager()->reserveEntityId(), NetRole::None);
+        auto new_ship = makeShared<Ship>(context(), session_->net(), session_->sceneManager(),
+                                         frame_, NetRole::None);
         camera_controller_->follow(new_ship->entity());
         entity_pipeline_->ship_list_.emplace_back(new_ship);
     }

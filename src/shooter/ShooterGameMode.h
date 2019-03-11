@@ -28,7 +28,7 @@ public:
                                    Frame* frame);
     ~ShooterEntityPipeline() override = default;
 
-    Entity* createEntityFromType(EntityId entity_id, EntityType type, NetRole role) override;
+    Entity* createEntityFromType(EntityType type, NetRole role) override;
 
 private:
     SceneManager* scene_manager_;

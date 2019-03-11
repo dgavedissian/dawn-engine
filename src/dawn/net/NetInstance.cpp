@@ -128,11 +128,11 @@ void NetInstance::serverUpdate(float dt) {
                 case ServerMessageData_ServerSpawnRequest: {
                     auto spawn_message = server_message->to_server_as_ServerSpawnRequest();
                     // Spawn entity using entity type.
-                    EntityId entity_id = session_->sceneManager()->reserveEntityId();
+                    Entity* entity = entity_pipeline_->createEntityFromType(
+                        spawn_message->entity_type(), NetRole::Authority);
+                    EntityId entity_id = entity->id();
                     log().info("Received spawn request, spawning entity (id: %s) with type %s.",
                                entity_id, spawn_message->entity_type());
-                    Entity* entity = entity_pipeline_->createEntityFromType(
-                        entity_id, spawn_message->entity_type(), NetRole::Authority);
                     if (entity) {
                         replicateEntity(*entity,
                                         spawn_message->authoritative_proxy() ? client_id : -1);
@@ -198,22 +198,24 @@ void NetInstance::clientUpdate(float dt) {
                 EntityType entity_type = create_entity_message->entity_type();
                 auto role = static_cast<NetRole>(create_entity_message->role());
                 if (entity_pipeline_) {
-                    EntityId local_entity_id = session_->sceneManager()->reserveEntityId();
-                    Entity* entity =
-                        entity_pipeline_->createEntityFromType(local_entity_id, entity_type, role);
+                    Entity* entity = entity_pipeline_->createEntityFromType(entity_type, role);
+                    EntityId local_entity_id = entity->id();
                     if (entity) {
                         assert(entity->hasComponent<CNetData>());
                         entity->component<CNetData>()->deserialise(bs);
                         entity->component<CNetData>()->role_ = role;
                         entity->component<CNetData>()->remote_role_ = NetRole::Authority;
                         if (entity->transform()) {
-                            log().info("Created replicated entity %d corresponding to remote entity %d at %d %d %d.", local_entity_id, remote_entity_id,
-                                       entity->transform()->position.x,
-                                       entity->transform()->position.y,
-                                       entity->transform()->position.z);
+                            log().info(
+                                "Created replicated entity %d corresponding to remote entity %d at "
+                                "%d %d %d.",
+                                local_entity_id, remote_entity_id, entity->transform()->position.x,
+                                entity->transform()->position.y, entity->transform()->position.z);
                         } else {
-                            log().info("Created replicated entity %d corresponding to remote entity %d with no transform.",
-                                       local_entity_id, remote_entity_id);
+                            log().info(
+                                "Created replicated entity %d corresponding to remote entity %d "
+                                "with no transform.",
+                                local_entity_id, remote_entity_id);
                         }
 
                         // TODO(David): Handle when an entity is destroyed.
@@ -255,13 +257,14 @@ void NetInstance::clientUpdate(float dt) {
                 EntityId remote_entity_id = replication_message->entity_id();
                 auto entity_id_pair = remote_to_local_entity_id_.find(remote_entity_id);
                 if (entity_id_pair != remote_to_local_entity_id_.end()) {
-                    Entity *entity = session_->sceneManager()->findEntity(entity_id_pair->second);
+                    Entity* entity = session_->sceneManager()->findEntity(entity_id_pair->second);
                     assert(entity);
                     entity->component<CNetData>()->deserialise(bs);
                 } else {
                     log().warn(
-                            "Received replication update for entity %s (remote ID: %s) which does not exist on this client. Ignoring.",
-                            entity_id_pair->second, entity_id_pair->first);
+                        "Received replication update for entity %s (remote ID: %s) which does not "
+                        "exist on this client. Ignoring.",
+                        entity_id_pair->second, entity_id_pair->first);
                 }
                 break;
             }
@@ -276,12 +279,13 @@ void NetInstance::clientUpdate(float dt) {
                     log().warn("Failed to spawn entity on the server. Request ID: %s",
                                spawn_message->request_id());
                 } else {
-                    auto entity_id_pair = remote_to_local_entity_id_.find(spawn_message->entity_id());
+                    auto entity_id_pair =
+                        remote_to_local_entity_id_.find(spawn_message->entity_id());
                     if (entity_id_pair != remote_to_local_entity_id_.end()) {
                         // first: remote ID
                         // second: local ID
-                        Entity *entity =
-                                session_->sceneManager()->findEntity(entity_id_pair->second);
+                        Entity* entity =
+                            session_->sceneManager()->findEntity(entity_id_pair->second);
                         assert(entity);
 
                         auto it = outgoing_spawn_requests_.find(spawn_message->request_id());
@@ -290,13 +294,15 @@ void NetInstance::clientUpdate(float dt) {
                             outgoing_spawn_requests_.erase(it);
                         } else {
                             log().warn(
-                                    "Received spawn response for an unknown spawn request. Local entity ID: %s, Remote entity ID: %s, Request ID: %s",
-                                    entity_id_pair->second, entity_id_pair->first, spawn_message->request_id());
+                                "Received spawn response for an unknown spawn request. Local "
+                                "entity ID: %s, Remote entity ID: %s, Request ID: %s",
+                                entity_id_pair->second, entity_id_pair->first,
+                                spawn_message->request_id());
                         }
                     } else {
                         // Wait for the entity to be created.
                         pending_entity_spawns_[spawn_message->entity_id()] =
-                                spawn_message->request_id();
+                            spawn_message->request_id();
                     }
                 }
                 break;
@@ -381,12 +387,19 @@ void NetInstance::sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type,
         assert(netMode() == NetMode::Client);
 
         flatbuffers::FlatBufferBuilder builder(1024);
-        auto rpc_message =
-            CreateServerRpc(builder, entity_id - 10000, rpc_id, builder.CreateVector(payload));
-        auto message =
-            CreateServerMessage(builder, ServerMessageData_ServerRpc, rpc_message.Union());
-        builder.Finish(message);
-        client_->send(builder.GetBufferPointer(), builder.GetSize());
+        auto entity_id_pair = local_to_remote_entity_id_.find(entity_id);
+        if (entity_id_pair != local_to_remote_entity_id_.end()) {
+            auto rpc_message = CreateServerRpc(builder, entity_id_pair->second, rpc_id,
+                                               builder.CreateVector(payload));
+            auto message =
+                CreateServerMessage(builder, ServerMessageData_ServerRpc, rpc_message.Union());
+            builder.Finish(message);
+            client_->send(builder.GetBufferPointer(), builder.GetSize());
+        } else {
+            log().warn(
+                "Tried to send an RPC to entity %s which has no remote counterpart. Ignoring.",
+                entity_id);
+        }
     } else {
         assert(netMode() == NetMode::Server);
         log().warn("Server RPCs not implemented.");

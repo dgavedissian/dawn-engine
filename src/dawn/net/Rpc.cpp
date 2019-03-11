@@ -21,10 +21,12 @@ void RpcSender::onAddToEntity(Entity& entity, RpcId rpc_id) {
 
 bool RpcSender::shouldShortCircuit(RpcType type) const {
     assert(net_data_);
-    if (type == RpcType::Server && net_data_->netMode() == NetMode::Server) {
+    // If we're a client, and trying to send an server RPC (RPC destined for the client).
+    if (type == RpcType::Server && net_data_->netMode() == NetMode::Client) {
         return true;
     }
-    if (type == RpcType::Client && net_data_->netMode() == NetMode::Client) {
+    // If we're a server, and trying to send a client RPC.
+    if (type == RpcType::Client && net_data_->netMode() == NetMode::Server) {
         return true;
     }
     return false;

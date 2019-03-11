@@ -78,6 +78,7 @@ public:
     ClientConnectionState connectionState() const override;
 
 private:
+    Option<Function<void()>> connect_function_; // Called in the next tick.
     ClientConnectionState client_connection_state_;
     double time_;
     InProcessServer* connected_server_;

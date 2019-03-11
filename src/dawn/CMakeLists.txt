@@ -72,7 +72,6 @@ set(SOURCE_FILES
     core/EventData.h
     core/EventSystem.cpp
     core/EventSystem.h
-    core/Exception.h
     core/FixedMemoryPool.h
     core/GameMode.cpp
     core/GameMode.h

@@ -15,7 +15,11 @@ Map<u16, InProcessServer*> InProcessServer::listening_connections;
 
 InProcessServer::InProcessServer(Context* ctx, Function<void(ClientId)> client_connected,
                                  Function<void(ClientId)> client_disconnected)
-    : Object(ctx), server_connection_state_(ServerConnectionState::NotListening), time_(100.0f), client_connected_(client_connected), client_disconnected_(client_disconnected) {
+    : Object(ctx),
+      server_connection_state_(ServerConnectionState::NotListening),
+      time_(100.0f),
+      client_connected_(client_connected),
+      client_disconnected_(client_disconnected) {
 }
 
 InProcessServer::~InProcessServer() {
@@ -41,6 +45,16 @@ void InProcessServer::listen(const String&, u16 port, u16 max_connections) {
 
 void InProcessServer::disconnect() {
     listening_connections.erase(listening_connections.find(port_));
+    Vector<InProcessClient*> clients;
+    clients.reserve(client_streams_.size());
+    for (auto& client : client_streams_) {
+        if (client.client) {
+            clients.push_back(client.client);
+        }
+    }
+    for (auto& client : clients) {
+        client->disconnect();
+    }
     client_streams_.clear();
     port_ = 0;
     server_connection_state_ = ServerConnectionState::NotListening;
@@ -54,7 +68,7 @@ void InProcessServer::send(ClientId client, const byte* data, u32 length) {
     if (client >= client_streams_.size() || !isClientConnected(client)) {
         return;
     }
-    log().info("Sending packet of length %d to client %d.", length, client);
+    // log().info("Sending packet of length %d to client %d.", length, client);
     client_streams_[client].outgoing.enqueue(Vector<byte>(data, data + length));
 }
 
@@ -66,16 +80,16 @@ Option<ServerPacket> InProcessServer::receive(ClientId client) {
     Vector<byte> data;
     bool has_packet = client_streams_[client].incoming.try_dequeue(data);
     if (has_packet) {
-        log().info("Received packet of length %d from client %d.", data.size(), client);
+        // log().info("Received packet of length %d from client %d.", data.size(), client);
         return {ServerPacket{client, std::move(data)}};
     } else {
         return {};
     }
 }
 
-    bool InProcessServer::isClientConnected(ClientId client) const {
-        return client_streams_[client].client != nullptr;
-    }
+bool InProcessServer::isClientConnected(ClientId client) const {
+    return client_streams_[client].client != nullptr;
+}
 
 usize InProcessServer::numConnections() const {
     return connected_clients_;
@@ -85,9 +99,9 @@ ServerConnectionState InProcessServer::connectionState() const {
     return server_connection_state_;
 }
 
-    usize InProcessServer::maxConnections() const {
-        return client_streams_.size();
-    }
+usize InProcessServer::maxConnections() const {
+    return client_streams_.size();
+}
 
 ClientId InProcessServer::clientConnect(InProcessClient* client) {
     // Find a free client.
@@ -119,7 +133,7 @@ InProcessDataStream& InProcessServer::clientStream(ClientId id) {
     return client_streams_[id];
 }
 
-    InProcessClient::InProcessClient(Context* ctx, Function<void()> connected,
+InProcessClient::InProcessClient(Context* ctx, Function<void()> connected,
                                  Function<void()> connection_failed, Function<void()> disconnected)
     : Object(ctx),
       client_connection_state_(ClientConnectionState::Disconnected),
@@ -139,22 +153,25 @@ void InProcessClient::connect(const String&, u16 port) {
 
     log().info("Connecting to in process port %d.", port);
 
-    auto server = InProcessServer::listening_connections.find(port);
-    if (server == InProcessServer::listening_connections.end()) {
-        log().error("InProcessClient: Failed to connect to port %d. No server is listening.", port);
-        return;
-    }
-    connected_server_ = server->second;
-    client_id_ = connected_server_->clientConnect(this);
-    if (client_id_ == ClientId(-1)) {
-        client_id_ = 0;
-        log().error("InProcessClient: Failed to connect to port %d. Server is full.", port);
-        client_connection_state_ = ClientConnectionState::Disconnected;
-        connection_failed_();
-    } else {
-        client_connection_state_ = ClientConnectionState::Connected;
-        connected_();
-    }
+    // Set the function to be called in the next tick.
+    connect_function_ = [this, port]() {
+        auto server = InProcessServer::listening_connections.find(port);
+        if (server == InProcessServer::listening_connections.end()) {
+            log().error("Failed to connect to port %d. No server is listening.", port);
+            return;
+        }
+        connected_server_ = server->second;
+        client_id_ = connected_server_->clientConnect(this);
+        if (client_id_ == ClientId(-1)) {
+            client_id_ = 0;
+            log().error("Failed to connect to port %d. Server is full.", port);
+            client_connection_state_ = ClientConnectionState::Disconnected;
+            connection_failed_();
+        } else {
+            client_connection_state_ = ClientConnectionState::Connected;
+            connected_();
+        }
+    };
 }
 
 void InProcessClient::disconnect() {
@@ -169,10 +186,15 @@ void InProcessClient::disconnect() {
 
 void InProcessClient::update(float dt) {
     time_ += dt;
+
+    if (connect_function_.has_value()) {
+        (*connect_function_)();
+        connect_function_.reset();
+    }
 }
 
 void InProcessClient::send(const byte* data, u32 length) {
-    log().info("Sending packet of length %d.", length);
+    // log().info("Sending packet of length %d.", length);
     connected_server_->clientStream(client_id_).incoming.enqueue(Vector<byte>(data, data + length));
 }
 
@@ -184,6 +206,7 @@ Option<ClientPacket> InProcessClient::receive() {
     Vector<byte> data;
     bool has_packet = connected_server_->clientStream(client_id_).outgoing.try_dequeue(data);
     if (has_packet) {
+        // log().info("Received packet of length %d from server.", data.size());
         return {ClientPacket{std::move(data)}};
     } else {
         return {};

@@ -12,7 +12,8 @@ public:
         context_->addModule<dw::Logger>();
     }
 
-    void TearDown() override {}
+    void TearDown() override {
+    }
 
 protected:
     dw::Context* context_;

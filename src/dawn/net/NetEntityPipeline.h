@@ -15,6 +15,6 @@ public:
     NetEntityPipeline(Context* ctx);
     virtual ~NetEntityPipeline() = default;
 
-    virtual Entity* createEntityFromType(EntityId entity_id, EntityType type, NetRole role) = 0;
+    virtual Entity* createEntityFromType(EntityType type, NetRole role) = 0;
 };
 }  // namespace dw
