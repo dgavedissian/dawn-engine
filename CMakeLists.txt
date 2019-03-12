@@ -10,6 +10,11 @@ project(Dawn)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_MACOSX_RPATH 1)
 
+if(APPLE)
+    if(CMAKE_OSX_DEPLOYMENT_TARGET STREQUAL "")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET 10.12)
+    endif()
+endif()
 
 ###############################################
 # Setup
@@ -144,14 +149,6 @@ endfunction()
 ###############################################
 
 add_subdirectory(src)
-
-
-###############################################
-# Tests
-###############################################
-
-enable_testing()
-add_subdirectory(test)
 
 
 ###############################################

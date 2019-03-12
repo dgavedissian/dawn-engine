@@ -1,5 +1,5 @@
 # Dawn Engine
-# Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+# Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
 
 message(STATUS "Setting up external dependencies...")
 add_subdirectory(external)
@@ -58,9 +58,6 @@ set(SOURCE_FILES
     core/math/Vec4i.h
     core/platform/Defines.h
     core/platform/Windows.h
-    core/script/LuaState.cpp
-    core/script/LuaState.h
-    core/script/Sol.h
     core/App.h
     core/Collections.h
     core/CommandLine.cpp
@@ -75,7 +72,6 @@ set(SOURCE_FILES
     core/EventData.h
     core/EventSystem.cpp
     core/EventSystem.h
-    core/Exception.h
     core/FixedMemoryPool.h
     core/GameMode.cpp
     core/GameMode.h
@@ -195,12 +191,19 @@ set(SOURCE_FILES
     scene/SLinearMotion.h
     scene/SceneManager.cpp
     scene/SceneManager.h
+    script/LuaState.cpp
+    script/LuaState.h
+    script/Sol.h
     ui/Imgui.h
     ui/UserInterface.cpp
     ui/UserInterface.h
-    Common.h
-    DawnEngine.h
-    Prerequisites.h)
+    Base.h
+    Input.h
+    Net.h
+    Renderer.h
+    Resource.h
+    Scene.h
+    UI.h)
 
 # TODO: Replace prototype Ontology based ECS with custom implementation.
 add_definitions(-DONTOLOGY_WITH_ASSERT)
@@ -264,5 +267,26 @@ mirror_physical_directories(${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES})
 set_target_properties(DwEngine PROPERTIES DEBUG_POSTFIX _d)
 
 # Add include dirs and libraries
-target_include_directories(DwEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDE_DIRS})
+target_include_directories(DwEngine PRIVATE ${INCLUDE_DIRS})
 target_link_libraries(DwEngine ${LIBS})
+
+# Tests.
+enable_testing()
+
+set(TEST_FILES
+    core/io/FileSystemTest.cpp
+    core/io/FileTest.cpp
+    core/io/StringInputStreamTest.cpp
+    testing/Testing.h)
+
+add_executable(DwEngineTests ${TEST_FILES})
+mirror_physical_directories(${TEST_FILES})
+enable_cpp14(DwEngineTests)
+target_link_libraries(DwEngineTests DwEngine gtest gtest_main)
+target_include_directories(DwEngineTests SYSTEM PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/testing)
+set_target_properties(DwEngineTests PROPERTIES DEBUG_POSTFIX "")
+
+include(GoogleTest)
+gtest_add_tests(
+    TARGET DwEngineTests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

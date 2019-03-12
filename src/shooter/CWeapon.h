@@ -1,10 +1,10 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #pragma once
 
-#include "Common.h"
+#include "Base.h"
 #include "core/math/Colour.h"
 #include "scene/Component.h"
 #include "scene/EntitySystem.h"

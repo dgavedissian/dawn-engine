@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #pragma once
 
@@ -31,7 +31,9 @@ public:
     virtual void update(float dt) = 0;
     virtual void send(ClientId client, const byte* data, u32 length) = 0;
     virtual Option<ServerPacket> receive(ClientId client) = 0;
+    virtual bool isClientConnected(ClientId client) const = 0;
     virtual usize numConnections() const = 0;
+    virtual usize maxConnections() const = 0;
 
     virtual ServerConnectionState connectionState() const = 0;
 };

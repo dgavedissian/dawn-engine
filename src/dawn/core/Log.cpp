@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 
 /*
@@ -11,7 +11,7 @@
 #include "platform/Windows.h"
 #endif
 */
-#include "Common.h"
+#include "Base.h"
 #include "core/Log.h"
 
 #if DW_PLATFORM == DW_WIN32

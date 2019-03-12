@@ -1,8 +1,8 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
-#include "Common.h"
+#include "Base.h"
 #include "net/NetInstance.h"
 
 #include "scene/Entity.h"
@@ -224,12 +224,20 @@ Option<ServerPacket> ReliableUDPServer::receive(ClientId client) {
     return {packet};
 }
 
+bool ReliableUDPServer::isClientConnected(ClientId client) const {
+    return server_->IsClientConnected(client);
+}
+
 usize ReliableUDPServer::numConnections() const {
     return server_->GetNumConnectedClients();
 }
 
 ServerConnectionState ReliableUDPServer::connectionState() const {
     return server_connection_state_;
+}
+
+usize ReliableUDPServer::maxConnections() const {
+    return server_->GetMaxClients();
 }
 
 ReliableUDPClient::ReliableUDPClient(Context* ctx, Function<void()> connected,

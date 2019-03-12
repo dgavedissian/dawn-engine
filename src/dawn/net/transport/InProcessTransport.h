@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #pragma once
 
@@ -34,7 +34,9 @@ public:
     void update(float dt) override;
     void send(ClientId client, const byte* data, u32 length) override;
     Option<ServerPacket> receive(ClientId client) override;
+    bool isClientConnected(ClientId client) const override;
     usize numConnections() const override;
+    usize maxConnections() const override;
 
     ServerConnectionState connectionState() const override;
 
@@ -43,6 +45,10 @@ private:
     double time_;
     u16 port_;
     Vector<InProcessDataStream> client_streams_;
+    usize connected_clients_;
+
+    Function<void(ClientId)> client_connected_;
+    Function<void(ClientId)> client_disconnected_;
 
     // Servers indexed by port number.
     static Map<u16, InProcessServer*> listening_connections;
@@ -72,6 +78,7 @@ public:
     ClientConnectionState connectionState() const override;
 
 private:
+    Option<Function<void()>> connect_function_; // Called in the next tick.
     ClientConnectionState client_connection_state_;
     double time_;
     InProcessServer* connected_server_;

@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #pragma once
 
@@ -37,7 +37,9 @@ public:
     void update(float dt) override;
     void send(ClientId client, const byte* data, u32 length) override;
     Option<ServerPacket> receive(ClientId client) override;
+    bool isClientConnected(ClientId client) const override;
     usize numConnections() const override;
+    usize maxConnections() const override;
 
     ServerConnectionState connectionState() const override;
 

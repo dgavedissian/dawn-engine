@@ -1,5 +1,5 @@
 # Dawn Engine
-# Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+# Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
 
 include(FetchContent)
 include(ExternalProject)
@@ -339,6 +339,10 @@ if(NOT googletest_POPULATED)
     add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
+# Policies needed by gtest
+cmake_policy(SET CMP0054 NEW)
+cmake_policy(SET CMP0057 NEW)
+
 # imgui
 FetchContent_Declare(
     imgui
@@ -383,6 +387,11 @@ if(MSVC)
         ${CMAKE_COMMAND} -E copy
             ${EXTERNAL_PREFIX}/src/luajit-external-build/src/lua51.lib
             ${EXTERNAL_INSTALL}/lib/luajit-5.1.lib)
+elseif(APPLE)
+    set(LUAJIT_BUILD_COMMAND ${CMAKE_COMMAND} -E env
+        MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
+        make PREFIX=${EXTERNAL_INSTALL} amalg)
+    set(LUAJIT_INSTALL_COMMAND make PREFIX=${EXTERNAL_INSTALL} install)
 else()
     set(LUAJIT_BUILD_COMMAND make PREFIX=${EXTERNAL_INSTALL} amalg)
     set(LUAJIT_INSTALL_COMMAND make PREFIX=${EXTERNAL_INSTALL} install)
@@ -621,7 +630,7 @@ if(NOT yojimbo_POPULATED)
         if(EMSCRIPTEN)
             ExternalProject_Add(sodium-external
                 PREFIX ${EXTERNAL_PREFIX}
-                URL https://github.com/jedisct1/libsodium/releases/download/1.0.15/libsodium-1.0.17.tar.gz
+                URL https://github.com/jedisct1/libsodium/releases/download/1.0.17/libsodium-1.0.17.tar.gz
                 URL_MD5 0f71e2680187a1558b5461e6879342c5
                 DOWNLOAD_NO_PROGRESS 1
                 BUILD_IN_SOURCE 1

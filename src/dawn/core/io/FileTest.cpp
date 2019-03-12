@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #include "Testing.h"
 #include "core/io/File.h"
@@ -13,7 +13,8 @@ public:
         context_->addModule<dw::FileSystem>();
     }
 
-    void TearDown() override {}
+    void TearDown() override {
+    }
 
 protected:
     dw::Context* context_;

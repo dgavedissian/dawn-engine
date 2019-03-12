@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #pragma once
 
@@ -15,6 +15,6 @@ public:
     NetEntityPipeline(Context* ctx);
     virtual ~NetEntityPipeline() = default;
 
-    virtual Entity* createEntityFromType(EntityId entity_id, EntityType type, NetRole role) = 0;
+    virtual Entity* createEntityFromType(EntityType type, NetRole role) = 0;
 };
 }  // namespace dw

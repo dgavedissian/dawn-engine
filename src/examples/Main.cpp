@@ -1,14 +1,11 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
-#include "DawnEngine.h"
-#include "renderer/MeshBuilder.h"
-#include "core/Timer.h"
-#include "scene/CTransform.h"
-#include "renderer/CCamera.h"
-#include "renderer/SceneGraph.h"
-#include "renderer/RenderPipeline.h"
+#include "Core.h"
+#include "Renderer.h"
+#include "Scene.h"
+#include "resource/ResourceCache.h"
 
 using namespace dw;
 

@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #pragma once
 
@@ -54,7 +54,7 @@ public:
 
     Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame);
     Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame,
-         EntityId reserved_entity_id, NetRole role);
+         NetRole role);
     ~Ship() = default;
 
     void update(float dt);

@@ -1,10 +1,10 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #pragma once
 
-#include "DawnEngine.h"
+#include "Core.h"
 #include "renderer/MeshBuilder.h"
 #include "renderer/Mesh.h"
 
@@ -28,7 +28,7 @@ public:
                                    Frame* frame);
     ~ShooterEntityPipeline() override = default;
 
-    Entity* createEntityFromType(EntityId entity_id, EntityType type, NetRole role) override;
+    Entity* createEntityFromType(EntityType type, NetRole role) override;
 
 private:
     SceneManager* scene_manager_;

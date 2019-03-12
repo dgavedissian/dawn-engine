@@ -1,8 +1,8 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2018 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
-#include "Common.h"
+#include "Base.h"
 #include "core/StringUtils.h"
 #include "SPIRV.h"
 #include "renderer/rhi/GLRenderContext.h"
@@ -355,7 +355,7 @@ Result<void> GLRenderContext::createWindow(u16 width, u16 height, const String& 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #elif !defined(DW_EMSCRIPTEN)
 #error Unsupported: GLES 3.0 on non Web platform.
 #endif
