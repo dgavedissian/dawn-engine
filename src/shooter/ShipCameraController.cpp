@@ -3,6 +3,7 @@
  * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #include "Core.h"
+#include "scene/PhysicsScene.h"
 #include "ShipCameraController.h"
 
 using namespace dw;

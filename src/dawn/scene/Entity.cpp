@@ -4,25 +4,17 @@
  */
 #include "Base.h"
 #include "Entity.h"
+#include "SceneManager.h"
 
 namespace dw {
-Entity::Entity(Context* ctx, SceneManager* scene_manager, Ontology::EntityManager& entity_manager,
-               EntityId id, EntityType type)
-    : Object{ctx},
-      scene_manager_{scene_manager},
-      id_{id},
-      type_{type},
-      internal_entity_mgr_{entity_manager},
-      internal_entity_id_{entity_manager.createEntity("").getID()} {
-    entity().addComponent<OntologyMetadata>(this);
-}
-
-SceneManager* Entity::sceneManager() const {
-    return scene_manager_;
+Entity::Entity(SceneManager* sceneManager, EntityId id, EntityType type)
+    : registry_{sceneManager->registry_},
+      entity_{id},
+      type_{type} {
 }
 
 EntityId Entity::id() const {
-    return id_;
+    return entity_;
 }
 
 EntityType Entity::typeId() const {

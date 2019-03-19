@@ -6,6 +6,7 @@
 #include "renderer/SceneGraph.h"
 #include "renderer/SystemPosition.h"
 #include "scene/SceneManager.h"
+#include "scene/PhysicsScene.h"
 #include "renderer/Renderer.h"
 #include "renderer/CCamera.h"
 #include "renderer/Renderable.h"
@@ -201,17 +202,16 @@ void SceneGraph::renderTree(Node* node, const Mat4& frame_model_matrix,
     }
 }
 
-SceneGraph::SCamera::SCamera(Context* context) : EntitySystem{context} {
-    supportsComponents<CCamera, CTransform>();
+SceneGraph::SCamera::SCamera() {
     executesAfter<PhysicsScene::PhysicsComponentSystem>();
 }
 
-void SceneGraph::SCamera::beginProcessing() {
+void SceneGraph::SCamera::process(SceneManager* sceneManager, float) {
     cameras.clear();
-}
-
-void SceneGraph::SCamera::processEntity(Entity& entity, float) {
-    cameras.emplace_back(CameraState{0, entity.component<CTransform>()->node,
-                                     entity.component<CCamera>()->projection_matrix});
+    for (auto e: view(sceneManager)) {
+        auto entity = Entity{sceneManager, e};
+        cameras.emplace_back(CameraState{0, entity.component<CTransform>()->node,
+                                         entity.component<CCamera>()->projection_matrix});
+    }
 }
 }  // namespace dw

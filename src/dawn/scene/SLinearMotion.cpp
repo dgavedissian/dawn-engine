@@ -6,11 +6,10 @@
 #include "scene/SLinearMotion.h"
 
 namespace dw {
-SLinearMotion::SLinearMotion(Context* ctx) : EntitySystem(ctx) {
-    supportsComponents<CLinearMotion, CTransform>();
-}
-
-void SLinearMotion::processEntity(Entity& e, float dt) {
-    e.transform()->position += e.component<CLinearMotion>()->velocity * dt;
+void SLinearMotion::process(SceneManager* scene_mgr, float dt) {
+    for (auto e : view(scene_mgr)) {
+        auto entity = Entity{scene_mgr, e};
+        entity.transform()->position += entity.component<CLinearMotion>()->velocity * dt;
+    }
 }
 }  // namespace dw

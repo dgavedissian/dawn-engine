@@ -7,7 +7,7 @@
 #include "Base.h"
 #include "core/math/Colour.h"
 #include "scene/Component.h"
-#include "scene/EntitySystem.h"
+#include "scene/SceneManager.h"
 #include "renderer/BillboardSet.h"
 #include "net/CNetData.h"
 
@@ -60,7 +60,7 @@ struct CProjectile : public Component {
     }
 };
 
-class SProjectile : public EntitySystem {
+class SProjectile : public EntitySystem<CProjectile>, public Object {
 public:
     DW_OBJECT(SProjectile);
 
@@ -70,7 +70,7 @@ public:
     Entity* createNewProjectile(int type, const Vec3& position, const Vec3& direction,
                                 const Vec3& velocity, const Colour& colour);
 
-    void processEntity(Entity& entity, float dt) override;
+    void process(SceneManager* scene_manager, float dt) override;
 
 private:
     struct ProjectileRenderData {

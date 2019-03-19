@@ -49,9 +49,7 @@ int FreeListAllocator::size() const {
 
 SProjectile::SProjectile(Context* ctx, SceneManager* scene_manager, NetInstance* net, Frame* frame,
                          const HashMap<int, ProjectileTypeInfo>& types)
-    : EntitySystem(ctx), types_(types), scene_manager_(scene_manager), net_(net) {
-    supportsComponents<CProjectile>();
-
+    : Object(ctx), types_(types), scene_manager_(scene_manager), net_(net) {
     const auto billboard_count = 200;
 
     for (auto& type : types_) {
@@ -102,18 +100,22 @@ Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const V
     return &entity;
 }
 
-void SProjectile::processEntity(Entity& entity, float dt) {
-    auto& data = *entity.component<CProjectile>();
-    auto& render_data = render_data_.at(data.type);
+void SProjectile::process(SceneManager* scene_manager, float dt) {
+    for (auto e : view(scene_manager)) {
+        auto entity = Entity{scene_manager, e};
 
-    // Perform a raycast between the old and new position.
-    Vec3 new_position = data.position + data.velocity * dt;
-    // TODO: Raycast.
+        auto &data = *entity.component<CProjectile>();
+        auto &render_data = render_data_.at(data.type);
 
-    // Update position.
-    data.position = new_position;
+        // Perform a raycast between the old and new position.
+        Vec3 new_position = data.position + data.velocity * dt;
+        // TODO: Raycast.
 
-    // Update billboard.
-    render_data.billboard_set->setParticleDirection(data.particle_id, data.direction);
-    render_data.billboard_set->setParticlePosition(data.particle_id, data.position);
+        // Update position.
+        data.position = new_position;
+
+        // Update billboard.
+        render_data.billboard_set->setParticleDirection(data.particle_id, data.direction);
+        render_data.billboard_set->setParticlePosition(data.particle_id, data.position);
+    }
 }

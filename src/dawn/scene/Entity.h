@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "ontology/Entity.hpp"
+#include <entt/entt.hpp>
 
 #include "Component.h"
 #include "scene/CTransform.h"
@@ -16,13 +16,10 @@ class SceneManager;
 using EntityId = u64;
 using EntityType = u32;
 
-/// Entity object. Currently implemented as an Ontology::Entity wrapper.
-class Entity : public Object {
+/// Entity object.
+class Entity {
 public:
-    DW_OBJECT(Entity);
-
-    explicit Entity(Context* ctx, SceneManager* scene_manager,
-                    Ontology::EntityManager& entity_manager, EntityId id, EntityType type);
+    explicit Entity(SceneManager* sceneManager, EntityId id, EntityType type = 0);
     virtual ~Entity() = default;
 
     /// Accesses a component contained within this entity.
@@ -30,9 +27,9 @@ public:
     /// @return The data for this component type.
     template <typename T> T* component() const;
 
-    /// Determines whether this entity contains a component type.
-    /// @tparam T Component type.
-    template <typename T> bool hasComponent() const;
+    /// Determines whether this entity contains one or more component types.
+    /// @tparam T Component types.
+    template <typename... T> bool hasComponent() const;
 
     /// Initialises and adds a new component to the entity.
     /// @tparam T Component type.
@@ -40,8 +37,9 @@ public:
     /// @param args Component constructor arguments.
     template <typename T, typename... Args> Entity& addComponent(Args... args);
 
-    /// Returns the scene manager which created this entity.
-    SceneManager* sceneManager() const;
+    /// Removes a component of a specific type from the entity.
+    /// @tparam T Component type.
+    template <typename T> void removeComponent();
 
     /// Returns the identifier of this entity.
     EntityId id() const;
@@ -58,35 +56,27 @@ public:
     const detail::Transform* transform() const;
 
 private:
-    SceneManager* scene_manager_;
-    Ontology::EntityManager& internal_entity_mgr_;
-    Ontology::Entity::ID internal_entity_id_;
-    EntityId id_;
+    entt::basic_registry<EntityId>& registry_;
+    EntityId entity_;
     EntityType type_;
-
-    Ontology::Entity& entity() const {
-        return internal_entity_mgr_.getEntity(internal_entity_id_);
-    }
 };
 
 template <typename T> T* Entity::component() const {
-    return entity().hasComponent<T>() ? entity().getComponentPtr<T>() : nullptr;
+    return registry_.try_get<T>(entity_);
 }
 
-template <typename T> bool Entity::hasComponent() const {
-    return component<T>() != nullptr;
+template <typename... T> bool Entity::hasComponent() const {
+    return registry_.has<T...>(entity_);
 }
 
 template <typename T, typename... Args> Entity& Entity::addComponent(Args... args) {
-    entity().addComponent<T, Args...>(std::forward<Args>(args)...);
-    entity().getComponentPtr<T>()->onAddToEntity(this);
+    registry_.assign_or_replace<T>(entity_, args...);
+    registry_.get<T>(entity_).onAddToEntity(this);
     return *this;
 }
 
-/// Ontology metadata component.
-struct OntologyMetadata : public Component {
-    Entity* entity_ptr;
-    explicit OntologyMetadata(Entity* entity_ptr) : entity_ptr(entity_ptr) {
-    }
-};
+template<typename T>
+void Entity::removeComponent() {
+    registry_.remove<T>(entity_);
+}
 }  // namespace dw

@@ -4,15 +4,15 @@
  */
 #pragma once
 
-#include "ontology/Component.hpp"
-
 namespace dw {
 class Entity;
 
-class DW_API Component : public Ontology::Component {
+// TODO: Kill this class.
+class DW_API Component {
 public:
     virtual ~Component() = default;
 
+    // TODO: Kill this.
     virtual void onAddToEntity(Entity* parent);
 };
 }  // namespace dw

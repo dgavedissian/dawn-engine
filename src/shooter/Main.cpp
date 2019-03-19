@@ -37,7 +37,7 @@ public:
         }
         scene_manager_->addSystem<SShipEngines>();
         scene_manager_->addSystem<SProjectile>(
-            scene_manager_.get(), net_instance_.get(), frame,
+            context(), scene_manager_.get(), net_instance_.get(), frame,
             HashMap<int, ProjectileTypeInfo>{
                 {0,
                  {100.0f,

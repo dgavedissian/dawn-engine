@@ -15,7 +15,7 @@ RpcSender::RpcSender() : entity_(nullptr), net_data_(nullptr), logger_(nullptr),
 void RpcSender::onAddToEntity(Entity& entity, RpcId rpc_id) {
     entity_ = &entity;
     net_data_ = entity.component<CNetData>();
-    logger_ = &entity.log();
+    logger_ = &net_data_->net_->log();
     rpc_id_ = rpc_id;
 }
 

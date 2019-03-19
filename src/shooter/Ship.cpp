@@ -88,7 +88,7 @@ Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* f
     // Initialise server-side details.
     if (role >= NetRole::Authority) {
         ship_entity_->addComponent<CRigidBody>(
-            ship_entity_->sceneManager()->physicsScene(), 10.0f,
+            scene_manager->physicsScene(), 10.0f,
             makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}));
         rb_ = ship_entity_->component<CRigidBody>()->_rigidBody();
 

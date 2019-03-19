@@ -4,7 +4,6 @@
  */
 #include "Base.h"
 #include "input/Input.h"
-#include "scene/EntitySystem.h"
 #include "scene/SceneManager.h"
 #include "PhysicsScene.h"
 
@@ -116,15 +115,13 @@ void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
     }
 }
 
-PhysicsScene::PhysicsComponentSystem::PhysicsComponentSystem(Context* context)
-    : EntitySystem(context) {
-    supportsComponents<CTransform, CRigidBody>();
-}
-
-void PhysicsScene::PhysicsComponentSystem::processEntity(Entity& entity, float) {
-    auto t = entity.component<CTransform>();
-    auto rb = entity.component<CRigidBody>()->rigid_body_.get();
-    fromBulletTransform(rb->getWorldTransform(), t->node->transform());
+void PhysicsScene::PhysicsComponentSystem::process(SceneManager* scene_mgr, float) {
+    for (auto e: view(scene_mgr)) {
+        auto entity = Entity{scene_mgr, e};
+        auto t = entity.component<CTransform>();
+        auto rb = entity.component<CRigidBody>()->rigid_body_.get();
+        fromBulletTransform(rb->getWorldTransform(), t->node->transform());
+    }
 }
 
 CRigidBody::CRigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape)

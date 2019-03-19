@@ -27,6 +27,9 @@ public:
     RpcSender();
     RpcSender(const RpcSender&) = delete;
     RpcSender(RpcSender&&) = default;
+    RpcSender& operator=(const RpcSender&) = delete;
+    RpcSender& operator=(RpcSender&&) = default;
+
     virtual ~RpcSender() = default;
 
     // Called when the containing component is added to an entity (and an RPC ID is allocated).

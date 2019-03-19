@@ -6,7 +6,7 @@
 
 #include "renderer/SystemPosition.h"
 #include "renderer/Node.h"
-#include "scene/EntitySystem.h"
+#include "scene/SceneManager.h"
 #include "input/Input.h"
 
 // Bullet
@@ -25,6 +25,8 @@ struct DW_API PhysicsRaycastResult {
     bool hit;
 };
 
+class CRigidBody;
+
 // Manages the Bullet physics library and provides some helper functions.
 class DW_API PhysicsScene : public Object {
 public:
@@ -41,12 +43,9 @@ public:
                   PhysicsRaycastResult& result);
 
     // EntitySystem for updating CRigidBody components.
-    class PhysicsComponentSystem : public EntitySystem {
+    class PhysicsComponentSystem : public EntitySystem<CTransform, CRigidBody> {
     public:
-        DW_OBJECT(PhysicsComponentSystem);
-
-        PhysicsComponentSystem(Context* context);
-        void processEntity(Entity& entity, float dt) override;
+        void process(SceneManager* scene_mgr, float dt) override;
     };
 
 private:
@@ -86,7 +85,7 @@ public:
 
 private:
     PhysicsScene* world_;
-    UniquePtr<btRigidBody> rigid_body_;
+    SharedPtr<btRigidBody> rigid_body_;
     SharedPtr<btCollisionShape> collision_shape_;
     float mass_;
 

@@ -7,7 +7,7 @@
 #include "Base.h"
 #include "core/math/Colour.h"
 #include "scene/Component.h"
-#include "scene/EntitySystem.h"
+#include "scene/SceneManager.h"
 #include "scene/PhysicsScene.h"
 #include "core/Timer.h"
 
@@ -28,11 +28,7 @@ struct CWeapon : public Component {
     float cooldown;
 };
 
-class SWeapon : public EntitySystem {
+class SWeapon : public EntitySystem<CTransform, CWeapon, CRigidBody> {
 public:
-    DW_OBJECT(SWeapon);
-
-    explicit SWeapon(Context* context);
-
-    void processEntity(Entity& entity, float dt) override;
+    void process(SceneManager* scene_manager, float dt) override;
 };

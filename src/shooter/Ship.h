@@ -6,6 +6,7 @@
 
 #include "scene/Entity.h"
 #include "scene/Component.h"
+#include "scene/PhysicsScene.h"
 #include "renderer/BillboardSet.h"
 #include "renderer/Mesh.h"
 #include "core/math/Defs.h"

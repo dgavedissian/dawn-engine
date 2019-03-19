@@ -7,15 +7,14 @@
 #include "renderer/Node.h"
 #include "scene/Entity.h"
 #include "scene/CTransform.h"
-#include "renderer/SceneGraph.h"
 
-#include <ontology/World.hpp>
-#include <ontology/SystemManager.hpp>
-
-#include "scene/EntitySystem.h"
-#include "scene/PhysicsScene.h"
+#include <entt/entt.hpp>
 
 namespace dw {
+class SceneGraph;
+class PhysicsScene;
+class EntitySystemBase;
+
 /// Manages the current game world, including all entities and entity systems.
 class DW_API SceneManager : public Object {
 public:
@@ -68,16 +67,6 @@ public:
     Entity& createEntity(EntityType type, const Vec3& p, const Quat& o, Entity& parent,
                          SharedPtr<Renderable> renderable = nullptr);
 
-    /// Creates a new empty entity with a previously reserved entity ID.
-    /// @param type Entity type ID.
-    /// @param reserved_entity_id Entity ID reserved by 'reserveEntityId()'.
-    /// @return A newly created entity.
-    Entity& createEntity(EntityType type, EntityId reserved_entity_id);
-
-    /// Reserve a new entity ID.
-    /// @return Unique unused entity ID.
-    EntityId reserveEntityId();
-
     /// Looks up an entity by its ID.
     /// @param id Entity ID.
     /// @return The entity which corresponds to this entity ID.
@@ -94,35 +83,80 @@ public:
     /// Returns the physics scene.
     PhysicsScene* physicsScene() const;
 
-    /// Returns the last delta time. Used only by the Ontology wrapper.
-    float lastDeltaTime_internal() const;
-
 private:
-    // Ontology stuff.
-    float last_dt_;
-    UniquePtr<Ontology::World> ontology_world_;
-    bool systems_initialised_;
-
+    entt::basic_registry<EntityId> registry_;
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
-    EntityId entity_id_allocator_;
 
     Node* background_scene_node_;
 
     UniquePtr<PhysicsScene> physics_scene_;
+
+    Vector<UniquePtr<EntitySystemBase>> system_process_order_;
+
+    friend class Entity;
+
+    template <typename... T>
+    friend class EntitySystem;
+};
+
+class DW_API EntitySystemBase {
+public:
+    EntitySystemBase() = default;
+    virtual ~EntitySystemBase() = default;
+
+    /// Process this system.
+    /// @param dt Delta time.
+    virtual void process(SceneManager* sceneManager, float dt) = 0;
+};
+
+template <typename... T>
+class DW_API EntitySystem : public EntitySystemBase {
+public:
+    /// Specifies a list of systems which this system depends on.
+    /// @tparam T List of system types.
+    /// @return This system.
+    template <typename... S> EntitySystem& executesAfter();
+
+    /// Get a view of entities.
+    entt::basic_view<EntityId, T...> view(SceneManager* sceneManager);
 };
 
 template <typename T, typename... Args> T* SceneManager::addSystem(Args&&... args) {
-    auto system = makeUnique<T>(context(), std::forward<Args>(args)...);
-    return ontology_world_->getSystemManager()
-        .addSystem<OntologySystemAdapter<T>>(std::move(system), this)
-        .system();
+    auto system = makeUnique<T>(std::forward<Args>(args)...);
+    auto* t = system.get();
+    system_process_order_.emplace_back(std::move(system));
+    return t;
 }
 
 template <typename T> T* SceneManager::system() {
-    return ontology_world_->getSystemManager().getSystem<OntologySystemAdapter<T>>().system();
+    // TODO: Do this properly.
+    for (auto& s : system_process_order_) {
+        T* system = dynamic_cast<T*>(s.get());
+        if (system) {
+            return system;
+        }
+    }
+    return nullptr;
 }
 
 template <typename T> void SceneManager::removeSystem() {
-    ontology_world_->getSystemManager().removeSystem<OntologySystemAdapter<T>>();
+    //ontology_world_->getSystemManager().removeSystem<OntologySystemAdapter<T>>();
+}
+
+template<typename... T>
+template<typename... S>
+EntitySystem<T...>& EntitySystem<T...>::executesAfter() {
+    /*
+    if (ontology_system_) {
+        ontology_system_->executesAfter<OntologySystemAdapter<T>...>();
+    }
+    depending_systems_ = Ontology::TypeSetGenerator<OntologySystemAdapter<T>...>();
+     */
+    return *this;
+}
+
+template<typename... T>
+entt::basic_view<EntityId, T...> EntitySystem<T...>::view(SceneManager *sceneManager) {
+    return sceneManager->registry_.view<T...>();
 }
 }  // namespace dw
