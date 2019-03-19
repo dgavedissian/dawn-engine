@@ -256,11 +256,11 @@ void SShipEngines::process(SceneManager* scene_manager, float dt) {
     for (auto e : view(scene_manager)) {
         auto entity = Entity{scene_manager, e};
 
-        auto &transform = *entity.transform();
-        auto &ship_engines = *entity.component<CShipEngines>();
+        auto& transform = *entity.transform();
+        auto& ship_engines = *entity.component<CShipEngines>();
 
-        auto &engines = ship_engines.engine_data_;
-        auto &nav_engines = ship_engines.nav_engine_data_;
+        auto& engines = ship_engines.engine_data_;
+        auto& nav_engines = ship_engines.nav_engine_data_;
 
         Mat4 model = transform.toMat4();
 
@@ -270,37 +270,37 @@ void SShipEngines::process(SceneManager* scene_manager, float dt) {
                 int particle = i;
                 float engine_glow_size = 4.0f * engines[i].activity();
                 ship_engines.glow_billboards_->setParticlePosition(
-                        particle, Vec3{model * Vec4{engines[i].offset(), 1.0f}});
-                ship_engines.glow_billboards_->setParticleSize(particle,
-                                                               {engine_glow_size, engine_glow_size});
+                    particle, Vec3{model * Vec4{engines[i].offset(), 1.0f}});
+                ship_engines.glow_billboards_->setParticleSize(
+                    particle, {engine_glow_size, engine_glow_size});
                 ship_engines.trail_billboards_->setParticlePosition(
-                        particle, Vec3{model * Vec4{engines[i].offset(), 1.0f}});
+                    particle, Vec3{model * Vec4{engines[i].offset(), 1.0f}});
                 ship_engines.trail_billboards_->setParticleSize(
-                        particle, {engine_glow_size * 0.5f, engine_glow_size * 6.0f});
+                    particle, {engine_glow_size * 0.5f, engine_glow_size * 6.0f});
                 ship_engines.trail_billboards_->setParticleDirection(
-                        particle, Vec3{model * Vec4{engines[i].force().Normalized(), 0.0f}});
+                    particle, Vec3{model * Vec4{engines[i].force().Normalized(), 0.0f}});
             }
             for (size_t i = 0; i < nav_engines.size(); i++) {
                 int particle = i + engines.size();
                 float engine_glow_size = 2.0f * nav_engines[i].activity();
                 ship_engines.glow_billboards_->setParticlePosition(
-                        particle, Vec3{model * Vec4{nav_engines[i].offset(), 1.0f}});
-                ship_engines.glow_billboards_->setParticleSize(particle,
-                                                               {engine_glow_size, engine_glow_size});
+                    particle, Vec3{model * Vec4{nav_engines[i].offset(), 1.0f}});
+                ship_engines.glow_billboards_->setParticleSize(
+                    particle, {engine_glow_size, engine_glow_size});
                 ship_engines.trail_billboards_->setParticlePosition(
-                        particle, Vec3{model * Vec4{nav_engines[i].offset(), 1.0f}});
+                    particle, Vec3{model * Vec4{nav_engines[i].offset(), 1.0f}});
                 ship_engines.trail_billboards_->setParticleSize(
-                        particle, {engine_glow_size * 0.25f, engine_glow_size * 3.0f});
+                    particle, {engine_glow_size * 0.25f, engine_glow_size * 3.0f});
                 ship_engines.trail_billboards_->setParticleDirection(
-                        particle, Vec3{model * Vec4{nav_engines[i].force().Normalized(), 0.0f}});
+                    particle, Vec3{model * Vec4{nav_engines[i].force().Normalized(), 0.0f}});
             }
         }
 
         // Attenuate engines.
-        for (auto &e : engines) {
+        for (auto& e : engines) {
             e.update(dt);
         }
-        for (auto &e : nav_engines) {
+        for (auto& e : nav_engines) {
             e.update(dt);
         }
     }

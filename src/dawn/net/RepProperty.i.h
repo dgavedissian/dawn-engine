@@ -27,16 +27,21 @@ SharedPtr<RepPropertyBinding> RepProperty::bind(
 
 template <typename Component>
 RepProperty::RepPropertyBindingInComponent<Component>::RepPropertyBindingInComponent()
-    : component_(nullptr) {
+    : entity_(nullptr) {
 }
 
 template <typename Component>
 void RepProperty::RepPropertyBindingInComponent<Component>::onAddToEntity(Entity& entity) {
-    component_ = entity.component<Component>();
-    assert(component_ != nullptr);
+    entity_ = &entity;
+    assert(entity.component<Component>());
 }
 
-template <typename Component, typename PropertyType>
+    template<typename Component>
+    Component &RepProperty::RepPropertyBindingInComponent<Component>::component() const {
+        return *entity_->template component<Component>();
+    }
+
+    template <typename Component, typename PropertyType>
 RepProperty::RepPropertyBinding_Member<Component, PropertyType>::RepPropertyBinding_Member(
     RepProperty::PropertyMemberPtr<Component, PropertyType> member_ptr)
     : member_ptr_(member_ptr) {
@@ -44,12 +49,12 @@ RepProperty::RepPropertyBinding_Member<Component, PropertyType>::RepPropertyBind
 
 template <typename Component, typename PropertyType>
 void RepProperty::RepPropertyBinding_Member<Component, PropertyType>::serialise(OutputStream& out) {
-    stream::write<PropertyType>(out, this->component_->*member_ptr_);
+    stream::write<PropertyType>(out, this->component().*member_ptr_);
 }
 
 template <typename Component, typename PropertyType>
 void RepProperty::RepPropertyBinding_Member<Component, PropertyType>::deserialise(InputStream& in) {
-    this->component_->*member_ptr_ = stream::read<PropertyType>(in);
+    this->component().*member_ptr_ = stream::read<PropertyType>(in);
 }
 
 template <typename Component, typename PropertyType>
@@ -62,13 +67,13 @@ RepProperty::RepPropertyBinding_ReferenceFunction<Component, PropertyType>::
 template <typename Component, typename PropertyType>
 void RepProperty::RepPropertyBinding_ReferenceFunction<Component, PropertyType>::serialise(
     OutputStream& out) {
-    stream::write<PropertyType>(out, (this->component_->*reference_func_)());
+    stream::write<PropertyType>(out, (this->component().*reference_func_)());
 }
 
 template <typename Component, typename PropertyType>
 void RepProperty::RepPropertyBinding_ReferenceFunction<Component, PropertyType>::deserialise(
     InputStream& in) {
-    (this->component_->*reference_func_)() = stream::read<PropertyType>(in);
+    (this->component().*reference_func_)() = stream::read<PropertyType>(in);
 }
 
 template <typename Component, typename PropertyType>
@@ -81,12 +86,12 @@ RepProperty::RepPropertyBinding_Accessors<Component, PropertyType>::RepPropertyB
 template <typename Component, typename PropertyType>
 void RepProperty::RepPropertyBinding_Accessors<Component, PropertyType>::serialise(
     OutputStream& out) {
-    stream::write<PropertyType>(out, (this->component_->*getter_func_)());
+    stream::write<PropertyType>(out, (this->component().*getter_func_)());
 }
 
 template <typename Component, typename PropertyType>
 void RepProperty::RepPropertyBinding_Accessors<Component, PropertyType>::deserialise(
     InputStream& in) {
-    (this->component_->*setter_func_)(stream::read<PropertyType>(in));
+    (this->component().*setter_func_)(stream::read<PropertyType>(in));
 }
 }  // namespace dw

@@ -16,8 +16,7 @@
 
 namespace dw {
 SceneManager::SceneManager(Context* ctx, EventSystem* event_system, SceneGraph* scene_graph)
-    : Object(ctx),
-      background_scene_node_(nullptr) {
+    : Object(ctx), background_scene_node_(nullptr) {
     background_scene_node_ = scene_graph->backgroundNode().newChild();
 
     physics_scene_ = makeUnique<PhysicsScene>(ctx, this, event_system);

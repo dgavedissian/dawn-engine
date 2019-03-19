@@ -104,8 +104,8 @@ void SProjectile::process(SceneManager* scene_manager, float dt) {
     for (auto e : view(scene_manager)) {
         auto entity = Entity{scene_manager, e};
 
-        auto &data = *entity.component<CProjectile>();
-        auto &render_data = render_data_.at(data.type);
+        auto& data = *entity.component<CProjectile>();
+        auto& render_data = render_data_.at(data.type);
 
         // Perform a raycast between the old and new position.
         Vec3 new_position = data.position + data.velocity * dt;

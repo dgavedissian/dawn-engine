@@ -18,20 +18,22 @@ CWeapon::CWeapon(int projectile_type, float projectile_speed, Colour projectile_
 void SWeapon::process(SceneManager* scene_manager, float dt) {
     for (auto e : view(scene_manager)) {
         auto entity = Entity{scene_manager, e};
-        auto &data = *entity.component<CWeapon>();
+        auto& data = *entity.component<CWeapon>();
 
         if (data.firing) {
             // Has the cycle time elapsed?
             if (data.cooldown < M_EPSILON) {
-                Vec3 ship_velocity = entity.component<CRigidBody>()->_rigidBody()->getLinearVelocity();
+                Vec3 ship_velocity =
+                    entity.component<CRigidBody>()->_rigidBody()->getLinearVelocity();
 
                 // Fire projectile.
-                Mat4 world_transform = entity.component<CTransform>()->node->deriveWorldModelMatrix();
+                Mat4 world_transform =
+                    entity.component<CTransform>()->node->deriveWorldModelMatrix();
                 Vec3 direction = world_transform.TransformDir(-Vec3::unitZ).Normalized();
                 Vec3 position = world_transform.TranslatePart();
                 scene_manager->system<SProjectile>()->createNewProjectile(
-                        data.projectile_type, position, direction,
-                        direction * data.projectile_speed + ship_velocity, data.projectile_colour);
+                    data.projectile_type, position, direction,
+                    direction * data.projectile_speed + ship_velocity, data.projectile_colour);
 
                 // Reset cooldown.
                 data.cooldown = data.cycle_time;

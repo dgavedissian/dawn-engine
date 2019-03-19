@@ -208,7 +208,7 @@ SceneGraph::SCamera::SCamera() {
 
 void SceneGraph::SCamera::process(SceneManager* sceneManager, float) {
     cameras.clear();
-    for (auto e: view(sceneManager)) {
+    for (auto e : view(sceneManager)) {
         auto entity = Entity{sceneManager, e};
         cameras.emplace_back(CameraState{0, entity.component<CTransform>()->node,
                                          entity.component<CCamera>()->projection_matrix});

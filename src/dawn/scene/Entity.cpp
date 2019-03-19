@@ -8,9 +8,7 @@
 
 namespace dw {
 Entity::Entity(SceneManager* sceneManager, EntityId id, EntityType type)
-    : registry_{sceneManager->registry_},
-      entity_{id},
-      type_{type} {
+    : registry_{sceneManager->registry_}, entity_{id}, type_{type} {
 }
 
 EntityId Entity::id() const {

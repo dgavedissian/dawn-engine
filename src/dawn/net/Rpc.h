@@ -50,7 +50,6 @@ protected:
     Entity* entity_;
 
 private:
-    CNetData* net_data_;
     Logger* logger_;
     RpcId rpc_id_;
 };

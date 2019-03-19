@@ -522,12 +522,12 @@ bool GLRenderContext::frame(const Frame* frame) {
     auto& tvb = frame->transient_vb_storage;
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_map_.at(tvb.handle).vertex_buffer);
     GL_CHECK();
-    glBufferSubData(GL_ARRAY_BUFFER, 0, tvb.size, tvb.data);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, tvb.size, tvb.data.get());
     GL_CHECK();
     auto& tib = frame->transient_ib_storage;
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_map_.at(tib.handle).element_buffer);
     GL_CHECK();
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, tib.size, tib.data);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, tib.size, tib.data.get());
     GL_CHECK();
 
     // Process views.

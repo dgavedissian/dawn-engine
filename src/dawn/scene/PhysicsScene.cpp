@@ -116,7 +116,7 @@ void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
 }
 
 void PhysicsScene::PhysicsComponentSystem::process(SceneManager* scene_mgr, float) {
-    for (auto e: view(scene_mgr)) {
+    for (auto e : view(scene_mgr)) {
         auto entity = Entity{scene_mgr, e};
         auto t = entity.component<CTransform>();
         auto rb = entity.component<CRigidBody>()->rigid_body_.get();

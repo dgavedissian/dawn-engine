@@ -61,9 +61,9 @@ void View::clear() {
 
 Frame::Frame() {
     current_item.clear();
-    transient_vb_storage.data = new byte[DW_MAX_TRANSIENT_VERTEX_BUFFER_SIZE];
+    transient_vb_storage.data.reset(new byte[DW_MAX_TRANSIENT_VERTEX_BUFFER_SIZE]);
     transient_vb_storage.size = 0;
-    transient_ib_storage.data = new byte[DW_MAX_TRANSIENT_INDEX_BUFFER_SIZE];
+    transient_ib_storage.data.reset(new byte[DW_MAX_TRANSIENT_INDEX_BUFFER_SIZE]);
     transient_ib_storage.size = 0;
     next_transient_vertex_buffer_handle_ = TransientVertexBufferHandle{0};
     next_transient_index_buffer_handle_ = TransientIndexBufferHandle{0};
@@ -73,8 +73,6 @@ Frame::Frame() {
 }
 
 Frame::~Frame() {
-    delete transient_ib_storage.data;
-    delete transient_vb_storage.data;
 }
 
 View& Frame::view(uint view_index) {
@@ -241,7 +239,7 @@ TransientVertexBufferHandle RHIRenderer::allocTransientVertexBuffer(uint vertex_
 
     // Allocate handle.
     auto handle = submit_->next_transient_vertex_buffer_handle_++;
-    byte* data = submit_->transient_vb_storage.data + submit_->transient_vb_storage.size;
+    byte* data = submit_->transient_vb_storage.data.get() + submit_->transient_vb_storage.size;
     submit_->transient_vb_storage.size += size;
     submit_->transient_vertex_buffers_[handle] = {data, size, decl};
     return handle;
@@ -258,7 +256,7 @@ byte* RHIRenderer::getTransientVertexBufferData(TransientVertexBufferHandle hand
 void RHIRenderer::setVertexBuffer(TransientVertexBufferHandle handle) {
     Frame::TransientVertexBufferData& tvb = submit_->transient_vertex_buffers_.at(handle);
     submit_->current_item.vb = transient_vb;
-    submit_->current_item.vb_offset = (uint)(tvb.data - submit_->transient_vb_storage.data);
+    submit_->current_item.vb_offset = (uint)(tvb.data - submit_->transient_vb_storage.data.get());
     submit_->current_item.vertex_decl_override = tvb.decl;
 }
 
@@ -271,7 +269,7 @@ TransientIndexBufferHandle RHIRenderer::allocTransientIndexBuffer(uint index_cou
 
     // Allocate handle.
     auto handle = submit_->next_transient_index_buffer_handle_++;
-    byte* data = submit_->transient_ib_storage.data + submit_->transient_ib_storage.size;
+    byte* data = submit_->transient_ib_storage.data.get() + submit_->transient_ib_storage.size;
     submit_->transient_ib_storage.size += size;
     submit_->transient_index_buffers_[handle] = {data, size};
     return handle;
@@ -288,7 +286,7 @@ byte* RHIRenderer::getTransientIndexBufferData(TransientIndexBufferHandle handle
 void RHIRenderer::setIndexBuffer(TransientIndexBufferHandle handle) {
     Frame::TransientIndexBufferData& tib = submit_->transient_index_buffers_.at(handle);
     submit_->current_item.ib = transient_ib;
-    submit_->current_item.ib_offset = (uint)(tib.data - submit_->transient_ib_storage.data);
+    submit_->current_item.ib_offset = (uint)(tib.data - submit_->transient_ib_storage.data.get());
 }
 
 ShaderHandle RHIRenderer::createShader(ShaderStage stage, Memory data) {
