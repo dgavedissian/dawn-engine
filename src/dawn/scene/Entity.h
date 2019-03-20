@@ -7,7 +7,7 @@
 #include <entt/entt.hpp>
 
 #include "Component.h"
-#include "scene/CTransform.h"
+#include "scene/CSceneNode.h"
 
 namespace dw {
 class SceneManager;
@@ -19,7 +19,7 @@ using EntityType = u32;
 /// Entity object.
 class Entity {
 public:
-    explicit Entity(SceneManager* sceneManager, EntityId id, EntityType type = 0);
+    Entity(SceneManager* sceneManager, EntityId id, EntityType type = 0);
     virtual ~Entity() = default;
 
     /// Accesses a component contained within this entity.

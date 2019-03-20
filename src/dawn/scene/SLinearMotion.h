@@ -8,7 +8,7 @@
 #include "scene/SceneManager.h"
 
 namespace dw {
-class SLinearMotion : public EntitySystem<CLinearMotion, CTransform> {
+class SLinearMotion : public EntitySystem<CLinearMotion, CSceneNode> {
 public:
     void process(SceneManager* scene_mgr, float dt) override;
 };

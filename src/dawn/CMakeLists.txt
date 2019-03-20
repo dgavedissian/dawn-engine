@@ -175,12 +175,12 @@ set(SOURCE_FILES
     resource/ResourceCache.h
     scene/BulletDynamics.h
     scene/CLinearMotion.h
-    scene/CTransform.cpp
-    scene/CTransform.h
     scene/CameraController.cpp
     scene/CameraController.h
     scene/Component.cpp
     scene/Component.h
+    scene/CSceneNode.cpp
+    scene/CSceneNode.h
     scene/Entity.cpp
     scene/Entity.h
     scene/PhysicsScene.cpp

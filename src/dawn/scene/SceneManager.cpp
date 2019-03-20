@@ -56,14 +56,14 @@ Entity& SceneManager::createEntity(EntityType type) {
 Entity& SceneManager::createEntity(EntityType type, const Vec3& p, const Quat& o, Frame& frame,
                                    SharedPtr<Renderable> renderable) {
     Entity& e = createEntity(type);
-    e.addComponent<CTransform>(frame.newChild(p, o), renderable);
+    e.addComponent<CSceneNode>(frame.newChild(p, o), renderable);
     return e;
 }
 
 Entity& SceneManager::createEntity(EntityType type, const Vec3& p, const Quat& o, Entity& parent,
                                    SharedPtr<Renderable> renderable) {
     Entity& e = createEntity(type);
-    e.addComponent<CTransform>(parent.component<CTransform>()->node->newChild(p, o), renderable);
+    e.addComponent<CSceneNode>(parent.component<CSceneNode>()->node->newChild(p, o), renderable);
     return e;
 }
 

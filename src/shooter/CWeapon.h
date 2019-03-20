@@ -28,7 +28,7 @@ struct CWeapon : public Component {
     float cooldown;
 };
 
-class SWeapon : public EntitySystem<CTransform, CWeapon, CRigidBody> {
+class SWeapon : public EntitySystem<CSceneNode, CWeapon, CRigidBody> {
 public:
     void process(SceneManager* scene_manager, float dt) override;
 };

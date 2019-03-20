@@ -20,7 +20,7 @@ EntityType Entity::typeId() const {
 }
 
 detail::Transform* Entity::transform() {
-    auto transform_component = component<CTransform>();
+    auto transform_component = component<CSceneNode>();
     if (transform_component) {
         return &transform_component->node->transform();
     }
@@ -28,7 +28,7 @@ detail::Transform* Entity::transform() {
 }
 
 const detail::Transform* Entity::transform() const {
-    const auto transform_component = component<CTransform>();
+    const auto transform_component = component<CSceneNode>();
     if (transform_component) {
         const auto* node = transform_component->node;
         return &node->transform();

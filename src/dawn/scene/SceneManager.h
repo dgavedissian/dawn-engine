@@ -6,7 +6,7 @@
 
 #include "renderer/Node.h"
 #include "scene/Entity.h"
-#include "scene/CTransform.h"
+#include "scene/CSceneNode.h"
 
 #include <entt/entt.hpp>
 
@@ -118,7 +118,7 @@ public:
     template <typename... S> EntitySystem& executesAfter();
 
     /// Get a view of entities.
-    entt::basic_view<EntityId, T...> view(SceneManager* sceneManager);
+    entt::basic_view<EntityId, T...> entityView(SceneManager *scene_mgr);
 };
 
 template <typename T, typename... Args> T* SceneManager::addSystem(Args&&... args) {
@@ -156,7 +156,7 @@ EntitySystem<T...>& EntitySystem<T...>::executesAfter() {
 }
 
 template<typename... T>
-entt::basic_view<EntityId, T...> EntitySystem<T...>::view(SceneManager *sceneManager) {
-    return sceneManager->registry_.view<T...>();
+entt::basic_view<EntityId, T...> EntitySystem<T...>::entityView(SceneManager *scene_mgr) {
+    return scene_mgr->registry_.view<T...>();
 }
 }  // namespace dw

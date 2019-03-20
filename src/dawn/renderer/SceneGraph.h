@@ -78,7 +78,7 @@ private:
 
 struct CCamera;
 
-class SceneGraph::SCamera : public EntitySystem<CCamera, CTransform> {
+class SceneGraph::SCamera : public EntitySystem<CCamera, CSceneNode> {
 public:
     SCamera();
     ~SCamera() = default;

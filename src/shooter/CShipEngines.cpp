@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #include "Core.h"
-#include "scene/CTransform.h"
+#include "scene/CSceneNode.h"
 #include "net/CNetData.h"
 #include "net/CNetTransform.h"
 #include "Resource.h"
@@ -116,7 +116,7 @@ CShipEngines::CShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_
 }
 
 void CShipEngines::onAddToEntity(Entity* parent) {
-    auto* transform = parent->component<CTransform>();
+    auto* transform = parent->component<CSceneNode>();
     assert(transform);
 
     // Initialise engine particles.
@@ -253,16 +253,11 @@ Vec3 CShipEngines::currentRotationalPower() {
 }
 
 void SShipEngines::process(SceneManager* scene_manager, float dt) {
-    for (auto e : view(scene_manager)) {
-        auto entity = Entity{scene_manager, e};
-
-        auto& transform = *entity.transform();
-        auto& ship_engines = *entity.component<CShipEngines>();
-
+    entityView(scene_manager).each([&](auto entity, const auto& node, auto& ship_engines) {
         auto& engines = ship_engines.engine_data_;
         auto& nav_engines = ship_engines.nav_engine_data_;
 
-        Mat4 model = transform.toMat4();
+        Mat4 model = node.transform().toMat4();
 
         // Update particles.
         if (ship_engines.glow_billboards_) {
@@ -297,11 +292,11 @@ void SShipEngines::process(SceneManager* scene_manager, float dt) {
         }
 
         // Attenuate engines.
-        for (auto& e : engines) {
-            e.update(dt);
+        for (auto& engine : engines) {
+            engine.update(dt);
         }
-        for (auto& e : nav_engines) {
-            e.update(dt);
+        for (auto& engine : nav_engines) {
+            engine.update(dt);
         }
-    }
+    });
 }

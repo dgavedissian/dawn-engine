@@ -7,9 +7,8 @@
 
 namespace dw {
 void SLinearMotion::process(SceneManager* scene_mgr, float dt) {
-    for (auto e : view(scene_mgr)) {
-        auto entity = Entity{scene_mgr, e};
-        entity.transform()->position += entity.component<CLinearMotion>()->velocity * dt;
-    }
+    entityView(scene_mgr).each([dt](auto entity, const auto& linear_motion, auto& node) {
+        node.transform().position += linear_motion.velocity * dt;
+    });
 }
 }  // namespace dw

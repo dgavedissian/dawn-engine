@@ -104,7 +104,7 @@ private:
     friend class SShipEngines;
 };
 
-class SShipEngines : public EntitySystem<CTransform, CShipEngines> {
+class SShipEngines : public EntitySystem<CSceneNode, CShipEngines> {
 public:
     void process(SceneManager* scene_manager, float dt) override;
 };

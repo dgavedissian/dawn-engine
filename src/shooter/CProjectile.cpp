@@ -101,10 +101,7 @@ Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const V
 }
 
 void SProjectile::process(SceneManager* scene_manager, float dt) {
-    for (auto e : view(scene_manager)) {
-        auto entity = Entity{scene_manager, e};
-
-        auto& data = *entity.component<CProjectile>();
+    entityView(scene_manager).each([&](auto entity, auto& data) {
         auto& render_data = render_data_.at(data.type);
 
         // Perform a raycast between the old and new position.
@@ -117,5 +114,5 @@ void SProjectile::process(SceneManager* scene_manager, float dt) {
         // Update billboard.
         render_data.billboard_set->setParticleDirection(data.particle_id, data.direction);
         render_data.billboard_set->setParticlePosition(data.particle_id, data.position);
-    }
+    });
 }

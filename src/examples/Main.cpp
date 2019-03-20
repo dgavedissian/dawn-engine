@@ -970,7 +970,7 @@ TEST_CLASS(DeferredLighting) {
                     auto light_position = Vec3(x * 30.0f + sin(angle) * 10.0f, 4.0f,
                                                z * 30.0f - 30.0f + cos(angle) * 10.0f);
                     auto* material =
-                        lights[light_counter]->component<CTransform>()->renderable()->material();
+                        lights[light_counter]->component<CSceneNode>()->renderable()->material();
                     lights[light_counter]->transform()->position = light_position;
                     light_counter++;
 

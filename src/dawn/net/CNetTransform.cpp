@@ -9,11 +9,11 @@
 
 namespace dw {
 void SNetTransformSync::process(SceneManager* scene_manager, float dt) {
-    for (auto e : view(scene_manager)) {
+    for (auto e : entityView(scene_manager)) {
         auto entity = Entity{scene_manager, e};
 
         NetRole role = entity.component<CNetData>()->role();
-        CTransform& transform = *entity.component<CTransform>();
+        CSceneNode& transform = *entity.component<CSceneNode>();
         NetTransformState& net_state = entity.component<CNetTransform>()->transform_state;
         CRigidBody* rigid_body = entity.component<CRigidBody>();
 

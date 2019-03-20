@@ -6,12 +6,14 @@
 #include "resource/ResourceCache.h"
 #include "renderer/Mesh.h"
 #include "renderer/Renderer.h"
-#include "CProjectile.h"
-#include "CWeapon.h"
-#include "ShooterGameMode.h"
 #include "core/GameSession.h"
 #include "renderer/SceneGraph.h"
 #include "renderer/Texture.h"
+
+#include "CProjectile.h"
+#include "CWeapon.h"
+#include "ShipFlightComputer.h"
+#include "ShooterGameMode.h"
 
 using namespace dw;
 
@@ -48,6 +50,7 @@ public:
                   {6.0f, 15.0f},
                   rc->get<Texture>("shooter:weapons/projectile2.jpg").value()}}});
         scene_manager_->addSystem<SWeapon>();
+        scene_manager_->addSystem<ShipFlightComputerSystem>();
 
         // Start the game.
         setGameMode(makeShared<ShooterGameMode>(context(), this, frame, entity_pipeline));

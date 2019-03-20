@@ -43,18 +43,18 @@ public:
                   PhysicsRaycastResult& result);
 
     // EntitySystem for updating CRigidBody components.
-    class PhysicsComponentSystem : public EntitySystem<CTransform, CRigidBody> {
+    class PhysicsComponentSystem : public EntitySystem<CSceneNode, CRigidBody> {
     public:
         void process(SceneManager* scene_mgr, float dt) override;
     };
 
 private:
     EventSystem* event_system_;
-    SharedPtr<btBroadphaseInterface> broadphase_;
-    SharedPtr<btCollisionConfiguration> collision_config_;
-    SharedPtr<btCollisionDispatcher> dispatcher_;
-    SharedPtr<btConstraintSolver> solver_;
-    SharedPtr<btDynamicsWorld> world_;
+    UniquePtr<btBroadphaseInterface> broadphase_;
+    UniquePtr<btCollisionConfiguration> collision_config_;
+    UniquePtr<btCollisionDispatcher> dispatcher_;
+    UniquePtr<btConstraintSolver> solver_;
+    UniquePtr<btDynamicsWorld> world_;
 
     List<btRigidBody*> rigid_body_list_;
 

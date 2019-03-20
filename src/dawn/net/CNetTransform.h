@@ -77,7 +77,7 @@ public:
     }
 };
 
-class SNetTransformSync : public EntitySystem<CTransform, CNetTransform, CNetData> {
+class SNetTransformSync : public EntitySystem<CSceneNode, CNetTransform, CNetData> {
 public:
     ~SNetTransformSync() = default;
 

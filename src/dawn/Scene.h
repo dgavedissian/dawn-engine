@@ -9,7 +9,7 @@
 #include "scene/CameraController.h"
 #include "scene/CLinearMotion.h"
 #include "scene/Component.h"
-#include "scene/CTransform.h"
+#include "scene/CSceneNode.h"
 #include "scene/Entity.h"
 #include "scene/EntitySystem.h"
 #include "scene/PhysicsScene.h"

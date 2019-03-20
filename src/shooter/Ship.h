@@ -73,6 +73,4 @@ public:
 private:
     Entity* ship_entity_;
     btRigidBody* rb_;
-
-    SharedPtr<ShipFlightComputer> flight_computer_;
 };
