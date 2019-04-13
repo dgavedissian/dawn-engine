@@ -16,7 +16,7 @@
 
 namespace dw {
 SceneManager::SceneManager(Context* ctx, EventSystem* event_system, SceneGraph* scene_graph)
-    : Object(ctx), background_scene_node_(nullptr) {
+    : Object(ctx), background_scene_node_(nullptr), system_process_order_dirty_(false) {
     background_scene_node_ = scene_graph->backgroundNode().newChild();
 
     physics_scene_ = makeUnique<PhysicsScene>(ctx, this, event_system);
@@ -43,6 +43,12 @@ void SceneManager::createStarSystem() {
     auto skybox = MeshBuilder{context()}.normals(false).texcoords(true).createBox(-100.0f);
     skybox->setMaterial(background_material);
     background_scene_node_->data.renderable = skybox;
+}
+
+void SceneManager::recomputeSystemExecutionOrder() {
+    if (!system_process_order_dirty_) {
+        return;
+    }
 }
 
 Entity& SceneManager::createEntity(EntityType type) {
@@ -83,6 +89,7 @@ void SceneManager::removeEntity(Entity* entity) {
 }
 
 void SceneManager::update(float dt) {
+    recomputeSystemExecutionOrder();
     for (auto& s : system_process_order_) {
         s->process(this, dt);
     }

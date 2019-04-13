@@ -203,7 +203,7 @@ void SceneGraph::renderTree(Node* node, const Mat4& frame_model_matrix,
 }
 
 SceneGraph::SCamera::SCamera() {
-    executesAfter<PhysicsScene::PhysicsComponentSystem>();
+    dependsOn<PhysicsScene::PhysicsComponentSystem>();
 }
 
 void SceneGraph::SCamera::process(SceneManager* sceneManager, float) {

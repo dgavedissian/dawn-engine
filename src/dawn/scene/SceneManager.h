@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include "core/TypeId.h"
 #include "renderer/Node.h"
 #include "scene/Entity.h"
 #include "scene/CSceneNode.h"
@@ -41,6 +42,11 @@ public:
     /// Removes the entity system from the context.
     /// @tparam T Entity system type.
     template <typename T> void removeSystem();
+
+    /// Recomputes the system execution order if any systems were added or removed.
+    /// This function will only do any work if any changes has happened since the
+    /// last time it was called. Will be called before every tick.
+    void recomputeSystemExecutionOrder();
 
     /// Creates a new empty entity.
     /// @param type Entity type ID.
@@ -91,7 +97,9 @@ private:
 
     UniquePtr<PhysicsScene> physics_scene_;
 
-    Vector<UniquePtr<EntitySystemBase>> system_process_order_;
+    Map<TypeId, UniquePtr<EntitySystemBase>> systems_;
+    Vector<EntitySystemBase*> system_process_order_;
+    bool system_process_order_dirty_;
 
     friend class Entity;
 
@@ -115,7 +123,7 @@ public:
     /// Specifies a list of systems which this system depends on.
     /// @tparam T List of system types.
     /// @return This system.
-    template <typename... S> EntitySystem& executesAfter();
+    template <typename... S> EntitySystem& dependsOn();
 
     /// Get a view of entities.
     entt::basic_view<EntityId, T...> entityView(SceneManager *scene_mgr);
@@ -140,12 +148,13 @@ template <typename T> T* SceneManager::system() {
 }
 
 template <typename T> void SceneManager::removeSystem() {
+    systems_.erase(typeId<)
     //ontology_world_->getSystemManager().removeSystem<OntologySystemAdapter<T>>();
 }
 
 template<typename... T>
 template<typename... S>
-EntitySystem<T...>& EntitySystem<T...>::executesAfter() {
+EntitySystem<T...>& EntitySystem<T...>::dependsOn() {
     /*
     if (ontology_system_) {
         ontology_system_->executesAfter<OntologySystemAdapter<T>...>();
