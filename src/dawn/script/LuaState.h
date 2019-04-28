@@ -17,5 +17,6 @@ public:
     virtual ~LuaState();
 
 private:
+    sol::state state_;
 };
 }  // namespace dw
