@@ -160,8 +160,10 @@ void Ship::update(float dt) {
         ship_entity_->component<CWeapon>()->firing = controls.firing_weapon;
 
         // Pass controls to flight computer.
-        ship_entity_->component<ShipFlightComputer>()->target_linear_velocity = controls.target_linear_velocity;
-        ship_entity_->component<ShipFlightComputer>()->target_angular_velocity = controls.target_angular_velocity;
+        ship_entity_->component<ShipFlightComputer>()->target_linear_velocity =
+            controls.target_linear_velocity;
+        ship_entity_->component<ShipFlightComputer>()->target_angular_velocity =
+            controls.target_angular_velocity;
 
         // Calculate angular acceleration.
         /*Vec3 angular_acc = Vec3(

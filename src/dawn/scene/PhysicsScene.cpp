@@ -32,8 +32,8 @@ PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr, EventSyste
     collision_config_ = makeUnique<btDefaultCollisionConfiguration>();
     dispatcher_ = makeUnique<btCollisionDispatcher>(collision_config_.get());
     solver_ = makeUnique<btSequentialImpulseConstraintSolver>();
-    world_ = makeUnique<btDiscreteDynamicsWorld>(dispatcher_.get(), broadphase_.get(), solver_.get(),
-                                             collision_config_.get());
+    world_ = makeUnique<btDiscreteDynamicsWorld>(dispatcher_.get(), broadphase_.get(),
+                                                 solver_.get(), collision_config_.get());
 
     // Set the properties of the world.
     world_->setGravity(btVector3(0.0f, 0.0f, 0.0f));

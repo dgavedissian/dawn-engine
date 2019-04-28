@@ -1,13 +1,13 @@
 #!/bin/sh
-if hash clang-format-7 2>/dev/null; then
-    CLANG_FORMAT=clang-format-7
+if hash clang-format-8 2>/dev/null; then
+    CLANG_FORMAT=clang-format-8
 else
     CLANG_FORMAT=clang-format
 fi
 
 # Check the version is correct.
 CLANG_FORMAT_VERSION=$(${CLANG_FORMAT} --version | cut -d " " -f 3)
-if [[ ! $CLANG_FORMAT_VERSION =~ ^7.0 ]]; then
+if [[ ! $CLANG_FORMAT_VERSION =~ ^8.0 ]]; then
     echo "Unsupported clang-format version: $CLANG_FORMAT_VERSION"
     exit
 fi

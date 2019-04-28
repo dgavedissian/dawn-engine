@@ -45,10 +45,86 @@ void SceneManager::createStarSystem() {
     background_scene_node_->data.renderable = skybox;
 }
 
-void SceneManager::recomputeSystemExecutionOrder() {
+Result<void> SceneManager::recomputeSystemExecutionOrder() {
     if (!system_process_order_dirty_) {
-        return;
+        return {};
     }
+
+    // Implementation of Kahn's algorithm
+    // https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
+
+    system_process_order_.clear();
+
+    // system_dependencies_ store a map of incoming edges. For example, if it stores (1,[2]),
+    // (2,[3,4]), then this means that 1 depends on 2, and 2 depends on 3 and 4. This represents the
+    // following graph:
+    //
+    //   3 --> 2 --> 1
+    //         ^
+    //   4 ----`
+
+    // Build up a data structure of the graph.
+    // i.e. given: (1,[2]), (2,[3,4]), generate: (2,[1]), (3,[2]), (4,[2])
+    HashMap<TypeIndex, HashSet<TypeIndex>> incoming_edges = system_dependencies_;
+    HashMap<TypeIndex, HashSet<TypeIndex>> outgoing_edges;
+    for (auto& dependencies : incoming_edges) {
+        for (auto& depends_on : dependencies.second) {
+            outgoing_edges[depends_on].emplace(dependencies.first);
+        }
+    }
+
+    Vector<TypeIndex> result;
+
+    // Find all nodes with no incoming edge.
+    Queue<TypeIndex> nodes;
+    for (const auto& node_pair : systems_) {
+        auto node = node_pair.first;
+        auto depends_on = incoming_edges.find(node);
+        // if this node doesn't depend on anything (it has no incoming edges), add it.
+        if (depends_on == incoming_edges.end() || depends_on->second.empty()) {
+            nodes.push(node);
+        }
+    }
+
+    // Do topological sort.
+    while (!nodes.empty()) {
+        auto node = nodes.back();
+        nodes.pop();
+        result.push_back(node);
+
+        // For each node m with an edge from `node` to m (all outgoing edges of node)
+        // i.e. for each system m where m depends on `node`
+        for (auto& m : outgoing_edges[node]) {
+            // Remove edge (node -> m),
+            incoming_edges[m].erase(node);
+            outgoing_edges[node].erase(m);
+
+            // If m has no other incoming edges, insert m into nodes.
+            if (incoming_edges[m].empty()) {
+                nodes.push(m);
+            }
+        }
+    }
+
+    // If there are edges left, then there's a cycle.
+    for (auto& pair : incoming_edges) {
+        if (!pair.second.empty()) {
+            return makeError("Cycle detected in system dependencies");
+        }
+    }
+    for (auto& pair : outgoing_edges) {
+        if (!pair.second.empty()) {
+            return makeError("Cycle detected in system dependencies");
+        }
+    }
+
+    // Assign new order.
+    system_process_order_.reserve(result.size());
+    for (auto node : result) {
+        system_process_order_.emplace_back(systems_[node].get());
+    }
+
+    return {};
 }
 
 Entity& SceneManager::createEntity(EntityType type) {
@@ -91,12 +167,17 @@ void SceneManager::removeEntity(Entity* entity) {
 void SceneManager::update(float dt) {
     recomputeSystemExecutionOrder();
     for (auto& s : system_process_order_) {
-        s->process(this, dt);
+        s->process(dt);
     }
     physics_scene_->update(dt, nullptr);
 }
 
 PhysicsScene* SceneManager::physicsScene() const {
     return physics_scene_.get();
+}
+
+void SceneManager::updateSystemDependencies(TypeIndex type, const Vector<TypeIndex>& dependencies) {
+    system_dependencies_[type] = dependencies;
+    system_process_order_dirty_ = true;
 }
 }  // namespace dw

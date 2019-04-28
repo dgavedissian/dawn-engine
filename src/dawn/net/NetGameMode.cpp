@@ -8,7 +8,8 @@
 #include "core/GameSession.h"
 
 namespace dw {
-NetGameMode::NetGameMode(Context* ctx, GameSession* session) : GameMode(ctx, session), server_started_(false) {
+NetGameMode::NetGameMode(Context* ctx, GameSession* session)
+    : GameMode(ctx, session), server_started_(false) {
     session_->eventSystem()->addListener(this, &NetGameMode::eventOnJoinServer);
     session_->eventSystem()->addListener(this, &NetGameMode::eventOnServerClientConnected);
     session_->eventSystem()->addListener(this, &NetGameMode::eventOnServerClientDisconnected);

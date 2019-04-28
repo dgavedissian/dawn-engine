@@ -4,12 +4,9 @@
  */
 #pragma once
 
-namespace dw {
-using TypeId = void(*)();
+#include <typeinfo>
+#include <typeindex>
 
-template <typename T>
-TypeId typeId() noexcept
-{
-    return TypeId(typeId<T>);
-}
+namespace dw {
+using TypeIndex = std::type_index;
 }

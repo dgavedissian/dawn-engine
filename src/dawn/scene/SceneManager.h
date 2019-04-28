@@ -97,9 +97,13 @@ private:
 
     UniquePtr<PhysicsScene> physics_scene_;
 
-    Map<TypeId, UniquePtr<EntitySystemBase>> systems_;
+    HashMap<TypeIndex, UniquePtr<EntitySystemBase>> systems_;
+    // Map from a system to systems it depends on.
+    HashMap<TypeIndex, HashSet<TypeIndex>> system_dependencies_;
     Vector<EntitySystemBase*> system_process_order_;
     bool system_process_order_dirty_;
+
+    void updateSystemDependencies(TypeIndex type, const Vector<TypeIndex>& dependencies);
 
     friend class Entity;
 
@@ -114,7 +118,13 @@ public:
 
     /// Process this system.
     /// @param dt Delta time.
-    virtual void process(SceneManager* sceneManager, float dt) = 0;
+    virtual void process(float dt) = 0;
+
+protected:
+    SceneManager* scene_mgr_;
+    Vector<TypeIndex> depends_on_;
+
+    friend class SceneManager;
 };
 
 template <typename... T>
@@ -132,35 +142,32 @@ public:
 template <typename T, typename... Args> T* SceneManager::addSystem(Args&&... args) {
     auto system = makeUnique<T>(std::forward<Args>(args)...);
     auto* t = system.get();
-    system_process_order_.emplace_back(std::move(system));
+    systems_.emplace(typeid(T), std::move(system));
+    updateSystemDependencies(typeid(T), static_cast<EntitySystemBase&>(*system).depends_on_);
+    system_process_order_dirty_ = true;
     return t;
 }
 
 template <typename T> T* SceneManager::system() {
-    // TODO: Do this properly.
-    for (auto& s : system_process_order_) {
-        T* system = dynamic_cast<T*>(s.get());
-        if (system) {
-            return system;
-        }
-    }
-    return nullptr;
+    auto it = systems_.find(typeid(T));
+    return it != systems_.end() ? it->second.get() : nullptr;
 }
 
 template <typename T> void SceneManager::removeSystem() {
-    systems_.erase(typeId<)
-    //ontology_world_->getSystemManager().removeSystem<OntologySystemAdapter<T>>();
+    systems_.erase(typeid(T));
+    system_dependencies_.erase(typeid(T));
+    system_process_order_dirty_ = true;
 }
 
 template<typename... T>
 template<typename... S>
 EntitySystem<T...>& EntitySystem<T...>::dependsOn() {
-    /*
-    if (ontology_system_) {
-        ontology_system_->executesAfter<OntologySystemAdapter<T>...>();
+    for (auto index : {typeid(S)...}) {
+        depends_on_.emplace_back(index);
     }
-    depending_systems_ = Ontology::TypeSetGenerator<OntologySystemAdapter<T>...>();
-     */
+    if (scene_mgr_) {
+        updateSystemDependencies(typeid(this), depends_on_);
+    }
     return *this;
 }
 

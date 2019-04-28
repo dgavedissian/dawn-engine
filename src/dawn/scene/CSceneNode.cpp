@@ -6,7 +6,6 @@
 #include "scene/CSceneNode.h"
 #include "CSceneNode.h"
 
-
 namespace dw {
 CSceneNode::CSceneNode(Node* scene_node) : node(scene_node) {
 }
@@ -19,11 +18,11 @@ void CSceneNode::attachTo(CSceneNode* new_parent) {
     new_parent->node->addChild(node);
 }
 
-detail::Transform &CSceneNode::transform() {
+detail::Transform& CSceneNode::transform() {
     return node->transform();
 }
 
-const detail::Transform &CSceneNode::transform() const {
+const detail::Transform& CSceneNode::transform() const {
     return node->transform();
 }
 
