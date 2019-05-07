@@ -173,6 +173,8 @@ set(SOURCE_FILES
     resource/Resource.h
     resource/ResourceCache.cpp
     resource/ResourceCache.h
+    resource/TextResource.cpp
+    resource/TextResource.h
     scene/BulletDynamics.h
     scene/CLinearMotion.h
     scene/CameraController.cpp
@@ -189,8 +191,8 @@ set(SOURCE_FILES
     scene/SLinearMotion.h
     scene/SceneManager.cpp
     scene/SceneManager.h
-    script/LuaState.cpp
-    script/LuaState.h
+    script/LuaVM.cpp
+    script/LuaVM.h
     script/Sol.h
     ui/Imgui.h
     ui/UserInterface.cpp

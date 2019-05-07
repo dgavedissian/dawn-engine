@@ -5,4 +5,4 @@
 #pragma once
 
 #include "Base.h"
-#include "script/LuaState.h"
+#include "script/LuaVM.h"

@@ -3,6 +3,10 @@
 
 -- Some "game initialisation" script.
 
+print "HELLO WORLD!"
+
+dw = require('dw')
+
 local luaVelocitySystem = dw.world:createEntitySystem(
     "VelocitySystem",
     {dw.Transform, "velocity"}
