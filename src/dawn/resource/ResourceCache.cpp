@@ -59,8 +59,7 @@ void ResourceCache::addPackage(const String& package, UniquePtr<ResourcePackage>
     resource_packages_.emplace(makePair(package, std::move(file)));
 }
 
-Result<SharedPtr<InputStream>> ResourceCache::loadRaw(
-        const ResourcePath &resource_path) {
+Result<SharedPtr<InputStream>> ResourceCache::loadRaw(const ResourcePath& resource_path) {
     // Parse resource path.
     auto path = parseResourcePath(resource_path);
     String package = path.first;

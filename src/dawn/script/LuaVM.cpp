@@ -27,11 +27,12 @@ void registerWorldLib(sol::state& state) {
 }  // namespace
 
 LuaVM::LuaVM(Context* context) : Object(context) {
-    state_.open_libraries(sol::lib::base, sol::lib::package, sol::lib::coroutine, sol::lib::string, sol::lib::os, sol::lib::math, sol::lib::table, sol::lib::debug, sol::lib::bit32);
-    state_.set_function("__dw_write_log",
-                       [this](const char* caller, const char* str) {
-                           log().info("%s: %s", caller, str);
-                       });
+    state_.open_libraries(sol::lib::base, sol::lib::package, sol::lib::coroutine, sol::lib::string,
+                          sol::lib::os, sol::lib::math, sol::lib::table, sol::lib::debug,
+                          sol::lib::bit32);
+    state_.set_function("__dw_write_log", [this](const char* caller, const char* str) {
+        log().info("%s: %s", caller, str);
+    });
     redirectLuaPrintToLogger(*context, state_);
     registerWorldLib(state_);
 }

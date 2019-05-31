@@ -24,11 +24,11 @@ public:
         }
 
         // Create Lua VM and execute script.
-            auto script_result = rc->loadRaw(lua_script_file);
-            auto execute_result = lua_state_.execute(**script_result);
-            if (!execute_result) {
-                log().error("Failed to execute %s: %s", lua_script_file, execute_result.error());
-            }
+        auto script_result = rc->loadRaw(lua_script_file);
+        auto execute_result = lua_state_.execute(**script_result);
+        if (!execute_result) {
+            log().error("Failed to execute %s: %s", lua_script_file, execute_result.error());
+        }
     }
 
     ~LuaGameSession() override {
@@ -70,7 +70,8 @@ public:
     void init(const CommandLine&) override {
         module<ResourceCache>()->addPath("shooter", "../src/lua_shooter/data");
 
-        engine_->addSession(makeUnique<LuaGameSession>(context_, "shooter:script_idea.lua", GameSessionInfo{}));
+        engine_->addSession(
+            makeUnique<LuaGameSession>(context_, "shooter:script_idea.lua", GameSessionInfo{}));
     }
 
     void shutdown() override {
