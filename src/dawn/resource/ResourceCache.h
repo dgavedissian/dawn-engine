@@ -50,8 +50,9 @@ public:
     ResourceCache(Context* context);
     ~ResourceCache();
 
+    void addResourceLocation(const String& package, UniquePtr<ResourceLocation> location);
     void addPath(const String& package, const Path& path);
-    void addPackage(const String& package, UniquePtr<ResourcePackage> file);
+    void addPackage(const String& package, const Path& package_path);
 
     template <typename T>
     SharedPtr<T> addCustomResource(const ResourcePath& resource_path, SharedPtr<T> resource) {

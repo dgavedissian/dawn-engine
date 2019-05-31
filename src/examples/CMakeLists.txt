@@ -4,4 +4,4 @@
 add_dawn_executable(
     DwExamples
     SRCS Main.cpp
-    RESOURCE_PKGS ${CMAKE_SOURCE_DIR}/media/examples)
+    RESOURCE_DIRS examples;${CMAKE_CURRENT_SOURCE_DIR}/media)

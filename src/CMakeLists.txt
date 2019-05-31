@@ -1,6 +1,9 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
 
+message("Setting up external dependencies...")
+add_subdirectory(external)
+
 message("========== ENGINE ==========")
 add_subdirectory(dawn)
 
@@ -13,6 +16,6 @@ add_subdirectory(sandbox)
 message("========== SHOOTER ==========")
 add_subdirectory(shooter)
 
-message("========== VIEWER ==========")
-add_subdirectory(viewer)
+message("========== TOOLS ==========")
+add_subdirectory(tools)
 

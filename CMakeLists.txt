@@ -50,22 +50,56 @@ endif(MSVC)
 # Helpful functions
 ###############################################
 
+function(create_pkg_manifest MANIFEST_NAME)
+    cmake_parse_arguments(
+        MANIFEST
+        ""
+        ""
+        "DIRS;PKGS"
+        ${ARGN}
+    )
+
+    set(PKG_ARGS --output "${MANIFEST_NAME}")
+
+    list(LENGTH MANIFEST_DIRS MANIFEST_DIRS_SIZE)
+    if(${MANIFEST_DIRS_SIZE} GREATER 0)
+        math(EXPR MANIFEST_DIRS_SIZE "${MANIFEST_DIRS_SIZE}-1")
+    endif()
+    foreach(INDEX RANGE 0 ${MANIFEST_DIRS_SIZE} 2)
+        list(GET MANIFEST_DIRS ${INDEX} PACKAGE_NAME)
+        math(EXPR PATH_INDEX "${INDEX}+1")
+        list(GET MANIFEST_DIRS ${PATH_INDEX} PACKAGE_PATH)
+        set(PKG_ARGS ${PKG_ARGS} --dir "${PACKAGE_NAME}|${PACKAGE_PATH}")
+    endforeach()
+
+    add_custom_command(
+        OUTPUT ${MANIFEST_NAME} ${MANIFEST_NAME}__always_rerun
+        DEPENDS pkg
+        COMMAND $<TARGET_FILE:pkg>
+        ARGS ${PKG_ARGS}
+        COMMENT "Generate manifest file"
+        VERBATIM
+    )
+endfunction()
+
 function(add_dawn_executable GAME_NAME)
     cmake_parse_arguments(
         TARGET # prefix of output variables
         "" # list of names of the boolean arguments (only defined ones will be true)
         "" # list of names of mono-valued arguments
-        "SRCS;RESOURCE_PKGS" # list of names of multi-valued arguments (output variables are lists)
+        "SRCS;RESOURCE_DIRS" # list of names of multi-valued arguments (output variables are lists)
         ${ARGN} # arguments of the function to parse, here we take the all original ones
     )
 
+    # Get the source dir of the engine (to get the media files directory).
+    get_target_property(DAWN_CMAKE_SOURCE_DIR DwEngine SOURCE_DIR)
+
     # Append base resource package.
-    # TODO(David): Support base dir when executing this script from _outside_ this CMake file.
-    set(TARGET_RESOURCE_PKGS ${CMAKE_SOURCE_DIR}/media/base ${TARGET_RESOURCE_PKGS})
+    set(TARGET_RESOURCE_DIRS base ${DAWN_CMAKE_SOURCE_DIR}/media ${TARGET_RESOURCE_DIRS})
 
     message(STATUS "add_dawn_executable: Adding ${GAME_NAME}.")
     message(STATUS "add_dawn_executable:   Sources: ${TARGET_SRCS}")
-    message(STATUS "add_dawn_executable:   Resources: ${TARGET_RESOURCE_PKGS}")
+    message(STATUS "add_dawn_executable:   Resources: ${TARGET_RESOURCE_DIRS}")
 
     set(OUT_DIR ${CMAKE_SOURCE_DIR}/bin)
 
@@ -78,7 +112,7 @@ function(add_dawn_executable GAME_NAME)
 
     # Add executable
     add_executable(${GAME_NAME} ${TYPE} ${TARGET_SRCS})
-    set_output_dir(${GAME_NAME} ${CMAKE_BINARY_DIR})
+    add_dependencies(${GAME_NAME} ${GAME_NAME}Manifest)
 
     # Compile in C++14 mode
     enable_cpp14(${GAME_NAME})
@@ -92,22 +126,41 @@ function(add_dawn_executable GAME_NAME)
 
     # Add libraries
     target_link_libraries(${GAME_NAME} DwEngine)
-    set_target_properties(${GAME_NAME} PROPERTIES DEBUG_POSTFIX _d)
     if(EMSCRIPTEN)
         set_target_properties(${GAME_NAME} PROPERTIES SUFFIX .html)
         set(link_flags "-s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=256MB -s ALLOW_MEMORY_GROWTH=1 --no-heap-copy")
         if(DW_DISABLE_WASM)
             set(link_flags "${link_flags} -s WASM=0")
         endif()
-        # Include resources.
-        foreach (resource ${TARGET_RESOURCE_PKGS})
-            get_filename_component(resource_name ${resource} NAME)
-            set(link_flags "${link_flags} --preload-file ${resource}@/media/${resource_name}")
-        endforeach ()
-        set_target_properties(${GAME_NAME} PROPERTIES LINK_FLAGS ${link_flags})
     endif()
 
-    #set_target_properties(${GAME_NAME} PROPERTIES COMPILE_FLAGS "-DDW_DLL")
+    # Create manifest
+    if(EMSCRIPTEN)
+        # Include resources.
+        list(LENGTH RESOURCE_DIRS resource_dirs_size)
+        if(${resource_dirs_size} GREATER 0)
+            math(EXPR resource_dirs_size "${resource_dirs_size}-1")
+        endif()
+        foreach(index RANGE 0 ${resource_dirs_size} 2)
+            list(GET RESOURCE_DIRS ${index} package_name)
+            math(EXPR path_index "${index}+1")
+            list(GET RESOURCE_DIRS ${path_index} package_path)
+            set(link_flags "${link_flags} --preload-file ${package_path}@/media/${package_name}")
+            set(emscripten_resource_dirs ${emscripten_resource_dirs} ${package_name} /media/${package_name})
+        endforeach()
+
+        # Create manifest that points to "/media/<resource>" directories.
+        create_pkg_manifest(${GAME_NAME}.manifest DIRS ${emscripten_resource_dirs})
+        set(link_flags "${link_flags} --preload-file ${GAME_NAME}.manifest")
+        add_custom_target(${GAME_NAME}Manifest DEPENDS ${GAME_NAME}.manifest)
+    else()
+        create_pkg_manifest(${GAME_NAME}.debug.manifest DIRS ${TARGET_RESOURCE_DIRS})
+        add_custom_target(${GAME_NAME}Manifest DEPENDS ${GAME_NAME}.debug.manifest)
+    endif()
+
+    if(EMSCRIPTEN)
+        set_target_properties(${GAME_NAME} PROPERTIES LINK_FLAGS ${link_flags})
+    endif()
 
     # Currently, macOS STL requires this to be defined to use std::visit before macOS 10.14.
     # See: https://stackoverflow.com/questions/52310835/xcode-10-call-to-unavailable-function-stdvisit

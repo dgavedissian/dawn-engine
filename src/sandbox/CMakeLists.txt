@@ -4,4 +4,4 @@
 add_dawn_executable(
     DwSandbox
     SRCS Main.cpp
-    RESOURCE_PKGS ${CMAKE_SOURCE_DIR}/media/sandbox)
+    RESOURCE_DIRS sandbox;${CMAKE_CURRENT_SOURCE_DIR}/media)

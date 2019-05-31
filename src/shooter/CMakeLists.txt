@@ -20,4 +20,4 @@ set(SOURCE_FILES
 
 add_dawn_executable(DwShooter
     SRCS ${SOURCE_FILES}
-    RESOURCE_PKGS ${CMAKE_SOURCE_DIR}/media/shooter)
+    RESOURCE_DIRS shooter;${CMAKE_CURRENT_SOURCE_DIR}/media)

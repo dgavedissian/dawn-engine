@@ -45,6 +45,11 @@ ResourceCache::ResourceCache(Context* context) : Module(context) {
 ResourceCache::~ResourceCache() {
 }
 
+void ResourceCache::addResourceLocation(const String &package, UniquePtr<ResourceLocation> location) {
+    resource_packages_.emplace(
+            makePair(package, std::move(location)));
+}
+
 void ResourceCache::addPath(const String& package, const Path& path) {
 #ifndef DW_EMSCRIPTEN
     const auto& real_path = path;
@@ -52,12 +57,13 @@ void ResourceCache::addPath(const String& package, const Path& path) {
     // TODO(David): Don't hard code resource paths in this way.
     const auto& real_path = "/media/" + package;
 #endif
-    resource_packages_.emplace(
-        makePair(package, makeUnique<ResourceFilesystemPath>(context(), real_path)));
+    log().info("Added resource path '" + path + "' as '" + package + "'");
+    addResourceLocation(package, makeUnique<ResourceFilesystemPath>(context(), real_path));
 }
 
-void ResourceCache::addPackage(const String& package, UniquePtr<ResourcePackage> file) {
-    resource_packages_.emplace(makePair(package, std::move(file)));
+void ResourceCache::addPackage(const String& package, const Path& package_path) {
+    log().info("Added resource package '" + package_path + "' as '" + package + "'");
+    log().warn("NOTE: Resource packages are unimplemented!");
 }
 
 Result<SharedPtr<InputStream>, String> ResourceCache::getResourceData(

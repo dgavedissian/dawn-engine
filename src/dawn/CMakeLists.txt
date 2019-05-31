@@ -1,9 +1,6 @@
 # Dawn Engine
 # Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
 
-message(STATUS "Setting up external dependencies...")
-add_subdirectory(external)
-
 # Source: https://github.com/google/flatbuffers/blob/master/CMake/FindFlatBuffers.cmake
 function(FLATBUFFERS_GENERATE_C_HEADERS Name)
     set(FLATC_OUTPUTS)
@@ -243,7 +240,6 @@ set(BUILD_SHARED_LIBS OFF)
 add_library(DwEngine ${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES} ${NetProtocol_OUTPUTS})
 enable_cpp14(DwEngine)
 enable_maximum_warnings(DwEngine)
-set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)
     set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
 endif()

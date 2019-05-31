@@ -47,7 +47,7 @@ public:
     ~Engine();
 
     /// Sets up the engine
-    void setup(const CommandLine& cmdline);
+    void setup(const CommandLine& cmdline, const String& base_name);
 
     /// Shuts down the engine
     void shutdown();
@@ -93,6 +93,7 @@ private:
 
     void printSystemInfo();
     String basePath() const;
+    bool loadManifest(const String& manifest_path);
 
     void onExit(const ExitEvent& data);
 };

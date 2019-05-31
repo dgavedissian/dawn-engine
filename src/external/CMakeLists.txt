@@ -95,6 +95,20 @@ if(NOT any-lite_POPULATED)
 endif()
 set(LIBS ${LIBS} any-lite)
 
+# args
+FetchContent_Declare(
+    args
+    URL https://github.com/Taywee/args/archive/6.2.2.tar.gz
+    URL_MD5 02e8047b9f1d5218f31f9e0b4fe4f2d1
+)
+FetchContent_GetProperties(args)
+if(NOT args_POPULATED)
+    message(STATUS "Populating args")
+    FetchContent_Populate(args)
+    add_library(args INTERFACE)
+    target_include_directories(args INTERFACE ${args_SOURCE_DIR})
+endif()
+
 # Assimp
 FetchContent_Declare(
     assimp
@@ -215,7 +229,7 @@ set(LIBS ${LIBS} expected-lite)
 
 # FastDelegate
 add_library(FastDelegate INTERFACE)
-target_include_directories(FastDelegate INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/FastDelegate)
+target_include_directories(FastDelegate INTERFACE FastDelegate)
 set(LIBS ${LIBS} FastDelegate)
 
 # flatbuffers
@@ -274,7 +288,7 @@ set(LIBS ${LIBS} flatbuffers)
 # glad
 if(NOT EMSCRIPTEN)
     add_library(glad EXCLUDE_FROM_ALL glad/src/glad.c)
-    target_include_directories(glad PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glad/include)
+    target_include_directories(glad PUBLIC glad/include)
     set(LIBS ${LIBS} glad)
 endif()
 
@@ -360,7 +374,7 @@ if(NOT imgui_POPULATED)
         ${imgui_SOURCE_DIR}/imgui.cpp)
     target_include_directories(imgui PUBLIC
         ${imgui_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/imgui_config)
+            imgui_config)
     target_compile_definitions(imgui PUBLIC -DIMGUI_USER_CONFIG=<dw_imconfig.h>)
 endif()
 set(LIBS ${LIBS} imgui)
@@ -380,46 +394,92 @@ if(NOT json_POPULATED)
 endif()
 set(LIBS ${LIBS} json)
 
-# Luajit
-if(MSVC)
-    set(LUAJIT_BUILD_COMMAND cd src COMMAND msvcbuild.bat static)
-    set(LUAJIT_INSTALL_COMMAND
-        ${CMAKE_COMMAND} -E copy
-            ${EXTERNAL_PREFIX}/src/luajit-external-build/src/lua51.lib
-            ${EXTERNAL_INSTALL}/lib/luajit-5.1.lib)
-elseif(APPLE)
-    set(LUAJIT_BUILD_COMMAND ${CMAKE_COMMAND} -E env
-        MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
-        make PREFIX=${EXTERNAL_INSTALL} amalg)
-    set(LUAJIT_INSTALL_COMMAND make PREFIX=${EXTERNAL_INSTALL} install)
+# Lua
+if(NOT EMSCRIPTEN)
+    if(MSVC)
+        set(LUAJIT_BUILD_COMMAND cd src COMMAND msvcbuild.bat static)
+        set(LUAJIT_INSTALL_COMMAND
+            ${CMAKE_COMMAND} -E copy
+                ${EXTERNAL_PREFIX}/src/luajit-external-build/src/lua51.lib
+                ${EXTERNAL_INSTALL}/lib/luajit-5.1.lib)
+    elseif(APPLE)
+        set(LUAJIT_BUILD_COMMAND ${CMAKE_COMMAND} -E env
+            MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
+            make PREFIX=${EXTERNAL_INSTALL} amalg)
+        set(LUAJIT_INSTALL_COMMAND make PREFIX=${EXTERNAL_INSTALL} install)
+    else()
+        set(LUAJIT_BUILD_COMMAND make PREFIX=${EXTERNAL_INSTALL} amalg)
+        set(LUAJIT_INSTALL_COMMAND make PREFIX=${EXTERNAL_INSTALL} install)
+    endif()
+    ExternalProject_Add(luajit-external
+        PREFIX ${EXTERNAL_PREFIX}
+        URL https://luajit.org/download/LuaJIT-2.0.5.tar.gz
+        URL_MD5 48353202cbcacab84ee41a5a70ea0a2c
+        DOWNLOAD_NO_PROGRESS 1
+        # This is needed to avoid nuking the build files every time the DOWNLOAD_COMMAND
+        # is run (and files are copied from external/luajit). This causes LJ to rebuild
+        # every time in VS without specifying this CONFIGURE_COMMAND.
+        CONFIGURE_COMMAND
+            ${CMAKE_COMMAND} -E copy_directory
+                ${EXTERNAL_PREFIX}/src/luajit-external
+                ${EXTERNAL_PREFIX}/src/luajit-external-build
+        UPDATE_COMMAND ""
+        BUILD_COMMAND ${LUAJIT_BUILD_COMMAND}
+        INSTALL_COMMAND ${LUAJIT_INSTALL_COMMAND}
+        EXCLUDE_FROM_ALL 1
+    )
+    add_library(luajit INTERFACE)
+    add_dependencies(luajit luajit-external)
+    file(MAKE_DIRECTORY ${EXTERNAL_PREFIX}/src/luajit-external/src)
+    set_property(TARGET luajit PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PREFIX}/src/luajit-external/src)
+    set_property(TARGET luajit PROPERTY INTERFACE_LINK_LIBRARIES
+        ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX})
+    set(LIBS ${LIBS} luajit)
 else()
-    set(LUAJIT_BUILD_COMMAND make PREFIX=${EXTERNAL_INSTALL} amalg)
-    set(LUAJIT_INSTALL_COMMAND make PREFIX=${EXTERNAL_INSTALL} install)
+    # Lua
+    FetchContent_Declare(
+            lua
+            URL https://www.lua.org/ftp/lua-5.1.5.tar.gz
+            URL_MD5 2e115fe26e435e33b0d5c022e4490567
+    )
+    FetchContent_GetProperties(lua)
+    if(NOT lua_POPULATED)
+        message(STATUS "Populating lua")
+        FetchContent_Populate(lua)
+        set(SRC_LIB
+            ${lua_SOURCE_DIR}/src/lapi.c
+            ${lua_SOURCE_DIR}/src/lcode.c
+            ${lua_SOURCE_DIR}/src/ldebug.c
+            ${lua_SOURCE_DIR}/src/ldo.c
+            ${lua_SOURCE_DIR}/src/ldump.c
+            ${lua_SOURCE_DIR}/src/lfunc.c
+            ${lua_SOURCE_DIR}/src/lgc.c
+            ${lua_SOURCE_DIR}/src/llex.c
+            ${lua_SOURCE_DIR}/src/lmem.c
+            ${lua_SOURCE_DIR}/src/lobject.c
+            ${lua_SOURCE_DIR}/src/lopcodes.c
+            ${lua_SOURCE_DIR}/src/lparser.c
+            ${lua_SOURCE_DIR}/src/lstate.c
+            ${lua_SOURCE_DIR}/src/lstring.c
+            ${lua_SOURCE_DIR}/src/ltable.c
+            ${lua_SOURCE_DIR}/src/ltm.c
+            ${lua_SOURCE_DIR}/src/lundump.c
+            ${lua_SOURCE_DIR}/src/lvm.c
+            ${lua_SOURCE_DIR}/src/lzio.c
+            ${lua_SOURCE_DIR}/src/lauxlib.c
+            ${lua_SOURCE_DIR}/src/lbaselib.c
+            ${lua_SOURCE_DIR}/src/ldblib.c
+            ${lua_SOURCE_DIR}/src/liolib.c
+            ${lua_SOURCE_DIR}/src/lmathlib.c
+            ${lua_SOURCE_DIR}/src/loslib.c
+            ${lua_SOURCE_DIR}/src/ltablib.c
+            ${lua_SOURCE_DIR}/src/lstrlib.c
+            ${lua_SOURCE_DIR}/src/linit.c)
+        add_library(lua STATIC ${SRC_LIB})
+        target_include_directories(lua PUBLIC ${lua_SOURCE_DIR}/src ${lua_SOURCE_DIR}/etc)
+    endif()
+    set(LIBS ${LIBS} lua)
 endif()
-ExternalProject_Add(luajit-external
-    PREFIX ${EXTERNAL_PREFIX}
-    URL https://luajit.org/download/LuaJIT-2.0.5.tar.gz
-    URL_MD5 48353202cbcacab84ee41a5a70ea0a2c
-    DOWNLOAD_NO_PROGRESS 1
-    # This is needed to avoid nuking the build files every time the DOWNLOAD_COMMAND
-    # is run (and files are copied from external/luajit). This causes LJ to rebuild
-    # every time in VS without specifying this CONFIGURE_COMMAND.
-    CONFIGURE_COMMAND
-        ${CMAKE_COMMAND} -E copy_directory
-            ${EXTERNAL_PREFIX}/src/luajit-external
-            ${EXTERNAL_PREFIX}/src/luajit-external-build
-    UPDATE_COMMAND ""
-    BUILD_COMMAND ${LUAJIT_BUILD_COMMAND}
-    INSTALL_COMMAND ${LUAJIT_INSTALL_COMMAND}
-    EXCLUDE_FROM_ALL 1
-)
-add_library(luajit INTERFACE)
-add_dependencies(luajit luajit-external)
-file(MAKE_DIRECTORY ${EXTERNAL_PREFIX}/src/luajit-external/src)
-set_property(TARGET luajit PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PREFIX}/src/luajit-external/src)
-set_property(TARGET luajit PROPERTY INTERFACE_LINK_LIBRARIES
-    ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX})
-set(LIBS ${LIBS} luajit)
 
 # MathGeoLib
 FetchContent_Declare(

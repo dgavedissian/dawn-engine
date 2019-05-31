@@ -598,11 +598,6 @@ public:
     }
 
     void init(const CommandLine& cmdline) override {
-        auto rc = module<ResourceCache>();
-        assert(rc);
-        rc->addPath("base", "../media/base");
-        rc->addPath("sandbox", "../media/sandbox");
-
         engine_->addSession(makeUnique<SandboxSession>(context(), GameSessionInfo{}));
     }
 

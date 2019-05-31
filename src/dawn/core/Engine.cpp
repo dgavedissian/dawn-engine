@@ -40,7 +40,8 @@ int Engine::runApp(UniquePtr<App> app, int argc, char** argv) {
 
     CommandLine cmdline(argc, argv);
     Engine engine{std::move(app)};
-    engine.setup(cmdline);
+    auto launch_command = String{argv[0]};
+    engine.setup(cmdline, launch_command.substr(launch_command.find_last_of("/")));
     auto exit_code = engine.run();
 
     // If we're running in the browser, engine.run() will return immediately. We should not shut
@@ -67,7 +68,7 @@ Engine::~Engine() {
     shutdown();
 }
 
-void Engine::setup(const CommandLine& cmdline) {
+void Engine::setup(const CommandLine& cmdline, const String& base_name) {
     assert(!initialised_);
 
     cmdline_ = cmdline;
@@ -104,6 +105,25 @@ void Engine::setup(const CommandLine& cmdline) {
         for (auto& arg : cmdline.arguments) {
             log().info("\t%s %s", arg.first, arg.second);
         }
+    }
+
+    // Resource cache.
+    context_->addModule<ResourceCache>();
+
+    // Find manifest file.
+    bool loaded_manifest;
+    if (cmdline.arguments.find("dwmanifest") != cmdline.arguments.end()) {
+        loaded_manifest = loadManifest(cmdline.arguments.at("dwmanifest"));
+    } else {
+        // First, try and load a debug manifest. If that fails, try and load the non-debug manifest.
+        loaded_manifest = loadManifest(context_->basePath() + "/" + base_name + ".debug.manifest");
+        if (!loaded_manifest) {
+            loaded_manifest = loadManifest(context_->basePath() + "/" + base_name + ".manifest");
+        }
+    }
+    if (!loaded_manifest) {
+        log().warn("No manifest file loaded. Create a manifest file called " + base_name + ".manifest next to the executable,");
+        log().warn("or pass in a manifest file path in the --dwmanifest argument.");
     }
 
     // Enable headless mode if the flag is passed.
@@ -154,7 +174,6 @@ void Engine::setup(const CommandLine& cmdline) {
         log().error("Renderer failed to initialise: %s", renderer_result.error());
         std::abort();
     }
-    context_->addModule<ResourceCache>();
 
     // Engine events and UI.
     event_system_ = makeUnique<EventSystem>(context_);
@@ -437,5 +456,30 @@ String Engine::basePath() const {
 
 void Engine::onExit(const ExitEvent&) {
     running_ = false;
+}
+
+bool Engine::loadManifest(const String &manifest_path) {
+    File manifest_file(context_);
+    if (!manifest_file.open(manifest_path, FileMode::Read)) {
+        return false;
+    }
+    std::string data;
+    while (!manifest_file.eof()) {
+        data += manifest_file.readLine();
+    }
+    auto manifest = nlohmann::json::parse(data);
+    for (auto it = manifest.begin(); it != manifest.end(); ++it) {
+        switch (it.value()["type"].get<u32>()) {
+            case 0:
+                context_->module<ResourceCache>()->addPath(it.key(),
+                                                           it.value()["path"].get<String>());
+                break;
+            case 1:
+                context_->module<ResourceCache>()->addPackage(it.key(),
+                                                           it.value()["path"].get<String>());
+                break;
+        }
+    }
+    return true;
 }
 }  // namespace dw
