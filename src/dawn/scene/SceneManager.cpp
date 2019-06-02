@@ -120,7 +120,7 @@ Result<void> SceneManager::recomputeSystemExecutionOrder() {
 
     // Assign new order.
     system_process_order_.reserve(result.size());
-    for (auto node : result) {
+    for (auto& node : result) {
         system_process_order_.emplace_back(systems_[node].get());
     }
 
@@ -176,8 +176,11 @@ PhysicsScene* SceneManager::physicsScene() const {
     return physics_scene_.get();
 }
 
-void SceneManager::updateSystemDependencies(TypeIndex type, const Vector<TypeIndex>& dependencies) {
-    system_dependencies_[type] = dependencies;
+void SceneManager::addSystemDependencies(TypeIndex type, HashSet<TypeIndex> dependencies) {
+    system_dependencies_.emplace(type, std::move(dependencies));
     system_process_order_dirty_ = true;
+}
+
+EntitySystemBase::EntitySystemBase() : scene_mgr_{nullptr}, depends_on_{} {
 }
 }  // namespace dw

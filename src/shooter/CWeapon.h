@@ -30,5 +30,5 @@ struct CWeapon : public Component {
 
 class SWeapon : public EntitySystem<CSceneNode, CWeapon, CRigidBody> {
 public:
-    void process(SceneManager* scene_manager, float dt) override;
+    void process(float dt) override;
 };

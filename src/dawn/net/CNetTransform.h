@@ -81,6 +81,6 @@ class SNetTransformSync : public EntitySystem<CSceneNode, CNetTransform, CNetDat
 public:
     ~SNetTransformSync() = default;
 
-    void process(SceneManager* scene_manager, float dt) override;
+    void process(float dt) override;
 };
 }  // namespace dw

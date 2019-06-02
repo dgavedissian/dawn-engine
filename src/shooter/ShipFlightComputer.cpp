@@ -36,8 +36,8 @@ ShipFlightComputer::ShipFlightComputer(Ship* ship)
     */
 }
 
-void ShipFlightComputerSystem::process(SceneManager* scene_mgr, float dt) {
-    entityView(scene_mgr).each([](auto entity, auto& fc) {
+void ShipFlightComputerSystem::process(float dt) {
+    entityView().each([](auto entity, auto& fc) {
         // Define reducer method.
         auto vec_reducer = [](const Vec3& source, const Vec3& target, const Vec3& max_pos_speed,
                               const Vec3& max_neg_speed) -> Vec3 {

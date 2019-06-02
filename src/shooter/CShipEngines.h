@@ -106,5 +106,5 @@ private:
 
 class SShipEngines : public EntitySystem<CSceneNode, CShipEngines> {
 public:
-    void process(SceneManager* scene_manager, float dt) override;
+    void process(float dt) override;
 };

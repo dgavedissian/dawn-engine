@@ -206,10 +206,10 @@ SceneGraph::SCamera::SCamera() {
     dependsOn<PhysicsScene::PhysicsComponentSystem>();
 }
 
-void SceneGraph::SCamera::process(SceneManager* sceneManager, float) {
+void SceneGraph::SCamera::process(float) {
     cameras.clear();
-    for (auto e : entityView(sceneManager)) {
-        auto entity = Entity{sceneManager, e};
+    for (auto e : entityView()) {
+        auto entity = Entity{scene_mgr_, e};
         cameras.emplace_back(CameraState{0, entity.component<CSceneNode>()->node,
                                          entity.component<CCamera>()->projection_matrix});
     }

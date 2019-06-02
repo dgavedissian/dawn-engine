@@ -10,6 +10,6 @@
 namespace dw {
 class SLinearMotion : public EntitySystem<CLinearMotion, CSceneNode> {
 public:
-    void process(SceneManager* scene_mgr, float dt) override;
+    void process(float dt) override;
 };
 }  // namespace dw

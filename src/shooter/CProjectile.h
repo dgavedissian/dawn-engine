@@ -70,7 +70,7 @@ public:
     Entity* createNewProjectile(int type, const Vec3& position, const Vec3& direction,
                                 const Vec3& velocity, const Colour& colour);
 
-    void process(SceneManager* scene_manager, float dt) override;
+    void process(float dt) override;
 
 private:
     struct ProjectileRenderData {

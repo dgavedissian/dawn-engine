@@ -252,8 +252,8 @@ Vec3 CShipEngines::currentRotationalPower() {
     return current;
 }
 
-void SShipEngines::process(SceneManager* scene_manager, float dt) {
-    entityView(scene_manager).each([&](auto entity, const auto& node, auto& ship_engines) {
+void SShipEngines::process(float dt) {
+    entityView().each([&](auto entity, const auto& node, auto& ship_engines) {
         auto& engines = ship_engines.engine_data_;
         auto& nav_engines = ship_engines.nav_engine_data_;
 

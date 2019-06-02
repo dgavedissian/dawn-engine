@@ -8,9 +8,9 @@
 #include "scene/PhysicsScene.h"
 
 namespace dw {
-void SNetTransformSync::process(SceneManager* scene_manager, float dt) {
-    for (auto e : entityView(scene_manager)) {
-        auto entity = Entity{scene_manager, e};
+void SNetTransformSync::process(float dt) {
+    for (auto e : entityView()) {
+        auto entity = Entity{scene_mgr_, e};
 
         NetRole role = entity.component<CNetData>()->role();
         CSceneNode& transform = *entity.component<CSceneNode>();

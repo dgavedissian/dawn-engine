@@ -100,8 +100,8 @@ Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const V
     return &entity;
 }
 
-void SProjectile::process(SceneManager* scene_manager, float dt) {
-    entityView(scene_manager).each([&](auto entity, auto& data) {
+void SProjectile::process(float dt) {
+    entityView().each([&](auto entity, auto& data) {
         auto& render_data = render_data_.at(data.type);
 
         // Perform a raycast between the old and new position.

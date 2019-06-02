@@ -46,7 +46,7 @@ public:
     /// Recomputes the system execution order if any systems were added or removed.
     /// This function will only do any work if any changes has happened since the
     /// last time it was called. Will be called before every tick.
-    void recomputeSystemExecutionOrder();
+    Result<void> recomputeSystemExecutionOrder();
 
     /// Creates a new empty entity.
     /// @param type Entity type ID.
@@ -103,7 +103,7 @@ private:
     Vector<EntitySystemBase*> system_process_order_;
     bool system_process_order_dirty_;
 
-    void updateSystemDependencies(TypeIndex type, const Vector<TypeIndex>& dependencies);
+    void addSystemDependencies(TypeIndex type, HashSet<TypeIndex> dependencies);
 
     friend class Entity;
 
@@ -113,7 +113,7 @@ private:
 
 class DW_API EntitySystemBase {
 public:
-    EntitySystemBase() = default;
+    EntitySystemBase();
     virtual ~EntitySystemBase() = default;
 
     /// Process this system.
@@ -122,7 +122,7 @@ public:
 
 protected:
     SceneManager* scene_mgr_;
-    Vector<TypeIndex> depends_on_;
+    HashSet<TypeIndex> depends_on_;
 
     friend class SceneManager;
 };
@@ -136,43 +136,43 @@ public:
     template <typename... S> EntitySystem& dependsOn();
 
     /// Get a view of entities.
-    entt::basic_view<EntityId, T...> entityView(SceneManager *scene_mgr);
+    entt::basic_view<EntityId, T...> entityView();
 };
 
 template <typename T, typename... Args> T* SceneManager::addSystem(Args&&... args) {
     auto system = makeUnique<T>(std::forward<Args>(args)...);
     auto* t = system.get();
-    systems_.emplace(typeid(T), std::move(system));
-    updateSystemDependencies(typeid(T), static_cast<EntitySystemBase&>(*system).depends_on_);
-    system_process_order_dirty_ = true;
+    systems_.emplace(std::type_index(typeid(T)), std::move(system));
+    addSystemDependencies(std::type_index(typeid(T)), static_cast<EntitySystemBase&>(*t).depends_on_);
     return t;
 }
 
 template <typename T> T* SceneManager::system() {
-    auto it = systems_.find(typeid(T));
-    return it != systems_.end() ? it->second.get() : nullptr;
+    auto it = systems_.find(std::type_index(typeid(T)));
+    return it != systems_.end() ? static_cast<T*>(it->second.get()) : nullptr;
 }
 
 template <typename T> void SceneManager::removeSystem() {
-    systems_.erase(typeid(T));
-    system_dependencies_.erase(typeid(T));
+    systems_.erase(std::type_index(typeid(T)));
+    system_dependencies_.erase(std::type_index(typeid(T)));
     system_process_order_dirty_ = true;
 }
 
 template<typename... T>
 template<typename... S>
 EntitySystem<T...>& EntitySystem<T...>::dependsOn() {
-    for (auto index : {typeid(S)...}) {
-        depends_on_.emplace_back(index);
+    for (auto index : {std::type_index(typeid(S))...}) {
+        depends_on_.emplace(index);
     }
+    // If the scene manager already exists (if we added this system already), then update it by re-adding the dependencies. Otherwise, the call to addSystem will call addSystemDependencies for us.
     if (scene_mgr_) {
-        updateSystemDependencies(typeid(this), depends_on_);
+        scene_mgr_->addSystemDependencies(std::type_index(typeid(this)), depends_on_);
     }
     return *this;
 }
 
 template<typename... T>
-entt::basic_view<EntityId, T...> EntitySystem<T...>::entityView(SceneManager *scene_mgr) {
-    return scene_mgr->registry_.view<T...>();
+entt::basic_view<EntityId, T...> EntitySystem<T...>::entityView() {
+    return scene_mgr_->registry_.view<T...>();
 }
 }  // namespace dw

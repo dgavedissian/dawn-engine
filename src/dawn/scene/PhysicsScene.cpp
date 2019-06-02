@@ -115,8 +115,8 @@ void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
     }
 }
 
-void PhysicsScene::PhysicsComponentSystem::process(SceneManager* scene_mgr, float) {
-    entityView(scene_mgr).each([](auto entity, const auto& node, auto& rigid_body) {
+void PhysicsScene::PhysicsComponentSystem::process(float) {
+    entityView().each([](auto entity, const auto& node, auto& rigid_body) {
         fromBulletTransform(rigid_body.rigid_body_->getWorldTransform(), node.node->transform());
     });
 }

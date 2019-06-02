@@ -45,7 +45,7 @@ public:
     // EntitySystem for updating CRigidBody components.
     class PhysicsComponentSystem : public EntitySystem<CSceneNode, CRigidBody> {
     public:
-        void process(SceneManager* scene_mgr, float dt) override;
+        void process(float dt) override;
     };
 
 private:

@@ -83,7 +83,7 @@ public:
     SCamera();
     ~SCamera() = default;
 
-    void process(SceneManager* sceneManager, float dt) override;
+    void process(float dt) override;
 
     struct CameraState {
         uint view;
