@@ -140,11 +140,17 @@ public:
 };
 
 template <typename T, typename... Args> T* SceneManager::addSystem(Args&&... args) {
+    auto type_index = std::type_index(typeid(T));
+
     auto system = makeUnique<T>(std::forward<Args>(args)...);
-    auto* t = system.get();
-    systems_.emplace(std::type_index(typeid(T)), std::move(system));
-    addSystemDependencies(std::type_index(typeid(T)), static_cast<EntitySystemBase&>(*t).depends_on_);
-    return t;
+    auto* system_ptr = system.get();
+    auto& system_base = static_cast<EntitySystemBase&>(*system_ptr);
+
+    systems_.emplace(type_index, std::move(system));
+    system_base.scene_mgr_ = this;
+    addSystemDependencies(type_index, system_base.depends_on_);
+
+    return system_ptr;
 }
 
 template <typename T> T* SceneManager::system() {
@@ -153,8 +159,9 @@ template <typename T> T* SceneManager::system() {
 }
 
 template <typename T> void SceneManager::removeSystem() {
-    systems_.erase(std::type_index(typeid(T)));
-    system_dependencies_.erase(std::type_index(typeid(T)));
+    auto type_index = std::type_index(typeid(T));
+    systems_.erase(type_index);
+    system_dependencies_.erase(type_index);
     system_process_order_dirty_ = true;
 }
 

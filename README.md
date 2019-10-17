@@ -1,6 +1,6 @@
 Dawn Engine
 ===========
-[![Build Status](https://travis-ci.org/davedissian/dawnengine.svg?branch=develop)](https://travis-ci.org/davedissian/dawnengine)
+[![Build Status](https://travis-ci.org/dgavedissian/dawnengine.svg?branch=develop)](https://travis-ci.org/dgavedissian/dawnengine)
 
 A game engine written in C++14 designed for powering space games with galactic sized game worlds.
 
@@ -16,3 +16,9 @@ Dawn Engine uses CMake for generating build scripts. The following compilers are
 * Emscripten
 
 The source code is entirely self contained, using CMakes `FetchContent` feature to pin dependencies.
+
+Note that on Linux, OpenGL development libraries and X11 development libraries are required. They can be installed by
+running:
+```
+sudo apt-get install xorg-dev libglu1-mesa-dev
+```

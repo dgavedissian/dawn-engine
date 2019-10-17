@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 if hash clang-format-8 2>/dev/null; then
     CLANG_FORMAT=clang-format-8
 else

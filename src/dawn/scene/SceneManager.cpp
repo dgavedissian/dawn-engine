@@ -63,57 +63,63 @@ Result<void> SceneManager::recomputeSystemExecutionOrder() {
     //         ^
     //   4 ----`
 
-    // Build up a data structure of the graph.
+    // Build an adjacency list and indegree representation of the graph from the dependencies by inverting each edge.
     // i.e. given: (1,[2]), (2,[3,4]), generate: (2,[1]), (3,[2]), (4,[2])
     HashMap<TypeIndex, HashSet<TypeIndex>> incoming_edges = system_dependencies_;
-    HashMap<TypeIndex, HashSet<TypeIndex>> outgoing_edges;
+    HashMap<TypeIndex, Vector<TypeIndex>> adjacency_list;
+    for (auto& dependencies : incoming_edges) {
+        adjacency_list[dependencies.first] = {};
+    }
     for (auto& dependencies : incoming_edges) {
         for (auto& depends_on : dependencies.second) {
-            outgoing_edges[depends_on].emplace(dependencies.first);
+            adjacency_list[depends_on].emplace_back(dependencies.first);
+        }
+    }
+    HashMap<TypeIndex, int> indegrees;
+    for (const auto& pair : adjacency_list) {
+        indegrees[pair.first] = 0;
+    }
+    for (const auto& pair : adjacency_list) {
+        for (auto dest : pair.second) {
+            indegrees[dest]++;
         }
     }
 
     Vector<TypeIndex> result;
 
-    // Find all nodes with no incoming edge.
-    Queue<TypeIndex> nodes;
-    for (const auto& node_pair : systems_) {
-        auto node = node_pair.first;
-        auto depends_on = incoming_edges.find(node);
-        // if this node doesn't depend on anything (it has no incoming edges), add it.
-        if (depends_on == incoming_edges.end() || depends_on->second.empty()) {
-            nodes.push(node);
+    // Find all nodes with no incoming edge (an in-degree of 0).
+    Queue<TypeIndex> indegree0;
+    for (const auto& node : indegrees) {
+        if (node.second == 0) {
+            indegree0.push(node.first);
         }
     }
 
     // Do topological sort.
-    while (!nodes.empty()) {
-        auto node = nodes.back();
-        nodes.pop();
+    while (!indegree0.empty()) {
+        // Remove a node from the indegree0 queue.
+        auto node = indegree0.front();
+        indegree0.pop();
+
+        // Add to the result.
         result.push_back(node);
 
-        // For each node m with an edge from `node` to m (all outgoing edges of node)
+        // For each node m with an edge from `node` to m (in the adjacency list)
         // i.e. for each system m where m depends on `node`
-        for (auto& m : outgoing_edges[node]) {
+        for (auto& m : adjacency_list[node]) {
             // Remove edge (node -> m),
-            incoming_edges[m].erase(node);
-            outgoing_edges[node].erase(m);
+            indegrees[m]--;
 
             // If m has no other incoming edges, insert m into nodes.
-            if (incoming_edges[m].empty()) {
-                nodes.push(m);
+            if (indegrees[m] == 0) {
+                indegree0.push(m);
             }
         }
     }
 
     // If there are edges left, then there's a cycle.
-    for (auto& pair : incoming_edges) {
-        if (!pair.second.empty()) {
-            return makeError("Cycle detected in system dependencies");
-        }
-    }
-    for (auto& pair : outgoing_edges) {
-        if (!pair.second.empty()) {
+    for (auto& pair : indegrees) {
+        if (pair.second > 0) {
             return makeError("Cycle detected in system dependencies");
         }
     }
@@ -123,6 +129,7 @@ Result<void> SceneManager::recomputeSystemExecutionOrder() {
     for (auto& node : result) {
         system_process_order_.emplace_back(systems_[node].get());
     }
+    system_process_order_dirty_ = false;
 
     return {};
 }
