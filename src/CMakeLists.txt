@@ -7,6 +7,9 @@ add_subdirectory(dawn)
 message("========== EXAMPLES ==========")
 add_subdirectory(examples)
 
+message("========== LUA SHOOTER ==========")
+add_subdirectory(lua_shooter)
+
 message("========== SANDBOX ==========")
 add_subdirectory(sandbox)
 

@@ -14,10 +14,6 @@ fi
 
 # Run clang-format against a set of paths.
 PATHS=(
-    src/dawn
-    src/examples
-    src/sandbox
-    src/shooter
-    src/viewer
+    src
 )
 find "${PATHS[@]}" -name "*.h" -o -name "*.cpp" -not -path "./src/dawn/external/*" -exec $CLANG_FORMAT -i {} \;

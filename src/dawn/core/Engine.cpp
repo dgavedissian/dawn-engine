@@ -11,7 +11,7 @@
 #include "renderer/Renderer.h"
 #include "resource/ResourceCache.h"
 #include "scene/SceneManager.h"
-#include "script/LuaState.h"
+#include "script/LuaVM.h"
 
 // Required for getBasePath/getPrefPath.
 #if DW_PLATFORM == DW_WIN32
@@ -128,10 +128,6 @@ void Engine::setup(const CommandLine& cmdline) {
         log().info("Configuration does not exist, creating %s", config_file_);
         context_->setDefaultConfig();
     }
-
-    // Initialise the Lua VM first so bindings can be defined in Constructors
-    context_->addModule<LuaState>();
-    // TODO(David): bind engine services to lua?
 
     // Create the engine subsystems.
     auto* renderer = context_->addModule<Renderer>();

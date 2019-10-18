@@ -28,6 +28,19 @@ String InputStream::readLine(char delim) {
     }
     return out;
 }
+Result<Vector<byte>> InputStream::readAll() {
+    if (size_ == 0) {
+        return makeError("Unable to read entire InputStream. Size is 0.");
+    }
+    Vector<byte> buffer;
+    buffer.resize(size_);
+    auto read = readData(buffer.data(), size_);
+    if (!eof()) {
+        return makeError(tinyformat::format(
+            "Attempted to read %s bytes. Actually read %s bytes and didn't read EOF.", read));
+    }
+    return std::move(buffer);
+}
 
 bool InputStream::eof() const {
     return position_ >= size_;
