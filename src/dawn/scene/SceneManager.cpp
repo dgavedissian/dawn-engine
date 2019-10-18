@@ -63,8 +63,8 @@ Result<void> SceneManager::recomputeSystemExecutionOrder() {
     //         ^
     //   4 ----`
 
-    // Build an adjacency list and indegree representation of the graph from the dependencies by inverting each edge.
-    // i.e. given: (1,[2]), (2,[3,4]), generate: (2,[1]), (3,[2]), (4,[2])
+    // Build an adjacency list and indegree representation of the graph from the dependencies by
+    // inverting each edge. i.e. given: (1,[2]), (2,[3,4]), generate: (2,[1]), (3,[2]), (4,[2])
     HashMap<TypeIndex, HashSet<TypeIndex>> incoming_edges = system_dependencies_;
     HashMap<TypeIndex, Vector<TypeIndex>> adjacency_list;
     for (auto& dependencies : incoming_edges) {
