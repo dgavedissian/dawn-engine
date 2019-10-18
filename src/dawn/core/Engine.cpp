@@ -158,7 +158,9 @@ void Engine::setup(const CommandLine& cmdline) {
 
     // Engine events and UI.
     event_system_ = makeUnique<EventSystem>(context_);
-    context_->module<Input>()->registerEventSystem(event_system_.get());
+    if (!headless_) {
+        context_->module<Input>()->registerEventSystem(event_system_.get());
+    }
     ui_ = makeUnique<UserInterface>(context_, event_system_.get());
 
     /*

@@ -29,11 +29,6 @@ matrix:
     env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     osx_image: xcode10.1
 
-  # Xcode 9.4 (Clang 5)
-  - os: osx
-    env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
-    osx_image: xcode9.4
-
   # Linux
   # gcc 7
   - os: linux
