@@ -16,7 +16,7 @@ Pair<String, Path> parseResourcePath(const ResourcePath& resource_path);
 class DW_API ResourceLocation {
 public:
     virtual ~ResourceLocation() = default;
-    virtual Result<SharedPtr<InputStream>, String> getFile(
+    virtual Result<SharedPtr<InputStream>> getFile(
         const ResourcePath& path_within_location) = 0;
 };
 
@@ -26,7 +26,7 @@ public:
 
     ResourcePackage(Context* ctx, const Path& package);
 
-    Result<SharedPtr<InputStream>, String> getFile(
+    Result<SharedPtr<InputStream>> getFile(
         const ResourcePath& path_within_location) override;
 };
 
@@ -36,7 +36,7 @@ public:
 
     ResourceFilesystemPath(Context* ctx, const Path& path);
 
-    Result<SharedPtr<InputStream>, String> getFile(
+    Result<SharedPtr<InputStream>> getFile(
         const ResourcePath& path_within_location) override;
 
 private:
@@ -52,6 +52,9 @@ public:
 
     void addPath(const String& package, const Path& path);
     void addPackage(const String& package, UniquePtr<ResourcePackage> file);
+
+    // Raw API to read resource data.
+    Result<SharedPtr<InputStream>> loadRaw(const ResourcePath &resource_path);
 
     template <typename T>
     SharedPtr<T> addCustomResource(const ResourcePath& resource_path, SharedPtr<T> resource) {
@@ -80,7 +83,7 @@ public:
         }
 
         // Load the file which contains this resource data.
-        auto resource_data = getResourceData(resource_path);
+        auto resource_data = loadRaw(resource_path);
         if (!resource_data) {
             return makeError(str::format("Cannot find resource %s. Reason: %s", resource_path,
                                 resource_data.error()));
@@ -97,7 +100,6 @@ public:
     }
 
 private:
-    Result<SharedPtr<InputStream>, String> getResourceData(const Path& filename);
 
     Map<String, UniquePtr<ResourceLocation>> resource_packages_;
     HashMap<String, SharedPtr<Resource>> resource_cache_;

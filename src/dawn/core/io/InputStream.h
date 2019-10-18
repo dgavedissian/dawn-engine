@@ -18,16 +18,20 @@ public:
     /// @return Number of bytes read
     virtual usize readData(void* dest, usize size) = 0;
 
+    /// Reads a string up to a certain character
+    /// @param delim Delimeter character
+    String readLine(char delim = '\n');
+
+    /// Read all bytes from the stream.
+    /// @return A buffer containing all the bytes in the stream, or an error.
+    Result<Vector<byte>> readAll();
+
     /// Moves the position of the cursor in the stream.
     /// @param position Offset from the start of the stream, in bytes
     virtual void seek(usize position) = 0;
 
     /// Check if the end of the stream has been reached
     bool eof() const;
-
-    /// Reads a string up to a certain character
-    /// @param delim Delimeter character
-    String readLine(char delim = '\n');
 
     /// Returns the current position in the input stream
     usize position() const;
