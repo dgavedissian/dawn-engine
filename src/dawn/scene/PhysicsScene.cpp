@@ -4,7 +4,6 @@
  */
 #include "Base.h"
 #include "input/Input.h"
-#include "scene/EntitySystem.h"
 #include "scene/SceneManager.h"
 #include "PhysicsScene.h"
 
@@ -29,12 +28,12 @@ PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr, EventSyste
     : Object(context), event_system_(event_system) {
     log().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
 
-    broadphase_.reset(new btDbvtBroadphase());
-    collision_config_.reset(new btDefaultCollisionConfiguration());
-    dispatcher_.reset(new btCollisionDispatcher(collision_config_.get()));
-    solver_.reset(new btSequentialImpulseConstraintSolver);
-    world_.reset(new btDiscreteDynamicsWorld(dispatcher_.get(), broadphase_.get(), solver_.get(),
-                                             collision_config_.get()));
+    broadphase_ = makeUnique<btDbvtBroadphase>();
+    collision_config_ = makeUnique<btDefaultCollisionConfiguration>();
+    dispatcher_ = makeUnique<btCollisionDispatcher>(collision_config_.get());
+    solver_ = makeUnique<btSequentialImpulseConstraintSolver>();
+    world_ = makeUnique<btDiscreteDynamicsWorld>(dispatcher_.get(), broadphase_.get(),
+                                                 solver_.get(), collision_config_.get());
 
     // Set the properties of the world.
     world_->setGravity(btVector3(0.0f, 0.0f, 0.0f));
@@ -116,15 +115,10 @@ void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
     }
 }
 
-PhysicsScene::PhysicsComponentSystem::PhysicsComponentSystem(Context* context)
-    : EntitySystem(context) {
-    supportsComponents<CTransform, CRigidBody>();
-}
-
-void PhysicsScene::PhysicsComponentSystem::processEntity(Entity& entity, float) {
-    auto t = entity.component<CTransform>();
-    auto rb = entity.component<CRigidBody>()->rigid_body_.get();
-    fromBulletTransform(rb->getWorldTransform(), t->node->transform());
+void PhysicsScene::PhysicsComponentSystem::process(float) {
+    entityView().each([](auto entity, const auto& node, auto& rigid_body) {
+        fromBulletTransform(rigid_body.rigid_body_->getWorldTransform(), node.node->transform());
+    });
 }
 
 CRigidBody::CRigidBody(PhysicsScene* world, float mass, SharedPtr<btCollisionShape> collision_shape)

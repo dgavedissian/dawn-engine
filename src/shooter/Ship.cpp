@@ -3,7 +3,7 @@
  * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
  */
 #include "Core.h"
-#include "scene/CTransform.h"
+#include "scene/CSceneNode.h"
 #include "net/CNetData.h"
 #include "net/CNetTransform.h"
 #include "resource/ResourceCache.h"
@@ -31,7 +31,7 @@ Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* f
 
     // Create ship entity.
     ship_entity_ = &scene_manager->createEntity(Hash("Ship"))
-                        .addComponent<CTransform>(frame->newChild(), part_core)
+                        .addComponent<CSceneNode>(frame->newChild(), part_core)
                         .addComponent<CShipEngines>(
                             context(),
                             Vector<ShipEngineData>{// 4 on back.
@@ -72,7 +72,7 @@ Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* f
                                                    {{0.0f, 35.0f, 0.0f}, {2.0f, -5.0f, -10.0f}},
                                                    {{0.0f, 35.0f, 0.0f}, {-2.0f, -5.0f, -10.0f}}})
                         .addComponent<CWeapon>(0, 600.0f, Colour{1.0f, 1.0f, 1.0f}, 0.3f);
-    auto node = ship_entity_->component<CTransform>()->node;
+    auto node = ship_entity_->component<CSceneNode>()->node;
     node->newChild(Vec3{13.0f, -0.5f, 7.0f}, Quat::identity)->data.renderable = part_wing;
     node->newChild(Vec3{-13.0f, -0.5f, 7.0f}, Quat::identity, Vec3{-1.0f, 1.0f, 1.0f})
         ->data.renderable = part_wing;
@@ -88,12 +88,10 @@ Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* f
     // Initialise server-side details.
     if (role >= NetRole::Authority) {
         ship_entity_->addComponent<CRigidBody>(
-            ship_entity_->sceneManager()->physicsScene(), 10.0f,
+            scene_manager->physicsScene(), 10.0f,
             makeShared<btBoxShape>(btVector3{10.0f, 10.0f, 10.0f}));
         rb_ = ship_entity_->component<CRigidBody>()->_rigidBody();
-
-        // Initialise flight computer.
-        flight_computer_ = makeShared<ShipFlightComputer>(context(), this);
+        ship_entity_->addComponent<ShipFlightComputer>(this);
     }
 }
 
@@ -161,14 +159,11 @@ void Ship::update(float dt) {
         // Fire weapon.
         ship_entity_->component<CWeapon>()->firing = controls.firing_weapon;
 
-        // Apply controls to flight computer.
-        flight_computer_->setTargetLinearVelocity(controls.target_linear_velocity);
-        flight_computer_->setTargetAngularVelocity(controls.target_angular_velocity);
-
-        // Update flight computer.
-        if (flight_computer_) {
-            flight_computer_->update(dt);
-        }
+        // Pass controls to flight computer.
+        ship_entity_->component<ShipFlightComputer>()->target_linear_velocity =
+            controls.target_linear_velocity;
+        ship_entity_->component<ShipFlightComputer>()->target_angular_velocity =
+            controls.target_angular_velocity;
 
         // Calculate angular acceleration.
         /*Vec3 angular_acc = Vec3(

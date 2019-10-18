@@ -8,20 +8,15 @@
 #include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
 #include "renderer/Renderer.h"
-#include "PhysicsScene.h"
+#include "scene/PhysicsScene.h"
 #include "SLinearMotion.h"
 #include "net/CNetTransform.h"
 #include "renderer/SceneGraph.h"
+#include "SceneManager.h"
 
 namespace dw {
 SceneManager::SceneManager(Context* ctx, EventSystem* event_system, SceneGraph* scene_graph)
-    : Object(ctx),
-      last_dt_(0.0f),
-      systems_initialised_(false),
-      entity_id_allocator_(1),
-      background_scene_node_(nullptr) {
-    ontology_world_ = makeUnique<Ontology::World>();
-
+    : Object(ctx), background_scene_node_(nullptr), system_process_order_dirty_(false) {
     background_scene_node_ = scene_graph->backgroundNode().newChild();
 
     physics_scene_ = makeUnique<PhysicsScene>(ctx, this, event_system);
@@ -33,7 +28,6 @@ SceneManager::SceneManager(Context* ctx, EventSystem* event_system, SceneGraph* 
 }
 
 SceneManager::~SceneManager() {
-    ontology_world_.reset();
     physics_scene_.reset();
 }
 
@@ -51,44 +45,115 @@ void SceneManager::createStarSystem() {
     background_scene_node_->data.renderable = skybox;
 }
 
+Result<void> SceneManager::recomputeSystemExecutionOrder() {
+    if (!system_process_order_dirty_) {
+        return {};
+    }
+
+    // Implementation of Kahn's algorithm
+    // https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
+
+    system_process_order_.clear();
+
+    // system_dependencies_ store a map of incoming edges. For example, if it stores (1,[2]),
+    // (2,[3,4]), then this means that 1 depends on 2, and 2 depends on 3 and 4. This represents the
+    // following graph:
+    //
+    //   3 --> 2 --> 1
+    //         ^
+    //   4 ----`
+
+    // Build an adjacency list and indegree representation of the graph from the dependencies by inverting each edge.
+    // i.e. given: (1,[2]), (2,[3,4]), generate: (2,[1]), (3,[2]), (4,[2])
+    HashMap<TypeIndex, HashSet<TypeIndex>> incoming_edges = system_dependencies_;
+    HashMap<TypeIndex, Vector<TypeIndex>> adjacency_list;
+    for (auto& dependencies : incoming_edges) {
+        adjacency_list[dependencies.first] = {};
+    }
+    for (auto& dependencies : incoming_edges) {
+        for (auto& depends_on : dependencies.second) {
+            adjacency_list[depends_on].emplace_back(dependencies.first);
+        }
+    }
+    HashMap<TypeIndex, int> indegrees;
+    for (const auto& pair : adjacency_list) {
+        indegrees[pair.first] = 0;
+    }
+    for (const auto& pair : adjacency_list) {
+        for (auto dest : pair.second) {
+            indegrees[dest]++;
+        }
+    }
+
+    Vector<TypeIndex> result;
+
+    // Find all nodes with no incoming edge (an in-degree of 0).
+    Queue<TypeIndex> indegree0;
+    for (const auto& node : indegrees) {
+        if (node.second == 0) {
+            indegree0.push(node.first);
+        }
+    }
+
+    // Do topological sort.
+    while (!indegree0.empty()) {
+        // Remove a node from the indegree0 queue.
+        auto node = indegree0.front();
+        indegree0.pop();
+
+        // Add to the result.
+        result.push_back(node);
+
+        // For each node m with an edge from `node` to m (in the adjacency list)
+        // i.e. for each system m where m depends on `node`
+        for (auto& m : adjacency_list[node]) {
+            // Remove edge (node -> m),
+            indegrees[m]--;
+
+            // If m has no other incoming edges, insert m into nodes.
+            if (indegrees[m] == 0) {
+                indegree0.push(m);
+            }
+        }
+    }
+
+    // If there are edges left, then there's a cycle.
+    for (auto& pair : indegrees) {
+        if (pair.second > 0) {
+            return makeError("Cycle detected in system dependencies");
+        }
+    }
+
+    // Assign new order.
+    system_process_order_.reserve(result.size());
+    for (auto& node : result) {
+        system_process_order_.emplace_back(systems_[node].get());
+    }
+    system_process_order_dirty_ = false;
+
+    return {};
+}
+
 Entity& SceneManager::createEntity(EntityType type) {
-    return createEntity(type, reserveEntityId());
+    auto new_entity = registry_.create();
+
+    // Look up slot and move new entity into it.
+    entity_lookup_table_[new_entity] = makeUnique<Entity>(this, new_entity, type);
+    return *entity_lookup_table_[new_entity];
 }
 
 Entity& SceneManager::createEntity(EntityType type, const Vec3& p, const Quat& o, Frame& frame,
                                    SharedPtr<Renderable> renderable) {
     Entity& e = createEntity(type);
-    e.addComponent<CTransform>(frame.newChild(p, o), renderable);
+    e.addComponent<CSceneNode>(frame.newChild(p, o), renderable);
     return e;
 }
 
 Entity& SceneManager::createEntity(EntityType type, const Vec3& p, const Quat& o, Entity& parent,
                                    SharedPtr<Renderable> renderable) {
     Entity& e = createEntity(type);
-    e.addComponent<CTransform>(parent.component<CTransform>()->node->newChild(p, o), renderable);
+    e.addComponent<CSceneNode>(parent.component<CSceneNode>()->node->newChild(p, o), renderable);
     return e;
-}
-
-Entity& SceneManager::createEntity(EntityType type, EntityId reserved_entity_id) {
-    // Add to entity lookup table if reserved from elsewhere (i.e. server).
-    if (entity_lookup_table_.find(reserved_entity_id) == entity_lookup_table_.end()) {
-        entity_lookup_table_[reserved_entity_id] = nullptr;
-    }
-
-    // Look up slot and move new entity into it.
-    auto entity_slot = entity_lookup_table_.find(reserved_entity_id);
-    assert(entity_slot != entity_lookup_table_.end() && entity_slot->second == nullptr);
-    auto entity = makeUnique<Entity>(context(), this, ontology_world_->getEntityManager(),
-                                     reserved_entity_id, type);
-    auto entity_ptr = entity.get();
-    entity_slot->second = std::move(entity);
-    return *entity_ptr;
-}
-
-EntityId SceneManager::reserveEntityId() {
-    EntityId new_entity_id = entity_id_allocator_++;
-    entity_lookup_table_[new_entity_id] = nullptr;
-    return new_entity_id;
 }
 
 Entity* SceneManager::findEntity(EntityId id) {
@@ -100,24 +165,29 @@ Entity* SceneManager::findEntity(EntityId id) {
 }
 
 void SceneManager::removeEntity(Entity* entity) {
-    entity_lookup_table_.erase(entity->id());
+    auto id = entity->id();
+    // Erase from the lookup table (and delete the memory).
+    entity_lookup_table_.erase(id);
+    registry_.destroy(id);
 }
 
 void SceneManager::update(float dt) {
-    if (!systems_initialised_) {
-        ontology_world_->getSystemManager().initialise();
-        systems_initialised_ = true;
+    recomputeSystemExecutionOrder();
+    for (auto& s : system_process_order_) {
+        s->process(dt);
     }
-    last_dt_ = dt;
     physics_scene_->update(dt, nullptr);
-    ontology_world_->update();
 }
 
 PhysicsScene* SceneManager::physicsScene() const {
     return physics_scene_.get();
 }
 
-float SceneManager::lastDeltaTime_internal() const {
-    return last_dt_;
+void SceneManager::addSystemDependencies(TypeIndex type, HashSet<TypeIndex> dependencies) {
+    system_dependencies_.emplace(type, std::move(dependencies));
+    system_process_order_dirty_ = true;
+}
+
+EntitySystemBase::EntitySystemBase() : scene_mgr_{nullptr}, depends_on_{} {
 }
 }  // namespace dw

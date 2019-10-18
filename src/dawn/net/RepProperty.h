@@ -57,7 +57,9 @@ private:
         void onAddToEntity(Entity& entity) override;
 
     protected:
-        Component* component_;
+        Entity* entity_;
+
+        Component& component() const;
     };
 
     // A replicated property binding using a pointer to a member variable.

@@ -6,7 +6,7 @@
 
 #include "renderer/Node.h"
 #include "renderer/RenderPipeline.h"
-#include "scene/EntitySystem.h"
+#include "scene/SceneManager.h"
 
 namespace dw {
 namespace detail {
@@ -76,15 +76,14 @@ private:
                     int camera_id);
 };
 
-class SceneGraph::SCamera : public EntitySystem {
-public:
-    DW_OBJECT(SCamera);
+struct CCamera;
 
-    SCamera(Context* context);
+class SceneGraph::SCamera : public EntitySystem<CCamera, CSceneNode> {
+public:
+    SCamera();
     ~SCamera() = default;
 
-    void beginProcessing() override;
-    void processEntity(Entity& entity, float dt) override;
+    void process(float dt) override;
 
     struct CameraState {
         uint view;

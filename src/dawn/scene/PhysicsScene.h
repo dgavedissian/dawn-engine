@@ -6,7 +6,7 @@
 
 #include "renderer/SystemPosition.h"
 #include "renderer/Node.h"
-#include "scene/EntitySystem.h"
+#include "scene/SceneManager.h"
 #include "input/Input.h"
 
 // Bullet
@@ -25,6 +25,8 @@ struct DW_API PhysicsRaycastResult {
     bool hit;
 };
 
+class CRigidBody;
+
 // Manages the Bullet physics library and provides some helper functions.
 class DW_API PhysicsScene : public Object {
 public:
@@ -41,21 +43,18 @@ public:
                   PhysicsRaycastResult& result);
 
     // EntitySystem for updating CRigidBody components.
-    class PhysicsComponentSystem : public EntitySystem {
+    class PhysicsComponentSystem : public EntitySystem<CSceneNode, CRigidBody> {
     public:
-        DW_OBJECT(PhysicsComponentSystem);
-
-        PhysicsComponentSystem(Context* context);
-        void processEntity(Entity& entity, float dt) override;
+        void process(float dt) override;
     };
 
 private:
     EventSystem* event_system_;
-    SharedPtr<btBroadphaseInterface> broadphase_;
-    SharedPtr<btCollisionConfiguration> collision_config_;
-    SharedPtr<btCollisionDispatcher> dispatcher_;
-    SharedPtr<btConstraintSolver> solver_;
-    SharedPtr<btDynamicsWorld> world_;
+    UniquePtr<btBroadphaseInterface> broadphase_;
+    UniquePtr<btCollisionConfiguration> collision_config_;
+    UniquePtr<btCollisionDispatcher> dispatcher_;
+    UniquePtr<btConstraintSolver> solver_;
+    UniquePtr<btDynamicsWorld> world_;
 
     List<btRigidBody*> rigid_body_list_;
 
@@ -86,7 +85,7 @@ public:
 
 private:
     PhysicsScene* world_;
-    UniquePtr<btRigidBody> rigid_body_;
+    SharedPtr<btRigidBody> rigid_body_;
     SharedPtr<btCollisionShape> collision_shape_;
     float mass_;
 

@@ -71,5 +71,6 @@ private:
     NetRole remote_role_;
 
     friend class NetInstance;
+    friend class RpcSender;
 };
 }  // namespace dw

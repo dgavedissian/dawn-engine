@@ -104,11 +104,7 @@ private:
     friend class SShipEngines;
 };
 
-class SShipEngines : public EntitySystem {
+class SShipEngines : public EntitySystem<CSceneNode, CShipEngines> {
 public:
-    DW_OBJECT(SShipEngines);
-
-    explicit SShipEngines(Context* ctx);
-
-    void processEntity(Entity& entity, float dt) override;
+    void process(float dt) override;
 };

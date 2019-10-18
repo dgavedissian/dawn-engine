@@ -4,18 +4,18 @@
  */
 #pragma once
 
+#include "core/TypeId.h"
 #include "renderer/Node.h"
 #include "scene/Entity.h"
-#include "scene/CTransform.h"
-#include "renderer/SceneGraph.h"
+#include "scene/CSceneNode.h"
 
-#include <ontology/World.hpp>
-#include <ontology/SystemManager.hpp>
-
-#include "scene/EntitySystem.h"
-#include "scene/PhysicsScene.h"
+#include <entt/entt.hpp>
 
 namespace dw {
+class SceneGraph;
+class PhysicsScene;
+class EntitySystemBase;
+
 /// Manages the current game world, including all entities and entity systems.
 class DW_API SceneManager : public Object {
 public:
@@ -43,6 +43,11 @@ public:
     /// @tparam T Entity system type.
     template <typename T> void removeSystem();
 
+    /// Recomputes the system execution order if any systems were added or removed.
+    /// This function will only do any work if any changes has happened since the
+    /// last time it was called. Will be called before every tick.
+    Result<void> recomputeSystemExecutionOrder();
+
     /// Creates a new empty entity.
     /// @param type Entity type ID.
     /// @return A newly created entity.
@@ -68,16 +73,6 @@ public:
     Entity& createEntity(EntityType type, const Vec3& p, const Quat& o, Entity& parent,
                          SharedPtr<Renderable> renderable = nullptr);
 
-    /// Creates a new empty entity with a previously reserved entity ID.
-    /// @param type Entity type ID.
-    /// @param reserved_entity_id Entity ID reserved by 'reserveEntityId()'.
-    /// @return A newly created entity.
-    Entity& createEntity(EntityType type, EntityId reserved_entity_id);
-
-    /// Reserve a new entity ID.
-    /// @return Unique unused entity ID.
-    EntityId reserveEntityId();
-
     /// Looks up an entity by its ID.
     /// @param id Entity ID.
     /// @return The entity which corresponds to this entity ID.
@@ -94,35 +89,97 @@ public:
     /// Returns the physics scene.
     PhysicsScene* physicsScene() const;
 
-    /// Returns the last delta time. Used only by the Ontology wrapper.
-    float lastDeltaTime_internal() const;
-
 private:
-    // Ontology stuff.
-    float last_dt_;
-    UniquePtr<Ontology::World> ontology_world_;
-    bool systems_initialised_;
-
+    entt::basic_registry<EntityId> registry_;
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
-    EntityId entity_id_allocator_;
 
     Node* background_scene_node_;
 
     UniquePtr<PhysicsScene> physics_scene_;
+
+    HashMap<TypeIndex, UniquePtr<EntitySystemBase>> systems_;
+    // Map from a system to systems it depends on.
+    HashMap<TypeIndex, HashSet<TypeIndex>> system_dependencies_;
+    Vector<EntitySystemBase*> system_process_order_;
+    bool system_process_order_dirty_;
+
+    void addSystemDependencies(TypeIndex type, HashSet<TypeIndex> dependencies);
+
+    friend class Entity;
+
+    template <typename... T>
+    friend class EntitySystem;
+};
+
+class DW_API EntitySystemBase {
+public:
+    EntitySystemBase();
+    virtual ~EntitySystemBase() = default;
+
+    /// Process this system.
+    /// @param dt Delta time.
+    virtual void process(float dt) = 0;
+
+protected:
+    SceneManager* scene_mgr_;
+    HashSet<TypeIndex> depends_on_;
+
+    friend class SceneManager;
+};
+
+template <typename... T>
+class DW_API EntitySystem : public EntitySystemBase {
+public:
+    /// Specifies a list of systems which this system depends on.
+    /// @tparam T List of system types.
+    /// @return This system.
+    template <typename... S> EntitySystem& dependsOn();
+
+    /// Get a view of entities.
+    entt::basic_view<EntityId, T...> entityView();
 };
 
 template <typename T, typename... Args> T* SceneManager::addSystem(Args&&... args) {
-    auto system = makeUnique<T>(context(), std::forward<Args>(args)...);
-    return ontology_world_->getSystemManager()
-        .addSystem<OntologySystemAdapter<T>>(std::move(system), this)
-        .system();
+    auto type_index = std::type_index(typeid(T));
+
+    auto system = makeUnique<T>(std::forward<Args>(args)...);
+    auto* system_ptr = system.get();
+    auto& system_base = static_cast<EntitySystemBase&>(*system_ptr);
+
+    systems_.emplace(type_index, std::move(system));
+    system_base.scene_mgr_ = this;
+    addSystemDependencies(type_index, system_base.depends_on_);
+
+    return system_ptr;
 }
 
 template <typename T> T* SceneManager::system() {
-    return ontology_world_->getSystemManager().getSystem<OntologySystemAdapter<T>>().system();
+    auto it = systems_.find(std::type_index(typeid(T)));
+    return it != systems_.end() ? static_cast<T*>(it->second.get()) : nullptr;
 }
 
 template <typename T> void SceneManager::removeSystem() {
-    ontology_world_->getSystemManager().removeSystem<OntologySystemAdapter<T>>();
+    auto type_index = std::type_index(typeid(T));
+    systems_.erase(type_index);
+    system_dependencies_.erase(type_index);
+    system_process_order_dirty_ = true;
+}
+
+template<typename... T>
+template<typename... S>
+EntitySystem<T...>& EntitySystem<T...>::dependsOn() {
+    for (auto index : {std::type_index(typeid(S))...}) {
+        depends_on_.emplace(index);
+    }
+    // If the scene manager already exists (if we added this system already), then update it by re-adding the dependencies. Otherwise, the call to addSystem will call addSystemDependencies for us.
+    if (scene_mgr_) {
+        scene_mgr_->addSystemDependencies(std::type_index(typeid(this)), depends_on_);
+    }
+    return *this;
+}
+
+template<typename... T>
+entt::basic_view<EntityId, T...> EntitySystem<T...>::entityView() {
+    return scene_mgr_->registry_.view<T...>();
 }
 }  // namespace dw

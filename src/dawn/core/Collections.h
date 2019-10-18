@@ -19,6 +19,7 @@
 #include <set>
 #include <unordered_set>
 #include <deque>
+#include <queue>
 
 #include <nonstd/any.hpp>
 #include <nonstd/expected.hpp>
@@ -57,8 +58,11 @@ template <typename T, int N> using Array = std::array<T, N>;
 template <typename T> using Vector = std::vector<T>;
 template <typename T> using List = std::list<T>;
 template <typename T> using Deque = std::deque<T>;
+template <typename T> using Queue = std::queue<T>;
 template <typename K, typename T> using Map = std::map<K, T>;
+template <typename K, typename T> using MultiMap = std::multimap<K, T>;
 template <typename K, typename T> using HashMap = std::unordered_map<K, T, HashFunction<K>>;
+template <typename K, typename T> using HashMultiMap = std::unordered_multimap<K, T, HashFunction<K>>;
 template <typename K> using Set = std::set<K>;
 template <typename K> using HashSet = std::unordered_set<K, HashFunction<K>>;
 template <typename T1, typename T2> using Pair = std::pair<T1, T2>;

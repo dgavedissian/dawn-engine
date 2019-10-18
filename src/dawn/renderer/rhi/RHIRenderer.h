@@ -335,13 +335,13 @@ struct Frame {
 
     // Transient vertex/index buffer storage.
     struct {
-        byte* data;
+        UniquePtr<byte[]> data;
         uint size;
         VertexBufferHandle handle;
     } transient_vb_storage;
 
     struct {
-        byte* data;
+        UniquePtr<byte[]> data;
         uint size;
         IndexBufferHandle handle;
     } transient_ib_storage;

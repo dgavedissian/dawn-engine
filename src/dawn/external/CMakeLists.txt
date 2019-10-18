@@ -198,6 +198,21 @@ if(NOT concurrentqueue_POPULATED)
 endif()
 set(LIBS ${LIBS} concurrentqueue)
 
+# entt
+FetchContent_Declare(
+        entt
+        URL https://github.com/skypjack/entt/archive/f7c056145a304cd0d1e25d675ed2a5580904b597.tar.gz
+        URL_MD5 048d7a104e9e0b3300d28bddb9c872ef
+)
+FetchContent_GetProperties(entt)
+if(NOT entt_POPULATED)
+    message(STATUS "Populating entt")
+    FetchContent_Populate(entt)
+    add_library(entt INTERFACE)
+    target_include_directories(entt INTERFACE ${entt_SOURCE_DIR}/src)
+endif()
+set(LIBS ${LIBS} entt)
+
 # expected-lite
 FetchContent_Declare(
     expected-lite

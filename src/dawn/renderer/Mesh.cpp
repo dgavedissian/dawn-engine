@@ -94,8 +94,8 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     // Read stream.
     assert(is.size() > 0);
     u64 size = is.size();
-    byte* data = new byte[size];
-    is.readData(data, size);
+    UniquePtr<byte[]> data{new byte[size]};
+    is.readData(data.get(), size);
     assert(is.eof());
 
     const unsigned int severity = Assimp::Logger::Debugging | Assimp::Logger::Info |
@@ -107,7 +107,7 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     Assimp::Importer importer;
     auto flags = aiProcess_CalcTangentSpace | aiProcess_Triangulate |
                  aiProcess_JoinIdenticalVertices | aiProcess_SortByPType;
-    const aiScene* scene = importer.ReadFileFromMemory(data, size, flags, asset_name.c_str());
+    const aiScene* scene = importer.ReadFileFromMemory(data.get(), size, flags, asset_name.c_str());
     Assimp::DefaultLogger::kill();
     if (!scene) {
         return makeError(str::format("Unable to load mesh %s. Reason: %s", asset_name,

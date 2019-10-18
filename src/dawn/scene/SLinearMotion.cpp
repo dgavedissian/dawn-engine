@@ -6,11 +6,9 @@
 #include "scene/SLinearMotion.h"
 
 namespace dw {
-SLinearMotion::SLinearMotion(Context* ctx) : EntitySystem(ctx) {
-    supportsComponents<CLinearMotion, CTransform>();
-}
-
-void SLinearMotion::processEntity(Entity& e, float dt) {
-    e.transform()->position += e.component<CLinearMotion>()->velocity * dt;
+void SLinearMotion::process(float dt) {
+    entityView().each([dt](auto entity, const auto& linear_motion, auto& node) {
+        node.transform().position += linear_motion.velocity * dt;
+    });
 }
 }  // namespace dw

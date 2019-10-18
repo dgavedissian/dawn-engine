@@ -11,13 +11,17 @@
 namespace dw {
 class DW_API Renderable;
 
-struct DW_API CTransform : public Component {
-    CTransform(Node* scene_node);
-    CTransform(Node* scene_node, SharedPtr<Renderable> renderable);
+struct DW_API CSceneNode : public Component {
+    CSceneNode(Node* scene_node);
+    CSceneNode(Node* scene_node, SharedPtr<Renderable> renderable);
 
-    void attachTo(CTransform* new_parent);
+    void attachTo(CSceneNode* new_parent);
 
     Node* node;
+
+    // Helper functions.
+    detail::Transform& transform();
+    const detail::Transform& transform() const;
 
     void setRenderable(SharedPtr<Renderable> renderable);
     SharedPtr<Renderable> renderable() const;

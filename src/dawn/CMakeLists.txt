@@ -175,16 +175,14 @@ set(SOURCE_FILES
     resource/ResourceCache.h
     scene/BulletDynamics.h
     scene/CLinearMotion.h
-    scene/CTransform.cpp
-    scene/CTransform.h
     scene/CameraController.cpp
     scene/CameraController.h
     scene/Component.cpp
     scene/Component.h
+    scene/CSceneNode.cpp
+    scene/CSceneNode.h
     scene/Entity.cpp
     scene/Entity.h
-    scene/EntitySystem.cpp
-    scene/EntitySystem.h
     scene/PhysicsScene.cpp
     scene/PhysicsScene.h
     scene/SLinearMotion.cpp
@@ -205,43 +203,10 @@ set(SOURCE_FILES
     Scene.h
     UI.h)
 
-# TODO: Replace prototype Ontology based ECS with custom implementation.
-add_definitions(-DONTOLOGY_WITH_ASSERT)
-set (SOURCE_FILES
-    ${SOURCE_FILES}
-    scene/ontology/include/ontology/Config.hpp
-    scene/ontology/include/ontology/Component.hpp
-    scene/ontology/include/ontology/Entity.hpp
-    scene/ontology/include/ontology/Entity.hxx
-    scene/ontology/include/ontology/EntityManager.hpp
-    scene/ontology/include/ontology/EntityManagerInterface.hpp
-    scene/ontology/include/ontology/EntityManagerListener.hpp
-    scene/ontology/include/ontology/Exception.hpp
-    scene/ontology/include/ontology/ListenerDispatcher.hpp
-    scene/ontology/include/ontology/ListenerDispatcher.hxx
-    scene/ontology/include/ontology/System.hpp
-    scene/ontology/include/ontology/System.hxx
-    scene/ontology/include/ontology/SystemManager.hpp
-    scene/ontology/include/ontology/SystemManager.hxx
-    scene/ontology/include/ontology/Type.hpp
-    scene/ontology/include/ontology/Type.hxx
-    scene/ontology/include/ontology/TypeContainers.hpp
-    scene/ontology/include/ontology/World.hpp
-    scene/ontology/include/ontology/Ontology.hpp
-    scene/ontology/src/OnComponent.cpp
-    scene/ontology/src/OnEntity.cpp
-    scene/ontology/src/EntityManager.cpp
-    scene/ontology/src/EntityManagerListener.cpp
-    scene/ontology/src/Exception.cpp
-    scene/ontology/src/OnSystem.cpp
-    scene/ontology/src/SystemManager.cpp
-    scene/ontology/src/Type.cpp
-    scene/ontology/src/World.cpp)
-
 # Project
 set(BUILD_SHARED_LIBS OFF)
 add_library(DwEngine ${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES} ${NetProtocol_OUTPUTS})
-enable_cpp14(DwEngine)
+enable_cpp17(DwEngine)
 enable_maximum_warnings(DwEngine)
 set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)

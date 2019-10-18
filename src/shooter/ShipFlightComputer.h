@@ -8,24 +8,24 @@ using namespace dw;
 
 class Ship;
 
-class ShipFlightComputer : public Object {
+class ShipFlightComputer : public Component {
 public:
-    DW_OBJECT(ShipFlightComputer);
+    explicit ShipFlightComputer(Ship* ship);
 
-    ShipFlightComputer(Context* ctx, Ship* ship);
-
-    void setTargetLinearVelocity(const Vec3& target_linear_velocity);
-    void setTargetAngularVelocity(const Vec3& target_angular_velocity);
-
-    void update(float dt);
+    Vec3 target_linear_velocity;
+    Vec3 target_angular_velocity;
 
 private:
     Ship* ship_;
-    Vec3 target_linear_velocity_;
-    Vec3 target_angular_velocity_;
 
     Vec3 ship_acceleration_forwards_;
     Vec3 ship_acceleration_backwards_;
     Vec3 ship_angular_acceleration_forwards_;
     Vec3 ship_angular_acceleration_backwards_;
+
+    friend class ShipFlightComputerSystem;
+};
+
+class ShipFlightComputerSystem : public EntitySystem<ShipFlightComputer> {
+    void process(float dt) override;
 };

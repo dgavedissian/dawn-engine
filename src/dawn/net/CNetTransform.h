@@ -8,7 +8,7 @@
 #include "core/io/InputStream.h"
 #include "core/io/OutputStream.h"
 #include "scene/Component.h"
-#include "scene/EntitySystem.h"
+#include "scene/SceneManager.h"
 #include "renderer/SystemPosition.h"
 #include "net/CNetData.h"
 
@@ -77,13 +77,10 @@ public:
     }
 };
 
-class SNetTransformSync : public EntitySystem {
+class SNetTransformSync : public EntitySystem<CSceneNode, CNetTransform, CNetData> {
 public:
-    DW_OBJECT(SNetTransformSync);
-
-    SNetTransformSync(Context* context);
     ~SNetTransformSync() = default;
 
-    void processEntity(Entity& entity, float dt) override;
+    void process(float dt) override;
 };
 }  // namespace dw
