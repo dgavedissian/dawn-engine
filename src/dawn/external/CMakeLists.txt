@@ -1,5 +1,5 @@
 # Dawn Engine
-# Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+# Written by David Avedissian (c) 2012-2019 (git@dga.dev)
 
 include(FetchContent)
 include(ExternalProject)
@@ -80,21 +80,6 @@ set(EXTERNAL_ARGS ${HOST_EXTERNAL_ARGS}
 # Note that "set_property(TARGET <target> PROPERTY INTERFACE_INCLUDE_DIRECTORIES ...)" checks for the
 # existence of the path. Therefore, we create the path beforehand.
 
-# any-lite
-FetchContent_Declare(
-    any-lite
-    URL https://github.com/martinmoene/any-lite/archive/9a778bca7fc2fe214bc74976863d44f7d021b8da.tar.gz
-    URL_MD5 14d96033c998be1409f1a97ebd17bd24
-)
-FetchContent_GetProperties(any-lite)
-if(NOT any-lite_POPULATED)
-    message(STATUS "Populating any-lite")
-    FetchContent_Populate(any-lite)
-    add_library(any-lite INTERFACE)
-    target_include_directories(any-lite INTERFACE ${any-lite_SOURCE_DIR}/include)
-endif()
-set(LIBS ${LIBS} any-lite)
-
 # Assimp
 FetchContent_Declare(
     assimp
@@ -102,19 +87,14 @@ FetchContent_Declare(
     URL_MD5 83b53a10c38d964bd1e69da0606e2727
     PATCH_COMMAND ${PATCH_TOOL} -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/assimp.diff
 )
-FetchContent_GetProperties(assimp)
-if(NOT assimp_POPULATED)
-    message(STATUS "Populating assimp")
-    FetchContent_Populate(assimp)
-    set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
-    set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
-    set(ASSIMP_INSTALL_PDB OFF CACHE BOOL "" FORCE)
-    add_subdirectory(${assimp_SOURCE_DIR} ${assimp_BINARY_DIR} EXCLUDE_FROM_ALL)
-    target_include_directories(assimp PUBLIC
-        ${assimp_SOURCE_DIR}/include
-        ${assimp_BINARY_DIR}/include) # Generated assimp config.
-endif()
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL_PDB OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(assimp)
+target_include_directories(assimp PUBLIC
+    ${assimp_SOURCE_DIR}/include
+    ${assimp_BINARY_DIR}/include) # Generated assimp config.
 set(LIBS ${LIBS} assimp)
 
 # Bullet
@@ -124,63 +104,58 @@ FetchContent_Declare(
     URL_MD5 d389e7235f00c66abf257bb7b21477ac
 )
 FetchContent_GetProperties(bullet)
-if(NOT bullet_POPULATED)
-    message(STATUS "Populating bullet")
-    FetchContent_Populate(bullet)
-    set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
-    set(BUILD_BULLET3 OFF CACHE BOOL "" FORCE)
-    set(BUILD_CLSOCKET OFF CACHE BOOL "" FORCE)
-    set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
-    set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
-    set(BUILD_ENET OFF CACHE BOOL "" FORCE)
-    set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
-    set(BUILD_PYBULLET OFF CACHE BOOL "" FORCE)
-    set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
-    set(BULLET2_MULTITHREADING OFF CACHE BOOL "" FORCE)
-    set(INSTALL_CMAKE_FILES OFF CACHE BOOL "" FORCE)
-    set(INSTALL_LIBS OFF CACHE BOOL "" FORCE)
-    set(USE_GRAPHICAL_BENCHMARK OFF CACHE BOOL "" FORCE)
-    set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
-    set(USE_GLUT OFF CACHE BOOL "" FORCE)
-    set(USE_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD OFF CACHE BOOL "" FORCE)
-    # Mark variables above as advanced.
-    mark_as_advanced(
-        BUILD_BULLET2_DEMOS
-        BUILD_BULLET3
-        BUILD_CLSOCKET
-        BUILD_CPU_DEMOS
-        BUILD_EXTRAS
-        BUILD_ENET
-        BUILD_OPENGL3_DEMOS
-        BUILD_PYBULLET
-        BUILD_UNIT_TESTS
-        BULLET2_MULTITHREADING
-        INSTALL_CMAKE_FILES
-        INSTALL_LIBS
-        USE_GRAPHICAL_BENCHMARK
-        USE_MSVC_RUNTIME_LIBRARY_DLL
-        USE_GLUT
-        USE_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
-    )
-    # Other variables.
-    mark_as_advanced(
-        CLSOCKET_DEP_ONLY
-        CLSOCKET_SHARED
-        LIBRARY_OUTPUT_PATH
-        USE_CUSTOM_VECTOR_MATH
-        USE_DOUBLE_PRECISION
-        USE_MSVC_AVX
-        USE_MSVC_COMDAT_FOLDING
-        USE_MSVC_DISABLE_RTTI
-        USE_MSVC_EXEPTIONS
-        USE_MSVC_FAST_FLOATINGPOINT
-        USE_MSVC_FUNCTION_LEVEL_LINKING
-        USE_MSVC_INCREMENTAL_LINKING
-        USE_MSVC_STRING_POOLING
-    )
-    add_subdirectory(${bullet_SOURCE_DIR} ${bullet_BINARY_DIR} EXCLUDE_FROM_ALL)
-    target_include_directories(BulletDynamics PUBLIC ${bullet_SOURCE_DIR}/src)
-endif()
+set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_BULLET3 OFF CACHE BOOL "" FORCE)
+set(BUILD_CLSOCKET OFF CACHE BOOL "" FORCE)
+set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+set(BUILD_ENET OFF CACHE BOOL "" FORCE)
+set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_PYBULLET OFF CACHE BOOL "" FORCE)
+set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+set(BULLET2_MULTITHREADING OFF CACHE BOOL "" FORCE)
+set(INSTALL_CMAKE_FILES OFF CACHE BOOL "" FORCE)
+set(INSTALL_LIBS OFF CACHE BOOL "" FORCE)
+set(USE_GRAPHICAL_BENCHMARK OFF CACHE BOOL "" FORCE)
+set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
+set(USE_GLUT OFF CACHE BOOL "" FORCE)
+set(USE_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD OFF CACHE BOOL "" FORCE)
+# Mark variables above as advanced.
+mark_as_advanced(
+    BUILD_BULLET2_DEMOS
+    BUILD_BULLET3
+    BUILD_CLSOCKET
+    BUILD_CPU_DEMOS
+    BUILD_EXTRAS
+    BUILD_ENET
+    BUILD_OPENGL3_DEMOS
+    BUILD_PYBULLET
+    BUILD_UNIT_TESTS
+    BULLET2_MULTITHREADING
+    INSTALL_CMAKE_FILES
+    INSTALL_LIBS
+    USE_GRAPHICAL_BENCHMARK
+    USE_MSVC_RUNTIME_LIBRARY_DLL
+    USE_GLUT
+    USE_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
+
+    # Other variables introduced by bullet.
+    CLSOCKET_DEP_ONLY
+    CLSOCKET_SHARED
+    LIBRARY_OUTPUT_PATH
+    USE_CUSTOM_VECTOR_MATH
+    USE_DOUBLE_PRECISION
+    USE_MSVC_AVX
+    USE_MSVC_COMDAT_FOLDING
+    USE_MSVC_DISABLE_RTTI
+    USE_MSVC_EXEPTIONS
+    USE_MSVC_FAST_FLOATINGPOINT
+    USE_MSVC_FUNCTION_LEVEL_LINKING
+    USE_MSVC_INCREMENTAL_LINKING
+    USE_MSVC_STRING_POOLING
+)
+FetchContent_MakeAvailable(bullet)
+target_include_directories(BulletDynamics PUBLIC ${bullet_SOURCE_DIR}/src)
 set(LIBS ${LIBS} BulletDynamics BulletCollision LinearMath)
 
 # concurrent queue
@@ -189,29 +164,20 @@ FetchContent_Declare(
     URL https://github.com/cameron314/concurrentqueue/archive/dea078cf5b6e742cd67a0d725e36f872feca4de4.tar.gz
     URL_MD5 02b83675f33f31dd070f386fc8f10ac9
 )
-FetchContent_GetProperties(concurrentqueue)
-if(NOT concurrentqueue_POPULATED)
-    message(STATUS "Populating concurrentqueue")
-    FetchContent_Populate(concurrentqueue)
-    add_library(concurrentqueue INTERFACE)
-    target_include_directories(concurrentqueue INTERFACE ${concurrentqueue_SOURCE_DIR})
-endif()
+FetchContent_MakeAvailable(concurrentqueue)
+add_library(concurrentqueue INTERFACE)
+target_include_directories(concurrentqueue INTERFACE ${concurrentqueue_SOURCE_DIR})
 set(LIBS ${LIBS} concurrentqueue)
 
 # entt
 FetchContent_Declare(
-        entt
-        URL https://github.com/skypjack/entt/archive/f7c056145a304cd0d1e25d675ed2a5580904b597.tar.gz
-        URL_MD5 048d7a104e9e0b3300d28bddb9c872ef
+    entt
+    URL https://github.com/skypjack/entt/archive/f7c056145a304cd0d1e25d675ed2a5580904b597.tar.gz
+    URL_MD5 048d7a104e9e0b3300d28bddb9c872ef
 )
-FetchContent_GetProperties(entt)
-if(NOT entt_POPULATED)
-    message(STATUS "Populating entt")
-    FetchContent_Populate(entt)
-    add_library(entt INTERFACE)
-    target_include_directories(entt INTERFACE ${entt_SOURCE_DIR}/src)
-endif()
-set(LIBS ${LIBS} entt)
+set(USE_LIBCPP OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(entt)
+set(LIBS ${LIBS} EnTT)
 
 # expected-lite
 FetchContent_Declare(
@@ -219,13 +185,7 @@ FetchContent_Declare(
     URL https://github.com/martinmoene/expected-lite/archive/130322f172ba1e60f6ad14cddaecf5bbd6f68f05.tar.gz
     URL_MD5 b630c7bdb25f5317866f37a1de11658c
 )
-FetchContent_GetProperties(expected-lite)
-if(NOT expected-lite_POPULATED)
-    message(STATUS "Populating expected-lite")
-    FetchContent_Populate(expected-lite)
-    add_library(expected-lite INTERFACE)
-    target_include_directories(expected-lite INTERFACE ${expected-lite_SOURCE_DIR}/include)
-endif()
+FetchContent_MakeAvailable(expected-lite)
 set(LIBS ${LIBS} expected-lite)
 
 # FastDelegate
@@ -324,35 +284,25 @@ FetchContent_Declare(
     URL https://github.com/KhronosGroup/glslang/archive/7.10.2984.tar.gz
     URL_MD5 865bad2658dd1d61f9c5583a4a1992e6
 )
-FetchContent_GetProperties(glslang)
-if(NOT glslang_POPULATED)
-    message(STATUS "Populating glslang")
-    FetchContent_Populate(glslang)
-    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-    set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
-    set(ENABLE_HLSL OFF CACHE BOOL "" FORCE)
-    mark_as_advanced(
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
+set(ENABLE_HLSL OFF CACHE BOOL "" FORCE)
+mark_as_advanced(
         BUILD_TESTING
         ENABLE_GLSLANG_BINARIES
         ENABLE_HLSL
-    )
-    add_subdirectory(${glslang_SOURCE_DIR} ${glslang_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+)
+FetchContent_MakeAvailable(glslang)
 set(LIBS ${LIBS} glslang SPIRV)
 
 # googletest
 FetchContent_Declare(
     googletest
-    URL https://github.com/google/googletest/archive/3bedb5a9fc36769691c057b9e9414472035463b4.tar.gz
-    URL_MD5 97af5dd741dd8dae3c00a0f22e736405
+    URL https://github.com/google/googletest/archive/release-1.10.0.tar.gz
+    URL_MD5 ecd1fa65e7de707cd5c00bdac56022cd
 )
-FetchContent_GetProperties(googletest)
-if(NOT googletest_POPULATED)
-    message(STATUS "Populating googletest")
-    FetchContent_Populate(googletest)
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
 
 # Policies needed by gtest
 cmake_policy(SET CMP0054 NEW)
@@ -364,20 +314,16 @@ FetchContent_Declare(
     URL https://github.com/ocornut/imgui/archive/v1.66b.tar.gz
     URL_MD5 57c57cbae62633fd22bcbbaa7f65554c
 )
-FetchContent_GetProperties(imgui)
-if(NOT imgui_POPULATED)
-    message(STATUS "Populating imgui")
-    FetchContent_Populate(imgui)
-    add_library(imgui EXCLUDE_FROM_ALL
-        ${imgui_SOURCE_DIR}/imgui_demo.cpp
-        ${imgui_SOURCE_DIR}/imgui_draw.cpp
-        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-        ${imgui_SOURCE_DIR}/imgui.cpp)
-    target_include_directories(imgui PUBLIC
-        ${imgui_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/imgui_config)
-    target_compile_definitions(imgui PUBLIC -DIMGUI_USER_CONFIG=<dw_imconfig.h>)
-endif()
+FetchContent_MakeAvailable(imgui)
+add_library(imgui EXCLUDE_FROM_ALL
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/imgui.cpp)
+target_include_directories(imgui PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui_config)
+target_compile_definitions(imgui PUBLIC -DIMGUI_USER_CONFIG=<dw_imconfig.h>)
 set(LIBS ${LIBS} imgui)
 
 # json
@@ -443,24 +389,19 @@ FetchContent_Declare(
     URL_MD5 bdab0f5b19661b7842501c738209e4fb
     PATCH_COMMAND ${PATCH_TOOL} -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/MathGeoLib.diff
 )
-FetchContent_GetProperties(mathgeolib)
-if(NOT mathgeolib_POPULATED)
-    message(STATUS "Populating MathGeoLib")
-    FetchContent_Populate(MathGeoLib)
-    set(VS_BUG ON CACHE BOOL "" FORCE)
-    set(MATH_TESTS_EXECUTABLE OFF CACHE BOOL "" FORCE)
-    set(INSTALL_CMAKE_DIR ${CMAKE_BINARY_DIR}/_deps/mathgeolib-build CACHE BOOL "" FORCE)
-    set(INSTALL_INCLUDE_DIR ${CMAKE_BINARY_DIR}/_deps/mathgeolib-build CACHE BOOL "" FORCE)
-    mark_as_advanced(
-        VS_BUG
-        MATH_TESTS_EXECUTABLE
-        GENERATE_ASM_LISTING
-        INSTALL_CMAKE_DIR
-        INSTALL_INCLUDE_DIR
-    )
-    add_subdirectory(${mathgeolib_SOURCE_DIR} ${mathgeolib_BINARY_DIR} EXCLUDE_FROM_ALL)
-    target_include_directories(MathGeoLib PUBLIC $<BUILD_INTERFACE:${mathgeolib_SOURCE_DIR}/src>)
-endif()
+set(VS_BUG ON CACHE BOOL "" FORCE)
+set(MATH_TESTS_EXECUTABLE OFF CACHE BOOL "" FORCE)
+set(INSTALL_CMAKE_DIR ${CMAKE_BINARY_DIR}/_deps/mathgeolib-build CACHE BOOL "" FORCE)
+set(INSTALL_INCLUDE_DIR ${CMAKE_BINARY_DIR}/_deps/mathgeolib-build CACHE BOOL "" FORCE)
+mark_as_advanced(
+    VS_BUG
+    MATH_TESTS_EXECUTABLE
+    GENERATE_ASM_LISTING
+    INSTALL_CMAKE_DIR
+    INSTALL_INCLUDE_DIR
+)
+FetchContent_MakeAvailable(mathgeolib)
+target_include_directories(MathGeoLib PUBLIC $<BUILD_INTERFACE:${mathgeolib_SOURCE_DIR}/src>)
 set(LIBS ${LIBS} MathGeoLib)
 
 # optional-lite

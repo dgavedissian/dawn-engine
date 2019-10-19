@@ -1,9 +1,6 @@
 # Dawn Engine
-# Written by David Avedissian (c) 2012-2016 (git@davedissian.com)
-cmake_minimum_required(VERSION 3.11)
-
-set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CFlagOverrides.cmake)
-set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CXXFlagOverrides.cmake)
+# Written by David Avedissian (c) 2012-2019 (git@dga.dev)
+cmake_minimum_required(VERSION 3.14)
 
 project(Dawn)
 
@@ -36,6 +33,13 @@ include(Utilities)
 ###############################################
 # Platform specific stuff
 ###############################################
+
+# ccache
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    set(CMAKE_CUDA_COMPILER_LAUNCHER "${CCACHE_PROGRAM}") # CMake 3.9+
+endif()
 
 if(MSVC)
     # Workaround for 'warning C4577: 'noexcept' used with no exception handling mode specified;
@@ -81,7 +85,7 @@ function(add_dawn_executable GAME_NAME)
     set_output_dir(${GAME_NAME} ${CMAKE_BINARY_DIR})
 
     # Compile in C++17 mode
-    enable_cpp17(${GAME_NAME})
+    target_compile_features(${GAME_NAME} PUBLIC cxx_std_17)
     enable_maximum_warnings(${GAME_NAME})
 
     # Add include directories

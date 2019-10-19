@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #pragma once
 
@@ -21,7 +21,6 @@
 #include <deque>
 #include <queue>
 
-#include <nonstd/any.hpp>
 #include <nonstd/expected.hpp>
 #include <nonstd/optional.hpp>
 #include <mapbox/variant.hpp>
@@ -71,7 +70,6 @@ template <typename... T> using Variant = mapbox::util::variant<T...>;
 template <typename T> using Option = nonstd::optional<T>;
 template <typename T, typename E = String> using Result = nonstd::expected<T, E>;
 template <typename E> using UnexpectedType = nonstd::unexpected_type<E>;
-using Any = nonstd::any;
 template <typename T> using ConcurrentQueue = moodycamel::ConcurrentQueue<T>;
 
 template <typename F, typename V>

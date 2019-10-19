@@ -1,5 +1,5 @@
 # Dawn Engine
-# Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+# Written by David Avedissian (c) 2012-2019 (git@dga.dev)
 
 message(STATUS "Setting up external dependencies...")
 add_subdirectory(external)
@@ -206,7 +206,7 @@ set(SOURCE_FILES
 # Project
 set(BUILD_SHARED_LIBS OFF)
 add_library(DwEngine ${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES} ${NetProtocol_OUTPUTS})
-enable_cpp17(DwEngine)
+target_compile_features(DwEngine PUBLIC cxx_std_17)
 enable_maximum_warnings(DwEngine)
 set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)
@@ -228,7 +228,7 @@ if(APPLE AND BUILD_SHARED_LIBS)
 endif()
 
 # Random extras
-mirror_physical_directories(${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES})
 set_target_properties(DwEngine PROPERTIES DEBUG_POSTFIX _d)
 
 # Add include dirs and libraries
@@ -245,8 +245,8 @@ set(TEST_FILES
     testing/Testing.h)
 
 add_executable(DwEngineTests ${TEST_FILES})
-mirror_physical_directories(${TEST_FILES})
-enable_cpp14(DwEngineTests)
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${TEST_FILES})
+target_compile_features(DwEngineTests PUBLIC cxx_std_14)
 target_link_libraries(DwEngineTests DwEngine gtest gtest_main)
 target_include_directories(DwEngineTests SYSTEM PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/testing)
 set_target_properties(DwEngineTests PROPERTIES DEBUG_POSTFIX "")
