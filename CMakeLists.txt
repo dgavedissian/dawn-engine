@@ -13,6 +13,15 @@ if(APPLE)
     endif()
 endif()
 
+option(FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
+if(${FORCE_COLORED_OUTPUT})
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options(-fdiagnostics-color=always)
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        add_compile_options(-fcolor-diagnostics)
+    endif()
+endif()
+
 ###############################################
 # Setup
 ###############################################
@@ -38,16 +47,21 @@ include(Utilities)
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
     set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
-    set(CMAKE_CUDA_COMPILER_LAUNCHER "${CCACHE_PROGRAM}") # CMake 3.9+
+    set(CMAKE_CUDA_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
 endif()
 
 if(MSVC)
-    # Workaround for 'warning C4577: 'noexcept' used with no exception handling mode specified;
-    # termination on exception is not guaranteed. Specify /EHsc'
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
-
-    # As of MSVC 2017 15.8, we need to set this define to use "correct" alignment behaviour.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_ENABLE_EXTENDED_ALIGNED_STORAGE")
+    add_compile_options(
+        # Workaround for 'warning C4577: 'noexcept' used with no exception handling mode specified;
+        # termination on exception is not guaranteed. Specify /EHsc'
+        /EHsc
+    )
+    add_compile_definitions(
+        # Required to suppress warnings if using unsafe C functions (like printf) with /W3 or above.
+        _SCL_SECURE_NO_WARNINGS
+        # As of MSVC 2017 15.8, we need to set this define to use "correct" alignment behaviour.
+        _ENABLE_EXTENDED_ALIGNED_STORAGE
+    )
 endif(MSVC)
 
 ###############################################

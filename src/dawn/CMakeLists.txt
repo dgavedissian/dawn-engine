@@ -208,16 +208,13 @@ set(BUILD_SHARED_LIBS OFF)
 add_library(DwEngine ${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES} ${NetProtocol_OUTPUTS})
 target_compile_features(DwEngine PUBLIC cxx_std_17)
 enable_maximum_warnings(DwEngine)
-set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)
-    set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
+    target_compile_definitions(DwEngine PRIVATE DW_BUILD DW_DLL)
 endif()
 if(APPLE)
-    set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-D_LIBCPP_DISABLE_AVAILABILITY")
+    target_compile_definitions(DwEngine PRIVATE _LIBCPP_DISABLE_AVAILABILITY)
 endif()
-target_include_directories(DwEngine PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    scene/ontology/include)
+target_include_directories(DwEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(DwEngine PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/flatbuffers)
 
 # Copy over shared library dependencies

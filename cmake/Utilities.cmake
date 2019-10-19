@@ -18,21 +18,9 @@ macro(set_output_dir TARGET OUTDIR)
     endforeach()
 endmacro()
 
-# If on macOS, enable the libc++ stdlib instead of the default one for more implementations of C++11/14/17
-macro(util_enable_libcpp TARGET)
-    if(APPLE)
-        target_compile_options(${TARGET} PUBLIC -stdlib=libc++)
-        if(XCODE)
-            set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-        endif()
-    endif()
-endmacro()
-
-
 # Macro to enable maximum warnings
 macro(enable_maximum_warnings TARGET)
     if(MSVC)
-        add_definitions(-D_SCL_SECURE_NO_WARNINGS)
         target_compile_options(${TARGET} PUBLIC /W4)
     elseif(UNIX)
         target_compile_options(${TARGET} PUBLIC -Wall -Wextra -pedantic -Wuninitialized -Wfloat-equal

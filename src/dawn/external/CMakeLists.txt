@@ -23,21 +23,7 @@ endif()
 
 # Patch tool
 if(WIN32)
-    FetchContent_Declare(
-        PatchTool
-        URL https://vorboss.dl.sourceforge.net/project/gnuwin32/patch/2.5.9-7/patch-2.5.9-7-bin.zip
-        URL_MD5 b9c8b31d62f4b2e4f1887bbb63e8a905
-    )
-    FetchContent_GetProperties(PatchTool)
-    if(NOT patchtool_POPULATED)
-        FetchContent_Populate(PatchTool)
-    endif()
-    # Due to the fact Windows requires admin privileges to run any tool called "patch.exe", we need
-    # to rename it to something else. See:
-    # https://stackoverflow.com/questions/517257/how-do-i-apply-a-diff-patch-on-windows#comment32486422_14217009
-    file(COPY ${patchtool_SOURCE_DIR}/bin/patch.exe DESTINATION ${patchtool_SOURCE_DIR}/bin/ptool)
-    file(RENAME ${patchtool_SOURCE_DIR}/bin/ptool/patch.exe ${patchtool_SOURCE_DIR}/bin/ptool/ptool.exe)
-    set(PATCH_TOOL ${patchtool_SOURCE_DIR}/bin/ptool/ptool.exe)
+    set(PATCH_TOOL ${CMAKE_CURRENT_SOURCE_DIR}/../tools/ptool.exe)
 else()
     set(PATCH_TOOL patch)
 endif()
@@ -48,7 +34,7 @@ endif()
 ##############################################################
 
 # External directories
-set(EXTERNAL_PREFIX ${CMAKE_BINARY_DIR}/dependencies)
+set(EXTERNAL_PREFIX ${CMAKE_BINARY_DIR}/_deps/externalproject)
 set(EXTERNAL_INSTALL ${EXTERNAL_PREFIX}/install)
 
 # Arguments to be passed to all calls to CMake
@@ -71,6 +57,19 @@ set(EXTERNAL_ARGS ${HOST_EXTERNAL_ARGS}
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
+
+# Commands to run when using Makefile projects.
+if(EMSCRIPTEN)
+    set(CONFIGURE emconfigure ./configure --prefix=${EXTERNAL_INSTALL})
+    set(MAKE emmake make)
+else()
+    set(CONFIGURE ./configure --prefix=${EXTERNAL_INSTALL})
+    if(APPLE)
+        set(MAKE ${CMAKE_COMMAND} -E env MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET} make)
+    else()
+        set(MAKE make)
+    endif()
+endif()
 
 
 ##############################################################
@@ -199,8 +198,8 @@ set(LIBS ${LIBS} FastDelegate)
 # without flatc.
 ExternalProject_Add(flatc-external
     PREFIX ${EXTERNAL_PREFIX}
-    URL https://github.com/google/flatbuffers/archive/v1.10.0.tar.gz
-    URL_MD5 f7d19a3f021d93422b0bc287d7148cd2
+    URL https://github.com/google/flatbuffers/archive/v1.11.0.tar.gz
+    URL_MD5 02c64880acb89dbd57eebacfd67200d8
     DOWNLOAD_NO_PROGRESS 1
     INSTALL_DIR ${EXTERNAL_INSTALL}
     UPDATE_COMMAND ""
@@ -218,32 +217,16 @@ if(MSVC)
 else()
     set(FLATBUFFERS_FLATC_EXECUTABLE ${EXTERNAL_PREFIX}/src/flatc-external-build/flatc PARENT_SCOPE)
 endif()
-ExternalProject_Add(flatbuffers-external
+FetchContent_Declare(flatbuffers
     PREFIX ${EXTERNAL_PREFIX}
-    URL https://github.com/google/flatbuffers/archive/v1.10.0.tar.gz
-    URL_MD5 f7d19a3f021d93422b0bc287d7148cd2
-    DOWNLOAD_NO_PROGRESS 1
-    INSTALL_DIR ${EXTERNAL_INSTALL}
-    UPDATE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>
-    EXCLUDE_FROM_ALL 1
-    CMAKE_ARGS ${EXTERNAL_ARGS}
-        -DFLATBUFFERS_BUILD_FLATC=0
-        -DFLATBUFFERS_BUILD_FLATHASH=0
-        -DFLATBUFFERS_BUILD_SHAREDLIB=0
-        -DFLATBUFFERS_BUILD_TESTS=0
+    URL https://github.com/google/flatbuffers/archive/v1.11.0.tar.gz
+    URL_MD5 02c64880acb89dbd57eebacfd67200d8
 )
-add_library(flatbuffers INTERFACE)
-add_dependencies(flatbuffers flatbuffers-external flatc-external)
-set_property(TARGET flatbuffers PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_INSTALL}/include)
-if (UNIX AND NOT APPLE AND (NOT EXISTS "/etc/debian_version") AND NOT EMSCRIPTEN)
-    set_property(TARGET flatbuffers PROPERTY INTERFACE_LINK_LIBRARIES
-            ${EXTERNAL_INSTALL}/lib64/${CMAKE_STATIC_LIBRARY_PREFIX}flatbuffers${CMAKE_STATIC_LIBRARY_SUFFIX})
-else()
-    set_property(TARGET flatbuffers PROPERTY INTERFACE_LINK_LIBRARIES
-            ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}flatbuffers${CMAKE_STATIC_LIBRARY_SUFFIX})
-endif()
+set(FLATBUFFERS_BUILD_FLATC OFF CACHE BOOL "" FORCE)
+set(FLATBUFFERS_BUILD_FLATHASH OFF CACHE BOOL "" FORCE)
+set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(flatbuffers)
+add_dependencies(flatbuffers flatc-external)
 set(LIBS ${LIBS} flatbuffers)
 
 # glad
@@ -348,14 +331,9 @@ if(MSVC)
         ${CMAKE_COMMAND} -E copy
             ${EXTERNAL_PREFIX}/src/luajit-external-build/src/lua51.lib
             ${EXTERNAL_INSTALL}/lib/luajit-5.1.lib)
-elseif(APPLE)
-    set(LUAJIT_BUILD_COMMAND ${CMAKE_COMMAND} -E env
-        MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
-        make PREFIX=${EXTERNAL_INSTALL} amalg)
-    set(LUAJIT_INSTALL_COMMAND make PREFIX=${EXTERNAL_INSTALL} install)
 else()
-    set(LUAJIT_BUILD_COMMAND make PREFIX=${EXTERNAL_INSTALL} amalg)
-    set(LUAJIT_INSTALL_COMMAND make PREFIX=${EXTERNAL_INSTALL} install)
+    set(LUAJIT_BUILD_COMMAND ${MAKE} PREFIX=${EXTERNAL_INSTALL} amalg)
+    set(LUAJIT_INSTALL_COMMAND ${MAKE} PREFIX=${EXTERNAL_INSTALL} install)
 endif()
 ExternalProject_Add(luajit-external
     PREFIX ${EXTERNAL_PREFIX}
@@ -371,6 +349,8 @@ ExternalProject_Add(luajit-external
             ${EXTERNAL_PREFIX}/src/luajit-external-build
     UPDATE_COMMAND ""
     BUILD_COMMAND ${LUAJIT_BUILD_COMMAND}
+    BUILD_BYPRODUCTS
+        ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX}
     INSTALL_COMMAND ${LUAJIT_INSTALL_COMMAND}
     EXCLUDE_FROM_ALL 1
 )
@@ -528,27 +508,22 @@ if(NOT yojimbo_POPULATED)
         URL https://github.com/ARMmbed/mbedtls/archive/mbedtls-2.16.0.tar.gz
         URL_MD5 331938f7bc54eabe1675d4cdf910f8d8
     )
-    FetchContent_GetProperties(mbedtls)
-    if(NOT mbedtls_POPULATED)
-        message(STATUS "Populating mbedtls")
-        FetchContent_Populate(mbedtls)
-        set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
-        set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
-        set(USE_STATIC_MBEDTLS_LIBRARY ON CACHE BOOL "" FORCE)
-        set(USE_SHARED_MBEDTLS_LIBRARY OFF CACHE BOOL "" FORCE)
-        mark_as_advanced(
-            ENABLE_TESTING
-            ENABLE_PROGRAMS
-            ENABLE_ZLIB_SUPPORT
-            INSTALL_MBEDTLS_HEADERS
-            LINK_WITH_PTHREAD
-            UNSAFE_BUILD
-            USE_PKCS11_HELPER_LIBRARY
-            USE_SHARED_MBEDTLS_LIBRARY
-            USE_STATIC_MBEDTLS_LIBRARY
-        )
-        add_subdirectory(${mbedtls_SOURCE_DIR} ${mbedtls_BINARY_DIR} EXCLUDE_FROM_ALL)
-    endif()
+    set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+    set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
+    set(USE_STATIC_MBEDTLS_LIBRARY ON CACHE BOOL "" FORCE)
+    set(USE_SHARED_MBEDTLS_LIBRARY OFF CACHE BOOL "" FORCE)
+    mark_as_advanced(
+        ENABLE_TESTING
+        ENABLE_PROGRAMS
+        ENABLE_ZLIB_SUPPORT
+        INSTALL_MBEDTLS_HEADERS
+        LINK_WITH_PTHREAD
+        UNSAFE_BUILD
+        USE_PKCS11_HELPER_LIBRARY
+        USE_SHARED_MBEDTLS_LIBRARY
+        USE_STATIC_MBEDTLS_LIBRARY
+    )
+    FetchContent_MakeAvailable(mbedtls)
     
     # sodium
     if(MSVC)
@@ -557,57 +532,40 @@ if(NOT yojimbo_POPULATED)
             URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.17-msvc.zip
             URL_MD5 a90f193ac3ce21e9578aae9b9ff10343
         )
-        FetchContent_GetProperties(sodium)
-        if(NOT sodium_POPULATED)
-            message(STATUS "Populating sodium")
-            FetchContent_Populate(sodium)
-            add_library(sodium INTERFACE)
-            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-                set(SODIUM_ARCH x64)
-            elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-                set(SODIUM_ARCH Win32)
-            else()
-                message(FATAL_ERROR "Unsupported architecture. CMAKE_SIZEOF_VOID_P is ${CMAKE_SIZEOF_VOID_P}")
-            endif()
-            if(NOT(MSVC_VERSION LESS 1910))
-                # Visual Studio 15.0 (2017)
-                set(SODIUM_MSVC v141)
-            elseif(NOT(MSVC_VERSION LESS 1900))
-                # Visual Studio 14.0 (2015)
-                set(SODIUM_MSVC v140)
-            else()
-                message(FATAL_ERROR "Unsupported MSVC version: ${MSVC_VERSION}")
-            endif()
-            set_property(TARGET sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${sodium_SOURCE_DIR}/include)
-            set_property(TARGET sodium PROPERTY INTERFACE_LINK_LIBRARIES
-                ${sodium_SOURCE_DIR}/${SODIUM_ARCH}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/${SODIUM_MSVC}/static/libsodium.lib)
-        endif()
-    else()
-        if(EMSCRIPTEN)
-            ExternalProject_Add(sodium-external
-                PREFIX ${EXTERNAL_PREFIX}
-                URL https://github.com/jedisct1/libsodium/releases/download/1.0.17/libsodium-1.0.17.tar.gz
-                URL_MD5 0f71e2680187a1558b5461e6879342c5
-                DOWNLOAD_NO_PROGRESS 1
-                BUILD_IN_SOURCE 1
-                CONFIGURE_COMMAND emconfigure ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no
-                BUILD_COMMAND emmake make
-                INSTALL_COMMAND emmake make install
-                UPDATE_COMMAND ""
-            )
+        FetchContent_MakeAvailable(sodium)
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            set(SODIUM_ARCH x64)
+        elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+            set(SODIUM_ARCH Win32)
         else()
-            ExternalProject_Add(sodium-external
-                PREFIX ${EXTERNAL_PREFIX}
-                URL https://github.com/jedisct1/libsodium/releases/download/1.0.17/libsodium-1.0.17.tar.gz
-                URL_MD5 0f71e2680187a1558b5461e6879342c5
-                DOWNLOAD_NO_PROGRESS 1
-                BUILD_IN_SOURCE 1
-                CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL} --enable-shared=no
-                BUILD_COMMAND make
-                INSTALL_COMMAND make install
-                UPDATE_COMMAND ""
-            )
+            message(FATAL_ERROR "Unsupported architecture. CMAKE_SIZEOF_VOID_P is ${CMAKE_SIZEOF_VOID_P}")
         endif()
+        if(NOT(MSVC_VERSION LESS 1910))
+            # Visual Studio 15.0 (2017)
+            set(SODIUM_MSVC v141)
+        elseif(NOT(MSVC_VERSION LESS 1900))
+            # Visual Studio 14.0 (2015)
+            set(SODIUM_MSVC v140)
+        else()
+            message(FATAL_ERROR "Unsupported MSVC version: ${MSVC_VERSION}")
+        endif()
+        set_property(TARGET sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${sodium_SOURCE_DIR}/include)
+        set_property(TARGET sodium PROPERTY INTERFACE_LINK_LIBRARIES
+            ${sodium_SOURCE_DIR}/${SODIUM_ARCH}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/${SODIUM_MSVC}/static/libsodium.lib)
+        add_library(sodium INTERFACE)
+    else()
+        ExternalProject_Add(sodium-external
+            PREFIX ${EXTERNAL_PREFIX}
+            URL https://github.com/jedisct1/libsodium/releases/download/1.0.17/libsodium-1.0.17.tar.gz
+            URL_MD5 0f71e2680187a1558b5461e6879342c5
+            DOWNLOAD_NO_PROGRESS 1
+            BUILD_IN_SOURCE 1
+            CONFIGURE_COMMAND ${CONFIGURE} --enable-shared=no
+            BUILD_COMMAND ${MAKE}
+            BUILD_BYPRODUCTS ${EXTERNAL_INSTALL}/lib/libsodium.a
+            INSTALL_COMMAND ${MAKE} install
+            UPDATE_COMMAND ""
+        )
         set_target_properties(sodium-external PROPERTIES EXCLUDE_FROM_ALL TRUE)
         add_library(sodium INTERFACE)
         add_dependencies(sodium sodium-external)
