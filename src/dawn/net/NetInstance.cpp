@@ -141,7 +141,7 @@ void NetInstance::serverUpdate(float dt) {
                     // Send response.
                     flatbuffers::FlatBufferBuilder builder(1024);
                     auto response = CreateClientSpawnResponse(builder, spawn_message->request_id(),
-                                                              entity ? entity->id() : 0);
+                                                              entity ? u64(entity->id()) : 0);
                     auto response_message = CreateClientMessage(
                         builder, ClientMessageData_ClientSpawnResponse, response.Union());
                     builder.Finish(response_message);
@@ -150,7 +150,7 @@ void NetInstance::serverUpdate(float dt) {
                 }
                 case ServerMessageData_ServerRpc: {
                     auto rpc_message = server_message->to_server_as_ServerRpc();
-                    EntityId entity_id = rpc_message->entity_id();
+                    EntityId entity_id{rpc_message->entity_id()};
                     Entity* entity = session_->sceneManager()->findEntity(entity_id);
                     if (!entity) {
                         log().error("Client RPC: Received from non-existent entity %d", entity_id);
@@ -194,7 +194,7 @@ void NetInstance::clientUpdate(float dt) {
                 auto* create_entity_message = client_message->to_client_as_ClientCreateEntity();
                 InputBitStream bs(create_entity_message->payload()->data(),
                                   create_entity_message->payload()->size());
-                EntityId remote_entity_id = create_entity_message->entity_id();
+                EntityId remote_entity_id{create_entity_message->entity_id()};
                 EntityType entity_type = create_entity_message->entity_type();
                 auto role = static_cast<NetRole>(create_entity_message->role());
                 if (entity_pipeline_) {
@@ -254,7 +254,7 @@ void NetInstance::clientUpdate(float dt) {
                     client_message->to_client_as_ClientPropertyUpdateMessage();
                 InputBitStream bs(replication_message->payload()->data(),
                                   replication_message->payload()->size());
-                EntityId remote_entity_id = replication_message->entity_id();
+                EntityId remote_entity_id{replication_message->entity_id()};
                 auto entity_id_pair = remote_to_local_entity_id_.find(remote_entity_id);
                 if (entity_id_pair != remote_to_local_entity_id_.end()) {
                     Entity* entity = session_->sceneManager()->findEntity(entity_id_pair->second);
@@ -279,8 +279,9 @@ void NetInstance::clientUpdate(float dt) {
                     log().warn("Failed to spawn entity on the server. Request ID: %s",
                                spawn_message->request_id());
                 } else {
+                    EntityId remote_entity_id{spawn_message->entity_id()};
                     auto entity_id_pair =
-                        remote_to_local_entity_id_.find(spawn_message->entity_id());
+                        remote_to_local_entity_id_.find(remote_entity_id);
                     if (entity_id_pair != remote_to_local_entity_id_.end()) {
                         // first: remote ID
                         // second: local ID
@@ -301,7 +302,7 @@ void NetInstance::clientUpdate(float dt) {
                         }
                     } else {
                         // Wait for the entity to be created.
-                        pending_entity_spawns_[spawn_message->entity_id()] =
+                        pending_entity_spawns_[remote_entity_id] =
                             spawn_message->request_id();
                     }
                 }
@@ -389,7 +390,7 @@ void NetInstance::sendRpc(EntityId entity_id, RpcId rpc_id, RpcType type,
         flatbuffers::FlatBufferBuilder builder(1024);
         auto entity_id_pair = local_to_remote_entity_id_.find(entity_id);
         if (entity_id_pair != local_to_remote_entity_id_.end()) {
-            auto rpc_message = CreateServerRpc(builder, entity_id_pair->second, rpc_id,
+            auto rpc_message = CreateServerRpc(builder, u64(entity_id_pair->second), rpc_id,
                                                builder.CreateVector(payload));
             auto message =
                 CreateServerMessage(builder, ServerMessageData_ServerRpc, rpc_message.Union());
@@ -412,7 +413,7 @@ void NetInstance::sendServerCreateEntity(ClientId client_id, const Entity& entit
 
     flatbuffers::FlatBufferBuilder builder(1024);
     auto create_entity_message = CreateClientCreateEntity(
-        builder, entity.id(), entity.typeId(), static_cast<::NetRole>(role),
+        builder, u64(entity.id()), entity.typeId(), static_cast<::NetRole>(role),
         builder.CreateVector(properties.data(), properties.length()));
     auto message = CreateClientMessage(builder, ClientMessageData_ClientCreateEntity,
                                        create_entity_message.Union());
@@ -426,7 +427,7 @@ void NetInstance::sendServerPropertyReplication(ClientId client_id, const Entity
 
     flatbuffers::FlatBufferBuilder builder(1024);
     auto property_update_message = CreateClientPropertyUpdateMessage(
-        builder, entity.id(), builder.CreateVector(properties.data(), properties.length()));
+        builder, u64(entity.id()), builder.CreateVector(properties.data(), properties.length()));
     auto message = CreateClientMessage(builder, ClientMessageData_ClientPropertyUpdateMessage,
                                        property_update_message.Union());
     builder.Finish(message);

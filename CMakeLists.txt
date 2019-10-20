@@ -13,7 +13,7 @@ if(APPLE)
     endif()
 endif()
 
-option(FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
+option(FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." ON)
 if(${FORCE_COLORED_OUTPUT})
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         add_compile_options(-fdiagnostics-color=always)

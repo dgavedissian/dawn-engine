@@ -16,12 +16,12 @@ GameSession::GameSession(Context* ctx, const GameSessionInfo& gsi)
     scene_manager_ = makeUnique<SceneManager>(ctx, event_system_.get(), scene_graph_.get());
 
     // Initialise networking.
-    if (gsi.start_info.is<GameSessionInfo::CreateNetGame>()) {
-        auto& info = gsi.start_info.get<GameSessionInfo::CreateNetGame>();
+    if (holdsAlternative<GameSessionInfo::CreateNetGame>(gsi.start_info)) {
+        auto& info = get<GameSessionInfo::CreateNetGame>(gsi.start_info);
         net_instance_ =
             NetInstance::listen(ctx, this, info.host, info.port, info.max_clients, info.transport);
-    } else if (gsi.start_info.is<GameSessionInfo::JoinNetGame>()) {
-        auto& info = gsi.start_info.get<GameSessionInfo::JoinNetGame>();
+    } else if (holdsAlternative<GameSessionInfo::JoinNetGame>(gsi.start_info)) {
+        auto& info = get<GameSessionInfo::JoinNetGame>(gsi.start_info);
         net_instance_ = NetInstance::connect(ctx, this, info.host, info.port, info.transport);
     }
 }

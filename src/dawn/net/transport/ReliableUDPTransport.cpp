@@ -15,6 +15,13 @@
 
 namespace dw {
 namespace {
+
+#if defined(DW_GCC) || defined(DW_CLANG)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra-semi"
+#pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#endif
+
 // Assuming 'bytes' is of type 'Vector<byte>'.
 #define yojimbo_serialize_byte_array(stream, bytes)  \
     if (Stream::IsReading) {                         \
@@ -61,6 +68,10 @@ YOJIMBO_MESSAGE_FACTORY_START(NetMessageFactory, MT_Count);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ToServer, ToServerMessage);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ToClient, ToClientMessage);
 YOJIMBO_MESSAGE_FACTORY_FINISH();
+
+#if defined(DW_GCC) || defined(DW_CLANG)
+#pragma GCC diagnostic pop
+#endif
 
 class YojimboContext {
 public:

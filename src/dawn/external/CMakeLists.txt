@@ -171,21 +171,25 @@ set(LIBS ${LIBS} concurrentqueue)
 # entt
 FetchContent_Declare(
     entt
-    URL https://github.com/skypjack/entt/archive/f7c056145a304cd0d1e25d675ed2a5580904b597.tar.gz
-    URL_MD5 048d7a104e9e0b3300d28bddb9c872ef
+    URL https://github.com/skypjack/entt/archive/v3.1.1.tar.gz
+    URL_MD5 b450b8fdad7f843d2b2dbad77ac61a3b
 )
 set(USE_LIBCPP OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(entt)
 set(LIBS ${LIBS} EnTT)
 
-# expected-lite
+# expected
 FetchContent_Declare(
-    expected-lite
-    URL https://github.com/martinmoene/expected-lite/archive/130322f172ba1e60f6ad14cddaecf5bbd6f68f05.tar.gz
-    URL_MD5 b630c7bdb25f5317866f37a1de11658c
+    expected
+    URL https://github.com/TartanLlama/expected/archive/fd96e4545cc50ddfbbead177ef6594b12b210d62.zip
+    URL_MD5 8e0769ee95b95f4aa58d5a37d51d9bad
 )
-FetchContent_MakeAvailable(expected-lite)
-set(LIBS ${LIBS} expected-lite)
+if(NOT expected_POPULATED)
+    FetchContent_Populate(expected)
+    add_library(expected INTERFACE)
+    target_include_directories(expected INTERFACE ${expected_SOURCE_DIR}/include)
+endif()
+set(LIBS ${LIBS} expected)
 
 # FastDelegate
 add_library(FastDelegate INTERFACE)
@@ -384,21 +388,6 @@ FetchContent_MakeAvailable(mathgeolib)
 target_include_directories(MathGeoLib PUBLIC $<BUILD_INTERFACE:${mathgeolib_SOURCE_DIR}/src>)
 set(LIBS ${LIBS} MathGeoLib)
 
-# optional-lite
-FetchContent_Declare(
-    optional-lite
-    URL https://github.com/martinmoene/optional-lite/archive/312dfe37e7cbbb563cf24e4674d8046cd080ce03.tar.gz
-    URL_MD5 b255874131bce8f5e6a4f8b0c1087a74
-)
-FetchContent_GetProperties(optional-lite)
-if(NOT optional-lite_POPULATED)
-    message(STATUS "Populating optional-lite")
-    FetchContent_Populate(optional-lite)
-    add_library(optional-lite INTERFACE)
-    target_include_directories(optional-lite INTERFACE ${optional-lite_SOURCE_DIR}/include)
-endif()
-set(LIBS ${LIBS} optional-lite)
-
 # sol2
 FetchContent_Declare(
     sol2
@@ -452,7 +441,6 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(nanovg)
 if(NOT nanovg_POPULATED)
-    message(STATUS "Populating nanovg")
     FetchContent_Populate(nanovg)
     add_library(nanovg EXCLUDE_FROM_ALL
         ${nanovg_SOURCE_DIR}/src/fontstash.h
@@ -464,12 +452,11 @@ endif()
 # tinyformat
 FetchContent_Declare(
     tinyformat
-    URL https://github.com/c42f/tinyformat/archive/33d61f30f7c11dab2e4ed29e52e5e1cec0572feb.tar.gz
-    URL_MD5 2200ef1627fddcbaa7637de71a4f37ce
+    URL https://github.com/c42f/tinyformat/archive/v2.2.0.tar.gz
+    URL_MD5 a88a198f7ea99eeed9ed2169a977f0b3
 )
 FetchContent_GetProperties(tinyformat)
 if(NOT tinyformat_POPULATED)
-    message(STATUS "Populating tinyformat")
     FetchContent_Populate(tinyformat)
     add_library(tinyformat INTERFACE)
     target_include_directories(tinyformat INTERFACE ${tinyformat_SOURCE_DIR})
@@ -479,12 +466,11 @@ set(LIBS ${LIBS} tinyformat)
 # variant
 FetchContent_Declare(
     variant
-    URL https://github.com/mapbox/variant/archive/0f734f01e685a298e3756d30044a4164786c58c5.tar.gz
-    URL_MD5 46dbb17377e1e0fda856830d359889e6
+    URL https://github.com/mpark/variant/archive/v1.4.0.tar.gz
+    URL_MD5 d5074ffb30167255f8c70e4ac0af49cf
 )
 FetchContent_GetProperties(variant)
 if(NOT variant_POPULATED)
-    message(STATUS "Populating variant")
     FetchContent_Populate(variant)
     add_library(variant INTERFACE)
     target_include_directories(variant INTERFACE ${variant_SOURCE_DIR}/include)

@@ -7,8 +7,8 @@
 #include "SceneManager.h"
 
 namespace dw {
-Entity::Entity(SceneManager* sceneManager, EntityId id, EntityType type)
-    : registry_{sceneManager->registry_}, entity_{id}, type_{type} {
+Entity::Entity(SceneManager* scene_manager, EntityId id, EntityType type)
+    : registry_{scene_manager->registry_}, entity_{id}, type_{type} {
 }
 
 EntityId Entity::id() const {

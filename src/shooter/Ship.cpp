@@ -18,7 +18,7 @@ Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* f
 }
 
 Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame, NetRole role)
-    : Object(ctx), rb_(nullptr), ship_entity_(nullptr) {
+    : Object(ctx), ship_entity_(nullptr), rb_(nullptr) {
     auto rc = module<ResourceCache>();
     assert(rc);
 

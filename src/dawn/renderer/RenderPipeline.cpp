@@ -196,15 +196,15 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
 
         // Set up steps.
         for (auto& step_desc : node_desc.steps) {
-            auto step_result = Result<UniquePtr<PStep>, String>();
-            if (step_desc.is<RenderPipelineDesc::ClearStep>()) {
-                auto& clear_step = step_desc.get<RenderPipelineDesc::ClearStep>();
+            Result<UniquePtr<PStep>, String> step_result;
+            if (holdsAlternative<RenderPipelineDesc::ClearStep>(step_desc)) {
+                auto& clear_step = get<RenderPipelineDesc::ClearStep>(step_desc);
                 step_result = {makeUnique<PClearStep>(clear_step.colour)};
-            } else if (step_desc.is<RenderPipelineDesc::RenderQueueStep>()) {
-                auto& render_queue_step = step_desc.get<RenderPipelineDesc::RenderQueueStep>();
+            } else if (holdsAlternative<RenderPipelineDesc::RenderQueueStep>(step_desc)) {
+                auto& render_queue_step = get<RenderPipelineDesc::RenderQueueStep>(step_desc);
                 step_result = {makeUnique<PRenderQueueStep>(render_queue_step.mask)};
-            } else if (step_desc.is<RenderPipelineDesc::RenderQuadStep>()) {
-                auto& render_quad_step = step_desc.get<RenderPipelineDesc::RenderQuadStep>();
+            } else if (holdsAlternative<RenderPipelineDesc::RenderQuadStep>(step_desc)) {
+                auto& render_quad_step = get<RenderPipelineDesc::RenderQuadStep>(step_desc);
                 auto material =
                     ctx->module<ResourceCache>()->get<Material>(render_quad_step.material_name);
                 if (!material) {

@@ -12,7 +12,7 @@
 using namespace dw;
 
 ShipFlightComputer::ShipFlightComputer(Ship* ship)
-    : ship_{ship}, target_linear_velocity{Vec3::zero}, target_angular_velocity{Vec3::zero} {
+    : target_linear_velocity{Vec3::zero}, target_angular_velocity{Vec3::zero}, ship_{ship} {
     auto engines = ship->entity()->component<CShipEngines>();
     auto rb = ship->entity()->component<CRigidBody>();
 
