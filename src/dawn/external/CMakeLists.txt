@@ -82,19 +82,18 @@ endif()
 # Assimp
 FetchContent_Declare(
     assimp
-    URL https://github.com/assimp/assimp/archive/v4.1.0.tar.gz
-    URL_MD5 83b53a10c38d964bd1e69da0606e2727
-    PATCH_COMMAND ${PATCH_TOOL} -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/assimp.diff
+    URL https://github.com/assimp/assimp/archive/v5.0.0.tar.gz
+    URL_MD5 f0807f7c9bb2fd7da3499ff52dacadd0
 )
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_MINIZIP PFF CACHE BOOL "" FORCE)
 set(ASSIMP_INSTALL_PDB OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(assimp)
 target_include_directories(assimp PUBLIC
     ${assimp_SOURCE_DIR}/include
     ${assimp_BINARY_DIR}/include) # Generated assimp config.
-set(LIBS ${LIBS} assimp)
 
 # Bullet
 FetchContent_Declare(
@@ -155,7 +154,6 @@ mark_as_advanced(
 )
 FetchContent_MakeAvailable(bullet)
 target_include_directories(BulletDynamics PUBLIC ${bullet_SOURCE_DIR}/src)
-set(LIBS ${LIBS} BulletDynamics BulletCollision LinearMath)
 
 # concurrent queue
 FetchContent_Declare(
@@ -166,7 +164,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(concurrentqueue)
 add_library(concurrentqueue INTERFACE)
 target_include_directories(concurrentqueue INTERFACE ${concurrentqueue_SOURCE_DIR})
-set(LIBS ${LIBS} concurrentqueue)
 
 # entt
 FetchContent_Declare(
@@ -176,7 +173,6 @@ FetchContent_Declare(
 )
 set(USE_LIBCPP OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(entt)
-set(LIBS ${LIBS} EnTT)
 
 # expected
 FetchContent_Declare(
@@ -189,12 +185,10 @@ if(NOT expected_POPULATED)
     add_library(expected INTERFACE)
     target_include_directories(expected INTERFACE ${expected_SOURCE_DIR}/include)
 endif()
-set(LIBS ${LIBS} expected)
 
 # FastDelegate
 add_library(FastDelegate INTERFACE)
 target_include_directories(FastDelegate INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/FastDelegate)
-set(LIBS ${LIBS} FastDelegate)
 
 # flatbuffers
 #
@@ -230,14 +224,11 @@ set(FLATBUFFERS_BUILD_FLATC OFF CACHE BOOL "" FORCE)
 set(FLATBUFFERS_BUILD_FLATHASH OFF CACHE BOOL "" FORCE)
 set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(flatbuffers)
-add_dependencies(flatbuffers flatc-external)
-set(LIBS ${LIBS} flatbuffers)
 
 # glad
 if(NOT EMSCRIPTEN)
     add_library(glad EXCLUDE_FROM_ALL glad/src/glad.c)
     target_include_directories(glad PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glad/include)
-    set(LIBS ${LIBS} glad)
 endif()
 
 # glfw
@@ -248,7 +239,6 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(glfw)
 if(NOT glfw_POPULATED)
-    message(STATUS "Populating glfw")
     FetchContent_Populate(glfw)
     if(NOT EMSCRIPTEN)
         set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -263,7 +253,6 @@ if(NOT glfw_POPULATED)
         target_link_libraries(glfw INTERFACE "-s USE_GLFW=3" "-s USE_WEBGL2=1" "-s FULL_ES3=1")
     endif()
 endif()
-set(LIBS ${LIBS} glfw)
 
 # glslang
 FetchContent_Declare(
@@ -280,7 +269,6 @@ mark_as_advanced(
         ENABLE_HLSL
 )
 FetchContent_MakeAvailable(glslang)
-set(LIBS ${LIBS} glslang SPIRV)
 
 # googletest
 FetchContent_Declare(
@@ -298,8 +286,8 @@ cmake_policy(SET CMP0057 NEW)
 # imgui
 FetchContent_Declare(
     imgui
-    URL https://github.com/ocornut/imgui/archive/v1.66b.tar.gz
-    URL_MD5 57c57cbae62633fd22bcbbaa7f65554c
+    URL https://github.com/ocornut/imgui/archive/v1.73.tar.gz
+    URL_MD5 9625b67f3bb3ca89b9ec5f1ca5406055
 )
 FetchContent_MakeAvailable(imgui)
 add_library(imgui EXCLUDE_FROM_ALL
@@ -311,7 +299,6 @@ target_include_directories(imgui PUBLIC
     ${imgui_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui_config)
 target_compile_definitions(imgui PUBLIC -DIMGUI_USER_CONFIG=<dw_imconfig.h>)
-set(LIBS ${LIBS} imgui)
 
 # json
 FetchContent_Declare(
@@ -321,12 +308,10 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(json)
 if(NOT json_POPULATED)
-    message(STATUS "Populating json")
     FetchContent_Populate(json)
     add_library(json INTERFACE)
     target_include_directories(json INTERFACE ${json_SOURCE_DIR})
 endif()
-set(LIBS ${LIBS} json)
 
 # Luajit
 if(MSVC)
@@ -364,7 +349,6 @@ file(MAKE_DIRECTORY ${EXTERNAL_PREFIX}/src/luajit-external/src)
 set_property(TARGET luajit PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PREFIX}/src/luajit-external/src)
 set_property(TARGET luajit PROPERTY INTERFACE_LINK_LIBRARIES
     ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX})
-set(LIBS ${LIBS} luajit)
 
 # MathGeoLib
 FetchContent_Declare(
@@ -386,7 +370,6 @@ mark_as_advanced(
 )
 FetchContent_MakeAvailable(mathgeolib)
 target_include_directories(MathGeoLib PUBLIC $<BUILD_INTERFACE:${mathgeolib_SOURCE_DIR}/src>)
-set(LIBS ${LIBS} MathGeoLib)
 
 # sol2
 FetchContent_Declare(
@@ -396,12 +379,10 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(sol2)
 if(NOT sol2_POPULATED)
-    message(STATUS "Populating sol2")
     FetchContent_Populate(sol2)
     add_library(sol2 INTERFACE)
     target_include_directories(sol2 INTERFACE ${sol2_SOURCE_DIR}/single/sol)
 endif()
-set(LIBS ${LIBS} sol2)
 
 # SPIRV-Cross
 FetchContent_Declare(
@@ -411,12 +392,10 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(spirv-cross)
 if(NOT spirv-cross_POPULATED)
-    message(STATUS "Populating spirv-cross")
     FetchContent_Populate(spirv-cross)
     add_subdirectory(${spirv-cross_SOURCE_DIR} ${spirv-cross_BINARY_DIR} EXCLUDE_FROM_ALL)
     target_include_directories(spirv-cross-core PUBLIC $<BUILD_INTERFACE:${spirv-cross_SOURCE_DIR}/include/spirv_cross>)
 endif()
-set(LIBS ${LIBS} spirv-cross-glsl spirv-cross-hlsl)
 
 # stb
 FetchContent_Declare(
@@ -426,12 +405,10 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(stb)
 if(NOT stb_POPULATED)
-    message(STATUS "Populating stb")
     FetchContent_Populate(stb)
     add_library(stb INTERFACE)
     target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
 endif()
-set(LIBS ${LIBS} stb)
 
 # nanovg
 FetchContent_Declare(
@@ -461,7 +438,6 @@ if(NOT tinyformat_POPULATED)
     add_library(tinyformat INTERFACE)
     target_include_directories(tinyformat INTERFACE ${tinyformat_SOURCE_DIR})
 endif()
-set(LIBS ${LIBS} tinyformat)
 
 # variant
 FetchContent_Declare(
@@ -475,7 +451,6 @@ if(NOT variant_POPULATED)
     add_library(variant INTERFACE)
     target_include_directories(variant INTERFACE ${variant_SOURCE_DIR}/include)
 endif()
-set(LIBS ${LIBS} variant)
 
 # yojimbo
 FetchContent_Declare(
@@ -485,7 +460,6 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(yojimbo)
 if(NOT yojimbo_POPULATED)
-    message(STATUS "Populating yojimbo")
     FetchContent_Populate(yojimbo)
 
     # mbedtls
@@ -577,11 +551,3 @@ if(NOT yojimbo_POPULATED)
         target_compile_definitions(yojimbo PRIVATE -D__linux=1)
     endif()
 endif()
-set(LIBS ${LIBS} yojimbo)
-
-##############################################################
-# Push dependencies to the parent scope
-##############################################################
-
-set(INCLUDE_DIRS "${INCLUDE_DIRS}" PARENT_SCOPE)
-set(LIBS "${LIBS}" PARENT_SCOPE)

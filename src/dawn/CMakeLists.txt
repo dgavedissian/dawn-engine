@@ -228,9 +228,41 @@ endif()
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES})
 set_target_properties(DwEngine PROPERTIES DEBUG_POSTFIX _d)
 
-# Add include dirs and libraries
-target_include_directories(DwEngine PRIVATE ${INCLUDE_DIRS})
-target_link_libraries(DwEngine ${LIBS})
+# Add dependencies.
+target_link_libraries(DwEngine
+    assimp
+    BulletDynamics
+    BulletCollision
+    LinearMath
+    concurrentqueue
+    EnTT
+    expected
+    FastDelegate
+    flatbuffers
+    glfw
+    glslang
+    SPIRV
+    imgui
+    json
+    MathGeoLib
+    sol2
+    spirv-cross-glsl
+    spirv-cross-hlsl
+    stb
+    tinyformat
+    variant
+    yojimbo
+)
+if(NOT EMSCRIPTEN)
+    target_link_libraries(DwEngine
+        glad
+        luajit
+    )
+else()
+    target_link_libraries(DwEngine
+        lua
+    )
+endif()
 
 # Tests.
 enable_testing()
