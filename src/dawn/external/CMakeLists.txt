@@ -95,13 +95,54 @@ target_include_directories(assimp PUBLIC
     ${assimp_SOURCE_DIR}/include
     ${assimp_BINARY_DIR}/include) # Generated assimp config.
 
+# bx
+FetchContent_Declare(
+    bx
+    URL https://github.com/bkaradzic/bx/archive/a9e8a24b60d25d79ec1e5fe177b769da17f9eb67.tar.gz
+    URL_MD5 783b5fbe5cd848813ecedd941470fd32
+)
+FetchContent_MakeAvailable(bx)
+add_library(bx ${bx_SOURCE_DIR}/src/amalgamated.cpp)
+target_include_directories(bx PRIVATE ${bx_SOURCE_DIR}/3rdparty)
+target_include_directories(bx PUBLIC ${bx_SOURCE_DIR}/include)
+
+# bimg
+FetchContent_Declare(
+    bimg
+    URL https://github.com/bkaradzic/bimg/archive/bd81f6030a46f9445ddc5ae42bd0a2a91cc7d83f.tar.gz
+    URL_MD5 36de96ddcef2efad2d064f554f0fab53
+)
+FetchContent_MakeAvailable(bimg)
+file(GLOB_RECURSE BIMG_SRCS ${bimg_SOURCE_DIR}/*.cpp)
+list(FILTER BIMG_SRCS EXCLUDE REGEX ".*test.cpp$")
+add_library(bimg ${BIMG_SRCS})
+target_include_directories(bimg PRIVATE
+    ${bimg_SOURCE_DIR}/3rdparty
+    ${bimg_SOURCE_DIR}/3rdparty/astc-codec/include
+    ${bimg_SOURCE_DIR}/3rdparty/astc-codec
+    ${bimg_SOURCE_DIR}/3rdparty/iqa/include
+    ${bimg_SOURCE_DIR}/3rdparty/nvtt
+)
+target_include_directories(bimg PUBLIC ${bimg_SOURCE_DIR}/include)
+target_link_libraries(bimg bx)
+
+# bgfx
+FetchContent_Declare(
+    bgfx
+    URL https://github.com/bkaradzic/bgfx/archive/a486027d1a6a3917de6585b6d9e861b81042ac00.tar.gz
+    URL_MD5 f7208900733b8973977a74f4f6ccf2fe
+)
+FetchContent_MakeAvailable(bgfx)
+add_library(bgfx ${bgfx_SOURCE_DIR}/src/amalgamated.cpp)
+target_include_directories(bgfx PUBLIC ${bgfx_SOURCE_DIR}/include)
+target_link_libraries(bgfx bx bimg)
+
 # Bullet
 FetchContent_Declare(
     bullet
     URL https://github.com/bulletphysics/bullet3/archive/2.88.tar.gz
     URL_MD5 d389e7235f00c66abf257bb7b21477ac
 )
-FetchContent_GetProperties(bullet)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_BULLET3 OFF CACHE BOOL "" FORCE)
 set(BUILD_CLSOCKET OFF CACHE BOOL "" FORCE)
@@ -264,9 +305,9 @@ set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
 set(ENABLE_HLSL OFF CACHE BOOL "" FORCE)
 mark_as_advanced(
-        BUILD_TESTING
-        ENABLE_GLSLANG_BINARIES
-        ENABLE_HLSL
+    BUILD_TESTING
+    ENABLE_GLSLANG_BINARIES
+    ENABLE_HLSL
 )
 FetchContent_MakeAvailable(glslang)
 
