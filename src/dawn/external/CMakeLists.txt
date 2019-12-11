@@ -225,6 +225,24 @@ set(FLATBUFFERS_BUILD_FLATHASH OFF CACHE BOOL "" FORCE)
 set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(flatbuffers)
 
+# Source: https://github.com/google/flatbuffers/blob/master/CMake/FindFlatBuffers.cmake
+function(flatbuffers_generate_cpp_headers Name)
+    set(FLATC_OUTPUTS)
+    foreach(FILE ${ARGN})
+        get_filename_component(FLATC_OUTPUT ${FILE} NAME_WE)
+        set(FLATC_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers/${FLATC_OUTPUT}_generated.h")
+        list(APPEND FLATC_OUTPUTS ${FLATC_OUTPUT})
+
+        add_custom_command(OUTPUT ${FLATC_OUTPUT}
+            COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
+            ARGS -c -o "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers/" ${FILE}
+            COMMENT "Building C++ header for ${FILE}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            DEPENDS flatc-external)
+    endforeach()
+    set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
+endfunction()
+
 # glad
 if(NOT EMSCRIPTEN)
     add_library(glad EXCLUDE_FROM_ALL glad/src/glad.c)

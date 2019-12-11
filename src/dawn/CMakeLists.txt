@@ -4,29 +4,12 @@
 message(STATUS "Setting up external dependencies...")
 add_subdirectory(external)
 
-# Source: https://github.com/google/flatbuffers/blob/master/CMake/FindFlatBuffers.cmake
-function(FLATBUFFERS_GENERATE_C_HEADERS Name)
-    set(FLATC_OUTPUTS)
-    foreach(FILE ${ARGN})
-        get_filename_component(FLATC_OUTPUT ${FILE} NAME_WE)
-        set(FLATC_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers/${FLATC_OUTPUT}_generated.h")
-        list(APPEND FLATC_OUTPUTS ${FLATC_OUTPUT})
-
-        add_custom_command(OUTPUT ${FLATC_OUTPUT}
-            COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
-                ARGS -c -o "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers/" ${FILE}
-            COMMENT "Building C++ header for ${FILE}"
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    endforeach() 
-    set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
-endfunction()
-
-set(FLATBUFFER_DEFINITION_FILES
+flatbuffers_generate_cpp_headers(
+    NetProtocol
     net/protocol/protocol.fbs
     net/protocol/to_client.fbs
-    net/protocol/to_server.fbs)
-
-FLATBUFFERS_GENERATE_C_HEADERS(NetProtocol ${FLATBUFFER_DEFINITION_FILES})
+    net/protocol/to_server.fbs
+)
 
 set(SOURCE_FILES
     core/io/File.cpp
