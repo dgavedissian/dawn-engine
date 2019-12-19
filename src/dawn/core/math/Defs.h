@@ -8,8 +8,8 @@
 #ifdef M_PI
 #undef M_PI
 #endif
-
 #include "MathGeoLib.h"
+#include <dawn-gfx/Colour.h>
 
 namespace dw {
 static const float M_PI = 3.14159265358979323846264338327950288f;
@@ -39,6 +39,9 @@ using Quat = math::Quat;
 
 // Plane
 using Plane = math::Plane;
+
+// Colour
+using gfx::Colour;
 
 //// Floating point functions
 

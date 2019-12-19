@@ -9,11 +9,9 @@
 #include "renderer/CCamera.h"
 #include "renderer/CustomMeshRenderable.h"
 #include "renderer/FrameBuffer.h"
-#include "renderer/GLSL.h"
 #include "renderer/IndexBuffer.h"
 #include "renderer/Material.h"
 #include "renderer/Mesh.h"
-#include "renderer/MeshBuilder.h"
 #include "renderer/Node.h"
 #include "renderer/Program.h"
 #include "renderer/Renderable.h"
@@ -23,6 +21,5 @@
 #include "renderer/Shader.h"
 #include "renderer/SystemPosition.h"
 #include "renderer/Texture.h"
-#include "renderer/TriangleBuffer.h"
 #include "renderer/VertexBuffer.h"
 

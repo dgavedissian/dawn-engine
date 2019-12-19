@@ -280,8 +280,7 @@ void NetInstance::clientUpdate(float dt) {
                                spawn_message->request_id());
                 } else {
                     EntityId remote_entity_id{spawn_message->entity_id()};
-                    auto entity_id_pair =
-                        remote_to_local_entity_id_.find(remote_entity_id);
+                    auto entity_id_pair = remote_to_local_entity_id_.find(remote_entity_id);
                     if (entity_id_pair != remote_to_local_entity_id_.end()) {
                         // first: remote ID
                         // second: local ID
@@ -302,8 +301,7 @@ void NetInstance::clientUpdate(float dt) {
                         }
                     } else {
                         // Wait for the entity to be created.
-                        pending_entity_spawns_[remote_entity_id] =
-                            spawn_message->request_id();
+                        pending_entity_spawns_[remote_entity_id] = spawn_message->request_id();
                     }
                 }
                 break;

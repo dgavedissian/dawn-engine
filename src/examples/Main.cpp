@@ -32,7 +32,7 @@ public:
     virtual void stop() {
     }
 
-    rhi::RHIRenderer* r;
+    gfx::Renderer* r;
     const GameSession* session_;
 };
 
@@ -147,7 +147,7 @@ Mat4 createProjMatrix(float n, float f, float fov_y, float aspect) {
     return Mat4::OpenGLPerspProjRH(n, f, h, v);
 }
 
-uint createFullscreenQuad(rhi::RHIRenderer* r, rhi::VertexBufferHandle& vb) {
+uint createFullscreenQuad(gfx::Renderer* r, gfx::VertexBufferHandle& vb) {
     // clang-format off
     float vertices[] = {
     	// Position   | UV
@@ -155,16 +155,16 @@ uint createFullscreenQuad(rhi::RHIRenderer* r, rhi::VertexBufferHandle& vb) {
     	3.0f,  -1.0f, 2.0f, 0.0f,
     	-1.0f,  3.0f, 0.0f, 2.0f};
     // clang-format on
-    rhi::VertexDecl decl;
+    gfx::VertexDecl decl;
     decl.begin()
-        .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
-        .add(rhi::VertexDecl::Attribute::TexCoord0, 2, rhi::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::Position, 2, gfx::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::TexCoord0, 2, gfx::VertexDecl::AttributeType::Float)
         .end();
-    vb = r->createVertexBuffer(Memory(vertices, sizeof(vertices)), decl);
+    vb = r->createVertexBuffer(gfx::Memory(vertices, sizeof(vertices)), decl);
     return 3;
 }
 
-rhi::ShaderHandle loadShader(Context* ctx, rhi::ShaderStage type, const String& source_file) {
+gfx::ShaderHandle loadShader(Context* ctx, gfx::ShaderStage type, const String& source_file) {
     static Vector<SharedPtr<Shader>> shader_map;
     SharedPtr<Shader> shader = makeShared<Shader>(ctx, type);
     File file{ctx, source_file};
@@ -178,15 +178,15 @@ rhi::ShaderHandle loadShader(Context* ctx, rhi::ShaderStage type, const String& 
 TEST_CLASS(RHIBasicVertexBuffer) {
     TEST_BODY(RHIBasicVertexBuffer);
 
-    rhi::VertexBufferHandle vb_;
-    rhi::ProgramHandle program_;
+    gfx::VertexBufferHandle vb_;
+    gfx::ProgramHandle program_;
 
     void start() override {
         module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
-        auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/test.fs");
+        auto vs = util::loadShader(context(), gfx::ShaderStage::Vertex, "shaders/test.vs");
+        auto fs = util::loadShader(context(), gfx::ShaderStage::Fragment, "shaders/test.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -203,12 +203,12 @@ TEST_CLASS(RHIBasicVertexBuffer) {
             {-0.5f, -0.5f, 0xff00ff00},  // Vertex 2: Green
             {0.5f, -0.5f, 0xffff0000}    // Vertex 3: Blue
         };
-        rhi::VertexDecl decl;
+        gfx::VertexDecl decl;
         decl.begin()
-            .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
-            .add(rhi::VertexDecl::Attribute::Colour, 4, rhi::VertexDecl::AttributeType::Uint8, true)
+            .add(gfx::VertexDecl::Attribute::Position, 2, gfx::VertexDecl::AttributeType::Float)
+            .add(gfx::VertexDecl::Attribute::Colour, 4, gfx::VertexDecl::AttributeType::Uint8, true)
             .end();
-        vb_ = r->createVertexBuffer(Memory(vertices, sizeof(vertices)), decl);
+        vb_ = r->createVertexBuffer(gfx::Memory(vertices, sizeof(vertices)), decl);
     }
 
     void render(float) override {
@@ -226,16 +226,16 @@ TEST_CLASS(RHIBasicVertexBuffer) {
 TEST_CLASS(RHIBasicIndexBuffer) {
     TEST_BODY(RHIBasicIndexBuffer);
 
-    rhi::VertexBufferHandle vb_;
-    rhi::IndexBufferHandle ib_;
-    rhi::ProgramHandle program_;
+    gfx::VertexBufferHandle vb_;
+    gfx::IndexBufferHandle ib_;
+    gfx::ProgramHandle program_;
 
     void start() override {
         module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
-        auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/test.fs");
+        auto vs = util::loadShader(context(), gfx::ShaderStage::Vertex, "shaders/test.vs");
+        auto fs = util::loadShader(context(), gfx::ShaderStage::Fragment, "shaders/test.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -247,15 +247,16 @@ TEST_CLASS(RHIBasicIndexBuffer) {
             0.5f,  -0.5f, 0.0f, 0.0f, 1.0f,  // Bottom-right
             -0.5f, -0.5f, 1.0f, 1.0f, 1.0f   // Bottom-left
         };
-        rhi::VertexDecl decl;
+        gfx::VertexDecl decl;
         decl.begin()
-            .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
-            .add(rhi::VertexDecl::Attribute::Colour, 3, rhi::VertexDecl::AttributeType::Float)
+            .add(gfx::VertexDecl::Attribute::Position, 2, gfx::VertexDecl::AttributeType::Float)
+            .add(gfx::VertexDecl::Attribute::Colour, 3, gfx::VertexDecl::AttributeType::Float)
             .end();
-        vb_ = r->createVertexBuffer(Memory(vertices, sizeof(vertices)), decl);
+        vb_ = r->createVertexBuffer(gfx::Memory(vertices, sizeof(vertices)), decl);
 
         u32 elements[] = {0, 2, 1, 2, 0, 3};
-        ib_ = r->createIndexBuffer(Memory(elements, sizeof(elements)), rhi::IndexBufferType::U32);
+        ib_ = r->createIndexBuffer(gfx::Memory(elements, sizeof(elements)),
+                                   gfx::IndexBufferType::U32);
     }
 
     void render(float) override {
@@ -273,14 +274,14 @@ TEST_CLASS(RHIBasicIndexBuffer) {
 TEST_CLASS(RHITransientIndexBuffer) {
     TEST_BODY(RHITransientIndexBuffer);
 
-    rhi::ProgramHandle program_;
+    gfx::ProgramHandle program_;
 
     void start() override {
         module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/test.vs");
-        auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/test.fs");
+        auto vs = util::loadShader(context(), gfx::ShaderStage::Vertex, "shaders/test.vs");
+        auto fs = util::loadShader(context(), gfx::ShaderStage::Fragment, "shaders/test.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -299,10 +300,10 @@ TEST_CLASS(RHITransientIndexBuffer) {
             0.5f * size_multiplier,  -0.5f * size_multiplier, 0.0f, 0.0f, 1.0f,  // Bottom-right
             -0.5f * size_multiplier, -0.5f * size_multiplier, 1.0f, 1.0f, 1.0f   // Bottom-left
         };
-        rhi::VertexDecl decl;
+        gfx::VertexDecl decl;
         decl.begin()
-            .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
-            .add(rhi::VertexDecl::Attribute::Colour, 3, rhi::VertexDecl::AttributeType::Float)
+            .add(gfx::VertexDecl::Attribute::Position, 2, gfx::VertexDecl::AttributeType::Float)
+            .add(gfx::VertexDecl::Attribute::Colour, 3, gfx::VertexDecl::AttributeType::Float)
             .end();
         auto tvb = r->allocTransientVertexBuffer(sizeof(vertices) / decl.stride(), decl);
         float* vertex_data = (float*)r->getTransientVertexBufferData(tvb);
@@ -327,7 +328,7 @@ TEST_CLASS(RHITextured3DCube) {
     TEST_BODY(RHITextured3DCube);
 
     SharedPtr<CustomMeshRenderable> box_;
-    rhi::ProgramHandle program_;
+    gfx::ProgramHandle program_;
 
     // Uses the higher level wrapper which provides loading from files.
     UniquePtr<Texture> texture_resource_;
@@ -336,9 +337,9 @@ TEST_CLASS(RHITextured3DCube) {
         module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/cube_textured.vs");
+        auto vs = util::loadShader(context(), gfx::ShaderStage::Vertex, "shaders/cube_textured.vs");
         auto fs =
-            util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/cube_textured.fs");
+            util::loadShader(context(), gfx::ShaderStage::Fragment, "shaders/cube_textured.fs");
         program_ = r->createProgram();
         r->attachShader(program_, vs);
         r->attachShader(program_, fs);
@@ -385,18 +386,18 @@ TEST_CLASS(RHIPostProcessing) {
     TEST_BODY(RHIPostProcessing);
 
     SharedPtr<CustomMeshRenderable> box_;
-    rhi::ProgramHandle box_program_;
+    gfx::ProgramHandle box_program_;
 
-    rhi::VertexBufferHandle fsq_vb_;
-    rhi::ProgramHandle post_process_;
-    rhi::FrameBufferHandle fb_handle_;
+    gfx::VertexBufferHandle fsq_vb_;
+    gfx::ProgramHandle post_process_;
+    gfx::FrameBufferHandle fb_handle_;
 
     void start() override {
         module<FileSystem>()->setWorkingDir("../media/examples");
 
         // Load shaders.
-        auto vs = util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/cube_solid.vs");
-        auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/cube_solid.fs");
+        auto vs = util::loadShader(context(), gfx::ShaderStage::Vertex, "shaders/cube_solid.vs");
+        auto fs = util::loadShader(context(), gfx::ShaderStage::Fragment, "shaders/cube_solid.fs");
         box_program_ = r->createProgram();
         r->attachShader(box_program_, vs);
         r->attachShader(box_program_, fs);
@@ -409,13 +410,13 @@ TEST_CLASS(RHIPostProcessing) {
         util::createFullscreenQuad(r, fsq_vb_);
 
         // Set up frame buffer.
-        fb_handle_ = r->createFrameBuffer(1280, 800, rhi::TextureFormat::RGB8);
+        fb_handle_ = r->createFrameBuffer(1280, 800, gfx::TextureFormat::RGB8);
 
         // Load post process shader.
         auto pp_vs =
-            util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/post_process.vs");
+            util::loadShader(context(), gfx::ShaderStage::Vertex, "shaders/post_process.vs");
         auto pp_fs =
-            util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/post_process.fs");
+            util::loadShader(context(), gfx::ShaderStage::Fragment, "shaders/post_process.fs");
         post_process_ = r->createProgram();
         r->attachShader(post_process_, pp_vs);
         r->attachShader(post_process_, pp_fs);
@@ -440,7 +441,7 @@ TEST_CLASS(RHIPostProcessing) {
         r->setViewClear(0, {0.0f, 0.0f, 0.2f, 1.0f});
         r->setViewFrameBuffer(0, fb_handle_);
         r->setViewClear(1, {0.0f, 0.2f, 0.0f, 1.0f});
-        r->setViewFrameBuffer(1, rhi::FrameBufferHandle{0});
+        r->setViewFrameBuffer(1, gfx::FrameBufferHandle{0});
 
         // Set vertex buffer and submit.
         r->setVertexBuffer(box_->vertexBuffer()->internalHandle());
@@ -464,15 +465,15 @@ TEST_CLASS(RHIDeferredShading) {
     TEST_BODY(RHIDeferredShading);
 
     SharedPtr<CustomMeshRenderable> ground_;
-    rhi::ProgramHandle cube_program_;
+    gfx::ProgramHandle cube_program_;
 
     // Uses the higher level wrapper which provides loading from files.
     UniquePtr<Texture> texture_resource_;
 
-    rhi::ProgramHandle post_process_;
+    gfx::ProgramHandle post_process_;
 
-    rhi::VertexBufferHandle fsq_vb_;
-    rhi::FrameBufferHandle gbuffer_;
+    gfx::VertexBufferHandle fsq_vb_;
+    gfx::FrameBufferHandle gbuffer_;
 
     class PointLight : public Object {
     public:
@@ -484,8 +485,8 @@ TEST_CLASS(RHIDeferredShading) {
 
             // Load shaders.
             auto vs =
-                util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/light_pass.vs");
-            auto fs = util::loadShader(context(), rhi::ShaderStage::Fragment,
+                util::loadShader(context(), gfx::ShaderStage::Vertex, "shaders/light_pass.vs");
+            auto fs = util::loadShader(context(), gfx::ShaderStage::Fragment,
                                        "shaders/point_light_pass.fs");
             program_ = r->createProgram();
             r->attachShader(program_, vs);
@@ -516,14 +517,14 @@ TEST_CLASS(RHIDeferredShading) {
             // Invert culling when inside the light sphere.
             Vec3 view_space_position = (view_matrix * Vec4(position_, 1.0f)).xyz();
             if (view_space_position.LengthSq() < (light_sphere_radius_ * light_sphere_radius_)) {
-                r->setStateCullFrontFace(rhi::CullFrontFace::CW);
+                r->setStateCullFrontFace(gfx::CullFrontFace::CW);
             }
 
             // Disable depth, and enable blending.
-            r->setStateDisable(rhi::RenderState::Depth);
-            r->setStateEnable(rhi::RenderState::Blending);
-            r->setStateBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::One,
-                                     rhi::BlendFunc::One);
+            r->setStateDisable(gfx::RenderState::Depth);
+            r->setStateEnable(gfx::RenderState::Blending);
+            r->setStateBlendEquation(gfx::BlendEquation::Add, gfx::BlendFunc::One,
+                                     gfx::BlendFunc::One);
 
             // Draw sphere.
             r->setVertexBuffer(sphere_->vertexBuffer()->internalHandle());
@@ -534,9 +535,9 @@ TEST_CLASS(RHIDeferredShading) {
         }
 
     private:
-        rhi::RHIRenderer* r;
+        gfx::Renderer* r;
         SharedPtr<CustomMeshRenderable> sphere_;
-        rhi::ProgramHandle program_;
+        gfx::ProgramHandle program_;
 
         Vec3 position_;
         Mat4 model_;
@@ -551,9 +552,9 @@ TEST_CLASS(RHIDeferredShading) {
 
         // Load shaders.
         auto vs =
-            util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/object_gbuffer.vs");
+            util::loadShader(context(), gfx::ShaderStage::Vertex, "shaders/object_gbuffer.vs");
         auto fs =
-            util::loadShader(context(), rhi::ShaderStage::Fragment, "shaders/object_gbuffer.fs");
+            util::loadShader(context(), gfx::ShaderStage::Fragment, "shaders/object_gbuffer.fs");
         cube_program_ = r->createProgram();
         r->attachShader(cube_program_, vs);
         r->attachShader(cube_program_, fs);
@@ -575,15 +576,15 @@ TEST_CLASS(RHIDeferredShading) {
         util::createFullscreenQuad(r, fsq_vb_);
 
         // Set up frame buffer.
-        auto format = rhi::TextureFormat::RGBA32F;
+        auto format = gfx::TextureFormat::RGBA32F;
         gbuffer_ = r->createFrameBuffer({r->createTexture2D(width(), height(), format, Memory()),
                                          r->createTexture2D(width(), height(), format, Memory()),
                                          r->createTexture2D(width(), height(), format, Memory())});
 
         // Load post process shader.
         auto pp_vs =
-            util::loadShader(context(), rhi::ShaderStage::Vertex, "shaders/post_process.vs");
-        auto pp_fs = util::loadShader(context(), rhi::ShaderStage::Fragment,
+            util::loadShader(context(), gfx::ShaderStage::Vertex, "shaders/post_process.vs");
+        auto pp_fs = util::loadShader(context(), gfx::ShaderStage::Fragment,
                                       "shaders/deferred_ambient_light_pass.fs");
         post_process_ = r->createProgram();
         r->attachShader(post_process_, pp_vs);
@@ -611,7 +612,7 @@ TEST_CLASS(RHIDeferredShading) {
         r->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
         r->setViewFrameBuffer(0, gbuffer_);
         r->setViewClear(1, {0.0f, 0.0f, 0.0f, 1.0f});
-        r->setViewFrameBuffer(1, rhi::FrameBufferHandle{0});
+        r->setViewFrameBuffer(1, gfx::FrameBufferHandle{0});
 
         // Calculate matrices.
         Mat4 model = Mat4::Translate(Vec3{0.0f, -10.0f, 0.0f}).ToFloat4x4() *
@@ -732,17 +733,17 @@ TEST_CLASS(PostProcessInvert) {
         using rds = RenderPipelineDesc;
         auto render_scene = RenderPipelineDesc::Node{
             {},
-            {{"out", rhi::TextureFormat::RGBA8}},
+            {{"out", gfx::TextureFormat::RGBA8}},
             {RenderPipelineDesc::ClearStep{}, RenderPipelineDesc::RenderQueueStep{}}};
         auto render_invert =
-            rds::Node{{{"in", rhi::TextureFormat::RGBA8}},
-                      {{"out", rhi::TextureFormat::RGBA8}},
+            rds::Node{{{"in", gfx::TextureFormat::RGBA8}},
+                      {{"out", gfx::TextureFormat::RGBA8}},
                       {rds::RenderQuadStep{"examples:custom/postprocess_inverse"}}};
         HashMap<String, rds::Node> nodes = {{"RenderScene", render_scene},
                                             {"RenderInvert", render_invert}};
         rds desc = {
             nodes,
-            {{"scene", rds::Texture{rhi::TextureFormat::RGBA8}}},
+            {{"scene", rds::Texture{gfx::TextureFormat::RGBA8}}},
             {rds::NodeInstance{"RenderScene", {}, {{"out", "scene"}}},
              rds::NodeInstance{"RenderInvert", {{"in", "scene"}}, {{"out", rds::PipelineOutput}}}}};
 
@@ -811,31 +812,31 @@ TEST_CLASS(DeferredLighting) {
     void start() override {
         using rds = RenderPipelineDesc;
         auto generate_gbuffer = rds::Node{{},
-                                          {{"gb0", rhi::TextureFormat::RGBA32F},
-                                           {"gb1", rhi::TextureFormat::RGBA32F},
-                                           {"gb2", rhi::TextureFormat::RGBA32F}},
+                                          {{"gb0", gfx::TextureFormat::RGBA32F},
+                                           {"gb1", gfx::TextureFormat::RGBA32F},
+                                           {"gb2", gfx::TextureFormat::RGBA32F}},
                                           {rds::ClearStep{}, rds::RenderQueueStep{kDiffuseMask}}};
         auto lighting =
-            rds::Node{{{"gb0", rhi::TextureFormat::RGBA32F},
-                       {"gb1", rhi::TextureFormat::RGBA32F},
-                       {"gb2", rhi::TextureFormat::RGBA32F}},
-                      {{"out", rhi::TextureFormat::RGBA8}},
+            rds::Node{{{"gb0", gfx::TextureFormat::RGBA32F},
+                       {"gb1", gfx::TextureFormat::RGBA32F},
+                       {"gb2", gfx::TextureFormat::RGBA32F}},
+                      {{"out", gfx::TextureFormat::RGBA8}},
                       {rds::RenderQuadStep{"examples:custom/deferred_ambient_light_pass"},
                        rds::RenderQueueStep{kLightMask}}};
         HashMap<String, rds::Node> nodes = {{"GenerateGBuffer", generate_gbuffer},
                                             {"Lighting", lighting}};
         auto debug_gbuffer =
-            rds::Node{{{"gb0", rhi::TextureFormat::RGBA32F},
-                       {"gb1", rhi::TextureFormat::RGBA32F},
-                       {"gb2", rhi::TextureFormat::RGBA32F}},
-                      {{"out", rhi::TextureFormat::RGBA8}},
+            rds::Node{{{"gb0", gfx::TextureFormat::RGBA32F},
+                       {"gb1", gfx::TextureFormat::RGBA32F},
+                       {"gb2", gfx::TextureFormat::RGBA32F}},
+                      {{"out", gfx::TextureFormat::RGBA8}},
                       {rds::RenderQuadStep{"examples:custom/deferred_debug_gbuffer"}}};
 
         rds deferred_lighting_desc = {
             {{"GenerateGBuffer", generate_gbuffer}, {"Lighting", lighting}},
-            {{"gb0", rds::Texture{rhi::TextureFormat::RGBA32F}},
-             {"gb1", rds::Texture{rhi::TextureFormat::RGBA32F}},
-             {"gb2", rds::Texture{rhi::TextureFormat::RGBA32F}}},
+            {{"gb0", rds::Texture{gfx::TextureFormat::RGBA32F}},
+             {"gb1", rds::Texture{gfx::TextureFormat::RGBA32F}},
+             {"gb2", rds::Texture{gfx::TextureFormat::RGBA32F}}},
             {rds::NodeInstance{
                  "GenerateGBuffer", {}, {{"gb0", "gb0"}, {"gb1", "gb1"}, {"gb2", "gb2"}}},
              rds::NodeInstance{"Lighting",
@@ -844,9 +845,9 @@ TEST_CLASS(DeferredLighting) {
 
         rds deferred_debug_desc = {
             {{"GenerateGBuffer", generate_gbuffer}, {"DebugGBuffer", debug_gbuffer}},
-            {{"gb0", rds::Texture{rhi::TextureFormat::RGBA32F}},
-             {"gb1", rds::Texture{rhi::TextureFormat::RGBA32F}},
-             {"gb2", rds::Texture{rhi::TextureFormat::RGBA32F}}},
+            {{"gb0", rds::Texture{gfx::TextureFormat::RGBA32F}},
+             {"gb1", rds::Texture{gfx::TextureFormat::RGBA32F}},
+             {"gb2", rds::Texture{gfx::TextureFormat::RGBA32F}}},
             {rds::NodeInstance{
                  "GenerateGBuffer", {}, {{"gb0", "gb0"}, {"gb1", "gb1"}, {"gb2", "gb2"}}},
              rds::NodeInstance{"DebugGBuffer",
@@ -934,10 +935,10 @@ TEST_CLASS(DeferredLighting) {
         light_material->setTexture(deferred_lighting_pipeline->texture("gb1"), 1);
         light_material->setTexture(deferred_lighting_pipeline->texture("gb2"), 2);
         light_material->setDepthWrite(false);
-        light_material->setStateDisable(rhi::RenderState::Depth);
-        light_material->setStateEnable(rhi::RenderState::Blending);
-        light_material->setBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::One,
-                                         rhi::BlendFunc::One);
+        light_material->setStateDisable(gfx::RenderState::Depth);
+        light_material->setStateEnable(gfx::RenderState::Blending);
+        light_material->setBlendEquation(gfx::BlendEquation::Add, gfx::BlendFunc::One,
+                                         gfx::BlendFunc::One);
         light_material->setMask(kLightMask);
 
         for (int x = -2; x <= 2; ++x) {
@@ -979,8 +980,8 @@ TEST_CLASS(DeferredLighting) {
                     bool should_invert_sphere =
                         camera_transform.position.DistanceSq(light_position) <
                         light_mesh_radius * light_mesh_radius;
-                    material->setCullFrontFace(should_invert_sphere ? rhi::CullFrontFace::CW
-                                                                    : rhi::CullFrontFace::CCW);
+                    material->setCullFrontFace(should_invert_sphere ? gfx::CullFrontFace::CW
+                                                                    : gfx::CullFrontFace::CCW);
                 }
             }
         };

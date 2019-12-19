@@ -5,7 +5,7 @@
 #pragma once
 
 #include "renderer/SystemPosition.h"
-#include "core/math/Colour.h"
+#include "core/math/Defs.h"
 
 namespace dw {
 

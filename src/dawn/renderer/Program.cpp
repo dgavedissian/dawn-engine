@@ -27,7 +27,7 @@ void Program::setTextureUnit(SharedPtr<Texture> texture, uint unit) {
     texture_units_[unit] = std::move(texture);
 }
 
-rhi::ProgramHandle Program::internalHandle() const {
+gfx::ProgramHandle Program::internalHandle() const {
     return handle_;
 }
 

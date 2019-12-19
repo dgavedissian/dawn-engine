@@ -24,8 +24,6 @@ set(SOURCE_FILES
     core/io/Path.h
     core/io/StringInputStream.cpp
     core/io/StringInputStream.h
-    core/math/Colour.h
-    core/math/Colour.cpp
     core/math/Defs.h
     core/math/MathGeoLib.h
     core/math/Noise.cpp
@@ -102,16 +100,6 @@ set(SOURCE_FILES
     net/Rpc.cpp
     net/Rpc.h
     net/Rpc.i.h
-    renderer/rhi/GL.h
-    renderer/rhi/GLRenderContext.cpp
-    renderer/rhi/GLRenderContext.h
-    renderer/rhi/NullRenderContext.cpp
-    renderer/rhi/NullRenderContext.h
-    renderer/rhi/RHIRenderer.cpp
-    renderer/rhi/RHIRenderer.h
-    renderer/rhi/SPIRV.h
-    renderer/rhi/VertexDecl.cpp
-    renderer/rhi/VertexDecl.h
     renderer/BillboardSet.cpp
     renderer/BillboardSet.h
     renderer/CCamera.cpp
@@ -120,15 +108,12 @@ set(SOURCE_FILES
     renderer/CustomMeshRenderable.h
     renderer/FrameBuffer.cpp
     renderer/FrameBuffer.h
-    renderer/GLSL.h
     renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h
     renderer/Material.cpp
     renderer/Material.h
     renderer/Mesh.cpp
     renderer/Mesh.h
-    renderer/MeshBuilder.cpp
-    renderer/MeshBuilder.h
     renderer/Node.cpp
     renderer/Node.h
     renderer/Program.cpp
@@ -148,8 +133,6 @@ set(SOURCE_FILES
     renderer/SystemPosition.h
     renderer/Texture.cpp
     renderer/Texture.h
-    renderer/TriangleBuffer.cpp
-    renderer/TriangleBuffer.h
     renderer/VertexBuffer.cpp
     renderer/VertexBuffer.h
     resource/Resource.cpp
@@ -218,19 +201,15 @@ target_link_libraries(DwEngine
     BulletCollision
     LinearMath
     concurrentqueue
+    dawn-gfx
     EnTT
     expected
     FastDelegate
     flatbuffers
-    glfw
-    glslang
-    SPIRV
     imgui
     json
     MathGeoLib
     sol2
-    spirv-cross-glsl
-    spirv-cross-hlsl
     stb
     tinyformat
     variant

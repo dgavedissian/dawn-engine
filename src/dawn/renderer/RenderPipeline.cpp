@@ -76,11 +76,11 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
         }
         HashSet<String> outputs_bound;
         HashSet<String> textures_bound_to_outputs;
-        Option<rhi::TextureFormat> output_format;
+        Option<gfx::TextureFormat> output_format;
         for (auto& binding : node_instance.output_bindings) {
             auto output_it =
                 std::find_if(node.outputs.begin(), node.outputs.end(),
-                             [&binding](const Pair<String, rhi::TextureFormat>& item) -> bool {
+                             [&binding](const Pair<String, gfx::TextureFormat>& item) -> bool {
                                  return item.first == binding.first;
                              });
             if (output_it == node.outputs.end()) {
@@ -109,7 +109,7 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
             }
 
             if (binding.second == RenderPipelineDesc::PipelineOutput) {
-                if (output_it->second != rhi::TextureFormat::RGBA8) {
+                if (output_it->second != gfx::TextureFormat::RGBA8) {
                     return makeError(str::format(
                         "Texture format mismatch. Output: %s (%d). Texture: Output (RGBA8)",
                         output_it->first, static_cast<int>(output_it->second)));
@@ -145,19 +145,20 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
         -1.0f,  3.0f, 0.0f, 2.0f
     };
     // clang-format on
-    rhi::VertexDecl decl;
+    gfx::VertexDecl decl;
     decl.begin()
-        .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
-        .add(rhi::VertexDecl::Attribute::TexCoord0, 2, rhi::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::Position, 2, gfx::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::TexCoord0, 2, gfx::VertexDecl::AttributeType::Float)
         .end();
     render_pipeline->fullscreen_quad_ =
-        makeShared<VertexBuffer>(ctx, Memory(vertices, sizeof(vertices)), 3, decl);
+        makeShared<VertexBuffer>(ctx, gfx::Memory(vertices, sizeof(vertices)), 3, decl);
 
     // Create textures.
     for (auto& texture_desc : desc.textures) {
-        render_pipeline->textures_[texture_desc.first] = Texture::createTexture2D(
-            ctx, ctx->module<Renderer>()->rhi()->backbufferSize() * texture_desc.second.ratio,
-            texture_desc.second.format);
+        auto bb_size = ctx->module<Renderer>()->rhi()->backbufferSize();
+        render_pipeline->textures_[texture_desc.first] =
+            Texture::createTexture2D(ctx, Vec2i{bb_size.x, bb_size.y} * texture_desc.second.ratio,
+                                     texture_desc.second.format);
     }
 
     // Build nodes.
@@ -263,7 +264,7 @@ SharedPtr<Texture> RenderPipeline::texture(const String& name) {
 RenderPipeline::PClearStep::PClearStep(Colour colour) : colour_(colour) {
 }
 
-void RenderPipeline::PClearStep::execute(Logger& log, rhi::RHIRenderer* r, float dt,
+void RenderPipeline::PClearStep::execute(Logger& log, gfx::Renderer* r, float dt,
                                          float interpolation, SceneGraph* scene_graph,
                                          u32 camera_id, uint view) {
 #ifdef ENABLE_DEBUG_LOGGING
@@ -275,7 +276,7 @@ void RenderPipeline::PClearStep::execute(Logger& log, rhi::RHIRenderer* r, float
 RenderPipeline::PRenderQueueStep::PRenderQueueStep(u32 mask) : mask_(mask) {
 }
 
-void RenderPipeline::PRenderQueueStep::execute(Logger& log, rhi::RHIRenderer* r, float dt,
+void RenderPipeline::PRenderQueueStep::execute(Logger& log, gfx::Renderer* r, float dt,
                                                float interpolation, SceneGraph* scene_graph,
                                                u32 camera_id, uint view) {
 #ifdef ENABLE_DEBUG_LOGGING
@@ -292,7 +293,7 @@ RenderPipeline::PRenderQuadStep::PRenderQuadStep(SharedPtr<VertexBuffer> fullscr
       input_samplers_(input_samplers) {
 }
 
-void RenderPipeline::PRenderQuadStep::execute(Logger& log, rhi::RHIRenderer* r, float dt,
+void RenderPipeline::PRenderQuadStep::execute(Logger& log, gfx::Renderer* r, float dt,
                                               float interpolation, SceneGraph* scene_graph,
                                               u32 camera_id, uint view) {
 #ifdef ENABLE_DEBUG_LOGGING
@@ -307,8 +308,8 @@ void RenderPipeline::PRenderQuadStep::execute(Logger& log, rhi::RHIRenderer* r, 
 RenderPipeline::PNode::PNode() {
 }
 
-void RenderPipeline::PNode::prepareForRendering(rhi::RHIRenderer* r, uint view) {
+void RenderPipeline::PNode::prepareForRendering(gfx::Renderer* r, uint view) {
     r->setViewFrameBuffer(view, output_frame_buffer_ ? output_frame_buffer_->internalHandle()
-                                                     : rhi::FrameBufferHandle{0});
+                                                     : gfx::FrameBufferHandle{0});
 }
 }  // namespace dw

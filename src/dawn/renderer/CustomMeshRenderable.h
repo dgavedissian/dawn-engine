@@ -7,12 +7,14 @@
 #include "renderer/Renderable.h"
 #include "renderer/VertexBuffer.h"
 #include "renderer/IndexBuffer.h"
+#include <dawn-gfx/TriangleBuffer.h>
 
 namespace dw {
 class DW_API CustomMeshRenderable : public Object, public Renderable {
 public:
     DW_OBJECT(CustomMeshRenderable);
 
+    CustomMeshRenderable(Context* ctx, gfx::Mesh gfx_mesh);
     CustomMeshRenderable(Context* ctx, SharedPtr<VertexBuffer> vertex_buffer,
                          SharedPtr<IndexBuffer> index_buffer);
     ~CustomMeshRenderable();

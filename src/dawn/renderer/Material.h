@@ -20,14 +20,14 @@ public:
 
     Result<void> beginLoad(const String& asset_name, InputStream& src) override;
 
-    void setStateEnable(rhi::RenderState state);
-    void setStateDisable(rhi::RenderState state);
-    void setCullFrontFace(rhi::CullFrontFace front_face);
-    void setPolygonMode(rhi::PolygonMode polygon_mode);
-    void setBlendEquation(rhi::BlendEquation equation, rhi::BlendFunc src, rhi::BlendFunc dest);
-    void setBlendEquation(rhi::BlendEquation equation_rgb, rhi::BlendFunc src_rgb,
-                          rhi::BlendFunc dest_rgb, rhi::BlendEquation equation_a,
-                          rhi::BlendFunc src_a, rhi::BlendFunc dest_a);
+    void setStateEnable(gfx::RenderState state);
+    void setStateDisable(gfx::RenderState state);
+    void setCullFrontFace(gfx::CullFrontFace front_face);
+    void setPolygonMode(gfx::PolygonMode polygon_mode);
+    void setBlendEquation(gfx::BlendEquation equation, gfx::BlendFunc src, gfx::BlendFunc dest);
+    void setBlendEquation(gfx::BlendEquation equation_rgb, gfx::BlendFunc src_rgb,
+                          gfx::BlendFunc dest_rgb, gfx::BlendEquation equation_a,
+                          gfx::BlendFunc src_a, gfx::BlendFunc dest_a);
     void setColourWrite(bool colour_write_enabled);
     void setDepthWrite(bool depth_write_enabled);
 
@@ -48,23 +48,23 @@ public:
 private:
     SharedPtr<Program> program_;
 
-    HashSet<rhi::RenderState> states_to_enable_;
-    HashSet<rhi::RenderState> states_to_disable_;
+    HashSet<gfx::RenderState> states_to_enable_;
+    HashSet<gfx::RenderState> states_to_disable_;
 
-    rhi::CullFrontFace cull_front_face_;
-    rhi::PolygonMode polygon_mode_;
-    rhi::BlendEquation blend_equation_rgb_;
-    rhi::BlendFunc blend_src_rgb_;
-    rhi::BlendFunc blend_dest_rgb_;
-    rhi::BlendEquation blend_equation_a_;
-    rhi::BlendFunc blend_src_a_;
-    rhi::BlendFunc blend_dest_a_;
+    gfx::CullFrontFace cull_front_face_;
+    gfx::PolygonMode polygon_mode_;
+    gfx::BlendEquation blend_equation_rgb_;
+    gfx::BlendFunc blend_src_rgb_;
+    gfx::BlendFunc blend_dest_rgb_;
+    gfx::BlendEquation blend_equation_a_;
+    gfx::BlendFunc blend_src_a_;
+    gfx::BlendFunc blend_dest_a_;
     bool colour_write_;  // TODO: make component-wise
     bool depth_write_;
 
     u32 mask_;
 
     Array<SharedPtr<Texture>, 8> texture_units_;
-    HashMap<String, rhi::UniformData> uniforms_;
+    HashMap<String, gfx::UniformData> uniforms_;
 };
 }  // namespace dw

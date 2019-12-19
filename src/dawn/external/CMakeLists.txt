@@ -165,6 +165,13 @@ FetchContent_MakeAvailable(concurrentqueue)
 add_library(concurrentqueue INTERFACE)
 target_include_directories(concurrentqueue INTERFACE ${concurrentqueue_SOURCE_DIR})
 
+# dawn-gfx
+FetchContent_Declare(
+    dawn-gfx
+    URL https://github.com/dgavedissian/dawn-gfx/archive/ecf229a59a0fb5586fb64379e1602f0dc113899f.tar.gz
+)
+FetchContent_MakeAvailable(dawn-gfx)
+
 # entt
 FetchContent_Declare(
     entt
@@ -180,6 +187,7 @@ FetchContent_Declare(
     URL https://github.com/TartanLlama/expected/archive/fd96e4545cc50ddfbbead177ef6594b12b210d62.zip
     URL_MD5 8e0769ee95b95f4aa58d5a37d51d9bad
 )
+FetchContent_GetProperties(expected)
 if(NOT expected_POPULATED)
     FetchContent_Populate(expected)
     add_library(expected INTERFACE)
@@ -242,51 +250,6 @@ function(flatbuffers_generate_cpp_headers Name)
     endforeach()
     set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
 endfunction()
-
-# glad
-if(NOT EMSCRIPTEN)
-    add_library(glad EXCLUDE_FROM_ALL glad/src/glad.c)
-    target_include_directories(glad PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glad/include)
-endif()
-
-# glfw
-FetchContent_Declare(
-    glfw
-    URL https://github.com/glfw/glfw/archive/c90c7b97109db909577e3bf540b5f884422b7e14.tar.gz
-    URL_MD5 326ceda8f5184e3e79625c6d2268a3c5
-)
-FetchContent_GetProperties(glfw)
-if(NOT glfw_POPULATED)
-    FetchContent_Populate(glfw)
-    if(NOT EMSCRIPTEN)
-        set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-        set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-        set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-        set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-        set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
-        add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR} EXCLUDE_FROM_ALL)
-    else()
-        add_library(glfw INTERFACE)
-        target_include_directories(glfw INTERFACE ${glfw_SOURCE_DIR}/include)
-        target_link_libraries(glfw INTERFACE "-s USE_GLFW=3" "-s USE_WEBGL2=1" "-s FULL_ES3=1")
-    endif()
-endif()
-
-# glslang
-FetchContent_Declare(
-    glslang
-    URL https://github.com/KhronosGroup/glslang/archive/7.10.2984.tar.gz
-    URL_MD5 865bad2658dd1d61f9c5583a4a1992e6
-)
-set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
-set(ENABLE_HLSL OFF CACHE BOOL "" FORCE)
-mark_as_advanced(
-        BUILD_TESTING
-        ENABLE_GLSLANG_BINARIES
-        ENABLE_HLSL
-)
-FetchContent_MakeAvailable(glslang)
 
 # googletest
 FetchContent_Declare(
@@ -368,27 +331,6 @@ set_property(TARGET luajit PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EXTERNAL_PRE
 set_property(TARGET luajit PROPERTY INTERFACE_LINK_LIBRARIES
     ${EXTERNAL_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}luajit-5.1${CMAKE_STATIC_LIBRARY_SUFFIX})
 
-# MathGeoLib
-FetchContent_Declare(
-    mathgeolib
-    URL https://github.com/juj/MathGeoLib/archive/01f92dd8fbd1fe2e405de713cfd985ff07d27dc9.tar.gz
-    URL_MD5 bdab0f5b19661b7842501c738209e4fb
-    PATCH_COMMAND ${PATCH_TOOL} -p1 -i ${CMAKE_CURRENT_SOURCE_DIR}/MathGeoLib.diff
-)
-set(VS_BUG ON CACHE BOOL "" FORCE)
-set(MATH_TESTS_EXECUTABLE OFF CACHE BOOL "" FORCE)
-set(INSTALL_CMAKE_DIR ${CMAKE_BINARY_DIR}/_deps/mathgeolib-build CACHE BOOL "" FORCE)
-set(INSTALL_INCLUDE_DIR ${CMAKE_BINARY_DIR}/_deps/mathgeolib-build CACHE BOOL "" FORCE)
-mark_as_advanced(
-    VS_BUG
-    MATH_TESTS_EXECUTABLE
-    GENERATE_ASM_LISTING
-    INSTALL_CMAKE_DIR
-    INSTALL_INCLUDE_DIR
-)
-FetchContent_MakeAvailable(mathgeolib)
-target_include_directories(MathGeoLib PUBLIC $<BUILD_INTERFACE:${mathgeolib_SOURCE_DIR}/src>)
-
 # sol2
 FetchContent_Declare(
     sol2
@@ -400,19 +342,6 @@ if(NOT sol2_POPULATED)
     FetchContent_Populate(sol2)
     add_library(sol2 INTERFACE)
     target_include_directories(sol2 INTERFACE ${sol2_SOURCE_DIR}/single/sol)
-endif()
-
-# SPIRV-Cross
-FetchContent_Declare(
-    spirv-cross
-    URL https://github.com/KhronosGroup/SPIRV-Cross/archive/ed16b3e69985feaf565efbecea70a1cc2fca2a58.tar.gz
-    URL_MD5 970fa559c40cee3ba603246a1696a6c9
-)
-FetchContent_GetProperties(spirv-cross)
-if(NOT spirv-cross_POPULATED)
-    FetchContent_Populate(spirv-cross)
-    add_subdirectory(${spirv-cross_SOURCE_DIR} ${spirv-cross_BINARY_DIR} EXCLUDE_FROM_ALL)
-    target_include_directories(spirv-cross-core PUBLIC $<BUILD_INTERFACE:${spirv-cross_SOURCE_DIR}/include/spirv_cross>)
 endif()
 
 # stb

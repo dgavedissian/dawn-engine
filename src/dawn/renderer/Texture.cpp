@@ -42,7 +42,7 @@ Texture::~Texture() {
 }
 
 SharedPtr<Texture> Texture::createTexture2D(Context* ctx, const Vec2i& size,
-                                            rhi::TextureFormat format, Memory data) {
+                                            gfx::TextureFormat format, gfx::Memory data) {
     auto texture = makeShared<Texture>(ctx);
     texture->handle_ =
         ctx->module<Renderer>()->rhi()->createTexture2D(size.x, size.y, format, std::move(data));
@@ -58,15 +58,15 @@ Result<void> Texture::beginLoad(const String&, InputStream& src) {
     int width, height, bpp;
     byte* buffer = stbi_load_from_callbacks(&callbacks, reinterpret_cast<void*>(&src), &width,
                                             &height, &bpp, 4);
-    Memory data(buffer, static_cast<u32>(width * height * 4),
-                [](byte* buffer) { stbi_image_free(buffer); });
+    gfx::Memory data(buffer, static_cast<usize>(width * height * 4),
+                     [](std::byte* buffer) { stbi_image_free(buffer); });
     handle_ = module<Renderer>()->rhi()->createTexture2D(
-        static_cast<u16>(width), static_cast<u16>(height), rhi::TextureFormat::RGBA8,
+        static_cast<u16>(width), static_cast<u16>(height), gfx::TextureFormat::RGBA8,
         std::move(data));
     return Result<void>();
 }
 
-rhi::TextureHandle Texture::internalHandle() const {
+gfx::TextureHandle Texture::internalHandle() const {
     return handle_;
 }
 }  // namespace dw

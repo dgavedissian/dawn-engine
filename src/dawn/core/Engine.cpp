@@ -142,12 +142,12 @@ void Engine::setup(const CommandLine& cmdline) {
         use_multithreading = false;
 #endif
         renderer_result = renderer->rhi()->init(
-            rhi::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
+            gfx::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
             context_->config().at("window_height").get<u16>(), window_title, use_multithreading);
         context_->addModule<Input>();
     } else {
         renderer_result = renderer->rhi()->init(
-            rhi::RendererType::Null, context_->config().at("window_width").get<u16>(),
+            gfx::RendererType::Null, context_->config().at("window_width").get<u16>(),
             context_->config().at("window_height").get<u16>(), window_title, false);
     }
     if (!renderer_result) {

@@ -4,20 +4,48 @@
  */
 #include "Base.h"
 #include "renderer/Renderer.h"
-#include "scene/SceneManager.h"
 
 namespace dw {
+class Renderer::RendererLoggerImpl : public gfx::Logger {
+public:
+    explicit RendererLoggerImpl(dw::Logger& logger) : logger_{logger} {
+    }
+
+    void log(gfx::LogLevel level, const std::string& value) override {
+        LogLevel converted_level;
+        switch (level) {
+            case gfx::LogLevel::Debug:
+                converted_level = LogLevel::Debug;
+                break;
+            case gfx::LogLevel::Info:
+                converted_level = LogLevel::Info;
+                break;
+            case gfx::LogLevel::Warning:
+                converted_level = LogLevel::Warning;
+                break;
+            case gfx::LogLevel::Error:
+                converted_level = LogLevel ::Error;
+                break;
+        }
+        logger_.log(converted_level, value);
+    }
+
+private:
+    dw::Logger& logger_;
+};
+
 Renderer::Renderer(Context* ctx)
     : Module(ctx),
       frame_time_(0.0f),
       frames_per_second_(0),
       frame_counter_(0),
       last_fps_update_(time::beginTiming()) {
-    rhi_ = makeUnique<rhi::RHIRenderer>(ctx);
+    renderer_logger_ = makeUnique<RendererLoggerImpl>(log());
+    renderer_ = makeUnique<gfx::Renderer>(*renderer_logger_);
 }
 
 bool Renderer::frame() {
-    auto result = rhi_->frame();
+    auto result = renderer_->frame();
 
     // Update frame counter.
     frame_counter_++;
@@ -31,8 +59,8 @@ bool Renderer::frame() {
     return result;
 }
 
-rhi::RHIRenderer* Renderer::rhi() const {
-    return rhi_.get();
+gfx::Renderer* Renderer::rhi() const {
+    return renderer_.get();
 }
 
 double Renderer::frameTime() const {

@@ -5,25 +5,25 @@
 #pragma once
 
 #include "resource/Resource.h"
-#include "renderer/rhi/RHIRenderer.h"
+#include <dawn-gfx/Renderer.h>
 
 namespace dw {
 class DW_API Texture : public Resource {
 public:
     DW_OBJECT(Texture);
 
-    Texture(Context* context);
-    ~Texture();
+    explicit Texture(Context* context);
+    ~Texture() override;
 
     static SharedPtr<Texture> createTexture2D(Context* ctx, const Vec2i& size,
-                                              rhi::TextureFormat format, Memory data = {});
+                                              gfx::TextureFormat format, gfx::Memory data = {});
 
     // Resource.
     Result<void> beginLoad(const String& asset_name, InputStream& src) override;
 
-    rhi::TextureHandle internalHandle() const;
+    gfx::TextureHandle internalHandle() const;
 
 private:
-    rhi::TextureHandle handle_;
+    gfx::TextureHandle handle_;
 };
 }  // namespace dw

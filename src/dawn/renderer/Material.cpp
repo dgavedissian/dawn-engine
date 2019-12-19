@@ -11,18 +11,18 @@ namespace dw {
 Material::Material(Context* ctx) : Material{ctx, nullptr} {
 }
 
-// Default render state is taken from RHIRenderer.cpp:40
+// Default render state is taken from Renderer.cpp:40
 Material::Material(Context* ctx, SharedPtr<Program> program)
     : Resource{ctx},
       program_{program},
-      cull_front_face_{rhi::CullFrontFace::CCW},
-      polygon_mode_{rhi::PolygonMode::Fill},
-      blend_equation_rgb_{rhi::BlendEquation::Add},
-      blend_equation_a_{rhi::BlendEquation::Add},
-      blend_src_rgb_{rhi::BlendFunc::One},
-      blend_src_a_{rhi::BlendFunc::One},
-      blend_dest_rgb_{rhi::BlendFunc::Zero},
-      blend_dest_a_{rhi::BlendFunc::Zero},
+      cull_front_face_{gfx::CullFrontFace::CCW},
+      polygon_mode_{gfx::PolygonMode::Fill},
+      blend_equation_rgb_{gfx::BlendEquation::Add},
+      blend_equation_a_{gfx::BlendEquation::Add},
+      blend_src_rgb_{gfx::BlendFunc::One},
+      blend_src_a_{gfx::BlendFunc::One},
+      blend_dest_rgb_{gfx::BlendFunc::Zero},
+      blend_dest_a_{gfx::BlendFunc::Zero},
       colour_write_{true},
       depth_write_{true},
       mask_{0x1} {
@@ -35,34 +35,34 @@ Result<void> Material::beginLoad(const String& asset_name, InputStream& src) {
     return makeError("Material loading unimplemented");
 }
 
-void Material::setStateEnable(rhi::RenderState state) {
+void Material::setStateEnable(gfx::RenderState state) {
     states_to_enable_.emplace(state);
     states_to_disable_.erase(state);
 }
 
-void Material::setStateDisable(rhi::RenderState state) {
+void Material::setStateDisable(gfx::RenderState state) {
     states_to_disable_.emplace(state);
     states_to_enable_.erase(state);
 }
 
-void Material::setCullFrontFace(rhi::CullFrontFace front_face) {
+void Material::setCullFrontFace(gfx::CullFrontFace front_face) {
     cull_front_face_ = front_face;
 }
 
-void Material::setPolygonMode(rhi::PolygonMode polygon_mode) {
+void Material::setPolygonMode(gfx::PolygonMode polygon_mode) {
     polygon_mode_ = polygon_mode;
 }
 
-void Material::setBlendEquation(rhi::BlendEquation equation, rhi::BlendFunc src,
-                                rhi::BlendFunc dest) {
+void Material::setBlendEquation(gfx::BlendEquation equation, gfx::BlendFunc src,
+                                gfx::BlendFunc dest) {
     blend_equation_rgb_ = blend_equation_a_ = equation;
     blend_src_rgb_ = blend_src_a_ = src;
     blend_dest_rgb_ = blend_dest_a_ = dest;
 }
 
-void Material::setBlendEquation(rhi::BlendEquation equation_rgb, rhi::BlendFunc src_rgb,
-                                rhi::BlendFunc dest_rgb, rhi::BlendEquation equation_a,
-                                rhi::BlendFunc src_a, rhi::BlendFunc dest_a) {
+void Material::setBlendEquation(gfx::BlendEquation equation_rgb, gfx::BlendFunc src_rgb,
+                                gfx::BlendFunc dest_rgb, gfx::BlendEquation equation_a,
+                                gfx::BlendFunc src_a, gfx::BlendFunc dest_a) {
     blend_equation_rgb_ = equation_rgb;
     blend_src_rgb_ = src_rgb;
     blend_dest_rgb_ = dest_rgb;

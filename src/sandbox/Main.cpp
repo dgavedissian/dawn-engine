@@ -29,13 +29,13 @@ public:
         Vec3 p;
         Vec3 n;
         Vec2 tc;
-        static rhi::VertexDecl createDecl() {
-            return rhi::VertexDecl{}
+        static gfx::VertexDecl createDecl() {
+            return gfx::VertexDecl{}
                 .begin()
-                .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
-                .add(rhi::VertexDecl::Attribute::Normal, 3, rhi::VertexDecl::AttributeType::Float)
-                .add(rhi::VertexDecl::Attribute::TexCoord0, 2,
-                     rhi::VertexDecl::AttributeType::Float)
+                .add(gfx::VertexDecl::Attribute::Position, 3, gfx::VertexDecl::AttributeType::Float)
+                .add(gfx::VertexDecl::Attribute::Normal, 3, gfx::VertexDecl::AttributeType::Float)
+                .add(gfx::VertexDecl::Attribute::TexCoord0, 2,
+                     gfx::VertexDecl::AttributeType::Float)
                 .end();
         }
     };
@@ -92,7 +92,7 @@ public:
         material->setTexture(*rc->get<Texture>("base:space/planet.jpg"));
         material->setUniform("light_direction", Vec3{1.0f, 0.0f, 0.0f});
         material->setUniform("surface_sampler", 0);
-        material->setPolygonMode(rhi::PolygonMode::Wireframe);
+        material->setPolygonMode(gfx::PolygonMode::Wireframe);
 
         // Set up renderable.
         setupTerrainRenderable();
@@ -234,10 +234,11 @@ private:
         int default_index_count = 20;
         custom_mesh_renderable_ = makeShared<CustomMeshRenderable>(
             context(),
-            makeShared<VertexBuffer>(context(), Memory(default_vertex_count * vertex_decl.stride()),
-                                     default_vertex_count, vertex_decl, rhi::BufferUsage::Dynamic),
-            makeShared<IndexBuffer>(context(), Memory(default_index_count * sizeof(u32)),
-                                    rhi::IndexBufferType::U32, rhi::BufferUsage::Dynamic));
+            makeShared<VertexBuffer>(context(),
+                                     gfx::Memory(default_vertex_count * vertex_decl.stride()),
+                                     default_vertex_count, vertex_decl, gfx::BufferUsage::Dynamic),
+            makeShared<IndexBuffer>(context(), gfx::Memory(default_index_count * sizeof(u32)),
+                                    gfx::IndexBufferType::U32, gfx::BufferUsage::Dynamic));
 
         // Setup patches.
         float offset = math::Sqrt((radius_ * radius_) / 3.0f);
@@ -293,9 +294,10 @@ private:
     void uploadTerrainDataToGpu(Vector<PlanetTerrainPatch::Vertex>&& vertices,
                                 Vector<u32>&& indices) {
         // Upload to GPU.
-        custom_mesh_renderable_->vertexBuffer()->update(Memory{std::move(vertices)},
-                                                        vertices.size(), 0);
-        custom_mesh_renderable_->indexBuffer()->update(Memory{std::move(indices)}, 0);
+        auto num_vertices = vertices.size();
+        custom_mesh_renderable_->vertexBuffer()->update(gfx::Memory{std::move(vertices)},
+                                                        num_vertices, 0);
+        custom_mesh_renderable_->indexBuffer()->update(gfx::Memory{std::move(indices)}, 0);
     }
 
     friend class PlanetTerrainPatch;

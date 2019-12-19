@@ -19,7 +19,7 @@ SceneGraph::SceneGraph(Context* ctx)
       camera_entity_system_(nullptr) {
     auto default_render_pipeline_node = RenderPipelineDesc::Node{
         {},
-        {{"out", rhi::TextureFormat::RGBA8}},
+        {{"out", gfx::TextureFormat::RGBA8}},
         {RenderPipelineDesc::ClearStep{}, RenderPipelineDesc::RenderQueueStep{}}};
     auto default_render_pipeline =
         RenderPipelineDesc{{{"Default", default_render_pipeline_node}},

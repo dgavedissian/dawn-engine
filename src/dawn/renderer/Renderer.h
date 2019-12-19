@@ -5,21 +5,22 @@
 #pragma once
 
 #include "core/Timer.h"
-#include "renderer/rhi/RHIRenderer.h"
+
+#include <dawn-gfx/Renderer.h>
 
 namespace dw {
 class DW_API Renderer : public Module {
 public:
     DW_OBJECT(Renderer);
 
-    Renderer(Context* ctx);
-    ~Renderer() = default;
+    explicit Renderer(Context* ctx);
+    ~Renderer() override = default;
 
     /// Render a single frame.
     bool frame();
 
     /// Get the renderer hardware interface.
-    rhi::RHIRenderer* rhi() const;
+    gfx::Renderer* rhi() const;
 
     /// Access the last frame time
     double frameTime() const;
@@ -28,7 +29,10 @@ public:
     int framesPerSecond() const;
 
 private:
-    UniquePtr<rhi::RHIRenderer> rhi_;
+    class RendererLoggerImpl;
+
+    UniquePtr<gfx::Renderer> renderer_;
+    SharedPtr<RendererLoggerImpl> renderer_logger_;  // needs to be shared as type is not defined.
 
     double frame_time_;
     int frames_per_second_;

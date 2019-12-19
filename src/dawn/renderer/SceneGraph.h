@@ -22,8 +22,8 @@ class SceneGraph : public Object {
 public:
     DW_OBJECT(SceneGraph);
 
-    SceneGraph(Context* ctx);
-    ~SceneGraph();
+    explicit SceneGraph(Context* ctx);
+    ~SceneGraph() override;
 
     void setupEntitySystems(SceneManager* scene_manager);
 

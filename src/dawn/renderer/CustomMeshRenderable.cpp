@@ -8,6 +8,13 @@
 #include "renderer/Renderer.h"
 
 namespace dw {
+
+CustomMeshRenderable::CustomMeshRenderable(Context* ctx, gfx::Mesh gfx_mesh)
+    : CustomMeshRenderable{ctx, makeShared<VertexBuffer>(ctx, gfx_mesh.vb, gfx_mesh.vertex_count),
+                           makeShared<IndexBuffer>(ctx, gfx_mesh.ib, gfx_mesh.index_count,
+                                                   gfx::IndexBufferType::U32)} {
+}
+
 CustomMeshRenderable::CustomMeshRenderable(Context* ctx, SharedPtr<VertexBuffer> vertex_buffer,
                                            SharedPtr<IndexBuffer> index_buffer)
     : Object{ctx}, vertex_buffer_{vertex_buffer}, index_buffer_{index_buffer} {

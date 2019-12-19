@@ -11,7 +11,7 @@
 #include "core/io/OutputStream.h"
 #include "core/io/Path.h"
 #include "core/io/StringInputStream.h"
-#include "core/math/Colour.h"
+#include "core/math/Defs.h"
 #include "core/math/Defs.h"
 #include "core/math/MathGeoLib.h"
 #include "core/math/Noise.h"

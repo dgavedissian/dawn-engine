@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Base.h"
-#include "core/math/Colour.h"
+#include "core/math/Defs.h"
 #include "scene/Component.h"
 #include "scene/SceneManager.h"
 #include "scene/PhysicsScene.h"

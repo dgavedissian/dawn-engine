@@ -78,7 +78,7 @@ void Mesh::SubMesh::draw(Renderer* renderer, uint view, const Mat4& model_matrix
                          const Mat4& view_projection_matrix) {
     // TODO: Revamp material system.
     material_->applyRendererState(model_matrix, view_projection_matrix);
-    renderer->rhi()->setStateDisable(rhi::RenderState::CullFace);
+    renderer->rhi()->setStateDisable(gfx::RenderState::CullFace);
     renderer->rhi()->submit(view, material_->program()->internalHandle(), index_count_,
                             index_buffer_offset_);
 }
@@ -175,13 +175,15 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     }
 
     // Build GPU buffers.
-    rhi::VertexDecl decl;
+    gfx::VertexDecl decl;
     decl.begin()
-        .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
-        .add(rhi::VertexDecl::Attribute::Normal, 3, rhi::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::Position, 3, gfx::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::Normal, 3, gfx::VertexDecl::AttributeType::Float)
         .end();
-    vertex_buffer_ = makeShared<VertexBuffer>(context(), Memory(vertices), vertices.size(), decl);
-    index_buffer_ = makeShared<IndexBuffer>(context(), Memory(indices), rhi::IndexBufferType::U32);
+    vertex_buffer_ =
+        makeShared<VertexBuffer>(context(), gfx::Memory(vertices), vertices.size(), decl);
+    index_buffer_ =
+        makeShared<IndexBuffer>(context(), gfx::Memory(indices), gfx::IndexBufferType::U32);
 
     // Set up node hierarchy.
     Function<UniquePtr<Node>(aiNode*, Node*)> create_node_tree =
