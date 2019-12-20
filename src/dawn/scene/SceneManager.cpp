@@ -12,7 +12,7 @@
 #include "net/CNetTransform.h"
 #include "renderer/SceneGraph.h"
 #include "SceneManager.h"
-#include <dawn-gfx/MeshBuilder.h>
+#include "renderer/CustomRenderable.h"
 
 namespace dw {
 SceneManager::SceneManager(Context* ctx, EventSystem* event_system, SceneGraph* scene_graph)
@@ -40,10 +40,8 @@ void SceneManager::createStarSystem() {
         *module<ResourceCache>()->get<Texture>("base:space/starfield.jpg"));
     background_material->setUniform<int>("starfield_sampler", 0);
     background_material->setDepthWrite(false);
-    auto skybox = makeShared<CustomMeshRenderable>(
-        context(),
-        gfx::MeshBuilder{*module<Renderer>()->rhi()}.normals(false).texcoords(true).createBox(
-            -100.0f));
+    auto skybox =
+        CustomRenderable::Builder(context()).normals(false).texcoords(true).createBox(-100.0f);
     skybox->setMaterial(background_material);
     background_scene_node_->data.renderable = skybox;
 }

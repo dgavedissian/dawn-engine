@@ -29,7 +29,7 @@ Result<void> Resource::endLoad() {
 }
 
 Result<void> Resource::save(OutputStream&) {
-    return makeError(str::format("Save not supported for %s", typeName()));
+    return makeError(str::format("Save not supported for {}", typeName()));
 }
 
 bool Resource::hasLoaded() const {

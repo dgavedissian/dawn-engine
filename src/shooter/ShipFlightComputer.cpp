@@ -28,9 +28,9 @@ ShipFlightComputer::ShipFlightComputer(Ship* ship)
         rb->_rigidBody()->getInvInertiaTensorWorld() * neg_torque;
 
     /*
-    log().info("Max positive: %s - max negative: %s", ship_acceleration_forwards_.ToString(),
+    log().info("Max positive: {} - max negative: {}", ship_acceleration_forwards_.ToString(),
                ship_acceleration_backwards_.ToString());
-    log().info("Max clockwise: %s - max anticlockwise: %s",
+    log().info("Max clockwise: {} - max anticlockwise: {}",
                ship_angular_acceleration_forwards_.ToString(),
                ship_angular_acceleration_backwards_.ToString());
     */

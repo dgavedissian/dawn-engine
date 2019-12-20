@@ -7,7 +7,7 @@
 #include "Base.h"
 #include "renderer/BillboardSet.h"
 #include "renderer/CCamera.h"
-#include "renderer/CustomMeshRenderable.h"
+#include "renderer/CustomRenderable.h"
 #include "renderer/FrameBuffer.h"
 #include "renderer/IndexBuffer.h"
 #include "renderer/Material.h"

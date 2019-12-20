@@ -161,7 +161,7 @@ private:
     float radius_;
 
     // Terrain mesh.
-    SharedPtr<CustomMeshRenderable> custom_mesh_renderable_;
+    SharedPtr<CustomRenderable> custom_mesh_renderable_;
 
     // Bool which controls whether the update task thread is running.
     Atomic<bool> run_update_thread_;
@@ -232,7 +232,7 @@ private:
         auto vertex_decl = PlanetTerrainPatch::Vertex::createDecl();
         int default_vertex_count = 36;
         int default_index_count = 20;
-        custom_mesh_renderable_ = makeShared<CustomMeshRenderable>(
+        custom_mesh_renderable_ = makeShared<CustomRenderable>(
             context(),
             makeShared<VertexBuffer>(context(),
                                      gfx::Memory(default_vertex_count * vertex_decl.stride()),

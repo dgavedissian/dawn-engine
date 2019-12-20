@@ -104,8 +104,8 @@ set(SOURCE_FILES
     renderer/BillboardSet.h
     renderer/CCamera.cpp
     renderer/CCamera.h
-    renderer/CustomMeshRenderable.cpp
-    renderer/CustomMeshRenderable.h
+    renderer/CustomRenderable.cpp
+    renderer/CustomRenderable.h
     renderer/FrameBuffer.cpp
     renderer/FrameBuffer.h
     renderer/IndexBuffer.cpp
@@ -206,12 +206,12 @@ target_link_libraries(DwEngine
     expected
     FastDelegate
     flatbuffers
+    fmt
     imgui
     json
     MathGeoLib
     sol2
     stb
-    tinyformat
     variant
     yojimbo
 )

@@ -90,7 +90,7 @@ CShipEngines::CShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_
         {"xz plane (yaw - y rotation)", Vec3{0.0f, 1.0f, 0.0f}},
         {"xy plane (roll - z rotation)", Vec3{0.0f, 0.0f, 1.0f}}};
     for (uint i = 0; i < navigation_engines_.size(); ++i) {
-        log().info("For %s", rotation_axes[i].first);
+        log().info("For {}", rotation_axes[i].first);
         Plane rotation_plane{rotation_axes[i].second, 0.0f};
         for (auto& engine : nav_engine_data_) {
             Vec3 proj_force = rotation_plane.Project(engine.force());
@@ -103,7 +103,7 @@ CShipEngines::CShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_
             bool positive = signed_distance < 0.0f;
 
             if (abs(signed_distance) > 0.01f) {
-                log().info("Engine %s %s - Projected %s %s - Direction: %s (%.0f)",
+                log().info("Engine {} {} - Projected {} {} - Direction: {} ({.0f})",
                            engine.force().ToString(), engine.offset().ToString(),
                            proj_force.ToString(), proj_position.ToString(),
                            positive ? "positive" : "negative", signed_distance);

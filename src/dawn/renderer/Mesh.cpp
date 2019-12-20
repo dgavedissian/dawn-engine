@@ -26,7 +26,7 @@ public:
 
     void write(const char* message_cstr) {
         String message{message_cstr};
-        logger->withObjectName("Mesh").info("Assimp Importer: %s",
+        logger->withObjectName("Mesh").info("Assimp Importer: {}",
                                             message.substr(0, message.length() - 1));
     }
 
@@ -110,7 +110,7 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     const aiScene* scene = importer.ReadFileFromMemory(data.get(), size, flags, asset_name.c_str());
     Assimp::DefaultLogger::kill();
     if (!scene) {
-        return makeError(str::format("Unable to load mesh %s. Reason: %s", asset_name,
+        return makeError(str::format("Unable to load mesh {}. Reason: {}", asset_name,
                                      importer.GetErrorString()));
     }
 
@@ -137,15 +137,15 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
         // Check the mesh for any issues, and abort if so.
         if (!mesh->HasPositions()) {
             return makeError(
-                str::format("Unable to load mesh %s. Submesh %d has no positions.", asset_name, i));
+                str::format("Unable to load mesh {}. Submesh {} has no positions.", asset_name, i));
         }
         if (!mesh->HasNormals()) {
             return makeError(
-                str::format("Unable to load mesh %s. Submesh %d has no normals.", asset_name, i));
+                str::format("Unable to load mesh {}. Submesh {} has no normals.", asset_name, i));
         }
         if (!mesh->HasFaces()) {
             return makeError(
-                str::format("Unable to load mesh %s. Submesh %d has no faces.", asset_name, i));
+                str::format("Unable to load mesh {}. Submesh {} has no faces.", asset_name, i));
         }
 
         const u32 vertex_offset = static_cast<u32>(vertices.size());
@@ -161,7 +161,7 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
             aiFace& face = mesh->mFaces[f];
             if (face.mNumIndices != 3) {
                 return makeError(str::format(
-                    "Unable to load mesh %s. Face %d in submesh %d has %d indices (must be exactly "
+                    "Unable to load mesh {}. Face {} in submesh {} has {} indices (must be exactly "
                     "3).",
                     asset_name, f, i, face.mNumIndices));
             }

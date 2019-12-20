@@ -61,12 +61,12 @@ public:
         String name(resource_path);
 
         if (!resource) {
-            log().warn("NULL resource provided at %s. Skipping.", name);
+            log().warn("NULL resource provided at {}. Skipping.", name);
             return nullptr;
         }
 
         if (resource_cache_.find(name) != resource_cache_.end()) {
-            log().warn("Found an existing resource at %s. Replacing with an instance of '%s'", name,
+            log().warn("Found an existing resource at {}. Replacing with an instance of '{}'", name,
                        resource->typeName());
         }
         resource_cache_[name] = resource;
@@ -85,15 +85,15 @@ public:
         // Load the file which contains this resource data.
         auto resource_data = loadRaw(resource_path);
         if (!resource_data) {
-            return makeError(str::format("Cannot find resource %s. Reason: %s", resource_path,
+            return makeError(str::format("Cannot find resource {}. Reason: {}", resource_path,
                                 resource_data.error()));
         }
         SharedPtr<T> resource = makeShared<T>(context());
         resource_cache_.emplace(name, resource);
-        log().info("Loading asset '%s'", resource_path);
+        log().info("Loading asset '{}'", resource_path);
         auto load_result = resource->load(resource_path, *resource_data.value().get());
         if (!load_result) {
-            return makeError(str::format("Failed to load resource %s. Reason: %s", resource_path,
+            return makeError(str::format("Failed to load resource {}. Reason: {}", resource_path,
                                 load_result.error()));
         }
         return resource;

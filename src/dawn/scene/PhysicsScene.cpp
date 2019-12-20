@@ -26,7 +26,7 @@ void fromBulletTransform(const btTransform& source, detail::Transform& dest) {
 }  // namespace
 PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr, EventSystem* event_system)
     : Object(context), event_system_(event_system) {
-    log().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
+    log().info("Bullet Version {}.{}", btGetVersion() / 100, btGetVersion() % 100);
 
     broadphase_ = makeUnique<btDbvtBroadphase>();
     collision_config_ = makeUnique<btDefaultCollisionConfiguration>();

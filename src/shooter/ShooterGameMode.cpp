@@ -7,6 +7,7 @@
 #include "renderer/CCamera.h"
 #include "renderer/SceneGraph.h"
 #include "resource/ResourceCache.h"
+#include "renderer/CustomRenderable.h"
 
 ShooterEntityPipeline::ShooterEntityPipeline(Context* ctx, SceneManager* scene_manager,
                                              NetInstance* net, Frame* frame)
@@ -71,7 +72,8 @@ void ShooterGameMode::onStart() {
     material->setTexture(*rc->get<Texture>("base:space/planet.jpg"));
     material->setUniform("light_direction", Vec3{0.0f, 0.0f, 1.0f});
     material->setUniform("surface_sampler", 0);
-    auto renderable = MeshBuilder(context()).texcoords(true).normals(true).createSphere(4000.0f);
+    auto renderable =
+        CustomRenderable::Builder(context()).texcoords(true).normals(true).createSphere(4000.0f);
     renderable->setMaterial(material);
     auto planet = session_->sceneGraph()->root().newChild(SystemPosition{12000.0f, 0.0f, -6000.0f},
                                                           Quat::identity);

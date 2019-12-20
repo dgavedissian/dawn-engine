@@ -5,7 +5,6 @@
 #pragma once
 
 #include "Core.h"
-#include "renderer/MeshBuilder.h"
 #include "renderer/Mesh.h"
 
 #include "ShipCameraController.h"

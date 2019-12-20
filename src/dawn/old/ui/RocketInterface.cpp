@@ -231,7 +231,7 @@ bool RocketInterface::GenerateTexture(Rocket::Core::TextureHandle& textureHandle
     Ogre::DataStreamPtr stream(OGRE_NEW Ogre::MemoryDataStream(
         (void*)source, dimensions.x * dimensions.y * sizeof(unsigned int)));
     Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().loadRawData(
-        Rocket::Core::String(16, "%d", id++).CString(),
+        Rocket::Core::String(16, "{}", id++).CString(),
         Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, stream, (Ogre::ushort)dimensions.x,
         (Ogre::ushort)dimensions.y, Ogre::PF_A8B8G8R8, Ogre::TEX_TYPE_2D, 0);
 

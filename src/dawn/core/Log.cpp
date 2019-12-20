@@ -62,7 +62,7 @@ void Logger::addLogMessageHandler(UniquePtr<LogMessageHandler> handler) {
 
 void Logger::dispatchLogMessage(LogLevel level, const String& message) {
     for (auto& handler : handlers_) {
-        handler->onMessage(level, str::format("[%s] %s", object_name_, message));
+        handler->onMessage(level, str::format("[{}] {}", object_name_, message));
     }
 }
 

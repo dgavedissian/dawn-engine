@@ -59,7 +59,7 @@ public:
 
         // Use Delegate<...>'s assignment operator to assign the actual delegate which this is a
         // subclass of.
-        auto* const delegate_this = static_cast<Delegate<void(EventDataPtr)>* const>(this);
+        auto* const delegate_this = static_cast<Delegate<void(EventDataPtr)>*>(this);
         *delegate_this = makeDelegate(event_forwarder.get(), &EventForwarder<T, E>::onEvent);
     }
 

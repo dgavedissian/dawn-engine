@@ -32,7 +32,7 @@ void InProcessServer::listen(const String&, u16 port, u16 max_connections) {
     }
 
     if (listening_connections.find(port) != listening_connections.end()) {
-        log().error("InProcessServer: Port %s is already bound.", port);
+        log().error("InProcessServer: Port {} is already bound.", port);
         return;
     }
 
@@ -68,7 +68,7 @@ void InProcessServer::send(ClientId client, const byte* data, u32 length) {
     if (client >= client_streams_.size() || !isClientConnected(client)) {
         return;
     }
-    // log().info("Sending packet of length %d to client %d.", length, client);
+    // log().info("Sending packet of length {} to client {}.", length, client);
     client_streams_[client].outgoing.enqueue(Vector<byte>(data, data + length));
 }
 
@@ -80,7 +80,7 @@ Option<ServerPacket> InProcessServer::receive(ClientId client) {
     Vector<byte> data;
     bool has_packet = client_streams_[client].incoming.try_dequeue(data);
     if (has_packet) {
-        // log().info("Received packet of length %d from client %d.", data.size(), client);
+        // log().info("Received packet of length {} from client {}.", data.size(), client);
         return {ServerPacket{client, std::move(data)}};
     } else {
         return {};
@@ -107,7 +107,7 @@ ClientId InProcessServer::clientConnect(InProcessClient* client) {
     // Find a free client.
     for (ClientId i = 0; i < client_streams_.size(); ++i) {
         if (!isClientConnected(i)) {
-            log().info("Received a connection request from a client. Assigning ID %d.", i);
+            log().info("Received a connection request from a client. Assigning ID {}.", i);
             client_streams_[i].client = client;
             connected_clients_++;
             client_connected_(i);
@@ -151,20 +151,20 @@ InProcessClient::~InProcessClient() {
 void InProcessClient::connect(const String&, u16 port) {
     disconnect();
 
-    log().info("Connecting to in process port %d.", port);
+    log().info("Connecting to in process port {}.", port);
 
     // Set the function to be called in the next tick.
     connect_function_ = [this, port]() {
         auto server = InProcessServer::listening_connections.find(port);
         if (server == InProcessServer::listening_connections.end()) {
-            log().error("Failed to connect to port %d. No server is listening.", port);
+            log().error("Failed to connect to port {}. No server is listening.", port);
             return;
         }
         connected_server_ = server->second;
         client_id_ = connected_server_->clientConnect(this);
         if (client_id_ == ClientId(-1)) {
             client_id_ = 0;
-            log().error("Failed to connect to port %d. Server is full.", port);
+            log().error("Failed to connect to port {}. Server is full.", port);
             client_connection_state_ = ClientConnectionState::Disconnected;
             connection_failed_();
         } else {
@@ -194,7 +194,7 @@ void InProcessClient::update(float dt) {
 }
 
 void InProcessClient::send(const byte* data, u32 length) {
-    // log().info("Sending packet of length %d.", length);
+    // log().info("Sending packet of length {}.", length);
     connected_server_->clientStream(client_id_).incoming.enqueue(Vector<byte>(data, data + length));
 }
 
@@ -206,7 +206,7 @@ Option<ClientPacket> InProcessClient::receive() {
     Vector<byte> data;
     bool has_packet = connected_server_->clientStream(client_id_).outgoing.try_dequeue(data);
     if (has_packet) {
-        // log().info("Received packet of length %d from server.", data.size());
+        // log().info("Received packet of length {} from server.", data.size());
         return {ClientPacket{std::move(data)}};
     } else {
         return {};

@@ -6,7 +6,7 @@
 
 #include "core/Collections.h"
 #include "renderer/Material.h"
-#include "renderer/CustomMeshRenderable.h"
+#include "renderer/CustomRenderable.h"
 #include "renderer/FrameBuffer.h"
 
 #include <dawn-gfx/Renderer.h>

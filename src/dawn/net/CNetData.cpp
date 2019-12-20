@@ -79,7 +79,7 @@ void CNetData::receiveRpc(RpcId rpc_id, const Vector<byte>& payload) {
     if (rpc_func != rep_layout_.rpc_map_.end()) {
         (*rpc_func).second(*entity_).receiveRpcPayload(*entity_, payload);
     } else {
-        net_->log().warn("Received unregistered RPC with ID %s, ignoring.", rpc_id);
+        net_->log().warn("Received unregistered RPC with ID {}, ignoring.", rpc_id);
     }
 }
 

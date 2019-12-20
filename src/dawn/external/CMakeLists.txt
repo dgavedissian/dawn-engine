@@ -4,15 +4,6 @@
 include(FetchContent)
 include(ExternalProject)
 
-# Use GLVND if possible.
-if(POLICY CMP0072)
-    cmake_policy(SET CMP0072 NEW)
-endif()
-
-find_package(OpenGL REQUIRED)
-set(INCLUDE_DIRS ${INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR})
-set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
-
 # Force everything to be statically linked
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
@@ -168,7 +159,7 @@ target_include_directories(concurrentqueue INTERFACE ${concurrentqueue_SOURCE_DI
 # dawn-gfx
 FetchContent_Declare(
     dawn-gfx
-    URL https://github.com/dgavedissian/dawn-gfx/archive/ecf229a59a0fb5586fb64379e1602f0dc113899f.tar.gz
+    URL https://github.com/dgavedissian/dawn-gfx/archive/c5c3a545d130aaa5bd9bb1e5961c03292c0a8aa6.tar.gz
 )
 FetchContent_MakeAvailable(dawn-gfx)
 
@@ -250,6 +241,13 @@ function(flatbuffers_generate_cpp_headers Name)
     endforeach()
     set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
 endfunction()
+
+FetchContent_declare(
+    fmt
+    URL https://github.com/fmtlib/fmt/releases/download/6.1.2/fmt-6.1.2.zip
+    URL_MD5 5ec643b082a34254ad07136e7cbd4220
+)
+FetchContent_MakeAvailable(fmt)
 
 # googletest
 FetchContent_Declare(
@@ -371,19 +369,6 @@ if(NOT nanovg_POPULATED)
         ${nanovg_SOURCE_DIR}/src/nanovg.c
         ${nanovg_SOURCE_DIR}/src/nanovg.h)
     target_include_directories(nanovg PUBLIC ${nanovg_SOURCE_DIR}/src)
-endif()
-
-# tinyformat
-FetchContent_Declare(
-    tinyformat
-    URL https://github.com/c42f/tinyformat/archive/v2.2.0.tar.gz
-    URL_MD5 a88a198f7ea99eeed9ed2169a977f0b3
-)
-FetchContent_GetProperties(tinyformat)
-if(NOT tinyformat_POPULATED)
-    FetchContent_Populate(tinyformat)
-    add_library(tinyformat INTERFACE)
-    target_include_directories(tinyformat INTERFACE ${tinyformat_SOURCE_DIR})
 endif()
 
 # variant

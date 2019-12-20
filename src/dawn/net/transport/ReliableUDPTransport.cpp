@@ -120,7 +120,7 @@ private:
 
         // Write to logger, trimming the ending '\n' that yojimbo always gives us.
         context_->logger->withObjectName("Yojimbo").info(
-            "yojimbo: %s", str_buffer.substr(0, str_buffer.size() - 1));
+            "yojimbo: {}", str_buffer.substr(0, str_buffer.size() - 1));
         return count;
     }
 };
