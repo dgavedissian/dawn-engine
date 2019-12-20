@@ -2,7 +2,7 @@
 # Written by David Avedissian (c) 2012-2019 (git@dga.dev)
 cmake_minimum_required(VERSION 3.14)
 
-project(Dawn)
+project(dawn-engine)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_MACOSX_RPATH 1)
