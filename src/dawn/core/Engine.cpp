@@ -132,22 +132,24 @@ void Engine::setup(const CommandLine& cmdline) {
     context_->addModule<LuaState>();
     // TODO(David): bind engine services to lua?
 
-    // Create the engine subsystems.
+    // Graphics and input.
     auto* renderer = context_->addModule<Renderer>();
-    auto renderer_result = Result<void>();
+    Result<void> renderer_result;
     if (!headless_) {
         bool use_multithreading = true;
 #ifdef DW_EMSCRIPTEN
         use_multithreading = false;
 #endif
+        Input& input_module = *context_->addModule<Input>();
         renderer_result = renderer->rhi()->init(
             gfx::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
-            context_->config().at("window_height").get<u16>(), window_title, use_multithreading);
-        context_->addModule<Input>();
+            context_->config().at("window_height").get<u16>(), window_title, input_module.getGfxInputCallbacks(),
+            use_multithreading);
     } else {
-        renderer_result = renderer->rhi()->init(
-            gfx::RendererType::Null, context_->config().at("window_width").get<u16>(),
-            context_->config().at("window_height").get<u16>(), window_title, false);
+        renderer_result = renderer->rhi()->init(gfx::RendererType::Null,
+                                                context_->config().at("window_width").get<u16>(),
+                                                context_->config().at("window_height").get<u16>(),
+                                                window_title, gfx::InputCallbacks{}, false);
     }
     if (!renderer_result) {
         log().error("Renderer failed to initialise: {}", renderer_result.error());
@@ -157,6 +159,7 @@ void Engine::setup(const CommandLine& cmdline) {
 
     // Engine events and UI.
     event_system_ = makeUnique<EventSystem>(context_);
+    ;
     if (!headless_) {
         context_->module<Input>()->registerEventSystem(event_system_.get());
     }

@@ -86,6 +86,11 @@ target_include_directories(assimp PUBLIC
     ${assimp_SOURCE_DIR}/include
     ${assimp_BINARY_DIR}/include) # Generated assimp config.
 
+FetchContent_Declare(
+    base
+    URL https://github.com/dgavedissian/base/archive/fe9f4a9dd4b2b605e405654177a87609171842cf.zip
+)
+
 # Bullet
 FetchContent_Declare(
     bullet
@@ -159,7 +164,7 @@ target_include_directories(concurrentqueue INTERFACE ${concurrentqueue_SOURCE_DI
 # dawn-gfx
 FetchContent_Declare(
     dawn-gfx
-    URL https://github.com/dgavedissian/dawn-gfx/archive/c5c3a545d130aaa5bd9bb1e5961c03292c0a8aa6.tar.gz
+    URL https://github.com/dgavedissian/dawn-gfx/archive/c6899824d2e6757e367425008f393669593ecb37.tar.gz
 )
 FetchContent_MakeAvailable(dawn-gfx)
 

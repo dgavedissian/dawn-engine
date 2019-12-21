@@ -61,27 +61,48 @@ Vec2 Input::mouseScroll() const {
     return mouse_scroll_;
 }
 
-void Input::_notifyKey(Key::Enum key, Modifier::Enum modifier, bool state) {
-    key_down_[key] = state;
+gfx::InputCallbacks Input::getGfxInputCallbacks() {
+    gfx::InputCallbacks input_callbacks;
+    static_assert(static_cast<int>(gfx::Key::Count) == Key::Count);
+    static_assert(static_cast<int>(gfx::MouseButton::Count) == MouseButton::Count);
+    input_callbacks.on_key = [this](gfx::Key::Enum key, gfx::Modifier::Enum modifier,
+                                    bool pressed) mutable {
+        onKey(static_cast<Key::Enum>(key), static_cast<Modifier::Enum>(modifier), pressed);
+    };
+    input_callbacks.on_char_input = [this](const std::string& input) mutable {
+        onCharInput(input);
+    };
+    input_callbacks.on_mouse_button = [this](gfx::MouseButton::Enum button, bool pressed) mutable {
+        onMouseButton(static_cast<MouseButton::Enum>(button), pressed);
+    };
+    input_callbacks.on_mouse_move = [this](const gfx::Vec2i& position) mutable {
+        onMouseMove({position.x, position.y});
+    };
+    input_callbacks.on_mouse_scroll = [this](const Vec2& offset) mutable { onMouseScroll(offset); };
+    return input_callbacks;
+}
+
+void Input::onKey(Key::Enum key, Modifier::Enum modifier, bool pressed) {
+    key_down_[key] = pressed;
     for (auto es : event_systems_) {
-        es->triggerEvent<KeyEvent>(key, modifier, state);
+        es->triggerEvent<KeyEvent>(key, modifier, pressed);
     }
 }
 
-void Input::_notifyCharInput(const String& text) {
+void Input::onCharInput(const String& text) {
     for (auto es : event_systems_) {
         es->triggerEvent<CharInputEvent>(text);
     }
 }
 
-void Input::_notifyMouseButtonPress(MouseButton::Enum button, bool state) {
-    mouse_button_state_[button] = state;
+void Input::onMouseButton(MouseButton::Enum button, bool pressed) {
+    mouse_button_state_[button] = pressed;
     for (auto es : event_systems_) {
-        es->triggerEvent<MouseButtonEvent>(button, state);
+        es->triggerEvent<MouseButtonEvent>(button, pressed);
     }
 }
 
-void Input::_notifyMouseMove(const Vec2i& position) {
+void Input::onMouseMove(const Vec2i& position) {
     mouse_move_ = position - mouse_position_;
     mouse_position_ = position;
     for (auto es : event_systems_) {
@@ -89,7 +110,7 @@ void Input::_notifyMouseMove(const Vec2i& position) {
     }
 }
 
-void Input::_notifyScroll(const Vec2& offset) {
+void Input::onMouseScroll(const Vec2& offset) {
     mouse_scroll_ = offset;
     for (auto es : event_systems_) {
         es->triggerEvent<MouseScrollEvent>(offset);

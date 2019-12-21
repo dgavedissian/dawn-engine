@@ -7,9 +7,9 @@
 #include "core/math/Vec2i.h"
 #include "core/math/Vec3i.h"
 #include "core/EventSystem.h"
+#include <dawn-gfx/Input.h>
 
 namespace dw {
-
 namespace Modifier {
 enum Enum {
     None = 0,
@@ -171,12 +171,8 @@ public:
     /// Mouse scroll since last event.
     Vec2 mouseScroll() const;
 
-    // Notifications. Internal.
-    void _notifyKey(Key::Enum key, Modifier::Enum modifier, bool state);
-    void _notifyCharInput(const String& text);
-    void _notifyMouseButtonPress(MouseButton::Enum button, bool state);
-    void _notifyMouseMove(const Vec2i& position);
-    void _notifyScroll(const Vec2& offset);
+    // Generate input callbacks struct for dawn-gfx.
+    gfx::InputCallbacks getGfxInputCallbacks();
 
 private:
     Vec2i viewport_size_;
@@ -187,6 +183,12 @@ private:
     Vec2 mouse_scroll_;
 
     Vector<EventSystem*> event_systems_;
+
+    void onKey(Key::Enum key, Modifier::Enum modifier, bool pressed);
+    void onCharInput(const String& text);
+    void onMouseButton(MouseButton::Enum button, bool pressed);
+    void onMouseMove(const Vec2i& position);
+    void onMouseScroll(const Vec2& offset);
 };
 
 DEFINE_EVENT(KeyEvent, Key::Enum, key, Modifier::Enum, mod, bool, down);

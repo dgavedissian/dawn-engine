@@ -3,5 +3,5 @@
 
 add_dawn_executable(
     DwSandbox
-    SRCS Main.cpp
+    SRCS Main.cpp ../dawn/scene/space/PlanetLod.cpp ../dawn/scene/space/PlanetLod.h
     RESOURCE_PKGS ${CMAKE_SOURCE_DIR}/media/sandbox)

@@ -58,11 +58,8 @@ set(SOURCE_FILES
     core/GameMode.h
     core/GameSession.cpp
     core/GameSession.h
-	core/Handle.h
     core/Log.cpp
     core/Log.h
-    core/Memory.cpp
-    core/Memory.h
     core/Module.cpp
     core/Module.h
     core/Object.cpp
@@ -139,6 +136,8 @@ set(SOURCE_FILES
     resource/Resource.h
     resource/ResourceCache.cpp
     resource/ResourceCache.h
+    scene/space/PlanetLod.cpp
+    scene/space/PlanetLod.h
     scene/BulletDynamics.h
     scene/CLinearMotion.h
     scene/CameraController.cpp
