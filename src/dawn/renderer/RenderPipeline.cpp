@@ -280,7 +280,7 @@ void RenderPipeline::PRenderQueueStep::execute(Logger& log, gfx::Renderer* r, fl
                                                float interpolation, SceneGraph* scene_graph,
                                                u32 camera_id, uint view) {
 #ifdef ENABLE_DEBUG_LOGGING
-    log.debug("Rendering scene from camera {} (mask: 0x%x) to view {}", camera_id, mask_, view);
+    log.debug("Rendering scene from camera {} (mask: {:#x}) to view {}", camera_id, mask_, view);
 #endif
     scene_graph->renderSceneFromCamera(dt, interpolation, camera_id, view, mask_);
 }

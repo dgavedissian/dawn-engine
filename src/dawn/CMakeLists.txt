@@ -43,7 +43,6 @@ set(SOURCE_FILES
     core/Collections.h
     core/CommandLine.cpp
     core/CommandLine.h
-    core/Concurrency.cpp
     core/Concurrency.h
     core/Context.cpp
     core/Context.h

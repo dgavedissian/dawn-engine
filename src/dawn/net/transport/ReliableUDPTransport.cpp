@@ -283,7 +283,7 @@ void ReliableUDPClient::connect(const String& host, u16 port) {
     // Decide on client ID.
     u64 clientId = 0;
     yojimbo::random_bytes(reinterpret_cast<uint8_t*>(&clientId), 8);
-    log().info("Client id is %ull", clientId);
+    log().info("Client id is {}", clientId);
 
     // Connect to server.
     client_->InsecureConnect(privateKey, clientId, yojimbo::Address{host.c_str(), port});

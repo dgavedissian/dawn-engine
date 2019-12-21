@@ -103,7 +103,7 @@ CShipEngines::CShipEngines(Context* ctx, const Vector<ShipEngineData>& movement_
             bool positive = signed_distance < 0.0f;
 
             if (abs(signed_distance) > 0.01f) {
-                log().info("Engine {} {} - Projected {} {} - Direction: {} ({.0f})",
+                log().info("Engine {} {} - Projected {} {} - Direction: {} ({:.0f})",
                            engine.force().ToString(), engine.offset().ToString(),
                            proj_force.ToString(), proj_position.ToString(),
                            positive ? "positive" : "negative", signed_distance);

@@ -17,6 +17,7 @@ PlanetTerrainPatch::PlanetTerrainPatch(PlanetLod* planet, PlanetTerrainPatch* pa
         centre_ += c * 0.25f;
     }
     centre_ = planet_->calculateHeight(centre_);
+    (void)parent_;
 }
 
 void PlanetTerrainPatch::setupAdjacentPatches(const Array<PlanetTerrainPatch*, 4>& adjacent) {
@@ -210,4 +211,4 @@ int PlanetTerrainPatch::sharedEdgeWith(PlanetTerrainPatch* patch, int hint) {
     assert(false);
     return 0;
 }
-}
+}  // namespace dw

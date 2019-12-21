@@ -34,7 +34,7 @@ bool FileSystem::setWorkingDir(const Path& path) const {
     }
 #else
     if (::chdir(simplfied_path.c_str()) != 0) {
-        log().error("Failed to change directory to {} (errno %i)", simplfied_path, errno);
+        log().error("Failed to change directory to {} (errno {})", simplfied_path, errno);
         return false;
     }
 #endif

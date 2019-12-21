@@ -81,12 +81,12 @@ public:
           camera_{camera},
           planet_{nullptr},
           radius_{radius},
+          run_update_thread_{true},
+          t_output_ready_{false},
+          terrain_patches_{},
           patch_split_distance_{radius * 12.0f},
           terrain_dirty_{false},
-          noise_{0xdeadbeef, 12, 0.005f, terrain_max_height, 2.0f, 0.5f},
-          run_update_thread_{true},
-          terrain_patches_{},
-          t_output_ready_{false} {
+          noise_{0xdeadbeef, 12, 0.005f, terrain_max_height, 2.0f, 0.5f} {
         auto rc = module<ResourceCache>();
 
         // Set up material.
