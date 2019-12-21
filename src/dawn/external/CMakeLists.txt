@@ -427,7 +427,7 @@ if(NOT yojimbo_POPULATED)
         FetchContent_Declare(
             sodium
             URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.17-msvc.zip
-            URL_MD5 a90f193ac3ce21e9578aae9b9ff10343
+            URL_MD5 c7ccd3d5fa84f5aeee9ab61bda704534
         )
         FetchContent_MakeAvailable(sodium)
         if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -446,10 +446,10 @@ if(NOT yojimbo_POPULATED)
         else()
             message(FATAL_ERROR "Unsupported MSVC version: ${MSVC_VERSION}")
         endif()
+        add_library(sodium INTERFACE)
         set_property(TARGET sodium PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${sodium_SOURCE_DIR}/include)
         set_property(TARGET sodium PROPERTY INTERFACE_LINK_LIBRARIES
             ${sodium_SOURCE_DIR}/${SODIUM_ARCH}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/${SODIUM_MSVC}/static/libsodium.lib)
-        add_library(sodium INTERFACE)
     else()
         ExternalProject_Add(sodium-external
             PREFIX ${EXTERNAL_PREFIX}
