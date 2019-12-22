@@ -50,6 +50,7 @@ struct Transform {
 
 struct RendererSceneNodeData {
     SharedPtr<Renderable> renderable;
+    Any user_data;
 };
 }  // namespace detail
 

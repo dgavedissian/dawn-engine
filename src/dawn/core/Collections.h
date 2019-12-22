@@ -21,6 +21,7 @@
 #include <deque>
 #include <queue>
 #include <optional>
+#include <any>
 
 #include <tl/expected.hpp>
 #include <mpark/variant.hpp>
@@ -71,6 +72,7 @@ template <typename T> using Option = std::optional<T>;
 template <typename T, typename E = String> using Result = tl::expected<T, E>;
 template <typename E> using Unexpected = tl::unexpected<E>;
 template <typename T> using ConcurrentQueue = moodycamel::ConcurrentQueue<T>;
+using Any = std::any;
 
 template <typename T, typename... Ts>
 inline constexpr bool holdsAlternative(const Variant<Ts...> &v) noexcept {

@@ -135,8 +135,17 @@ set(SOURCE_FILES
     resource/Resource.h
     resource/ResourceCache.cpp
     resource/ResourceCache.h
+    scene/space/Barycentre.h
+    scene/space/Orbit.cpp
+    scene/space/Orbit.h
+    scene/space/Planet.h
     scene/space/PlanetLod.cpp
     scene/space/PlanetLod.h
+    scene/space/Star.h
+    scene/space/StarSystem.cpp
+    scene/space/StarSystem.h
+    scene/space/SystemBody.cpp
+    scene/space/SystemBody.h
     scene/BulletDynamics.h
     scene/CLinearMotion.h
     scene/CameraController.cpp
@@ -216,7 +225,6 @@ target_link_libraries(DwEngine
 )
 if(NOT EMSCRIPTEN)
     target_link_libraries(DwEngine
-        glad
         luajit
     )
 else()

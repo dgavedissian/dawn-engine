@@ -8,6 +8,7 @@
 #include "Scene.h"
 #include "UI.h"
 #include "scene/space/PlanetLod.h"
+#include "scene/space/StarSystem.h"
 
 using namespace dw;
 
@@ -15,8 +16,10 @@ class SandboxSession : public GameSession {
 public:
     DW_OBJECT(SandboxSession);
 
+    UniquePtr<StarSystem> star_system_;
+    SystemBody* tracked_system_body_;
+
     SharedPtr<CameraController> camera_controller;
-    SharedPtr<PlanetLod> planet_;
 
     SandboxSession(Context* ctx, const GameSessionInfo& gsi) : GameSession(ctx, gsi) {
         module<Input>()->registerEventSystem(event_system_.get());
@@ -32,8 +35,15 @@ public:
         camera_controller = makeShared<CameraController>(context(), event_system_.get(), 300.0f);
         camera_controller->possess(&camera);
 
-        // Create a planet.
-        planet_ = makeShared<PlanetLod>(context(), scene_graph_.get(), radius, 40.0f, &camera);
+        // Star system.
+        star_system_ = makeUnique<StarSystem>(context(), scene_graph_->root());
+        auto& star =
+            star_system_->addStar(StarDesc{1000.0f, SpectralClass::G}, star_system_->root(),
+                                  makeUnique<CircularOrbit>(0.0f, 1.0f));
+        PlanetDesc planet_desc;
+        planet_desc.radius = 100.0f;
+        tracked_system_body_ = star_system_->addPlanet(
+            planet_desc, star, makeUnique<CircularOrbit>(4000.0f, 10000.0f));
     }
 
     ~SandboxSession() override {

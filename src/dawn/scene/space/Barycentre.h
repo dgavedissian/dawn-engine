@@ -4,14 +4,12 @@
  */
 #pragma once
 
-#include "SystemBody.h"
+#include "scene/space/SystemBody.h"
 
 namespace dw {
-
-// A body that only serves as an empty point where other bodies orbit around
+/// A body that only serves as an empty point where other bodies orbit around.
 class DW_API Barycentre : public SystemBody {
 public:
-    Barycentre(Renderer* rs);
-    virtual ~Barycentre();
+    using SystemBody::SystemBody;
 };
 }  // namespace dw
