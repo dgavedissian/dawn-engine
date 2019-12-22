@@ -53,7 +53,7 @@ matrix:
 
   # clang 6
   - os: linux
-    env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=clang-6 -DCMAKE_CXX_COMPILER=clang++-6 -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
+    env: CMAKE_CONFIGURE_OPTIONS="-DCMAKE_C_COMPILER=clang-6.0 -DCMAKE_CXX_COMPILER=clang++-6.0 -DCMAKE_BUILD_TYPE=Release" CMAKE_BUILD_OPTIONS="" CTEST_OPTIONS="-C Release"
     addons:
       apt:
         sources:
