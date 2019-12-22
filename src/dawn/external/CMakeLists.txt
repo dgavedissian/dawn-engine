@@ -88,7 +88,7 @@ target_include_directories(assimp PUBLIC
 
 FetchContent_Declare(
     base
-    URL https://github.com/dgavedissian/base/archive/fe9f4a9dd4b2b605e405654177a87609171842cf.zip
+    URL https://github.com/dgavedissian/base/archive/ec74bef46996181c06a0032bc88d369f681f1c3c.zip
 )
 
 # Bullet
@@ -164,7 +164,7 @@ target_include_directories(concurrentqueue INTERFACE ${concurrentqueue_SOURCE_DI
 # dawn-gfx
 FetchContent_Declare(
     dawn-gfx
-    URL https://github.com/dgavedissian/dawn-gfx/archive/c6899824d2e6757e367425008f393669593ecb37.tar.gz
+    URL https://github.com/dgavedissian/dawn-gfx/archive/05919dc0cb21b36a9140ad08e03268170c5cb575.tar.gz
 )
 FetchContent_MakeAvailable(dawn-gfx)
 

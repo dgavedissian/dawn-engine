@@ -200,6 +200,7 @@ target_link_libraries(DwEngine
     LinearMath
     concurrentqueue
     dawn-gfx
+    dga-base
     EnTT
     expected
     FastDelegate
