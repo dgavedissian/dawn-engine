@@ -30,10 +30,12 @@ struct DW_API RenderPipelineDesc {
         String material_name = "";
     };
 
+    using Step = Variant<ClearStep, RenderQueueStep, RenderQuadStep>;
+
     struct DW_API Node {
         HashMap<String, gfx::TextureFormat> inputs = {};
         Vector<Pair<String, gfx::TextureFormat>> outputs = {};
-        Vector<Variant<ClearStep, RenderQueueStep, RenderQuadStep>> steps = {};
+        Vector<Step> steps = {};
     };
 
     struct DW_API NodeInstance {

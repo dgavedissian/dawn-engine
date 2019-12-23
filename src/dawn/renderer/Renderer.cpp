@@ -24,8 +24,10 @@ public:
                 converted_level = LogLevel::Warning;
                 break;
             case gfx::LogLevel::Error:
-                converted_level = LogLevel ::Error;
+                converted_level = LogLevel::Error;
                 break;
+            default:
+                converted_level = LogLevel::Info;
         }
         logger_.log(converted_level, value);
     }

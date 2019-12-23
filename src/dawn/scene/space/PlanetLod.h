@@ -141,7 +141,7 @@ public:
         return radius_;
     }
 
-    void update(float dt) {
+    void update(float) {
         // Update camera position data.
         {
             LockGuard<Mutex> camera_position_lock{t_input_lock_};
@@ -203,7 +203,7 @@ private:
         auto sample_position = position.Normalized() * radius_;
         double height_sample =
             noise_.noise(sample_position.x, sample_position.y, sample_position.z);
-        return sample_position * (1.0f + height_sample / radius_);
+        return sample_position * (1.0f + static_cast<float>(height_sample / radius_));
     }
 
     Vec3 calculateNormal(const Vec3& position) {
@@ -221,7 +221,7 @@ private:
                                                Vec3(sin(angle), cos(angle), 0.0f) * offset_radians);
             double height_sample =
                 noise_.noise(sample_location.x, sample_location.y, sample_location.z);
-            samples[i] = sample_location * (1.0f + height_sample / radius_);
+            samples[i] = sample_location * (1.0f + static_cast<float>(height_sample / radius_));
         }
 
         // Compute normals.

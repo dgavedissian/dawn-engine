@@ -20,7 +20,8 @@ SceneGraph::SceneGraph(Context* ctx)
     auto default_render_pipeline_node = RenderPipelineDesc::Node{
         {},
         {{"out", gfx::TextureFormat::RGBA8}},
-        {RenderPipelineDesc::ClearStep{}, RenderPipelineDesc::RenderQueueStep{}}};
+        Vector<RenderPipelineDesc::Step>{RenderPipelineDesc::ClearStep{},
+                                         RenderPipelineDesc::RenderQueueStep{}}};
     Vector<RenderPipelineDesc::NodeInstance> node_instances{
         {"Default", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}};
     auto default_render_pipeline =

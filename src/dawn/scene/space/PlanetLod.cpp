@@ -29,7 +29,7 @@ bool PlanetTerrainPatch::hasChildren() const {
 }
 
 void PlanetTerrainPatch::updatePatch(const Vec3& offset) {
-    float threshold = planet_->patch_split_distance_ / math::Pow(2.0f, level_);
+    float threshold = planet_->patch_split_distance_ / math::Pow(2.0f, static_cast<float>(level_));
     threshold *= threshold;
 
     if (hasChildren()) {
