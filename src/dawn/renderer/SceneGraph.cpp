@@ -21,11 +21,10 @@ SceneGraph::SceneGraph(Context* ctx)
         {},
         {{"out", gfx::TextureFormat::RGBA8}},
         {RenderPipelineDesc::ClearStep{}, RenderPipelineDesc::RenderQueueStep{}}};
+    Vector<RenderPipelineDesc::NodeInstance> node_instances{
+        {"Default", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}};
     auto default_render_pipeline =
-        RenderPipelineDesc{{{"Default", default_render_pipeline_node}},
-                           {},
-                           {RenderPipelineDesc::NodeInstance{
-                               "Default", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}}};
+        RenderPipelineDesc{{{"Default", default_render_pipeline_node}}, {}, node_instances};
     setRenderPipeline(*RenderPipeline::createFromDesc(ctx, default_render_pipeline));
     assert(render_pipeline_);
 }
