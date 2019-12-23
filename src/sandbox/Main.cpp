@@ -31,17 +31,19 @@ public:
                                   makeUnique<CircularOrbit>(0.0f, 1.0f));
         PlanetDesc planet_desc;
         planet_desc.radius = 100.0f;
-        planet_desc.surface_texture = "base:space/planet.jpg";
+        planet_desc.surface_texture = "base:space/planet2.jpg";
+        planet_desc.normal_map_texture = "base:space/planet2_normal.jpg";
         auto& planet = star_system_->addPlanet(planet_desc, star,
-                                               makeUnique<CircularOrbit>(4000.0f, 10000.0f));
+                                               makeUnique<CircularOrbit>(4000.0f, 20000.0f));
 
         PlanetDesc moon_desc;
         moon_desc.radius = 20.0f;
         moon_desc.surface_texture = "base:space/moon.jpg";
-        star_system_->addPlanet(moon_desc, planet, makeUnique<CircularOrbit>(300.0f, 40.0f));
+        moon_desc.normal_map_texture = "base:space/moon_normal.jpg";
+        star_system_->addPlanet(moon_desc, planet, makeUnique<CircularOrbit>(900.0f, 40.0f));
 
         // Calculate positions of star system objects.
-        star_system_->updatePosition(0.0);
+        star_system_->updatePosition(1234.0);
 
         // Create frame of reference for camera.
         auto* frame_root = scene_graph_->root().newChild();
@@ -68,20 +70,19 @@ public:
 
         // Find nearest system body.
         SystemBody* nearest_system_body = nullptr;
-        float nearest_system_body_distance = M_INFINITY;
+        float nearest_system_body_altitude = M_INFINITY;
         for (auto* system_body : star_system_->getSystemBodies()) {
             auto& p = system_body->getSystemNode().position;
-            float distance = absolute_camera_position.getRelativeTo(p).Length();
-            if (distance < nearest_system_body_distance) {
-                nearest_system_body_distance = distance;
+            float altitude = absolute_camera_position.getRelativeTo(p).Length() - system_body->radius();
+            if (altitude < nearest_system_body_altitude) {
+                nearest_system_body_altitude = altitude;
                 nearest_system_body = system_body;
             }
         }
 
-        // Calculate distance to planet and adjust acceleration accordingly.
+        // Adjust acceleration accordingly.
         if (nearest_system_body) {
-            float altitude = nearest_system_body_distance - nearest_system_body->radius();
-            camera_controller->setAcceleration(altitude);
+            camera_controller->setAcceleration(nearest_system_body_altitude);
 
             ImGui::Begin("Object Information", nullptr,
                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
@@ -89,7 +90,7 @@ public:
             ImGui::SetNextWindowPos({10, 50});
             ImGui::SetNextWindowSize({140, 40});
             ImGui::Text("Nearest object: %s", nearest_system_body->typeName().c_str());
-            ImGui::Text("Altitude: %f", altitude);
+            ImGui::Text("Altitude: %f", nearest_system_body_altitude);
             ImGui::End();
         }
 

@@ -22,6 +22,11 @@ CustomRenderable::Builder& CustomRenderable::Builder::texcoords(bool texcoords) 
     return *this;
 }
 
+CustomRenderable::Builder& CustomRenderable::Builder::tangents(bool tangents) {
+    mesh_builder_.tangents(tangents);
+    return *this;
+}
+
 SharedPtr<CustomRenderable> CustomRenderable::Builder::createPlane(float width, float height) {
     return makeShared<CustomRenderable>(context(), mesh_builder_.createPlane(width, height));
 }

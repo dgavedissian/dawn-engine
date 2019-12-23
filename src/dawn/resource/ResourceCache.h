@@ -99,8 +99,16 @@ public:
         return resource;
     }
 
-private:
+    template <typename T> SharedPtr<T> getUnchecked(const ResourcePath& resource_path) {
+        auto result = get<T>(resource_path);
+        if (!result) {
+            log().error("getUnchecked failed: {}", result.error());
+            std::terminate();
+        }
+        return *result;
+    }
 
+private:
     Map<String, UniquePtr<ResourceLocation>> resource_packages_;
     HashMap<String, SharedPtr<Resource>> resource_cache_;
 };

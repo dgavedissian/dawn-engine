@@ -19,20 +19,24 @@ Planet::Planet(Context* ctx, SystemNode& system_node, StarSystem& star_system,
       axial_tilt_(Vec3(0.0f, 0.0f, 1.0f), -desc_.axial_tilt) {
     auto* rc = module<ResourceCache>();
 
-    auto planet_vs = *rc->get<VertexShader>("base:space/planet.vs");
-    auto planet_fs = *rc->get<FragmentShader>("base:space/planet.fs");
+    auto planet_vs = rc->getUnchecked<VertexShader>("base:space/planet.vs");
+    auto planet_fs = rc->getUnchecked<FragmentShader>("base:space/planet.fs");
 
     // Set up surface material.
     surface_material_ =
         makeShared<Material>(context(), makeShared<Program>(context(), planet_vs, planet_fs));
-    surface_material_->setTexture(*rc->get<Texture>(desc.surface_texture));
-    surface_material_->setUniform("surface_sampler", 0);
-    surface_material_->setUniform("light_direction", Vec3{0.0f, 0.0f, 1.0f});
+    surface_material_->setTexture(rc->getUnchecked<Texture>(desc.surface_texture), 0);
+    surface_material_->setTexture(rc->getUnchecked<Texture>(desc.normal_map_texture), 1);
+    surface_material_->setUniform("surface_map", 0);
+    surface_material_->setUniform("normal_map", 1);
+    surface_material_->setUniform("light_dir", Vec3{0.0f, 0.0f, 1.0f});
 
     // Create surface.
-    auto surface_renderable =
-        CustomRenderable::Builder(context()).texcoords(true).normals(true).createSphere(desc.radius,
-                                                                                        48, 48);
+    auto surface_renderable = CustomRenderable::Builder(context())
+                                  .texcoords(true)
+                                  .normals(true)
+                                  .tangents(true)
+                                  .createSphere(desc.radius, 48, 48);
     surface_renderable->setMaterial(surface_material_);
     system_node.data.renderable = surface_renderable;
 
@@ -214,6 +218,11 @@ void Planet::preRender() {
 }
 
 void Planet::updatePosition(double time) {
+    // TODO Rotating the planet causes issues with the atmosphere shader
+    // mSurfaceNode->setOrientation(axial_tilt_ * Quat(Vec3::unitY, time / mDesc.rotational_period *
+    // 2.0f * math::pi));
+    SystemBody::updatePosition(time);
+
     // Detect a star object.
     // TODO support multiple stars
     if (!star_system_.getStars().empty()) {
@@ -222,7 +231,7 @@ void Planet::updatePosition(double time) {
         Vec3 local_sun_direction = axial_tilt_.Inverted() * sun_direction;
 
         // Update surface shader.
-        surface_material_->setUniform("light_direction", sun_direction);
+        surface_material_->setUniform("light_dir", sun_direction);
         /*
         mSurfaceSubEntity->setCustomParameter(1, Ogre::Vector4(mSurfaceNode->getPosition()));
         mSurfaceSubEntity->setCustomParameter(2, Ogre::Vector4(sun_direction));
@@ -260,10 +269,5 @@ void Planet::updatePosition(double time) {
         }
          */
     }
-
-    // TODO Rotating the planet causes issues with the atmosphere shader
-    // mSurfaceNode->setOrientation(axial_tilt_ * Quat(Vec3::unitY, time / mDesc.rotational_period *
-    // 2.0f * math::pi));
-    SystemBody::updatePosition(time);
 }
 }  // namespace dw

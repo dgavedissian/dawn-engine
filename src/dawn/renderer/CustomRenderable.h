@@ -22,6 +22,7 @@ public:
 
         Builder& normals(bool normals);
         Builder& texcoords(bool texcoords);
+        Builder& tangents(bool tangents);
 
         SharedPtr<CustomRenderable> createPlane(float width, float height);
         SharedPtr<CustomRenderable> createBox(float half_size);

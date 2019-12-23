@@ -164,7 +164,7 @@ target_include_directories(concurrentqueue INTERFACE ${concurrentqueue_SOURCE_DI
 # dawn-gfx
 FetchContent_Declare(
     dawn-gfx
-    URL https://github.com/dgavedissian/dawn-gfx/archive/05919dc0cb21b36a9140ad08e03268170c5cb575.tar.gz
+    URL https://github.com/dgavedissian/dawn-gfx/archive/b3d6fa71de0db3130a662d610eb51e3a09aacbcb.tar.gz
 )
 FetchContent_MakeAvailable(dawn-gfx)
 
