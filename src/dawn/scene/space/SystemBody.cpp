@@ -6,8 +6,13 @@
 #include "scene/space/SystemBody.h"
 
 namespace dw {
-SystemBody::SystemBody(SystemNode& system_node)
-    : system_node_(system_node), orbit_(nullptr), parent_(nullptr) {
+SystemBody::SystemBody(Context* context, float radius, SystemNode& system_node)
+    : Object(context),
+      radius_(radius),
+      system_node_(system_node),
+      orbit_(nullptr),
+      parent_(nullptr) {
+    assert(radius >= 0.0f);
 }
 
 SystemBody& SystemBody::addSatellite(UniquePtr<SystemBody> satellite, UniquePtr<Orbit> orbit) {
@@ -31,6 +36,10 @@ void SystemBody::preRender() {
     }
 }
 
+float SystemBody::radius() const {
+    return radius_;
+}
+
 SystemNode& SystemBody::getSystemNode() const {
     return system_node_;
 }
@@ -49,7 +58,10 @@ const Vector<SharedPtr<SystemBody>>& SystemBody::getAllSatellites() const {
 }
 
 void SystemBody::updatePosition(double time) {
-    system_node_.position = orbit_->calculatePosition(time);
+    system_node_.position = parent_ ? parent_->system_node_.position : SystemPosition::origin;
+    if (orbit_) {
+        system_node_.position += orbit_->calculatePosition(time);
+    }
     for (const auto& satellite : satellites_) {
         satellite->updatePosition(time);
     }

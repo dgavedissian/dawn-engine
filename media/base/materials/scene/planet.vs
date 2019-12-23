@@ -43,8 +43,8 @@ void main()
     /////////////////////////////
     // ATMOSPHERE CODE
     /////////////////////////////
-    bool hasAtmosphere = config.y > 0.5;
-    if (hasAtmosphere)
+    bool has_atmosphere = config.y > 0.5;
+    if (has_atmosphere)
     {
         // Get the ray from the camera to the vertex, and its length.
         vec3 pos = vertex.xyz;

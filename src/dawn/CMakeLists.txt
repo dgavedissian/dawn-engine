@@ -138,9 +138,11 @@ set(SOURCE_FILES
     scene/space/Barycentre.h
     scene/space/Orbit.cpp
     scene/space/Orbit.h
+    scene/space/Planet.cpp
     scene/space/Planet.h
     scene/space/PlanetLod.cpp
     scene/space/PlanetLod.h
+    scene/space/Star.cpp
     scene/space/Star.h
     scene/space/StarSystem.cpp
     scene/space/StarSystem.h

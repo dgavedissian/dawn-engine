@@ -22,7 +22,14 @@ public:
     SystemBody& addPlanet(const PlanetDesc& desc, SystemBody& parent, UniquePtr<Orbit> orbit);
     SystemBody& addStar(const StarDesc& desc, SystemBody& parent, UniquePtr<Orbit> orbit);
 
+    void updatePosition(double time);
+
+    const Vector<SystemBody*>& getSystemBodies() const;
+    const Vector<Star*>& getStars() const;
+
 private:
     UniquePtr<SystemBody> root_body_;
+    Vector<SystemBody*> system_bodies_;
+    Vector<Star*> stars_;
 };
 }

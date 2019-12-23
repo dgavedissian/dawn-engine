@@ -57,8 +57,8 @@ material Scene/Planet
                 param_named_auto localSunDirection custom 3
                 param_named_auto ringDimensions custom 4
 
-                param_named surfaceTexture int 0
-                param_named nightTexture int 1
+                param_named surface_texture int 0
+                param_named night_texture int 1
                 param_named ringsTexture int 2
             }
         }

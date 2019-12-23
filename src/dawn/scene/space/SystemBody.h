@@ -9,9 +9,12 @@
 
 namespace dw {
 // Base class for any bodies inside a planetary system
-class DW_API SystemBody {
+class DW_API SystemBody : public Object {
 public:
-    SystemBody(SystemNode& system_node);
+    DW_OBJECT(SystemBody);
+
+    SystemBody(Context* context, float radius, SystemNode& system_node);
+    ~SystemBody() override = default;
 
     /// Add a satellite.
     SystemBody& addSatellite(UniquePtr<SystemBody> satellite, UniquePtr<Orbit> orbit);
@@ -23,6 +26,7 @@ public:
     virtual void preRender();
 
     // Accessors
+    float radius() const;
     SystemNode& getSystemNode() const;
     const Orbit& getOrbit() const;
     const SystemBody& getSatellite(uint index) const;
@@ -33,6 +37,7 @@ public:
     virtual void updatePosition(double time);
 
 protected:
+    float radius_;
     SystemNode& system_node_;
     UniquePtr<Orbit> orbit_;
 

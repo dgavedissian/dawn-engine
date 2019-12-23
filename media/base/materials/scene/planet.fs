@@ -6,8 +6,8 @@ uniform vec3 planetPosition;
 uniform vec3 localSunDirection;
 uniform vec3 ringDimensions;
 
-uniform sampler2D surfaceTexture;
-uniform sampler2D nightTexture;
+uniform sampler2D surface_texture;
+uniform sampler2D night_texture;
 uniform sampler2D ringsTexture;
 
 in vec3 worldPosition;
@@ -21,12 +21,12 @@ void main()
 {
     // Calculate lighting factor the the surface
     float lighting = clamp(dot(sunDirection, oNormal), 0.0, 1.0);
-    vec4 surfaceSample = texture(surfaceTexture, oUv0);
+    vec4 surfaceSample = texture(surface_texture, oUv0);
 
     // Set up config parameters (very hacky - must be a better way to do this!)
     bool hasNightSide = config.x > 0.5;
-    bool hasAtmosphere = config.y > 0.5;
-    bool hasRings = config.z > 0.5;
+    bool has_atmosphere = config.y > 0.5;
+    bool has_rings = config.z > 0.5;
 
     // Combine with night lighting
     vec4 nightFactor = vec4(0.0);
@@ -34,17 +34,17 @@ void main()
     {
         // night = (1 - day)^4
         float nightLighting = pow(1.0 - lighting, 4.0);
-        vec4 nightSample = texture(nightTexture, oUv0);
+        vec4 nightSample = texture(night_texture, oUv0);
         nightFactor = nightSample * nightLighting;
     }
 
     // Add atmosphere
     vec4 atmosphereFactor = vec4(0.0);
-    if (hasAtmosphere)
+    if (has_atmosphere)
         atmosphereFactor.rgb = atmosphereColour;
 
     // Calculate ring shadows
-    if (hasRings)
+    if (has_rings)
     {
         float ringShadow = 1.0;
 
