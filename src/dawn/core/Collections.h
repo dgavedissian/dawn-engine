@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #pragma once
 
@@ -20,11 +20,10 @@
 #include <unordered_set>
 #include <deque>
 #include <queue>
+#include <optional>
 
-#include <nonstd/any.hpp>
-#include <nonstd/expected.hpp>
-#include <nonstd/optional.hpp>
-#include <mapbox/variant.hpp>
+#include <tl/expected.hpp>
+#include <mpark/variant.hpp>
 #include <concurrentqueue.h>
 
 // Re-enable warnings
@@ -67,24 +66,19 @@ template <typename K> using Set = std::set<K>;
 template <typename K> using HashSet = std::unordered_set<K, HashFunction<K>>;
 template <typename T1, typename T2> using Pair = std::pair<T1, T2>;
 template <typename... Ts> using Tuple = std::tuple<Ts...>;
-template <typename... T> using Variant = mapbox::util::variant<T...>;
-template <typename T> using Option = nonstd::optional<T>;
-template <typename T, typename E = String> using Result = nonstd::expected<T, E>;
-template <typename E> using UnexpectedType = nonstd::unexpected_type<E>;
-using Any = nonstd::any;
+template <typename... T> using Variant = mpark::variant<T...>;
+template <typename T> using Option = std::optional<T>;
+template <typename T, typename E = String> using Result = tl::expected<T, E>;
+template <typename E> using Unexpected = tl::unexpected<E>;
 template <typename T> using ConcurrentQueue = moodycamel::ConcurrentQueue<T>;
 
-template <typename F, typename V>
-auto visit(F&& f, V const& v)
-    -> decltype(mapbox::util::apply_visitor(std::forward<F>(f), v)) {
-    return mapbox::util::apply_visitor(std::forward<F>(f), v);
+template <typename T, typename... Ts>
+inline constexpr bool holdsAlternative(const Variant<Ts...> &v) noexcept {
+    return mpark::holds_alternative<T>(v);
 }
 
-template <typename F, typename V>
-auto visit(F&& f, V& v)
-    -> decltype(mapbox::util::apply_visitor(std::forward<F>(f), v)) {
-    return mapbox::util::apply_visitor(std::forward<F>(f), v);
-}
+using mpark::visit;
+using mpark::get;
 
 template <typename T1, typename T2> Pair<T1, T2> makePair(T1&& a, T2&& b) {
     return std::pair<T1, T2>(std::forward<T1>(a), std::forward<T2>(b));
@@ -94,7 +88,7 @@ template <typename... T> Tuple<T...> makeTuple(T&&... args) {
     return std::tuple<T...>(std::forward<T>(args)...);
 }
 
-template <typename E> UnexpectedType<E> makeError(E&& error) {
-    return UnexpectedType<E>(std::forward<E>(error));
+template <typename E> Unexpected<typename std::decay<E>::type> makeError(E&& error) {
+    return Unexpected<typename std::decay<E>::type>(std::forward<E>(error));
 }
 }  // namespace dw

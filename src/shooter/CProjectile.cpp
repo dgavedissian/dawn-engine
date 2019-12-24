@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "CProjectile.h"
 #include "scene/SceneManager.h"
@@ -74,7 +74,7 @@ Entity* SProjectile::createNewProjectile(int type, const Vec3& position, const V
     // Allocate a billboard.
     Option<int> billboard_id = render_data.free_billboards.allocate();
     if (!billboard_id.has_value()) {
-        log().warn("Unable to create billboard. Ran out of IDs. Size: %d",
+        log().warn("Unable to create billboard. Ran out of IDs. Size: {}",
                    render_data.free_billboards.size());
         return nullptr;
     }

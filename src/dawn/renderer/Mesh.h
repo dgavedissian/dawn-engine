@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #pragma once
 
@@ -8,7 +8,7 @@
 #include "renderer/VertexBuffer.h"
 #include "renderer/IndexBuffer.h"
 #include "resource/Resource.h"
-#include "renderer/rhi/RHIRenderer.h"
+#include <dawn-gfx/Renderer.h>
 
 namespace dw {
 
@@ -16,8 +16,8 @@ class DW_API Mesh : public Resource, public Renderable {
 public:
     DW_OBJECT(Mesh);
 
-    Mesh(Context* context);
-    ~Mesh();
+    explicit Mesh(Context* context);
+    ~Mesh() override;
 
     // Resource.
     Result<void> beginLoad(const String& asset_name, InputStream& src) override;

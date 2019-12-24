@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Core.h"
 #include "scene/CSceneNode.h"
@@ -18,7 +18,7 @@ Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* f
 }
 
 Ship::Ship(Context* ctx, NetInstance* net, SceneManager* scene_manager, Frame* frame, NetRole role)
-    : Object(ctx), rb_(nullptr), ship_entity_(nullptr) {
+    : Object(ctx), ship_entity_(nullptr), rb_(nullptr) {
     auto rc = module<ResourceCache>();
     assert(rc);
 

@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #pragma once
 
@@ -13,8 +13,11 @@ namespace dw {
 class SceneManager;
 
 /// Entity identifier.
-using EntityId = u64;
+ENTT_OPAQUE_TYPE(EntityId, u64)
 using EntityType = u32;
+inline std::ostream& operator<<(std::ostream& stream, EntityId entity_id) {
+    return stream << to_integer(entity_id);
+}
 
 /// Entity object.
 class Entity {

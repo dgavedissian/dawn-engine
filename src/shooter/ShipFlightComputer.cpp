@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Core.h"
 #include "scene/CSceneNode.h"
@@ -12,7 +12,7 @@
 using namespace dw;
 
 ShipFlightComputer::ShipFlightComputer(Ship* ship)
-    : ship_{ship}, target_linear_velocity{Vec3::zero}, target_angular_velocity{Vec3::zero} {
+    : target_linear_velocity{Vec3::zero}, target_angular_velocity{Vec3::zero}, ship_{ship} {
     auto engines = ship->entity()->component<CShipEngines>();
     auto rb = ship->entity()->component<CRigidBody>();
 
@@ -28,9 +28,9 @@ ShipFlightComputer::ShipFlightComputer(Ship* ship)
         rb->_rigidBody()->getInvInertiaTensorWorld() * neg_torque;
 
     /*
-    log().info("Max positive: %s - max negative: %s", ship_acceleration_forwards_.ToString(),
+    log().info("Max positive: {} - max negative: {}", ship_acceleration_forwards_.ToString(),
                ship_acceleration_backwards_.ToString());
-    log().info("Max clockwise: %s - max anticlockwise: %s",
+    log().info("Max clockwise: {} - max anticlockwise: {}",
                ship_angular_acceleration_forwards_.ToString(),
                ship_angular_acceleration_backwards_.ToString());
     */

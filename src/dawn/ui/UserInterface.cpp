@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "core/io/StringInputStream.h"
@@ -42,9 +42,9 @@ UserInterface::UserInterface(Context* ctx, EventSystem* event_system)
         unsigned char* pixels;
         int width, height;
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-        rhi::TextureHandle handle =
-            rhi_->createTexture2D(static_cast<u16>(width), static_cast<u16>(height),
-                                  rhi::TextureFormat::RGBA8, Memory(pixels, width * height * 4));
+        gfx::TextureHandle handle = rhi_->createTexture2D(
+            static_cast<u16>(width), static_cast<u16>(height), gfx::TextureFormat::RGBA8,
+            gfx::Memory(pixels, width * height * 4));
         io.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(handle.internal()));
 
         // Set up key map.
@@ -71,9 +71,9 @@ UserInterface::UserInterface(Context* ctx, EventSystem* event_system)
 
     // Set up renderer resources.
     vertex_decl_.begin()
-        .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
-        .add(rhi::VertexDecl::Attribute::TexCoord0, 2, rhi::VertexDecl::AttributeType::Float)
-        .add(rhi::VertexDecl::Attribute::Colour, 4, rhi::VertexDecl::AttributeType::Uint8, true)
+        .add(gfx::VertexDecl::Attribute::Position, 2, gfx::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::TexCoord0, 2, gfx::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::Colour, 4, gfx::VertexDecl::AttributeType::Uint8, true)
         .end();
     auto vertex_shader_src = StringInputStream{R"(
         #version 330 core
@@ -214,12 +214,12 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) const {
         auto& vtx_buffer = cmd_list->VtxBuffer;
         auto& idx_buffer = cmd_list->IdxBuffer;
         auto tvb = rhi_->allocTransientVertexBuffer(vtx_buffer.Size, vertex_decl_);
-        if (tvb == rhi::TransientVertexBufferHandle::invalid) {
+        if (tvb == gfx::TransientVertexBufferHandle::invalid) {
             log().warn("Failed to allocate transient vertex buffer for ImGui");
             continue;
         }
         auto tib = rhi_->allocTransientIndexBuffer(idx_buffer.Size);
-        if (tib == rhi::TransientIndexBufferHandle::invalid) {
+        if (tib == gfx::TransientIndexBufferHandle::invalid) {
             log().warn("Failed to allocate transient index buffer for ImGui");
             continue;
         }
@@ -236,11 +236,11 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) const {
                 cmd->UserCallback(cmd_list, cmd);
             } else {
                 // Set render state.
-                rhi_->setStateEnable(rhi::RenderState::Blending);
-                rhi_->setStateBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::SrcAlpha,
-                                            rhi::BlendFunc::OneMinusSrcAlpha);
-                rhi_->setStateDisable(rhi::RenderState::CullFace);
-                rhi_->setStateDisable(rhi::RenderState::Depth);
+                rhi_->setStateEnable(gfx::RenderState::Blending);
+                rhi_->setStateBlendEquation(gfx::BlendEquation::Add, gfx::BlendFunc::SrcAlpha,
+                                            gfx::BlendFunc::OneMinusSrcAlpha);
+                rhi_->setStateDisable(gfx::RenderState::CullFace);
+                rhi_->setStateDisable(gfx::RenderState::Depth);
                 rhi_->setScissor(static_cast<u16>(cmd->ClipRect.x * io.DisplayFramebufferScale.x),
                                  static_cast<u16>(cmd->ClipRect.y * io.DisplayFramebufferScale.y),
                                  static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) *
@@ -249,7 +249,7 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) const {
                                                   io.DisplayFramebufferScale.y));
 
                 // Set resources.
-                rhi_->setTexture(rhi::TextureHandle{static_cast<rhi::TextureHandle::base_type>(
+                rhi_->setTexture(gfx::TextureHandle{static_cast<gfx::TextureHandle::base_type>(
                                      reinterpret_cast<uintptr>(cmd->TextureId))},
                                  0);
                 rhi_->setVertexBuffer(tvb);

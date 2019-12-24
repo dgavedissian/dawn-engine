@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "core/Module.h"
@@ -17,7 +17,7 @@ Module* Module::moduleByType(const TypeInfo& subsystem_type) const {
     if (subsystem_type.type() != Logger::typeStatic() &&
         dependencies_.count(subsystem_type.type()) == 0) {
         // We should warn here, as we're trying to access an unspecified dependency.
-        log().warn("Attempting to access subsystem %s, which is not declared as a dependency.",
+        log().warn("Attempting to access subsystem {}, which is not declared as a dependency.",
                    subsystem_type.typeName());
     }
     return subsystem;
@@ -28,7 +28,7 @@ void Module::verifyDependencies(const HashSet<TypeInfo>& dependencies) {
         Module* subsystem = Object::moduleByType(dependency);
         if (subsystem == nullptr) {
             log().error(
-                "%s is declared as a subsystem dependency, but is not initialised. A crash will "
+                "{} is declared as a subsystem dependency, but is not initialised. A crash will "
                 "likely follow.",
                 dependency.typeName());
         }

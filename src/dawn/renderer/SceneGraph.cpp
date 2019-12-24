@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "renderer/SceneGraph.h"
@@ -19,13 +19,13 @@ SceneGraph::SceneGraph(Context* ctx)
       camera_entity_system_(nullptr) {
     auto default_render_pipeline_node = RenderPipelineDesc::Node{
         {},
-        {{"out", rhi::TextureFormat::RGBA8}},
-        {RenderPipelineDesc::ClearStep{}, RenderPipelineDesc::RenderQueueStep{}}};
+        {{"out", gfx::TextureFormat::RGBA8}},
+        Vector<RenderPipelineDesc::Step>{RenderPipelineDesc::ClearStep{},
+                                         RenderPipelineDesc::RenderQueueStep{}}};
+    Vector<RenderPipelineDesc::NodeInstance> node_instances{
+        {"Default", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}};
     auto default_render_pipeline =
-        RenderPipelineDesc{{{"Default", default_render_pipeline_node}},
-                           {},
-                           {RenderPipelineDesc::NodeInstance{
-                               "Default", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}}};
+        RenderPipelineDesc{{{"Default", default_render_pipeline_node}}, {}, node_instances};
     setRenderPipeline(*RenderPipeline::createFromDesc(ctx, default_render_pipeline));
     assert(render_pipeline_);
 }

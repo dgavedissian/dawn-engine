@@ -1,10 +1,9 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #pragma once
-
-#include "renderer/rhi/RHIRenderer.h"
+#include <dawn-gfx/Renderer.h>
 #include "renderer/Program.h"
 #include "input/Input.h"
 #include "ui/Imgui.h"
@@ -26,7 +25,7 @@ public:
     void render();
 
 private:
-    rhi::RHIRenderer* rhi_;
+    gfx::Renderer* rhi_;
     EventSystem* event_system_;
 
     // ImGui.
@@ -35,7 +34,7 @@ private:
     ImGuiIO* logic_io_;
     ImGuiIO* renderer_io_;
     SharedPtr<Program> program_;
-    rhi::VertexDecl vertex_decl_;
+    gfx::VertexDecl vertex_decl_;
 
     // Input.
     float mouse_wheel_;

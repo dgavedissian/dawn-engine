@@ -1,30 +1,30 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #pragma once
-
-#include "renderer/rhi/RHIRenderer.h"
+#include <dawn-gfx/Renderer.h>
 
 namespace dw {
 class DW_API VertexBuffer : public Object {
 public:
     DW_OBJECT(VertexBuffer);
 
-    VertexBuffer(Context* context, Memory data, usize vertex_count, const rhi::VertexDecl& decl,
-                 rhi::BufferUsage usage = rhi::BufferUsage::Static);
-    ~VertexBuffer();
+    VertexBuffer(Context* context, gfx::Memory data, usize vertex_count, const gfx::VertexDecl& decl,
+                 gfx::BufferUsage usage = gfx::BufferUsage::Static);
+    VertexBuffer(Context* context, gfx::VertexBufferHandle handle, usize vertex_count);
+    ~VertexBuffer() override;
 
     // Will resize.
-    void update(Memory data, usize vertex_count, usize offset);
+    void update(gfx::Memory data, usize vertex_count, usize offset);
 
-    void bind(rhi::RHIRenderer* r);
+    void bind(gfx::Renderer* r);
 
-    rhi::VertexBufferHandle internalHandle() const;
+    gfx::VertexBufferHandle internalHandle() const;
     usize vertexCount() const;
 
 private:
-    rhi::VertexBufferHandle handle_;
+    gfx::VertexBufferHandle handle_;
     usize vertex_count_;
 };
 }  // namespace dw

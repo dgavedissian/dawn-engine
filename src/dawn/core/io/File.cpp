@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "File.h"
@@ -78,7 +78,7 @@ bool File::open(const Path& path, int mode) {
     String modeStr = fileModeMapper(mode);
     handle_ = fopen(path.c_str(), modeStr.c_str());
     if (!handle_) {
-        log().error("Failed to open file: %s", path);
+        log().error("Failed to open file: {}", path);
         return false;
     }
 

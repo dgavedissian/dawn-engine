@@ -1,11 +1,10 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #pragma once
 
 #include "Core.h"
-#include "renderer/MeshBuilder.h"
 #include "renderer/Mesh.h"
 
 #include "ShipCameraController.h"

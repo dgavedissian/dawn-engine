@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "FileSystem.h"
@@ -29,12 +29,12 @@ bool FileSystem::setWorkingDir(const Path& path) const {
 #if DW_PLATFORM == DW_WIN32
     if (::SetCurrentDirectoryA(simplfied_path.c_str()) == FALSE) {
         // TODO(David): Error handling
-        log().error("Failed to change directory to %s", simplfied_path);
+        log().error("Failed to change directory to {}", simplfied_path);
         return false;
     }
 #else
     if (::chdir(simplfied_path.c_str()) != 0) {
-        log().error("Failed to change directory to %s (errno %i)", simplfied_path, errno);
+        log().error("Failed to change directory to {} (errno {})", simplfied_path, errno);
         return false;
     }
 #endif

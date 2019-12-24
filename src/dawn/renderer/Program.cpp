@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "renderer/Program.h"
@@ -27,7 +27,7 @@ void Program::setTextureUnit(SharedPtr<Texture> texture, uint unit) {
     texture_units_[unit] = std::move(texture);
 }
 
-rhi::ProgramHandle Program::internalHandle() const {
+gfx::ProgramHandle Program::internalHandle() const {
     return handle_;
 }
 

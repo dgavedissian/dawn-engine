@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "net/NetInstance.h"
@@ -15,6 +15,13 @@
 
 namespace dw {
 namespace {
+
+#if defined(DW_GCC) || defined(DW_CLANG)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra-semi"
+#pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#endif
+
 // Assuming 'bytes' is of type 'Vector<byte>'.
 #define yojimbo_serialize_byte_array(stream, bytes)  \
     if (Stream::IsReading) {                         \
@@ -61,6 +68,10 @@ YOJIMBO_MESSAGE_FACTORY_START(NetMessageFactory, MT_Count);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ToServer, ToServerMessage);
 YOJIMBO_DECLARE_MESSAGE_TYPE(MT_ToClient, ToClientMessage);
 YOJIMBO_MESSAGE_FACTORY_FINISH();
+
+#if defined(DW_GCC) || defined(DW_CLANG)
+#pragma GCC diagnostic pop
+#endif
 
 class YojimboContext {
 public:
@@ -109,7 +120,7 @@ private:
 
         // Write to logger, trimming the ending '\n' that yojimbo always gives us.
         context_->logger->withObjectName("Yojimbo").info(
-            "yojimbo: %s", str_buffer.substr(0, str_buffer.size() - 1));
+            "yojimbo: {}", str_buffer.substr(0, str_buffer.size() - 1));
         return count;
     }
 };
@@ -272,7 +283,7 @@ void ReliableUDPClient::connect(const String& host, u16 port) {
     // Decide on client ID.
     u64 clientId = 0;
     yojimbo::random_bytes(reinterpret_cast<uint8_t*>(&clientId), 8);
-    log().info("Client id is %ull", clientId);
+    log().info("Client id is {}", clientId);
 
     // Connect to server.
     client_->InsecureConnect(privateKey, clientId, yojimbo::Address{host.c_str(), port});

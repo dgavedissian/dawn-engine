@@ -1,32 +1,15 @@
 # Dawn Engine
-# Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+# Written by David Avedissian (c) 2012-2019 (git@dga.dev)
 
 message(STATUS "Setting up external dependencies...")
 add_subdirectory(external)
 
-# Source: https://github.com/google/flatbuffers/blob/master/CMake/FindFlatBuffers.cmake
-function(FLATBUFFERS_GENERATE_C_HEADERS Name)
-    set(FLATC_OUTPUTS)
-    foreach(FILE ${ARGN})
-        get_filename_component(FLATC_OUTPUT ${FILE} NAME_WE)
-        set(FLATC_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers/${FLATC_OUTPUT}_generated.h")
-        list(APPEND FLATC_OUTPUTS ${FLATC_OUTPUT})
-
-        add_custom_command(OUTPUT ${FLATC_OUTPUT}
-            COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
-                ARGS -c -o "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers/" ${FILE}
-            COMMENT "Building C++ header for ${FILE}"
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    endforeach() 
-    set(${Name}_OUTPUTS ${FLATC_OUTPUTS} PARENT_SCOPE)
-endfunction()
-
-set(FLATBUFFER_DEFINITION_FILES
+flatbuffers_generate_cpp_headers(
+    NetProtocol
     net/protocol/protocol.fbs
     net/protocol/to_client.fbs
-    net/protocol/to_server.fbs)
-
-FLATBUFFERS_GENERATE_C_HEADERS(NetProtocol ${FLATBUFFER_DEFINITION_FILES})
+    net/protocol/to_server.fbs
+)
 
 set(SOURCE_FILES
     core/io/File.cpp
@@ -41,8 +24,6 @@ set(SOURCE_FILES
     core/io/Path.h
     core/io/StringInputStream.cpp
     core/io/StringInputStream.h
-    core/math/Colour.h
-    core/math/Colour.cpp
     core/math/Defs.h
     core/math/MathGeoLib.h
     core/math/Noise.cpp
@@ -62,7 +43,6 @@ set(SOURCE_FILES
     core/Collections.h
     core/CommandLine.cpp
     core/CommandLine.h
-    core/Concurrency.cpp
     core/Concurrency.h
     core/Context.cpp
     core/Context.h
@@ -77,11 +57,8 @@ set(SOURCE_FILES
     core/GameMode.h
     core/GameSession.cpp
     core/GameSession.h
-	core/Handle.h
     core/Log.cpp
     core/Log.h
-    core/Memory.cpp
-    core/Memory.h
     core/Module.cpp
     core/Module.h
     core/Object.cpp
@@ -119,33 +96,20 @@ set(SOURCE_FILES
     net/Rpc.cpp
     net/Rpc.h
     net/Rpc.i.h
-    renderer/rhi/GL.h
-    renderer/rhi/GLRenderContext.cpp
-    renderer/rhi/GLRenderContext.h
-    renderer/rhi/NullRenderContext.cpp
-    renderer/rhi/NullRenderContext.h
-    renderer/rhi/RHIRenderer.cpp
-    renderer/rhi/RHIRenderer.h
-    renderer/rhi/SPIRV.h
-    renderer/rhi/VertexDecl.cpp
-    renderer/rhi/VertexDecl.h
     renderer/BillboardSet.cpp
     renderer/BillboardSet.h
     renderer/CCamera.cpp
     renderer/CCamera.h
-    renderer/CustomMeshRenderable.cpp
-    renderer/CustomMeshRenderable.h
+    renderer/CustomRenderable.cpp
+    renderer/CustomRenderable.h
     renderer/FrameBuffer.cpp
     renderer/FrameBuffer.h
-    renderer/GLSL.h
     renderer/IndexBuffer.cpp
     renderer/IndexBuffer.h
     renderer/Material.cpp
     renderer/Material.h
     renderer/Mesh.cpp
     renderer/Mesh.h
-    renderer/MeshBuilder.cpp
-    renderer/MeshBuilder.h
     renderer/Node.cpp
     renderer/Node.h
     renderer/Program.cpp
@@ -165,14 +129,14 @@ set(SOURCE_FILES
     renderer/SystemPosition.h
     renderer/Texture.cpp
     renderer/Texture.h
-    renderer/TriangleBuffer.cpp
-    renderer/TriangleBuffer.h
     renderer/VertexBuffer.cpp
     renderer/VertexBuffer.h
     resource/Resource.cpp
     resource/Resource.h
     resource/ResourceCache.cpp
     resource/ResourceCache.h
+    scene/space/PlanetLod.cpp
+    scene/space/PlanetLod.h
     scene/BulletDynamics.h
     scene/CLinearMotion.h
     scene/CameraController.cpp
@@ -206,18 +170,15 @@ set(SOURCE_FILES
 # Project
 set(BUILD_SHARED_LIBS OFF)
 add_library(DwEngine ${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES} ${NetProtocol_OUTPUTS})
-enable_cpp17(DwEngine)
+target_compile_features(DwEngine PUBLIC cxx_std_17)
 enable_maximum_warnings(DwEngine)
-set_output_dir(DwEngine ${CMAKE_BINARY_DIR}/lib)
 if(BUILD_SHARED_LIBS)
-    set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-DDW_BUILD -DDW_DLL")
+    target_compile_definitions(DwEngine PRIVATE DW_BUILD DW_DLL)
 endif()
 if(APPLE)
-    set_target_properties(DwEngine PROPERTIES COMPILE_FLAGS "-D_LIBCPP_DISABLE_AVAILABILITY")
+    target_compile_definitions(DwEngine PRIVATE _LIBCPP_DISABLE_AVAILABILITY)
 endif()
-target_include_directories(DwEngine PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    scene/ontology/include)
+target_include_directories(DwEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(DwEngine PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/flatbuffers)
 
 # Copy over shared library dependencies
@@ -228,12 +189,41 @@ if(APPLE AND BUILD_SHARED_LIBS)
 endif()
 
 # Random extras
-mirror_physical_directories(${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCE_FILES} ${FLATBUFFER_DEFINITION_FILES})
 set_target_properties(DwEngine PROPERTIES DEBUG_POSTFIX _d)
 
-# Add include dirs and libraries
-target_include_directories(DwEngine PRIVATE ${INCLUDE_DIRS})
-target_link_libraries(DwEngine ${LIBS})
+# Add dependencies.
+target_link_libraries(DwEngine
+    assimp
+    BulletDynamics
+    BulletCollision
+    LinearMath
+    concurrentqueue
+    dawn-gfx
+    dga-base
+    EnTT
+    expected
+    FastDelegate
+    flatbuffers
+    fmt
+    imgui
+    json
+    MathGeoLib
+    sol2
+    stb
+    variant
+    yojimbo
+)
+if(NOT EMSCRIPTEN)
+    target_link_libraries(DwEngine
+        glad
+        luajit
+    )
+else()
+    target_link_libraries(DwEngine
+        lua
+    )
+endif()
 
 # Tests.
 enable_testing()
@@ -245,8 +235,8 @@ set(TEST_FILES
     testing/Testing.h)
 
 add_executable(DwEngineTests ${TEST_FILES})
-mirror_physical_directories(${TEST_FILES})
-enable_cpp14(DwEngineTests)
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${TEST_FILES})
+target_compile_features(DwEngineTests PUBLIC cxx_std_14)
 target_link_libraries(DwEngineTests DwEngine gtest gtest_main)
 target_include_directories(DwEngineTests SYSTEM PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/testing)
 set_target_properties(DwEngineTests PROPERTIES DEBUG_POSTFIX "")

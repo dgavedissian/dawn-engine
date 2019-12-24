@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "core/io/StringInputStream.h"
@@ -49,24 +49,24 @@ BillboardSet::BillboardSet(Context* ctx, u32 particle_count, const Vec2& particl
     fragment_shader->load("billboard_set.fs", fs_source);
     setMaterial(
         makeShared<Material>(ctx, makeShared<Program>(ctx, vertex_shader, fragment_shader)));
-    material_->setStateEnable(rhi::RenderState::Blending);
-    material_->setBlendEquation(rhi::BlendEquation::Add, rhi::BlendFunc::SrcAlpha,
-                                rhi::BlendFunc::OneMinusSrcAlpha);
+    material_->setStateEnable(gfx::RenderState::Blending);
+    material_->setBlendEquation(gfx::BlendEquation::Add, gfx::BlendFunc::SrcAlpha,
+                                gfx::BlendFunc::OneMinusSrcAlpha);
     material_->setDepthWrite(false);
     material_->setUniform<int>("billboard_texture", 0);
 
     // Create vertex and index buffers.
     uint vertex_count = static_cast<uint>(particle_count) * 4;
     uint index_count = static_cast<uint>(particle_count) * 6;
-    rhi::VertexDecl decl;
+    gfx::VertexDecl decl;
     decl.begin()
-        .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
-        .add(rhi::VertexDecl::Attribute::TexCoord0, 2, rhi::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::Position, 3, gfx::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::TexCoord0, 2, gfx::VertexDecl::AttributeType::Float)
         .end();
-    vb_ = makeShared<VertexBuffer>(ctx, Memory(vertex_count * sizeof(ParticleVertex)), vertex_count,
-                                   decl, rhi::BufferUsage::Dynamic);
-    ib_ =
-        makeShared<IndexBuffer>(ctx, Memory(index_count * sizeof(u32)), rhi::IndexBufferType::U32);
+    vb_ = makeShared<VertexBuffer>(ctx, gfx::Memory(vertex_count * sizeof(ParticleVertex)),
+                                   vertex_count, decl, gfx::BufferUsage::Dynamic);
+    ib_ = makeShared<IndexBuffer>(ctx, gfx::Memory(index_count * sizeof(u32)),
+                                  gfx::IndexBufferType::U32);
 
     // Initialise data stores.
     resize(particle_count);
@@ -97,7 +97,8 @@ void BillboardSet::resize(u32 particle_count) {
         index_data_[i * 6 + 4] = start_vertex + 2;
         index_data_[i * 6 + 5] = start_vertex + 3;
     }
-    ib_->update(Memory(index_data_.data(), static_cast<uint>(index_data_.size()) * sizeof(u32)), 0);
+    ib_->update(
+        gfx::Memory(index_data_.data(), static_cast<uint>(index_data_.size()) * sizeof(u32)), 0);
 }
 
 void BillboardSet::setBillboardType(BillboardType type) {
@@ -162,7 +163,7 @@ void BillboardSet::update(detail::Transform& camera_transform) {
     }
 
     // Update vertex buffer.
-    vb_->update(Memory(vertex_data_), static_cast<uint>(vertex_data_.size()), 0);
+    vb_->update(gfx::Memory(vertex_data_), static_cast<uint>(vertex_data_.size()), 0);
     vertex_data_.clear();
 }
 

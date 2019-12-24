@@ -1,13 +1,13 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "resource/Resource.h"
 #include "renderer/Texture.h"
 #include "renderer/FrameBuffer.h"
 #include "renderer/RenderPipeline.h"
-#include "renderer/CustomMeshRenderable.h"
+#include "renderer/CustomRenderable.h"
 #include "renderer/Renderer.h"
 #include "renderer/SceneGraph.h"
 #include "resource/ResourceCache.h"
@@ -26,7 +26,7 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
     for (auto& node_instance : desc.pipeline) {
         auto node_it = desc.nodes.find(node_instance.node);
         if (node_it == desc.nodes.end()) {
-            return makeError(str::format("Node '%s' does not exist.", node_instance.node));
+            return makeError(str::format("Node '{}' does not exist.", node_instance.node));
         }
 
         auto& node = node_it->second;
@@ -34,13 +34,13 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
         // Verify that all inputs and outputs are bound.
         if (node.inputs.size() != node_instance.input_bindings.size()) {
             return makeError(str::format(
-                "Mismatching input bindings. Number of input is %d but number of bindings is %d.",
+                "Mismatching input bindings. Number of input is {} but number of bindings is {}.",
                 node.inputs.size(), node_instance.input_bindings.size()));
         }
         if (node.outputs.size() != node_instance.output_bindings.size()) {
             return makeError(str::format(
-                "Mismatching output bindings. Number of outputs is %d but number of bindings is "
-                "%d.",
+                "Mismatching output bindings. Number of outputs is {} but number of bindings is "
+                "{}.",
                 node.outputs.size(), node_instance.output_bindings.size()));
         }
 
@@ -50,49 +50,49 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
         for (auto& binding : node_instance.input_bindings) {
             auto input_it = node.inputs.find(binding.first);
             if (input_it == node.inputs.end()) {
-                return makeError(str::format("Input '%s' does not exist.", binding.first));
+                return makeError(str::format("Input '{}' does not exist.", binding.first));
             }
 
             if (inputs_bound.count(binding.first) > 0) {
-                return makeError(str::format("Input '%s' is already bound.", binding.first));
+                return makeError(str::format("Input '{}' is already bound.", binding.first));
             }
 
             if (textures_bound_to_inputs.count(binding.second) > 0) {
-                return makeError(str::format("Texture '%s' is already bound.", binding.second));
+                return makeError(str::format("Texture '{}' is already bound.", binding.second));
             }
 
             auto texture_it = desc.textures.find(binding.second);
             if (texture_it == desc.textures.end()) {
-                return makeError(str::format("Texture '%s' bound to '%s' doesn't exist.",
+                return makeError(str::format("Texture '{}' bound to '{}' doesn't exist.",
                                              binding.second, binding.first));
             }
 
             if (input_it->second != texture_it->second.format) {
                 return makeError(
-                    str::format("Texture format mismatch. Input: %s (%d). Texture: %s (%d)",
+                    str::format("Texture format mismatch. Input: {} ({}). Texture: {} ({})",
                                 input_it->first, static_cast<int>(input_it->second),
                                 texture_it->first, static_cast<int>(texture_it->second.format)));
             }
         }
         HashSet<String> outputs_bound;
         HashSet<String> textures_bound_to_outputs;
-        Option<rhi::TextureFormat> output_format;
+        Option<gfx::TextureFormat> output_format;
         for (auto& binding : node_instance.output_bindings) {
             auto output_it =
                 std::find_if(node.outputs.begin(), node.outputs.end(),
-                             [&binding](const Pair<String, rhi::TextureFormat>& item) -> bool {
+                             [&binding](const Pair<String, gfx::TextureFormat>& item) -> bool {
                                  return item.first == binding.first;
                              });
             if (output_it == node.outputs.end()) {
-                return makeError(str::format("Output '%s' does not exist.", binding.first));
+                return makeError(str::format("Output '{}' does not exist.", binding.first));
             }
 
             if (outputs_bound.count(binding.first) > 0) {
-                return makeError(str::format("Output '%s' is already bound.", binding.first));
+                return makeError(str::format("Output '{}' is already bound.", binding.first));
             }
 
             if (textures_bound_to_outputs.count(binding.second) > 0) {
-                return makeError(str::format("Texture '%s' is already bound.", binding.second));
+                return makeError(str::format("Texture '{}' is already bound.", binding.second));
             }
 
             // As all outputs are bound to a single render target (called a multiple render target),
@@ -100,7 +100,7 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
             if (output_format.has_value()) {
                 if (output_it->second != *output_format) {
                     return makeError(str::format(
-                        "Texture format mismatch. Invalid MRT. Output %s is %d, but expecting %d.",
+                        "Texture format mismatch. Invalid MRT. Output {} is {}, but expecting {}.",
                         output_it->first, static_cast<int>(output_it->second),
                         static_cast<int>(*output_format)));
                 }
@@ -109,21 +109,21 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
             }
 
             if (binding.second == RenderPipelineDesc::PipelineOutput) {
-                if (output_it->second != rhi::TextureFormat::RGBA8) {
+                if (output_it->second != gfx::TextureFormat::RGBA8) {
                     return makeError(str::format(
-                        "Texture format mismatch. Output: %s (%d). Texture: Output (RGBA8)",
+                        "Texture format mismatch. Output: {} ({}). Texture: Output (RGBA8)",
                         output_it->first, static_cast<int>(output_it->second)));
                 }
             } else {
                 auto texture_it = desc.textures.find(binding.second);
                 if (texture_it == desc.textures.end()) {
-                    return makeError(str::format("Texture '%s' bound to '%s' doesn't exist.",
+                    return makeError(str::format("Texture '{}' bound to '{}' doesn't exist.",
                                                  binding.second, binding.first));
                 }
 
                 if (output_it->second != texture_it->second.format) {
                     return makeError(str::format(
-                        "Texture format mismatch. Output: %s (%d). Texture: %s (%d)",
+                        "Texture format mismatch. Output: {} ({}). Texture: {} ({})",
                         output_it->first, static_cast<int>(output_it->second), texture_it->first,
                         static_cast<int>(texture_it->second.format)));
                 }
@@ -145,19 +145,20 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
         -1.0f,  3.0f, 0.0f, 2.0f
     };
     // clang-format on
-    rhi::VertexDecl decl;
+    gfx::VertexDecl decl;
     decl.begin()
-        .add(rhi::VertexDecl::Attribute::Position, 2, rhi::VertexDecl::AttributeType::Float)
-        .add(rhi::VertexDecl::Attribute::TexCoord0, 2, rhi::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::Position, 2, gfx::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::TexCoord0, 2, gfx::VertexDecl::AttributeType::Float)
         .end();
     render_pipeline->fullscreen_quad_ =
-        makeShared<VertexBuffer>(ctx, Memory(vertices, sizeof(vertices)), 3, decl);
+        makeShared<VertexBuffer>(ctx, gfx::Memory(vertices, sizeof(vertices)), 3, decl);
 
     // Create textures.
     for (auto& texture_desc : desc.textures) {
-        render_pipeline->textures_[texture_desc.first] = Texture::createTexture2D(
-            ctx, ctx->module<Renderer>()->rhi()->backbufferSize() * texture_desc.second.ratio,
-            texture_desc.second.format);
+        auto bb_size = ctx->module<Renderer>()->rhi()->backbufferSize();
+        render_pipeline->textures_[texture_desc.first] =
+            Texture::createTexture2D(ctx, Vec2i{bb_size.x, bb_size.y} * texture_desc.second.ratio,
+                                     texture_desc.second.format);
     }
 
     // Build nodes.
@@ -196,20 +197,20 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
 
         // Set up steps.
         for (auto& step_desc : node_desc.steps) {
-            auto step_result = Result<UniquePtr<PStep>, String>();
-            if (step_desc.is<RenderPipelineDesc::ClearStep>()) {
-                auto& clear_step = step_desc.get<RenderPipelineDesc::ClearStep>();
+            Result<UniquePtr<PStep>, String> step_result;
+            if (holdsAlternative<RenderPipelineDesc::ClearStep>(step_desc)) {
+                auto& clear_step = get<RenderPipelineDesc::ClearStep>(step_desc);
                 step_result = {makeUnique<PClearStep>(clear_step.colour)};
-            } else if (step_desc.is<RenderPipelineDesc::RenderQueueStep>()) {
-                auto& render_queue_step = step_desc.get<RenderPipelineDesc::RenderQueueStep>();
+            } else if (holdsAlternative<RenderPipelineDesc::RenderQueueStep>(step_desc)) {
+                auto& render_queue_step = get<RenderPipelineDesc::RenderQueueStep>(step_desc);
                 step_result = {makeUnique<PRenderQueueStep>(render_queue_step.mask)};
-            } else if (step_desc.is<RenderPipelineDesc::RenderQuadStep>()) {
-                auto& render_quad_step = step_desc.get<RenderPipelineDesc::RenderQuadStep>();
+            } else if (holdsAlternative<RenderPipelineDesc::RenderQuadStep>(step_desc)) {
+                auto& render_quad_step = get<RenderPipelineDesc::RenderQuadStep>(step_desc);
                 auto material =
                     ctx->module<ResourceCache>()->get<Material>(render_quad_step.material_name);
                 if (!material) {
                     return makeError(
-                        str::format("Unable to set up material in render quad step. Reason: %s",
+                        str::format("Unable to set up material in render quad step. Reason: {}",
                                     material.error()));
                 }
                 auto material_instance = makeShared<Material>(**material);
@@ -263,11 +264,11 @@ SharedPtr<Texture> RenderPipeline::texture(const String& name) {
 RenderPipeline::PClearStep::PClearStep(Colour colour) : colour_(colour) {
 }
 
-void RenderPipeline::PClearStep::execute(Logger& log, rhi::RHIRenderer* r, float dt,
+void RenderPipeline::PClearStep::execute(Logger& log, gfx::Renderer* r, float dt,
                                          float interpolation, SceneGraph* scene_graph,
                                          u32 camera_id, uint view) {
 #ifdef ENABLE_DEBUG_LOGGING
-    log.debug("Setting view clear to %s", colour_.rgba().ToString());
+    log.debug("Setting view clear to {}", colour_.rgba().ToString());
 #endif
     r->setViewClear(view, colour_);
 }
@@ -275,11 +276,11 @@ void RenderPipeline::PClearStep::execute(Logger& log, rhi::RHIRenderer* r, float
 RenderPipeline::PRenderQueueStep::PRenderQueueStep(u32 mask) : mask_(mask) {
 }
 
-void RenderPipeline::PRenderQueueStep::execute(Logger& log, rhi::RHIRenderer* r, float dt,
+void RenderPipeline::PRenderQueueStep::execute(Logger& log, gfx::Renderer* r, float dt,
                                                float interpolation, SceneGraph* scene_graph,
                                                u32 camera_id, uint view) {
 #ifdef ENABLE_DEBUG_LOGGING
-    log.debug("Rendering scene from camera %d (mask: 0x%x) to view %d", camera_id, mask_, view);
+    log.debug("Rendering scene from camera {} (mask: {:#x}) to view {}", camera_id, mask_, view);
 #endif
     scene_graph->renderSceneFromCamera(dt, interpolation, camera_id, view, mask_);
 }
@@ -292,11 +293,11 @@ RenderPipeline::PRenderQuadStep::PRenderQuadStep(SharedPtr<VertexBuffer> fullscr
       input_samplers_(input_samplers) {
 }
 
-void RenderPipeline::PRenderQuadStep::execute(Logger& log, rhi::RHIRenderer* r, float dt,
+void RenderPipeline::PRenderQuadStep::execute(Logger& log, gfx::Renderer* r, float dt,
                                               float interpolation, SceneGraph* scene_graph,
                                               u32 camera_id, uint view) {
 #ifdef ENABLE_DEBUG_LOGGING
-    log.debug("Rendering full screen quad to view %d", view);
+    log.debug("Rendering full screen quad to view {}", view);
 #endif
     // Bind vertex buffer and material, then submit.
     fullscreen_quad_->bind(r);
@@ -307,8 +308,8 @@ void RenderPipeline::PRenderQuadStep::execute(Logger& log, rhi::RHIRenderer* r, 
 RenderPipeline::PNode::PNode() {
 }
 
-void RenderPipeline::PNode::prepareForRendering(rhi::RHIRenderer* r, uint view) {
+void RenderPipeline::PNode::prepareForRendering(gfx::Renderer* r, uint view) {
     r->setViewFrameBuffer(view, output_frame_buffer_ ? output_frame_buffer_->internalHandle()
-                                                     : rhi::FrameBufferHandle{0});
+                                                     : gfx::FrameBufferHandle{0});
 }
 }  // namespace dw

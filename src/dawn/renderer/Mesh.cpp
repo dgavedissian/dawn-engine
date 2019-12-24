@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "core/io/InputStream.h"
@@ -26,7 +26,7 @@ public:
 
     void write(const char* message_cstr) {
         String message{message_cstr};
-        logger->withObjectName("Mesh").info("Assimp Importer: %s",
+        logger->withObjectName("Mesh").info("Assimp Importer: {}",
                                             message.substr(0, message.length() - 1));
     }
 
@@ -78,7 +78,7 @@ void Mesh::SubMesh::draw(Renderer* renderer, uint view, const Mat4& model_matrix
                          const Mat4& view_projection_matrix) {
     // TODO: Revamp material system.
     material_->applyRendererState(model_matrix, view_projection_matrix);
-    renderer->rhi()->setStateDisable(rhi::RenderState::CullFace);
+    renderer->rhi()->setStateDisable(gfx::RenderState::CullFace);
     renderer->rhi()->submit(view, material_->program()->internalHandle(), index_count_,
                             index_buffer_offset_);
 }
@@ -110,7 +110,7 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     const aiScene* scene = importer.ReadFileFromMemory(data.get(), size, flags, asset_name.c_str());
     Assimp::DefaultLogger::kill();
     if (!scene) {
-        return makeError(str::format("Unable to load mesh %s. Reason: %s", asset_name,
+        return makeError(str::format("Unable to load mesh {}. Reason: {}", asset_name,
                                      importer.GetErrorString()));
     }
 
@@ -137,15 +137,15 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
         // Check the mesh for any issues, and abort if so.
         if (!mesh->HasPositions()) {
             return makeError(
-                str::format("Unable to load mesh %s. Submesh %d has no positions.", asset_name, i));
+                str::format("Unable to load mesh {}. Submesh {} has no positions.", asset_name, i));
         }
         if (!mesh->HasNormals()) {
             return makeError(
-                str::format("Unable to load mesh %s. Submesh %d has no normals.", asset_name, i));
+                str::format("Unable to load mesh {}. Submesh {} has no normals.", asset_name, i));
         }
         if (!mesh->HasFaces()) {
             return makeError(
-                str::format("Unable to load mesh %s. Submesh %d has no faces.", asset_name, i));
+                str::format("Unable to load mesh {}. Submesh {} has no faces.", asset_name, i));
         }
 
         const u32 vertex_offset = static_cast<u32>(vertices.size());
@@ -161,7 +161,7 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
             aiFace& face = mesh->mFaces[f];
             if (face.mNumIndices != 3) {
                 return makeError(str::format(
-                    "Unable to load mesh %s. Face %d in submesh %d has %d indices (must be exactly "
+                    "Unable to load mesh {}. Face {} in submesh {} has {} indices (must be exactly "
                     "3).",
                     asset_name, f, i, face.mNumIndices));
             }
@@ -175,13 +175,15 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     }
 
     // Build GPU buffers.
-    rhi::VertexDecl decl;
+    gfx::VertexDecl decl;
     decl.begin()
-        .add(rhi::VertexDecl::Attribute::Position, 3, rhi::VertexDecl::AttributeType::Float)
-        .add(rhi::VertexDecl::Attribute::Normal, 3, rhi::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::Position, 3, gfx::VertexDecl::AttributeType::Float)
+        .add(gfx::VertexDecl::Attribute::Normal, 3, gfx::VertexDecl::AttributeType::Float)
         .end();
-    vertex_buffer_ = makeShared<VertexBuffer>(context(), Memory(vertices), vertices.size(), decl);
-    index_buffer_ = makeShared<IndexBuffer>(context(), Memory(indices), rhi::IndexBufferType::U32);
+    vertex_buffer_ =
+        makeShared<VertexBuffer>(context(), gfx::Memory(vertices), vertices.size(), decl);
+    index_buffer_ =
+        makeShared<IndexBuffer>(context(), gfx::Memory(indices), gfx::IndexBufferType::U32);
 
     // Set up node hierarchy.
     Function<UniquePtr<Node>(aiNode*, Node*)> create_node_tree =

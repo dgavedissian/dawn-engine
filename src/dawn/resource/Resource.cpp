@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "core/io/InputStream.h"
@@ -29,7 +29,7 @@ Result<void> Resource::endLoad() {
 }
 
 Result<void> Resource::save(OutputStream&) {
-    return makeError(str::format("Save not supported for %s", typeName()));
+    return makeError(str::format("Save not supported for {}", typeName()));
 }
 
 bool Resource::hasLoaded() const {

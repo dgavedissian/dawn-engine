@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "core/io/FileSystem.h"
@@ -10,7 +10,6 @@
 #include "input/Input.h"
 #include "renderer/Renderer.h"
 #include "resource/ResourceCache.h"
-#include "scene/SceneManager.h"
 #include "script/LuaState.h"
 
 // Required for getBasePath/getPrefPath.
@@ -96,13 +95,13 @@ void Engine::setup(const CommandLine& cmdline) {
     if (cmdline.flags.size() > 0) {
         log().info("Flags:");
         for (auto& flag : cmdline.flags) {
-            log().info("\t%s", flag);
+            log().info("\t{}", flag);
         }
     }
     if (cmdline.arguments.size() > 0) {
         log().info("Arguments:");
         for (auto& arg : cmdline.arguments) {
-            log().info("\t%s %s", arg.first, arg.second);
+            log().info("\t{} {}", arg.first, arg.second);
         }
     }
 
@@ -122,10 +121,10 @@ void Engine::setup(const CommandLine& cmdline) {
 
     // Load configuration
     if (context_->module<FileSystem>()->fileExists(config_file_)) {
-        log().info("Loading configuration from %s", config_file_);
+        log().info("Loading configuration from {}", config_file_);
         context_->loadConfig(config_file_);
     } else {
-        log().info("Configuration does not exist, creating %s", config_file_);
+        log().info("Configuration does not exist, creating {}", config_file_);
         context_->setDefaultConfig();
     }
 
@@ -133,31 +132,34 @@ void Engine::setup(const CommandLine& cmdline) {
     context_->addModule<LuaState>();
     // TODO(David): bind engine services to lua?
 
-    // Create the engine subsystems.
+    // Graphics and input.
     auto* renderer = context_->addModule<Renderer>();
-    auto renderer_result = Result<void>();
+    Result<void> renderer_result;
     if (!headless_) {
         bool use_multithreading = true;
 #ifdef DW_EMSCRIPTEN
         use_multithreading = false;
 #endif
+        Input& input_module = *context_->addModule<Input>();
         renderer_result = renderer->rhi()->init(
-            rhi::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
-            context_->config().at("window_height").get<u16>(), window_title, use_multithreading);
-        context_->addModule<Input>();
+            gfx::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
+            context_->config().at("window_height").get<u16>(), window_title, input_module.getGfxInputCallbacks(),
+            use_multithreading);
     } else {
-        renderer_result = renderer->rhi()->init(
-            rhi::RendererType::Null, context_->config().at("window_width").get<u16>(),
-            context_->config().at("window_height").get<u16>(), window_title, false);
+        renderer_result = renderer->rhi()->init(gfx::RendererType::Null,
+                                                context_->config().at("window_width").get<u16>(),
+                                                context_->config().at("window_height").get<u16>(),
+                                                window_title, gfx::InputCallbacks{}, false);
     }
     if (!renderer_result) {
-        log().error("Renderer failed to initialise: %s", renderer_result.error());
+        log().error("Renderer failed to initialise: {}", renderer_result.error());
         std::abort();
     }
     context_->addModule<ResourceCache>();
 
     // Engine events and UI.
     event_system_ = makeUnique<EventSystem>(context_);
+    ;
     if (!headless_) {
         context_->module<Input>()->registerEventSystem(event_system_.get());
     }
@@ -195,11 +197,11 @@ void Engine::setup(const CommandLine& cmdline) {
      */
 
     // Display startup info
-    log().info("Current Working Directory: %s", module<FileSystem>()->workingDir());
+    log().info("Current Working Directory: {}", module<FileSystem>()->workingDir());
 
     // The engine is now initialised
     initialised_ = true;
-    log().info("Engine initialised. Starting %s %s", app_->gameName(), app_->gameVersion());
+    log().info("Engine initialised. Starting {} {}", app_->gameName(), app_->gameVersion());
 
     // Register delegate.
     event_system_->addListener(this, &Engine::onExit);
@@ -323,9 +325,9 @@ void Engine::printSystemInfo() {
     String platform = "Linux";
 #endif
 #endif
-    log().info("Platform: %s", platform);
-    log().info("Base Path: %s", context()->basePath());
-    log().info("Pref Path: %s", context()->prefPath());
+    log().info("Platform: {}", platform);
+    log().info("Base Path: {}", context()->basePath());
+    log().info("Pref Path: {}", context()->prefPath());
     // TODO: more system info
 }
 
@@ -422,8 +424,7 @@ String Engine::basePath() const {
     executable_path = readSymLink("/proc/self/exe");
     if (executable_path == "") {
         // Older kernels don't have /proc/self, try PID version.
-        executable_path =
-            readSymLink(tinyformat::format("/proc/%llu/exe", (unsigned long long)getpid()));
+        executable_path = readSymLink(fmt::format("/proc/{}/exe", (unsigned long long)getpid()));
     }
 
     // Chop off filename.

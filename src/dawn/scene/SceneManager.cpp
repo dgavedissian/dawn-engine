@@ -1,11 +1,10 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "renderer/Renderable.h"
 #include "scene/SceneManager.h"
-#include "renderer/MeshBuilder.h"
 #include "resource/ResourceCache.h"
 #include "renderer/Renderer.h"
 #include "scene/PhysicsScene.h"
@@ -13,6 +12,7 @@
 #include "net/CNetTransform.h"
 #include "renderer/SceneGraph.h"
 #include "SceneManager.h"
+#include "renderer/CustomRenderable.h"
 
 namespace dw {
 SceneManager::SceneManager(Context* ctx, EventSystem* event_system, SceneGraph* scene_graph)
@@ -40,7 +40,8 @@ void SceneManager::createStarSystem() {
         *module<ResourceCache>()->get<Texture>("base:space/starfield.jpg"));
     background_material->setUniform<int>("starfield_sampler", 0);
     background_material->setDepthWrite(false);
-    auto skybox = MeshBuilder{context()}.normals(false).texcoords(true).createBox(-100.0f);
+    auto skybox =
+        CustomRenderable::Builder(context()).normals(false).texcoords(true).createBox(-100.0f);
     skybox->setMaterial(background_material);
     background_scene_node_->data.renderable = skybox;
 }

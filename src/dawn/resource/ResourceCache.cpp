@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "core/io/File.h"
@@ -14,7 +14,7 @@ Pair<String, Path> parseResourcePath(const ResourcePath& resource_path) {
         return {"unknown_package", ""};
     }
     return {resource_path.substr(0, split_point), "/" + resource_path.substr(split_point + 1)};
-};
+}
 
 ResourcePackage::ResourcePackage(Context* ctx, const Path& package) : Object(ctx) {
 }
@@ -35,7 +35,7 @@ Result<SharedPtr<InputStream>> ResourceFilesystemPath::getFile(
     if (module<FileSystem>()->fileExists(full_path)) {
         return {makeShared<File>(context(), full_path, FileMode::Read)};
     }
-    return makeError(str::format("File %s does not exist.", full_path));
+    return makeError(str::format("File {} does not exist.", full_path));
 }
 
 ResourceCache::ResourceCache(Context* context) : Module(context) {
@@ -67,7 +67,7 @@ Result<SharedPtr<InputStream>> ResourceCache::loadRaw(const ResourcePath& resour
     // Look up package and get the file within that package.
     auto package_it = resource_packages_.find(package);
     if (package_it == resource_packages_.end()) {
-        return makeError(str::format("Attempting to load from unknown package: %s - Full path: %s",
+        return makeError(str::format("Attempting to load from unknown package: {} - Full path: {}",
                                      package, resource_path));
     }
     return package_it->second->getFile(simplifyAbsolutePath(path.second));

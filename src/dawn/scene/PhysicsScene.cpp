@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "input/Input.h"
@@ -26,7 +26,7 @@ void fromBulletTransform(const btTransform& source, detail::Transform& dest) {
 }  // namespace
 PhysicsScene::PhysicsScene(Context* context, SceneManager* scene_mgr, EventSystem* event_system)
     : Object(context), event_system_(event_system) {
-    log().info("Bullet Version %s.%s", btGetVersion() / 100, btGetVersion() % 100);
+    log().info("Bullet Version {}.{}", btGetVersion() / 100, btGetVersion() % 100);
 
     broadphase_ = makeUnique<btDbvtBroadphase>();
     collision_config_ = makeUnique<btDefaultCollisionConfiguration>();
@@ -116,7 +116,7 @@ void PhysicsScene::removeRigidBody(btRigidBody* rigid_body) {
 }
 
 void PhysicsScene::PhysicsComponentSystem::process(float) {
-    entityView().each([](auto entity, const auto& node, auto& rigid_body) {
+    entityView().each([](auto, const auto& node, auto& rigid_body) {
         fromBulletTransform(rigid_body.rigid_body_->getWorldTransform(), node.node->transform());
     });
 }

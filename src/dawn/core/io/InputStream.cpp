@@ -1,9 +1,10 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #include "Base.h"
 #include "InputStream.h"
+#include <fmt/format.h>
 
 namespace dw {
 
@@ -37,10 +38,10 @@ Result<Vector<byte>> InputStream::readAll() {
     buffer.resize(size_);
     auto read = readData(buffer.data(), size_);
     if (!eof()) {
-        return makeError(tinyformat::format(
-            "Attempted to read %s bytes. Actually read %s bytes and didn't read EOF.", read));
+        return makeError(fmt::format(
+            "Attempted to read {} bytes. Actually read {} bytes and didn't read EOF.", read));
     }
-    return std::move(buffer);
+    return buffer;
 }
 
 bool InputStream::eof() const {

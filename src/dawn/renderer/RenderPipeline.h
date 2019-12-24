@@ -1,21 +1,22 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #pragma once
 
 #include "core/Collections.h"
 #include "renderer/Material.h"
-#include "renderer/CustomMeshRenderable.h"
+#include "renderer/CustomRenderable.h"
 #include "renderer/FrameBuffer.h"
-#include "renderer/rhi/RHIRenderer.h"
+
+#include <dawn-gfx/Renderer.h>
 
 namespace dw {
 class DW_API SceneGraph;
 
 struct DW_API RenderPipelineDesc {
     struct DW_API Texture {
-        rhi::TextureFormat format;
+        gfx::TextureFormat format;
         Vec2 ratio = {1.0f, 1.0f};
     };
 
@@ -29,10 +30,12 @@ struct DW_API RenderPipelineDesc {
         String material_name = "";
     };
 
+    using Step = Variant<ClearStep, RenderQueueStep, RenderQuadStep>;
+
     struct DW_API Node {
-        HashMap<String, rhi::TextureFormat> inputs = {};
-        Vector<Pair<String, rhi::TextureFormat>> outputs = {};
-        Vector<Variant<ClearStep, RenderQueueStep, RenderQuadStep>> steps = {};
+        HashMap<String, gfx::TextureFormat> inputs = {};
+        Vector<Pair<String, gfx::TextureFormat>> outputs = {};
+        Vector<Step> steps = {};
     };
 
     struct DW_API NodeInstance {
@@ -52,7 +55,7 @@ struct DW_API RenderPipelineDesc {
 
 class DW_API RenderPipeline : public Resource {
 public:
-    RenderPipeline(Context* ctx);
+    explicit RenderPipeline(Context* ctx);
     ~RenderPipeline() override = default;
 
     static Result<SharedPtr<RenderPipeline>, String> createFromDesc(Context* ctx,
@@ -69,7 +72,7 @@ private:
     class PStep {
     public:
         virtual ~PStep() = default;
-        virtual void execute(Logger& log, rhi::RHIRenderer* r, float dt, float interpolation,
+        virtual void execute(Logger& log, gfx::Renderer* r, float dt, float interpolation,
                              SceneGraph* scene_graph, u32 camera_id, uint view) = 0;
     };
 
@@ -77,7 +80,7 @@ private:
     public:
         PClearStep(Colour colour);
 
-        void execute(Logger& log, rhi::RHIRenderer* r, float dt, float interpolation,
+        void execute(Logger& log, gfx::Renderer* r, float dt, float interpolation,
                      SceneGraph* scene_graph, u32 camera_id, uint view) override;
 
         Colour colour_;
@@ -87,7 +90,7 @@ private:
     public:
         PRenderQueueStep(u32 mask);
 
-        void execute(Logger& log, rhi::RHIRenderer* r, float dt, float interpolation,
+        void execute(Logger& log, gfx::Renderer* r, float dt, float interpolation,
                      SceneGraph* scene_graph, u32 camera_id, uint view) override;
 
         u32 mask_;
@@ -98,7 +101,7 @@ private:
         PRenderQuadStep(SharedPtr<VertexBuffer> fullscreen_quad, SharedPtr<Material> material,
                         const HashMap<String, uint>& input_samplers);
 
-        void execute(Logger& log, rhi::RHIRenderer* r, float dt, float interpolation,
+        void execute(Logger& log, gfx::Renderer* r, float dt, float interpolation,
                      SceneGraph* scene_graph, u32 camera_id, uint view) override;
 
         SharedPtr<VertexBuffer> fullscreen_quad_;
@@ -111,7 +114,7 @@ private:
         PNode();
         ~PNode() = default;
 
-        void prepareForRendering(rhi::RHIRenderer* r, uint view);
+        void prepareForRendering(gfx::Renderer* r, uint view);
 
         Vector<UniquePtr<PStep>> steps_;
 

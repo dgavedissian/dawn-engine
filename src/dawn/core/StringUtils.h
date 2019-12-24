@@ -1,6 +1,6 @@
 /*
  * Dawn Engine
- * Written by David Avedissian (c) 2012-2019 (git@dga.me.uk)
+ * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
 #pragma once
 
@@ -11,8 +11,7 @@
 #pragma warning(disable : 4127 4100)
 #endif
 
-#define TINYFORMAT_USE_VARIADIC_TEMPLATES
-#include <tinyformat.h>
+#include <fmt/format.h>
 
 #if defined(DW_MSVC)
 #pragma warning(pop)
@@ -24,7 +23,7 @@ namespace str {
 //// String
 
 template <typename... Args> String format(const String& format, const Args&... args) {
-    return tfm::format(format.c_str(), args...);
+    return fmt::format(format, args...);
 }
 
 // Generates a unique name with a prefix - prefixes are grouped
