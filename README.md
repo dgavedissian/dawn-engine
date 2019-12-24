@@ -1,6 +1,6 @@
 Dawn Engine
 ===========
-[![Build Status](https://travis-ci.org/dgavedissian/dawn-engine.svg?branch=develop)](https://travis-ci.org/dgavedissian/dawnengine)
+[![Build Status](https://travis-ci.org/dgavedissian/dawn-engine.svg?branch=develop)](https://travis-ci.org/dgavedissian/dawn-engine)
 
 A game engine written in C++17 designed for powering space games with galactic sized game worlds.
 
