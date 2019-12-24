@@ -2,12 +2,12 @@
  * Dawn Engine
  * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
+#include <scene/space/Planet.h>
 #include "Core.h"
 #include "Renderer.h"
 #include "Resource.h"
 #include "Scene.h"
 #include "UI.h"
-#include "scene/space/PlanetLod.h"
 #include "scene/space/StarSystem.h"
 
 using namespace dw;
@@ -27,12 +27,14 @@ public:
         // Star system.
         star_system_ = makeUnique<StarSystem>(context(), scene_graph_->root());
         auto& star =
-            star_system_->addStar(StarDesc{1000.0f, SpectralClass::G}, star_system_->root(),
+            star_system_->addStar(StarDesc{100.0f, SpectralClass::G}, star_system_->root(),
                                   makeUnique<CircularOrbit>(0.0f, 1.0f));
         PlanetDesc planet_desc;
         planet_desc.radius = 100.0f;
         planet_desc.surface_texture = "base:space/planet2.jpg";
         planet_desc.normal_map_texture = "base:space/planet2_normal.jpg";
+        planet_desc.has_atmosphere = true;
+        planet_desc.atmosphere.radius = 103.0f;
         auto& planet = star_system_->addPlanet(planet_desc, star,
                                                makeUnique<CircularOrbit>(4000.0f, 20000.0f));
 
@@ -43,7 +45,7 @@ public:
         star_system_->addPlanet(moon_desc, planet, makeUnique<CircularOrbit>(900.0f, 40.0f));
 
         // Calculate positions of star system objects.
-        star_system_->updatePosition(1234.0);
+        star_system_->updatePosition(5000.0);
 
         // Create frame of reference for camera.
         auto* frame_root = scene_graph_->root().newChild();
@@ -73,7 +75,8 @@ public:
         float nearest_system_body_altitude = M_INFINITY;
         for (auto* system_body : star_system_->getSystemBodies()) {
             auto& p = system_body->getSystemNode().position;
-            float altitude = absolute_camera_position.getRelativeTo(p).Length() - system_body->radius();
+            float altitude =
+                absolute_camera_position.getRelativeTo(p).Length() - system_body->radius();
             if (altitude < nearest_system_body_altitude) {
                 nearest_system_body_altitude = altitude;
                 nearest_system_body = system_body;
@@ -95,7 +98,7 @@ public:
         }
 
         camera_controller->update(dt);
-        // planet_->update(dt);
+        star_system_->update(dt, absolute_camera_position);
     }
 
     void render(float dt, float interpolation) override {

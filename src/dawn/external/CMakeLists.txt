@@ -228,6 +228,7 @@ set(FLATBUFFERS_BUILD_FLATC OFF CACHE BOOL "" FORCE)
 set(FLATBUFFERS_BUILD_FLATHASH OFF CACHE BOOL "" FORCE)
 set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(flatbuffers)
+target_compile_features(flatbuffers PUBLIC cxx_std_11)
 
 # Source: https://github.com/google/flatbuffers/blob/master/CMake/FindFlatBuffers.cmake
 function(flatbuffers_generate_cpp_headers Name)

@@ -32,6 +32,10 @@ SystemBody& StarSystem::addStar(const StarDesc& desc, SystemBody& parent, Unique
     return parent.addSatellite(std::move(star), std::move(orbit));
 }
 
+void StarSystem::update(float dt, const SystemPosition& camera_position) {
+    root_body_->update(dt, camera_position);
+}
+
 void StarSystem::updatePosition(double time) {
     root_body_->updatePosition(time);
 }

@@ -22,6 +22,7 @@ public:
     SystemBody& addPlanet(const PlanetDesc& desc, SystemBody& parent, UniquePtr<Orbit> orbit);
     SystemBody& addStar(const StarDesc& desc, SystemBody& parent, UniquePtr<Orbit> orbit);
 
+    void update(float dt, const SystemPosition& camera_position);
     void updatePosition(double time);
 
     const Vector<SystemBody*>& getSystemBodies() const;

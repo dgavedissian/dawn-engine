@@ -42,7 +42,7 @@ public:
     ~Planet() override;
 
     // Inherited from SystemBody
-    void preRender() override;
+    void update(float dt, const SystemPosition& camera_position) override;
     void updatePosition(double time) override;
 
 private:
@@ -52,6 +52,9 @@ private:
     Quat axial_tilt_;
 
     SharedPtr<Material> surface_material_;
+
+    SystemNode* atmosphere_node_;
+    SharedPtr<Material> atmosphere_material_;
 
     /*
     Ogre::MeshPtr mSurfaceMesh;

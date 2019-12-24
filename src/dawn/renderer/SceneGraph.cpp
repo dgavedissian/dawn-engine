@@ -150,9 +150,9 @@ Frame* SceneGraph::addFrame(SystemNode* frame_node) {
 }
 
 void SceneGraph::removeFrame(Frame* frame) {
-    (void)std::remove_if(frames_.begin(), frames_.end(), [frame](const UniquePtr<Frame>& element) {
-        return frame == element.get();
-    });
+    frames_.erase(std::remove_if(
+        frames_.begin(), frames_.end(),
+        [frame](const UniquePtr<Frame>& element) { return frame == element.get(); }));
 }
 
 Frame* SceneGraph::frame(usize i) {
