@@ -120,6 +120,7 @@ set(SOURCE_FILES
     renderer/Renderer.h
     renderer/RenderPipeline.cpp
     renderer/RenderPipeline.h
+    renderer/RenderQueue.h
     renderer/SceneGraph.cpp
     renderer/SceneGraph.h
     renderer/Shader.cpp

@@ -26,9 +26,8 @@ public:
 
         // Star system.
         star_system_ = makeUnique<StarSystem>(context(), scene_graph_->root());
-        auto& star =
-            star_system_->addStar(StarDesc{100.0f, SpectralClass::G}, star_system_->root(),
-                                  makeUnique<CircularOrbit>(0.0f, 1.0f));
+        auto& star = star_system_->addStar(StarDesc{100.0f, SpectralClass::G}, star_system_->root(),
+                                           makeUnique<CircularOrbit>(0.0f, 1.0f));
         PlanetDesc planet_desc;
         planet_desc.radius = 100.0f;
         planet_desc.surface_texture = "base:space/planet2.jpg";
@@ -104,7 +103,7 @@ public:
     void render(float dt, float interpolation) override {
         GameSession::render(dt, interpolation);
 
-        module<Renderer>()->rhi()->setViewClear(0, {0.0f, 0.0f, 0.1f, 0.2f});
+        module<Renderer>()->gfx()->setViewClear(0, {0.0f, 0.0f, 0.1f, 0.2f});
 
         // Calculate average FPS.
         float current_fps = 1.0f / dt;

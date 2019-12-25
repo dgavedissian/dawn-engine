@@ -155,7 +155,7 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
 
     // Create textures.
     for (auto& texture_desc : desc.textures) {
-        auto bb_size = ctx->module<Renderer>()->rhi()->backbufferSize();
+        auto bb_size = ctx->module<Renderer>()->gfx()->backbufferSize();
         render_pipeline->textures_[texture_desc.first] =
             Texture::createTexture2D(ctx, Vec2i{bb_size.x, bb_size.y} * texture_desc.second.ratio,
                                      texture_desc.second.format);
@@ -203,7 +203,8 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
                 step_result = {makeUnique<PClearStep>(clear_step.colour)};
             } else if (holdsAlternative<RenderPipelineDesc::RenderQueueStep>(step_desc)) {
                 auto& render_queue_step = get<RenderPipelineDesc::RenderQueueStep>(step_desc);
-                step_result = {makeUnique<PRenderQueueStep>(render_queue_step.mask)};
+                step_result = {makeUnique<PRenderQueueStep>(render_queue_step.mask,
+                                                            render_queue_step.num_views)};
             } else if (holdsAlternative<RenderPipelineDesc::RenderQuadStep>(step_desc)) {
                 auto& render_quad_step = get<RenderPipelineDesc::RenderQuadStep>(step_desc);
                 auto material =
@@ -244,14 +245,19 @@ Result<void> RenderPipeline::beginLoad(const String& asset_name, InputStream& sr
 }
 
 void RenderPipeline::render(float dt, float interpolation, SceneGraph* scene_graph, u32 camera_id) {
-    auto rhi = module<Renderer>()->rhi();
-    for (uint view = 0; view < nodes_.size(); ++view) {
-        nodes_[view]->prepareForRendering(rhi, view);
-    }
-    for (uint view = 0; view < nodes_.size(); ++view) {
-        for (auto& step : nodes_[view]->steps_) {
-            step->execute(log().withObjectName("dw::RenderPipeline"), rhi, dt, interpolation,
+    auto gfx = module<Renderer>()->gfx();
+    uint view = 0;
+    for (const auto& node : nodes_) {
+        uint num_views = 0;
+        for (const auto& step : node->steps_) {
+            num_views += step->numViews();
+        }
+        node->prepareForRendering(gfx, view, view + num_views);
+
+        for (auto& step : node->steps_) {
+            step->execute(log().withObjectName("dw::RenderPipeline"), gfx, dt, interpolation,
                           scene_graph, camera_id, view);
+            view += step->numViews();
         }
     }
 }
@@ -273,7 +279,12 @@ void RenderPipeline::PClearStep::execute(Logger& log, gfx::Renderer* r, float dt
     r->setViewClear(view, colour_);
 }
 
-RenderPipeline::PRenderQueueStep::PRenderQueueStep(u32 mask) : mask_(mask) {
+uint RenderPipeline::PClearStep::numViews() const {
+    return 0;
+}
+
+RenderPipeline::PRenderQueueStep::PRenderQueueStep(u32 mask, uint num_views)
+    : mask_(mask), num_views_(num_views) {
 }
 
 void RenderPipeline::PRenderQueueStep::execute(Logger& log, gfx::Renderer* r, float dt,
@@ -282,7 +293,11 @@ void RenderPipeline::PRenderQueueStep::execute(Logger& log, gfx::Renderer* r, fl
 #ifdef ENABLE_DEBUG_LOGGING
     log.debug("Rendering scene from camera {} (mask: {:#x}) to view {}", camera_id, mask_, view);
 #endif
-    scene_graph->renderSceneFromCamera(dt, interpolation, camera_id, view, mask_);
+    scene_graph->renderSceneFromCamera(dt, interpolation, camera_id, ViewRange{view}, mask_);
+}
+
+uint RenderPipeline::PRenderQueueStep::numViews() const {
+    return kRenderQueueGroupCount;
 }
 
 RenderPipeline::PRenderQuadStep::PRenderQuadStep(SharedPtr<VertexBuffer> fullscreen_quad,
@@ -305,11 +320,17 @@ void RenderPipeline::PRenderQuadStep::execute(Logger& log, gfx::Renderer* r, flo
     r->submit(view, material_->program()->internalHandle(), 3);
 }
 
+uint RenderPipeline::PRenderQuadStep::numViews() const {
+    return 1;
+}
+
 RenderPipeline::PNode::PNode() {
 }
 
-void RenderPipeline::PNode::prepareForRendering(gfx::Renderer* r, uint view) {
-    r->setViewFrameBuffer(view, output_frame_buffer_ ? output_frame_buffer_->internalHandle()
-                                                     : gfx::FrameBufferHandle{0});
+void RenderPipeline::PNode::prepareForRendering(gfx::Renderer* r, uint view_begin, uint view_end) {
+    for (uint view = view_begin; view < view_end; ++view) {
+        r->setViewFrameBuffer(view, output_frame_buffer_ ? output_frame_buffer_->internalHandle()
+                                                         : gfx::FrameBufferHandle{0});
+    }
 }
 }  // namespace dw

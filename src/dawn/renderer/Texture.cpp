@@ -37,7 +37,7 @@ Texture::Texture(Context* ctx) : Resource(ctx) {
 
 Texture::~Texture() {
     if (handle_.isValid()) {
-        module<Renderer>()->rhi()->deleteTexture(handle_);
+        module<Renderer>()->gfx()->deleteTexture(handle_);
     }
 }
 
@@ -45,7 +45,7 @@ SharedPtr<Texture> Texture::createTexture2D(Context* ctx, const Vec2i& size,
                                             gfx::TextureFormat format, gfx::Memory data) {
     auto texture = makeShared<Texture>(ctx);
     texture->handle_ =
-        ctx->module<Renderer>()->rhi()->createTexture2D(size.x, size.y, format, std::move(data));
+        ctx->module<Renderer>()->gfx()->createTexture2D(size.x, size.y, format, std::move(data));
     return texture;
 }
 
@@ -60,7 +60,7 @@ Result<void> Texture::beginLoad(const String&, InputStream& src) {
                                             &height, &bpp, 4);
     gfx::Memory data(buffer, static_cast<usize>(width * height * 4),
                      [](byte* buffer) { stbi_image_free(buffer); });
-    handle_ = module<Renderer>()->rhi()->createTexture2D(
+    handle_ = module<Renderer>()->gfx()->createTexture2D(
         static_cast<u16>(width), static_cast<u16>(height), gfx::TextureFormat::RGBA8,
         std::move(data));
     return Result<void>();

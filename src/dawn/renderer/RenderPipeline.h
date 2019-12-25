@@ -25,6 +25,9 @@ struct DW_API RenderPipelineDesc {
     };
     struct DW_API RenderQueueStep {
         u32 mask = 0x1;
+        // Number of gfx views used by this pipeline step. This effectively controls the number of
+        // "render queues" available.
+        uint num_views = 1;
     };
     struct DW_API RenderQuadStep {
         String material_name = "";
@@ -74,6 +77,7 @@ private:
         virtual ~PStep() = default;
         virtual void execute(Logger& log, gfx::Renderer* r, float dt, float interpolation,
                              SceneGraph* scene_graph, u32 camera_id, uint view) = 0;
+        virtual uint numViews() const = 0;
     };
 
     class PClearStep : public PStep {
@@ -82,18 +86,21 @@ private:
 
         void execute(Logger& log, gfx::Renderer* r, float dt, float interpolation,
                      SceneGraph* scene_graph, u32 camera_id, uint view) override;
+        uint numViews() const override;
 
         Colour colour_;
     };
 
     class PRenderQueueStep : public PStep {
     public:
-        PRenderQueueStep(u32 mask);
+        PRenderQueueStep(u32 mask, uint num_views);
 
         void execute(Logger& log, gfx::Renderer* r, float dt, float interpolation,
                      SceneGraph* scene_graph, u32 camera_id, uint view) override;
+        uint numViews() const override;
 
         u32 mask_;
+        uint num_views_;
     };
 
     class PRenderQuadStep : public PStep {
@@ -103,6 +110,7 @@ private:
 
         void execute(Logger& log, gfx::Renderer* r, float dt, float interpolation,
                      SceneGraph* scene_graph, u32 camera_id, uint view) override;
+        uint numViews() const override;
 
         SharedPtr<VertexBuffer> fullscreen_quad_;
         SharedPtr<Material> material_;
@@ -114,7 +122,7 @@ private:
         PNode();
         ~PNode() = default;
 
-        void prepareForRendering(gfx::Renderer* r, uint view);
+        void prepareForRendering(gfx::Renderer* r, uint view_begin, uint view_end);
 
         Vector<UniquePtr<PStep>> steps_;
 

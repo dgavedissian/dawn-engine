@@ -14,7 +14,7 @@ public:
     DW_OBJECT(Example);
 
     Example(Context* ctx, const GameSession* session)
-        : Object(ctx), r{ctx->module<Renderer>()->rhi()}, session_{session} {
+        : Object(ctx), r{ctx->module<Renderer>()->gfx()}, session_{session} {
     }
 
     u16 width() const {

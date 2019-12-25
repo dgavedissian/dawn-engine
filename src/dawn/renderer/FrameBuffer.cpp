@@ -17,12 +17,12 @@ FrameBuffer::FrameBuffer(Context* ctx, Vector<SharedPtr<Texture>> textures) : Ob
                    [](const SharedPtr<Texture>& texture) -> gfx::TextureHandle {
                        return texture->internalHandle();
                    });
-    handle_ = ctx->module<Renderer>()->rhi()->createFrameBuffer(texture_handles);
+    handle_ = ctx->module<Renderer>()->gfx()->createFrameBuffer(texture_handles);
 }
 
 FrameBuffer::~FrameBuffer() {
     if (handle_.isValid()) {
-        module<Renderer>()->rhi()->deleteFrameBuffer(handle_);
+        module<Renderer>()->gfx()->deleteFrameBuffer(handle_);
     }
 }
 

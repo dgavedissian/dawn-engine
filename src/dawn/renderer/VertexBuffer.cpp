@@ -10,7 +10,7 @@ namespace dw {
 VertexBuffer::VertexBuffer(Context* context, gfx::Memory data, usize vertex_count,
                            const gfx::VertexDecl& decl, gfx::BufferUsage usage)
     : Object{context}, vertex_count_{vertex_count} {
-    handle_ = context->module<Renderer>()->rhi()->createVertexBuffer(std::move(data), decl, usage);
+    handle_ = context->module<Renderer>()->gfx()->createVertexBuffer(std::move(data), decl, usage);
 }
 
 VertexBuffer::VertexBuffer(Context* context, gfx::VertexBufferHandle handle, usize vertex_count)
@@ -18,12 +18,12 @@ VertexBuffer::VertexBuffer(Context* context, gfx::VertexBufferHandle handle, usi
 }
 
 VertexBuffer::~VertexBuffer() {
-    context_->module<Renderer>()->rhi()->deleteVertexBuffer(handle_);
+    context_->module<Renderer>()->gfx()->deleteVertexBuffer(handle_);
 }
 
 void VertexBuffer::update(gfx::Memory data, usize vertex_count, usize offset) {
     vertex_count_ = vertex_count;
-    context_->module<Renderer>()->rhi()->updateVertexBuffer(handle_, std::move(data), offset);
+    context_->module<Renderer>()->gfx()->updateVertexBuffer(handle_, std::move(data), offset);
 }
 
 void VertexBuffer::bind(gfx::Renderer* r) {

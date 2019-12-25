@@ -22,7 +22,7 @@ UserInterface::UserInterface(Context* ctx, EventSystem* event_system)
     ImGui::SetCurrentContext(renderer_context_);
     renderer_io_ = &ImGui::GetIO();
 
-    rhi_ = module<Renderer>()->rhi();
+    rhi_ = module<Renderer>()->gfx();
 
     // Initialise mouse state.
     for (bool& state : mouse_pressed_) {

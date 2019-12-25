@@ -9,7 +9,7 @@
 
 namespace dw {
 CustomRenderable::Builder::Builder(Context* ctx)
-    : Object{ctx}, mesh_builder_{*module<Renderer>()->rhi()} {
+    : Object{ctx}, mesh_builder_{*module<Renderer>()->gfx()} {
 }
 
 CustomRenderable::Builder& CustomRenderable::Builder::normals(bool normals) {
@@ -57,18 +57,18 @@ CustomRenderable::~CustomRenderable() {
 
 void CustomRenderable::draw(Renderer* renderer, uint view, detail::Transform&,
                             const Mat4& model_matrix, const Mat4& view_projection_matrix) {
-    auto rhi = renderer->rhi();
+    auto gfx = renderer->gfx();
     usize vertex_count =
         index_buffer_ ? index_buffer_->indexCount() : vertex_buffer_->vertexCount();
-    rhi->setVertexBuffer(vertex_buffer_->internalHandle());
+    gfx->setVertexBuffer(vertex_buffer_->internalHandle());
     if (index_buffer_) {
-        rhi->setIndexBuffer(index_buffer_->internalHandle());
+        gfx->setIndexBuffer(index_buffer_->internalHandle());
     }
     // TODO: Move this common "render vertex/index buffer + material" code somewhere to avoid
     // duplication with Mesh.
     // TODO: Support unset material.
     material_->applyRendererState(model_matrix, view_projection_matrix);
-    rhi->submit(view, material_->program()->internalHandle(), vertex_count);
+    gfx->submit(view, material_->program()->internalHandle(), vertex_count);
 }
 
 VertexBuffer* CustomRenderable::vertexBuffer() const {

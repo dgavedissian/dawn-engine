@@ -20,7 +20,7 @@ public:
     bool frame();
 
     /// Get the renderer hardware interface.
-    gfx::Renderer* rhi() const;
+    gfx::Renderer* gfx() const;
 
     /// Access the last frame time
     double frameTime() const;

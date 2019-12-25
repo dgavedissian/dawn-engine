@@ -129,7 +129,7 @@ void BillboardSet::draw(Renderer* renderer, uint view, detail::Transform& camera
                         const Mat4&, const Mat4& view_projection_matrix) {
     update(camera_transform);
 
-    auto rhi = renderer->rhi();
+    auto rhi = renderer->gfx();
     rhi->setVertexBuffer(vb_->internalHandle());
     rhi->setIndexBuffer(ib_->internalHandle());
     material_->applyRendererState(Mat4::identity, view_projection_matrix);

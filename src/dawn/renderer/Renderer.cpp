@@ -61,7 +61,7 @@ bool Renderer::frame() {
     return result;
 }
 
-gfx::Renderer* Renderer::rhi() const {
+gfx::Renderer* Renderer::gfx() const {
     return renderer_.get();
 }
 

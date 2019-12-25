@@ -88,7 +88,7 @@ void Material::setTexture(SharedPtr<Texture> texture, uint unit) {
 }
 
 void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_projection_matrix) {
-    auto* renderer = module<Renderer>()->rhi();
+    auto* renderer = module<Renderer>()->gfx();
 
     // Bind render state.
     for (auto state : states_to_enable_) {

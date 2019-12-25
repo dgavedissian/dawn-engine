@@ -17,7 +17,7 @@ IndexBuffer::IndexBuffer(Context* ctx, gfx::Memory data, gfx::IndexBufferType ty
     } else {
         assert(false);
     }
-    handle_ = context_->module<Renderer>()->rhi()->createIndexBuffer(std::move(data), type, usage);
+    handle_ = context_->module<Renderer>()->gfx()->createIndexBuffer(std::move(data), type, usage);
 }
 
 IndexBuffer::IndexBuffer(Context* ctx, gfx::IndexBufferHandle handle, usize index_count,
@@ -26,7 +26,7 @@ IndexBuffer::IndexBuffer(Context* ctx, gfx::IndexBufferHandle handle, usize inde
 }
 
 IndexBuffer::~IndexBuffer() {
-    context_->module<Renderer>()->rhi()->deleteIndexBuffer(handle_);
+    context_->module<Renderer>()->gfx()->deleteIndexBuffer(handle_);
 }
 
 void IndexBuffer::update(gfx::Memory data, uint offset) {
@@ -37,7 +37,7 @@ void IndexBuffer::update(gfx::Memory data, uint offset) {
     } else {
         assert(false);
     };
-    context_->module<Renderer>()->rhi()->updateIndexBuffer(handle_, std::move(data), offset);
+    context_->module<Renderer>()->gfx()->updateIndexBuffer(handle_, std::move(data), offset);
 }
 
 void IndexBuffer::bind(gfx::Renderer* r) {

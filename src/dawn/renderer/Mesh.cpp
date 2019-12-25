@@ -78,8 +78,8 @@ void Mesh::SubMesh::draw(Renderer* renderer, uint view, const Mat4& model_matrix
                          const Mat4& view_projection_matrix) {
     // TODO: Revamp material system.
     material_->applyRendererState(model_matrix, view_projection_matrix);
-    renderer->rhi()->setStateDisable(gfx::RenderState::CullFace);
-    renderer->rhi()->submit(view, material_->program()->internalHandle(), index_count_,
+    renderer->gfx()->setStateDisable(gfx::RenderState::CullFace);
+    renderer->gfx()->submit(view, material_->program()->internalHandle(), index_count_,
                             index_buffer_offset_);
 }
 
@@ -231,7 +231,7 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
 void Mesh::draw(Renderer* renderer, uint view, detail::Transform&, const Mat4& model_matrix,
                 const Mat4& view_projection_matrix) {
     // usize vertex_count = index_buffer_->indexCount();
-    auto rhi = renderer->rhi();
+    auto rhi = renderer->gfx();
     rhi->setVertexBuffer(vertex_buffer_->internalHandle());
     rhi->setIndexBuffer(index_buffer_->internalHandle());
     // TODO: Move this common "render vertex/index buffer + material" code somewhere to avoid

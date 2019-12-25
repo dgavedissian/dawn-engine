@@ -65,7 +65,7 @@ public:
     void update(float dt) override {
         GameSession::update(dt);
 
-        module<Renderer>()->rhi()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
+        module<Renderer>()->gfx()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
 
         // Display FPS information.
         ImGui::SetNextWindowPos({10, 10});

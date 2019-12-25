@@ -118,7 +118,8 @@ void SceneGraph::renderScene(float dt, float interpolation) {
     }
 }
 
-void SceneGraph::renderSceneFromCamera(float dt, float, u32 camera_id, uint view, u32 mask) {
+void SceneGraph::renderSceneFromCamera(float dt, float, u32 camera_id, ViewRange view_range,
+                                       u32 mask) {
     // Render stuff.
     auto& cameras = camera_entity_system_->cameras;
     assert(camera_id < cameras.size());
@@ -138,8 +139,9 @@ void SceneGraph::renderSceneFromCamera(float dt, float, u32 camera_id, uint view
     }
     for (auto& op : render_operations_per_camera_[camera_id]) {
         if (op.renderable->material()->mask() & mask) {
-            op.renderable->draw(module<Renderer>(), view, camera_transform, op.model,
-                                view_proj_matrix);
+            op.renderable->draw(module<Renderer>(),
+                                view_range.view(op.renderable->renderQueueGroup()),
+                                camera_transform, op.model, view_proj_matrix);
         }
     }
 }

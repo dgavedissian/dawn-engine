@@ -141,12 +141,12 @@ void Engine::setup(const CommandLine& cmdline) {
         use_multithreading = false;
 #endif
         Input& input_module = *context_->addModule<Input>();
-        renderer_result = renderer->rhi()->init(
+        renderer_result = renderer->gfx()->init(
             gfx::RendererType::OpenGL, context_->config().at("window_width").get<u16>(),
             context_->config().at("window_height").get<u16>(), window_title,
             input_module.getGfxInputCallbacks(), use_multithreading);
     } else {
-        renderer_result = renderer->rhi()->init(gfx::RendererType::Null,
+        renderer_result = renderer->gfx()->init(gfx::RendererType::Null,
                                                 context_->config().at("window_width").get<u16>(),
                                                 context_->config().at("window_height").get<u16>(),
                                                 window_title, gfx::InputCallbacks{}, false);

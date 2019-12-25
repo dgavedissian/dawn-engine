@@ -24,7 +24,7 @@ Result<void> Shader::beginLoad(const String&, InputStream& src) {
     if (!result) {
         return makeError("Failed to compile shader: " + result.error().compile_error);
     }
-    handle_ = module<Renderer>()->rhi()->createShader(type_, result.value().entry_point,
+    handle_ = module<Renderer>()->gfx()->createShader(type_, result.value().entry_point,
                                                       gfx::Memory(result.value().spirv));
     return {};
 }
