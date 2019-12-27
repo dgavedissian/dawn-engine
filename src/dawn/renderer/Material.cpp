@@ -120,7 +120,8 @@ void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_pro
         if (!texture_units_[i]) {
             break;
         }
-        renderer->setTexture(texture_units_[i]->internalHandle(), i, gfx::SamplerFlag::Default, 4.0f);
+        renderer->setTexture(texture_units_[i]->internalHandle(), i, gfx::SamplerFlag::Default,
+                             4.0f);
     }
 
     // Set uniforms.

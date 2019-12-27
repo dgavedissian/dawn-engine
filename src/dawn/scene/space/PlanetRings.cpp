@@ -13,11 +13,11 @@ namespace dw {
 PlanetRings::PlanetRings(Context* ctx, const PlanetDesc& desc, SystemNode& system_node)
     : Object(ctx),
       desc_(desc),
-      mMinRadius(desc.rings.min_radius),
-      mMaxRadius(desc.rings.max_radius),
+      min_radius_(desc.rings.min_radius),
+      max_radius_(desc.rings.max_radius),
       ring_system_node_(system_node) {
     // Generate the LOD look up table
-    lod_distance_table_[0] = pow(mMaxRadius * 2.0f, 2);
+    lod_distance_table_[0] = pow(max_radius_ * 2.0f, 2);
     for (usize i = 1; i < lod_distance_table_.size(); i++) {
         lod_distance_table_[i] = lod_distance_table_[i - 1] * 0.25f;
     }
@@ -81,7 +81,6 @@ PlanetRings::PlanetRings(Context* ctx, const PlanetDesc& desc, SystemNode& syste
     // ring_renderable_->setRenderQueueGroup(RenderQueueGroup::Group1);
 
     // Update shader parameters
-    float minDistance = lod_distance_table_[9];
     ring_material_->setUniform("ring_dimensions",
                                Vec3(desc.rings.min_radius, desc.rings.max_radius,
                                     desc.rings.max_radius - desc.rings.min_radius));
@@ -125,7 +124,7 @@ float PlanetRings::getLodDistance(uint level) const {
 Colour PlanetRings::getColour(const Vec2& position) const {
     /*
     float distance = position.Length();
-    float index = (distance - mMinRadius) / (mMaxRadius - mMinRadius);
+    float index = (distance - min_radius_) / (max_radius_ - min_radius_);
 
     // Trim the outer parts of the ring.
     if (index < 0.0f || index > 1.0f) {
@@ -143,7 +142,7 @@ Colour PlanetRings::getColour(const Vec2& position) const {
 float PlanetRings::getDensity(const Vec2& position) const {
     /*
     float distance = position.Length();
-    float index = (distance - mMinRadius) / (mMaxRadius - mMinRadius);
+    float index = (distance - min_radius_) / (max_radius_ - min_radius_);
 
     // Trim the outer parts of the ring.
     if (index < 0.0f || index > 1.0f) {

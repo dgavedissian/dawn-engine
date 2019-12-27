@@ -10,7 +10,8 @@
 #include <dawn-gfx/Shader.h>
 
 namespace dw {
-Shader::Shader(Context* context, gfx::ShaderStage type) : Resource{context}, type_{type} {
+Shader::Shader(Context* context, gfx::ShaderStage type, const Vector<String>& compile_definitions)
+    : Resource{context}, type_{type}, compile_definitions_(compile_definitions) {
 }
 
 Result<void> Shader::beginLoad(const String&, InputStream& src) {
@@ -20,7 +21,7 @@ Result<void> Shader::beginLoad(const String&, InputStream& src) {
     src_data.resize(src_len);
     src.readData(src_data.data(), src_len);
 
-    auto result = gfx::compileGLSL(src_data, type_);
+    auto result = gfx::compileGLSL(src_data, type_, compile_definitions_);
     if (!result) {
         return makeError("Failed to compile shader: " + result.error().compile_error);
     }

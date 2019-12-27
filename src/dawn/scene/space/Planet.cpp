@@ -22,23 +22,35 @@ Planet::Planet(Context* ctx, SystemNode& system_node, StarSystem& star_system,
       atmosphere_node_(nullptr) {
     auto* rc = module<ResourceCache>();
 
-    auto planet_vs = rc->getUnchecked<VertexShader>("base:space/planet.vs");
-    auto planet_fs = rc->getUnchecked<FragmentShader>("base:space/planet.fs");
+    // Load shaders manually, to allow compile definitions to be passed in.
+    Vector<String> planet_sh_compile_defs;
+    if (desc.has_atmosphere) {
+        planet_sh_compile_defs.emplace_back("ENABLE_ATMOSPHERE");
+    }
+    if (!desc.normal_map_texture.empty()) {
+        planet_sh_compile_defs.emplace_back("ENABLE_NORMAL_MAP");
+    }
+    auto planet_vs = makeShared<VertexShader>(context(), planet_sh_compile_defs);
+    planet_vs->load("base:space/planet.vs", **rc->loadRaw("base:space/planet.vs"));
+    auto planet_fs = makeShared<FragmentShader>(context(), planet_sh_compile_defs);
+    planet_fs->load("base:space/planet.fs", **rc->loadRaw("base:space/planet.fs"));
 
     // Set up surface material.
     surface_material_ =
         makeShared<Material>(context(), makeShared<Program>(context(), planet_vs, planet_fs));
     surface_material_->setTexture(rc->getUnchecked<Texture>(desc.surface_texture), 0);
-    surface_material_->setTexture(rc->getUnchecked<Texture>(desc.normal_map_texture), 1);
     surface_material_->setUniform("surface_map", 0);
-    surface_material_->setUniform("normal_map", 1);
+    if (!desc.normal_map_texture.empty()) {
+        surface_material_->setTexture(rc->getUnchecked<Texture>(desc.normal_map_texture), 1);
+        surface_material_->setUniform("normal_map", 1);
+    }
     surface_material_->setUniform("sun_direction", Vec3{0.0f, 0.0f, 1.0f});
 
     // Create surface.
     auto surface_renderable = CustomRenderable::Builder(context())
                                   .texcoords(true)
                                   .normals(true)
-                                  .tangents(true)
+                                  .tangents(!desc.normal_map_texture.empty())
                                   .createSphere(desc.radius, 48, 48);
     surface_renderable->setMaterial(surface_material_);
     system_node.data.renderable = surface_renderable;
@@ -121,7 +133,8 @@ void Planet::update(float dt, Frame& frame, const Vec3& camera_position) {
 
     // Updates based on camera position
     //===========================================================================
-    Vec3 local_camera_position = (frame.position() + camera_position).getRelativeTo(system_node_.position);
+    Vec3 local_camera_position =
+        (frame.position() + camera_position).getRelativeTo(system_node_.position);
 
     // Update atmosphere shader
     if (desc_.has_atmosphere) {

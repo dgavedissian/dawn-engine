@@ -16,8 +16,7 @@ Pair<String, Path> parseResourcePath(const ResourcePath& resource_path);
 class DW_API ResourceLocation {
 public:
     virtual ~ResourceLocation() = default;
-    virtual Result<SharedPtr<InputStream>> getFile(
-        const ResourcePath& path_within_location) = 0;
+    virtual Result<SharedPtr<InputStream>> getFile(const ResourcePath& path_within_location) = 0;
 };
 
 class DW_API ResourcePackage : public Object, public ResourceLocation {
@@ -26,8 +25,7 @@ public:
 
     ResourcePackage(Context* ctx, const Path& package);
 
-    Result<SharedPtr<InputStream>> getFile(
-        const ResourcePath& path_within_location) override;
+    Result<SharedPtr<InputStream>> getFile(const ResourcePath& path_within_location) override;
 };
 
 class DW_API ResourceFilesystemPath : public Object, public ResourceLocation {
@@ -36,8 +34,7 @@ public:
 
     ResourceFilesystemPath(Context* ctx, const Path& path);
 
-    Result<SharedPtr<InputStream>> getFile(
-        const ResourcePath& path_within_location) override;
+    Result<SharedPtr<InputStream>> getFile(const ResourcePath& path_within_location) override;
 
 private:
     Path path_;
@@ -54,7 +51,7 @@ public:
     void addPackage(const String& package, UniquePtr<ResourcePackage> file);
 
     // Raw API to read resource data.
-    Result<SharedPtr<InputStream>> loadRaw(const ResourcePath &resource_path);
+    Result<SharedPtr<InputStream>> loadRaw(const ResourcePath& resource_path);
 
     template <typename T>
     SharedPtr<T> addCustomResource(const ResourcePath& resource_path, SharedPtr<T> resource) {
@@ -73,8 +70,13 @@ public:
         return resource;
     }
 
-    template <typename T> Result<SharedPtr<T>, String> get(const ResourcePath& resource_path) {
+    template <typename T>
+    Result<SharedPtr<T>, String> get(const ResourcePath& resource_path,
+                                     const String& parameters = "") {
         String name(resource_path);
+        if (!parameters.empty()) {
+            name += "?" + parameters;
+        }
 
         // If the resource already exists, return it.
         auto it = resource_cache_.find(name);
@@ -86,7 +88,7 @@ public:
         auto resource_data = loadRaw(resource_path);
         if (!resource_data) {
             return makeError(str::format("Cannot find resource {}. Reason: {}", resource_path,
-                                resource_data.error()));
+                                         resource_data.error()));
         }
         SharedPtr<T> resource = makeShared<T>(context());
         resource_cache_.emplace(name, resource);
@@ -94,12 +96,13 @@ public:
         auto load_result = resource->load(resource_path, *resource_data.value().get());
         if (!load_result) {
             return makeError(str::format("Failed to load resource {}. Reason: {}", resource_path,
-                                load_result.error()));
+                                         load_result.error()));
         }
         return resource;
     }
 
-    template <typename T> SharedPtr<T> getUnchecked(const ResourcePath& resource_path) {
+    template <typename T>
+    SharedPtr<T> getUnchecked(const ResourcePath& resource_path, const String& parameters = "") {
         auto result = get<T>(resource_path);
         if (!result) {
             log().error("getUnchecked failed: {}", result.error());

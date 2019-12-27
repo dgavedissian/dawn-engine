@@ -18,7 +18,7 @@ struct DW_API PlanetDesc {
     float axial_tilt = 0.0f;         // in radians
     String surface_texture = "";
     String night_texture = "";
-    String normal_map_texture = "base:space/moon_normal.png";
+    String normal_map_texture = "";
 
     bool has_atmosphere = false;
     struct {

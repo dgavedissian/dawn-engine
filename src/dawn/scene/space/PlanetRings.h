@@ -34,8 +34,8 @@ public:
 private:
     const PlanetDesc& desc_;
 
-    float mMinRadius;
-    float mMaxRadius;
+    float min_radius_;
+    float max_radius_;
     std::array<float, kRingDetailMaxLevel> lod_distance_table_;
 
     SystemNode& ring_system_node_;

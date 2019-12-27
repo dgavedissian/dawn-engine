@@ -1,8 +1,5 @@
 #version 330 core
 
-#define ENABLE_NORMAL_MAP
-#define ENABLE_ATMOSPHERE
-
 in vec2 out_texcoord;
 in mat3 out_tbn;
 in vec3 out_normal;
