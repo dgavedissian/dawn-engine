@@ -29,32 +29,38 @@ public:
         auto& star = star_system_->addStar(StarDesc{100.0f, SpectralClass::G}, star_system_->root(),
                                            makeUnique<CircularOrbit>(0.0f, 1.0f));
         PlanetDesc planet_desc;
-        planet_desc.radius = 100.0f;
+        planet_desc.radius = 200.0f;
+        planet_desc.axial_tilt = 0.2f;
         planet_desc.surface_texture = "base:space/planet2.jpg";
         planet_desc.normal_map_texture = "base:space/planet2_normal.jpg";
         planet_desc.has_atmosphere = true;
-        planet_desc.atmosphere.radius = 103.0f;
+        planet_desc.atmosphere.radius = 204.0f;
+        planet_desc.has_rings = true;
+        planet_desc.rings.texture = "sandbox:rings.png";
+        planet_desc.rings.min_radius = 350.0f;
+        planet_desc.rings.max_radius = 550.0f;
         auto& planet = star_system_->addPlanet(planet_desc, star,
-                                               makeUnique<CircularOrbit>(4000.0f, 20000.0f));
+                                               makeUnique<CircularOrbit>(5000.0f, 20000.0f));
 
         PlanetDesc moon_desc;
-        moon_desc.radius = 20.0f;
+        moon_desc.radius = 40.0f;
         moon_desc.surface_texture = "base:space/moon.jpg";
         moon_desc.normal_map_texture = "base:space/moon_normal.jpg";
-        star_system_->addPlanet(moon_desc, planet, makeUnique<CircularOrbit>(900.0f, 40.0f));
+        star_system_->addPlanet(moon_desc, planet, makeUnique<CircularOrbit>(1800.0f, 40.0f));
 
         // Calculate positions of star system objects.
-        star_system_->updatePosition(5000.0);
+        star_system_->updatePosition(14000.0);
 
         // Create frame of reference for camera.
         auto* frame_root = scene_graph_->root().newChild();
         frame_root->position = planet.getSystemNode().position;
         frame_root->position.z += planet.radius() * 2.0f;
+        frame_root->position.y += planet.radius() * 0.25f;
         frame_ = scene_graph_->addFrame(frame_root);
 
         // Create a camera.
         auto& camera = scene_manager_->createEntity(0, Vec3::zero, Quat::identity, *frame_);
-        camera.addComponent<CCamera>(0.1f, 10000.0f, 60.0f, 1280.0f / 800.0f);
+        camera.addComponent<CCamera>(0.01f, 10000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), event_system_.get(), 300.0f);
         camera_controller->possess(&camera);
     }
@@ -66,8 +72,8 @@ public:
     void update(float dt) override {
         GameSession::update(dt);
 
-        auto absolute_camera_position =
-            frame_->position() + camera_controller->possessed()->transform()->position;
+        auto camera_position = camera_controller->possessed()->transform()->position;
+        auto absolute_camera_position = frame_->position() + camera_position;
 
         // Find nearest system body.
         SystemBody* nearest_system_body = nullptr;
@@ -97,7 +103,7 @@ public:
         }
 
         camera_controller->update(dt);
-        star_system_->update(dt, absolute_camera_position);
+        star_system_->update(dt, *frame_, camera_position);
     }
 
     void render(float dt, float interpolation) override {

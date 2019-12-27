@@ -7,8 +7,11 @@
 #include "Base.h"
 #include "renderer/Material.h"
 #include "scene/space/SystemBody.h"
+#include "scene/space/PlanetRings.h"
 
 namespace dw {
+class StarSystem;
+
 struct DW_API PlanetDesc {
     float radius = 0.0f;
     float rotational_period = 0.0f;    // in seconds
@@ -33,16 +36,16 @@ struct DW_API PlanetDesc {
 };
 
 // A planetary body which can have an atmosphere or ring system.
-class StarSystem;
 class DW_API Planet : public SystemBody {
 public:
     DW_OBJECT(Planet);
 
     Planet(Context* ctx, SystemNode& system_node, StarSystem& star_system, const PlanetDesc& desc);
-    ~Planet() override;
+    ~Planet() override = default;
 
     // Inherited from SystemBody
-    void update(float dt, const SystemPosition& camera_position) override;
+    void preRender(Frame& frame) override;
+    void update(float dt, Frame& frame, const Vec3& camera_position) override;
     void updatePosition(double time) override;
 
 private:
@@ -51,10 +54,14 @@ private:
 
     Quat axial_tilt_;
 
+    Vec3 sun_direction_;
+
     SharedPtr<Material> surface_material_;
 
     SystemNode* atmosphere_node_;
     SharedPtr<Material> atmosphere_material_;
+
+    UniquePtr<PlanetRings> rings_;
 
     /*
     Ogre::MeshPtr mSurfaceMesh;

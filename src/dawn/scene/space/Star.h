@@ -25,10 +25,7 @@ public:
     DW_OBJECT(Star);
 
     Star(Context* ctx, SystemNode& system_node, const StarDesc& desc);
-    ~Star() override;
-
-    // Inherited from SystemBody
-    void preRender() override;
+    ~Star() override = default;
 
 private:
     StarDesc desc_;

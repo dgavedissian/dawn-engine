@@ -87,6 +87,12 @@ void Material::setTexture(SharedPtr<Texture> texture, uint unit) {
     texture_units_[unit] = std::move(texture);
 }
 
+void Material::enableAlphaBlending() {
+    setStateEnable(gfx::RenderState::Blending);
+    setBlendEquation(gfx::BlendEquation::Add, gfx::BlendFunc::SrcAlpha,
+                     gfx::BlendFunc::OneMinusSrcAlpha);
+}
+
 void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_projection_matrix) {
     auto* renderer = module<Renderer>()->gfx();
 
@@ -114,7 +120,7 @@ void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_pro
         if (!texture_units_[i]) {
             break;
         }
-        renderer->setTexture(texture_units_[i]->internalHandle(), i);
+        renderer->setTexture(texture_units_[i]->internalHandle(), i, gfx::SamplerFlag::Default, 4.0f);
     }
 
     // Set uniforms.

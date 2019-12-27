@@ -11,6 +11,7 @@
 #include "scene/Entity.h"
 
 namespace dw {
+class Frame;
 class DW_API StarSystem : public Object {
 public:
     DW_OBJECT(StarSystem);
@@ -22,7 +23,7 @@ public:
     SystemBody& addPlanet(const PlanetDesc& desc, SystemBody& parent, UniquePtr<Orbit> orbit);
     SystemBody& addStar(const StarDesc& desc, SystemBody& parent, UniquePtr<Orbit> orbit);
 
-    void update(float dt, const SystemPosition& camera_position);
+    void update(float dt, Frame& frame, const Vec3& camera_position);
     void updatePosition(double time);
 
     const Vector<SystemBody*>& getSystemBodies() const;

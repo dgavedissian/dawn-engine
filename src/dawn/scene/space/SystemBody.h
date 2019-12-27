@@ -8,7 +8,8 @@
 #include "scene/space/Orbit.h"
 
 namespace dw {
-// Base class for any bodies inside a planetary system
+class Frame;
+// Base class for any bodies inside a planetary system.
 class DW_API SystemBody : public Object {
 public:
     DW_OBJECT(SystemBody);
@@ -19,11 +20,11 @@ public:
     /// Add a satellite.
     SystemBody& addSatellite(UniquePtr<SystemBody> satellite, UniquePtr<Orbit> orbit);
 
-    /// Update this body.
-    virtual void update(float dt, const SystemPosition& camera_position);
-
     /// Pre-render this body.
-    virtual void preRender();
+    virtual void preRender(Frame& frame);
+
+    /// Update this body.
+    virtual void update(float dt, Frame& frame, const Vec3& camera_position);
 
     // Accessors
     float radius() const;

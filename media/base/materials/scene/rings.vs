@@ -1,21 +1,21 @@
 #version 330 core
 
-uniform mat4 worldViewProjMatrix;
-uniform mat4 worldMatrix;
-uniform vec3 ringDimensions;
+uniform mat4 mvp_matrix;
+uniform mat4 model_matrix;
+uniform vec3 ring_dimensions;
 
-in vec4 vertex;
+layout(location = 0) in vec4 vertex;
 
 out float depth;
-out vec3 worldPosition;
-out vec2 noiseTexCoord;
+out vec3 world_position;
+out vec2 noise_tex_coord;
 
 void main()
 {
-    vec4 position = worldViewProjMatrix * vertex;
+    vec4 position = mvp_matrix * vertex;
     gl_Position = position;
     depth = position.z;
 
-    worldPosition = vec3(worldMatrix * vertex);
-    noiseTexCoord = (vec2(vertex.x, vertex.z) / (2.0 * ringDimensions.y) + vec2(0.5, 0.5)) * 2000.0;
+    world_position = vec3(model_matrix * vertex);
+    noise_tex_coord = (vec2(vertex.x, vertex.z) / (2.0 * ring_dimensions.y) + vec2(0.5, 0.5)) * 16000.0;
 }

@@ -33,7 +33,10 @@ public:
 
     void addLogMessageHandler(UniquePtr<LogMessageHandler> handler);
 
-    template <typename... Args> void log(LogLevel level, const String& format, const Args&... args);
+    void log(LogLevel level, const String& format) {
+        dispatchLogMessage(level, format);
+    }
+
     template <typename... Args> void debug(const String& format, const Args&... args);
     template <typename... Args> void info(const String& format, const Args&... args);
     template <typename... Args> void warn(const String& format, const Args&... args);
@@ -47,26 +50,21 @@ private:
     String object_name_;
 };
 
-template <typename... Args>
-void Logger::log(LogLevel level, const String& format, const Args&... args) {
-    dispatchLogMessage(level, str::format(format, args...));
-}
-
 template <typename... Args> void Logger::debug(const String& format, const Args&... args) {
 #ifdef DW_DEBUG
-    log(LogLevel::Debug, format, args...);
+    log(LogLevel::Debug, str::format(format, args...));
 #endif
 }
 
 template <typename... Args> void Logger::info(const String& format, const Args&... args) {
-    log(LogLevel::Info, format, args...);
+    log(LogLevel::Info, str::format(format, args...));
 }
 
 template <typename... Args> void Logger::warn(const String& format, const Args&... args) {
-    log(LogLevel::Warning, format, args...);
+    log(LogLevel::Warning, str::format(format, args...));
 }
 
 template <typename... Args> void Logger::error(const String& format, const Args&... args) {
-    log(LogLevel::Error, format, args...);
+    log(LogLevel::Error, str::format(format, args...));
 }
 }  // namespace dw

@@ -143,6 +143,8 @@ set(SOURCE_FILES
     scene/space/Planet.h
     scene/space/PlanetLod.cpp
     scene/space/PlanetLod.h
+    scene/space/PlanetRings.cpp
+    scene/space/PlanetRings.h
     scene/space/Star.cpp
     scene/space/Star.h
     scene/space/StarSystem.cpp

@@ -11,7 +11,7 @@ public:
     explicit RendererLoggerImpl(dw::Logger& logger) : logger_{logger} {
     }
 
-    void log(gfx::LogLevel level, const std::string& value) override {
+    void log(gfx::LogLevel level, const std::string& value) const override {
         LogLevel converted_level;
         switch (level) {
             case gfx::LogLevel::Debug:

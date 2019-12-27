@@ -24,15 +24,15 @@ SystemBody& SystemBody::addSatellite(UniquePtr<SystemBody> satellite, UniquePtr<
     return satellite_ref;
 }
 
-void SystemBody::update(float dt, const SystemPosition& camera_position) {
+void SystemBody::preRender(Frame& frame) {
     for (const auto& satellite : satellites_) {
-        satellite->update(dt, camera_position);
+        satellite->preRender(frame);
     }
 }
 
-void SystemBody::preRender() {
+void SystemBody::update(float dt, Frame& frame, const Vec3& camera_position) {
     for (const auto& satellite : satellites_) {
-        satellite->preRender();
+        satellite->update(dt, frame, camera_position);
     }
 }
 

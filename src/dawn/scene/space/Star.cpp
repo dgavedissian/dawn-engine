@@ -28,10 +28,4 @@ Star::Star(Context* ctx, SystemNode& system_node, const StarDesc& desc)
     surface_renderable->setMaterial(surface_material_);
     system_node.data.renderable = surface_renderable;
 }
-
-Star::~Star() {
-}
-
-void Star::preRender() {
-}
 }  // namespace dw

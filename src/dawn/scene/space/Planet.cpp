@@ -7,7 +7,8 @@
 #include "renderer/CustomRenderable.h"
 #include "scene/space/StarSystem.h"
 #include "scene/space/Planet.h"
-#include "scene/space/Star.h"
+#include "scene/space/PlanetRings.h"
+#include "renderer/Node.h"
 #include "resource/ResourceCache.h"
 
 namespace dw {
@@ -17,6 +18,7 @@ Planet::Planet(Context* ctx, SystemNode& system_node, StarSystem& star_system,
       star_system_(star_system),
       desc_(desc),
       axial_tilt_(Vec3(0.0f, 0.0f, 1.0f), -desc_.axial_tilt),
+      sun_direction_(0.0f, 0.0f, 1.0f),
       atmosphere_node_(nullptr) {
     auto* rc = module<ResourceCache>();
 
@@ -52,8 +54,7 @@ Planet::Planet(Context* ctx, SystemNode& system_node, StarSystem& star_system,
         atmosphere_material_->setCullFrontFace(gfx::CullFrontFace::CW);
         atmosphere_material_->setDepthWrite(false);
         atmosphere_material_->setStateEnable(gfx::RenderState::Blending);
-        atmosphere_material_->setBlendEquation(gfx::BlendEquation::Add, gfx::BlendFunc::SrcAlpha,
-                                               gfx::BlendFunc::OneMinusSrcAlpha);
+        atmosphere_material_->enableAlphaBlending();
 
         // Create atmosphere renderable.
         auto atmosphere_renderable =
@@ -93,37 +94,49 @@ Planet::Planet(Context* ctx, SystemNode& system_node, StarSystem& star_system,
                                          Vec3(scale, scale_depth, scale / scale_depth));
         atmosphere_material_->setUniform("g", Vec2(g, g * g));
     }
+
+    // Create the rings.
+    if (desc.has_rings) {
+        rings_ = makeUnique<PlanetRings>(ctx, desc_, *system_node.newChild());
+    }
+
+    system_node.orientation = axial_tilt_;
+    if (rings_) {
+        rings_->ring_system_node_.orientation = axial_tilt_;
+    }
 }
 
-Planet::~Planet() {
+void Planet::preRender(Frame& frame) {
+    SystemBody::preRender(frame);
+
+    // Update rings parameters.
+    if (desc_.has_rings) {
+        rings_->updatePositions(system_node_.position.getRelativeTo(frame.position()),
+                                sun_direction_);
+    }
 }
 
-void Planet::update(float dt, const SystemPosition& camera_position) {
-    SystemBody::update(dt, camera_position);
+void Planet::update(float dt, Frame& frame, const Vec3& camera_position) {
+    SystemBody::update(dt, frame, camera_position);
 
     // Updates based on camera position
     //===========================================================================
-    Vec3 localCameraPosition = camera_position.getRelativeTo(system_node_.position);
-
-    // Update rings
-    /*
-    if (mDesc.has_rings)
-        mRingSystem->update(mSurfaceNode->getOrientation().Inverse() * localCameraPosition);
-    */
+    Vec3 local_camera_position = (frame.position() + camera_position).getRelativeTo(system_node_.position);
 
     // Update atmosphere shader
     if (desc_.has_atmosphere) {
-        float camera_height = localCameraPosition.Length();
-        surface_material_->setUniform(
-            "camera_position",
-            Vec3(localCameraPosition.x, localCameraPosition.y, localCameraPosition.z));
+        float camera_height = local_camera_position.Length();
+        surface_material_->setUniform("camera_position", local_camera_position);
         surface_material_->setUniform("camera_height",
                                       Vec2(camera_height, camera_height * camera_height));
-        atmosphere_material_->setUniform(
-            "camera_position",
-            Vec3(localCameraPosition.x, localCameraPosition.y, localCameraPosition.z));
+        atmosphere_material_->setUniform("camera_position", local_camera_position);
         atmosphere_material_->setUniform("camera_height",
                                          Vec2(camera_height, camera_height * camera_height));
+    }
+
+    // Update rings
+    if (desc_.has_rings) {
+        rings_->update(camera_position);
     }
 }
 
@@ -136,20 +149,23 @@ void Planet::updatePosition(double time) {
     if (atmosphere_node_) {
         atmosphere_node_->position = system_node_.position;
     }
+    if (rings_) {
+        rings_->ring_system_node_.position = system_node_.position;
+    }
 
     // Detect a star object.
     // TODO support multiple stars
     if (!star_system_.getStars().empty()) {
         SystemPosition star_position = star_system_.getStars().front()->getSystemNode().position;
-        Vec3 sun_direction = -system_node_.position.getRelativeTo(star_position).Normalized();
-        Vec3 local_sun_direction = axial_tilt_.Inverted() * sun_direction;
+        sun_direction_ = -system_node_.position.getRelativeTo(star_position).Normalized();
+        Vec3 local_sun_direction = axial_tilt_.Inverted() * sun_direction_;
 
         // Update surface parameters.
-        surface_material_->setUniform("sun_direction", sun_direction);
+        surface_material_->setUniform("sun_direction", sun_direction_);
 
         // Update atmosphere parameters.
         if (desc_.has_atmosphere) {
-            atmosphere_material_->setUniform("sun_direction", sun_direction);
+            atmosphere_material_->setUniform("sun_direction", sun_direction_);
         }
     }
 }
