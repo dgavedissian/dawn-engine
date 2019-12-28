@@ -125,7 +125,7 @@ void BillboardSet::setParticleDirection(u32 particle_id, const Vec3& direction) 
     particles_[particle_id].direction = direction.Normalized();
 }
 
-void BillboardSet::draw(Renderer* renderer, uint view, detail::Transform& camera_transform,
+void BillboardSet::draw(Renderer* renderer, uint render_queue, detail::Transform& camera_transform,
                         const Mat4&, const Mat4& view_projection_matrix) {
     update(camera_transform);
 
@@ -133,7 +133,7 @@ void BillboardSet::draw(Renderer* renderer, uint view, detail::Transform& camera
     rhi->setVertexBuffer(vb_->internalHandle());
     rhi->setIndexBuffer(ib_->internalHandle());
     material_->applyRendererState(Mat4::identity, view_projection_matrix);
-    rhi->submit(view, material_->program()->internalHandle(), particle_count_ * 6);
+    rhi->submit(render_queue, material_->program()->internalHandle(), particle_count_ * 6);
 }
 
 void BillboardSet::update(detail::Transform& camera_transform) {

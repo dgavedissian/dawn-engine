@@ -203,8 +203,7 @@ Result<SharedPtr<RenderPipeline>, String> RenderPipeline::createFromDesc(
                 step_result = {makeUnique<PClearStep>(clear_step.colour)};
             } else if (holdsAlternative<RenderPipelineDesc::RenderQueueStep>(step_desc)) {
                 auto& render_queue_step = get<RenderPipelineDesc::RenderQueueStep>(step_desc);
-                step_result = {makeUnique<PRenderQueueStep>(render_queue_step.mask,
-                                                            render_queue_step.num_views)};
+                step_result = {makeUnique<PRenderQueueStep>(render_queue_step.mask)};
             } else if (holdsAlternative<RenderPipelineDesc::RenderQuadStep>(step_desc)) {
                 auto& render_quad_step = get<RenderPipelineDesc::RenderQuadStep>(step_desc);
                 auto material =
@@ -246,18 +245,24 @@ Result<void> RenderPipeline::beginLoad(const String& asset_name, InputStream& sr
 
 void RenderPipeline::render(float dt, float interpolation, SceneGraph* scene_graph, u32 camera_id) {
     auto gfx = module<Renderer>()->gfx();
-    uint view = 0;
     for (const auto& node : nodes_) {
-        uint num_views = 0;
-        for (const auto& step : node->steps_) {
-            num_views += step->numViews();
+        std::optional<gfx::FrameBufferHandle> frame_buffer;
+        if (node->output_frame_buffer_) {
+            frame_buffer = node->output_frame_buffer_->internalHandle();
         }
-        node->prepareForRendering(gfx, view, view + num_views);
 
         for (auto& step : node->steps_) {
+            // Create render queues.
+            auto num_render_queues = step->numRenderQueuesToCreate();
+            std::vector<uint> render_queues;
+            render_queues.resize(num_render_queues);
+            for (uint i = 0; i < num_render_queues; ++i) {
+                render_queues[i] = gfx->startRenderQueue(frame_buffer);
+            }
+
+            // Execute step.
             step->execute(log().withObjectName("dw::RenderPipeline"), gfx, dt, interpolation,
-                          scene_graph, camera_id, view);
-            view += step->numViews();
+                          scene_graph, camera_id, render_queues);
         }
     }
 }
@@ -272,31 +277,33 @@ RenderPipeline::PClearStep::PClearStep(Colour colour) : colour_(colour) {
 
 void RenderPipeline::PClearStep::execute(Logger& log, gfx::Renderer* r, float dt,
                                          float interpolation, SceneGraph* scene_graph,
-                                         u32 camera_id, uint view) {
+                                         u32 camera_id, const std::vector<uint>& render_queues) {
 #ifdef ENABLE_DEBUG_LOGGING
-    log.debug("Setting view clear to {}", colour_.rgba().ToString());
+    log.debug("Setting render queue clear to {}", colour_.rgba().ToString());
 #endif
-    r->setViewClear(view, colour_);
+    assert(render_queues.empty());
+    r->setRenderQueueClear(colour_);
 }
 
-uint RenderPipeline::PClearStep::numViews() const {
+uint RenderPipeline::PClearStep::numRenderQueuesToCreate() const {
     return 0;
 }
 
-RenderPipeline::PRenderQueueStep::PRenderQueueStep(u32 mask, uint num_views)
-    : mask_(mask), num_views_(num_views) {
+RenderPipeline::PRenderQueueStep::PRenderQueueStep(u32 mask) : mask_(mask) {
 }
 
 void RenderPipeline::PRenderQueueStep::execute(Logger& log, gfx::Renderer* r, float dt,
                                                float interpolation, SceneGraph* scene_graph,
-                                               u32 camera_id, uint view) {
+                                               u32 camera_id,
+                                               const std::vector<uint>& render_queues) {
 #ifdef ENABLE_DEBUG_LOGGING
     log.debug("Rendering scene from camera {} (mask: {:#x}) to view {}", camera_id, mask_, view);
 #endif
-    scene_graph->renderSceneFromCamera(dt, interpolation, camera_id, ViewRange{view}, mask_);
+    scene_graph->renderSceneFromCamera(dt, interpolation, camera_id,
+                                       RenderQueueGroupMap{render_queues}, mask_);
 }
 
-uint RenderPipeline::PRenderQueueStep::numViews() const {
+uint RenderPipeline::PRenderQueueStep::numRenderQueuesToCreate() const {
     return kRenderQueueGroupCount;
 }
 
@@ -310,27 +317,23 @@ RenderPipeline::PRenderQuadStep::PRenderQuadStep(SharedPtr<VertexBuffer> fullscr
 
 void RenderPipeline::PRenderQuadStep::execute(Logger& log, gfx::Renderer* r, float dt,
                                               float interpolation, SceneGraph* scene_graph,
-                                              u32 camera_id, uint view) {
+                                              u32 camera_id,
+                                              const std::vector<uint>& render_queues) {
 #ifdef ENABLE_DEBUG_LOGGING
     log.debug("Rendering full screen quad to view {}", view);
 #endif
+    assert(render_queues.size() == 1);
+
     // Bind vertex buffer and material, then submit.
     fullscreen_quad_->bind(r);
     material_->applyRendererState(Mat4::identity, Mat4::identity);
-    r->submit(view, material_->program()->internalHandle(), 3);
+    r->submit(render_queues[0], material_->program()->internalHandle(), 3);
 }
 
-uint RenderPipeline::PRenderQuadStep::numViews() const {
+uint RenderPipeline::PRenderQuadStep::numRenderQueuesToCreate() const {
     return 1;
 }
 
 RenderPipeline::PNode::PNode() {
-}
-
-void RenderPipeline::PNode::prepareForRendering(gfx::Renderer* r, uint view_begin, uint view_end) {
-    for (uint view = view_begin; view < view_end; ++view) {
-        r->setViewFrameBuffer(view, output_frame_buffer_ ? output_frame_buffer_->internalHandle()
-                                                         : gfx::FrameBufferHandle{0});
-    }
 }
 }  // namespace dw

@@ -21,9 +21,7 @@ FrameBuffer::FrameBuffer(Context* ctx, Vector<SharedPtr<Texture>> textures) : Ob
 }
 
 FrameBuffer::~FrameBuffer() {
-    if (handle_.isValid()) {
-        module<Renderer>()->gfx()->deleteFrameBuffer(handle_);
-    }
+    module<Renderer>()->gfx()->deleteFrameBuffer(handle_);
 }
 
 gfx::FrameBufferHandle FrameBuffer::internalHandle() const {

@@ -55,7 +55,7 @@ CustomRenderable::CustomRenderable(Context* ctx, SharedPtr<VertexBuffer> vertex_
 CustomRenderable::~CustomRenderable() {
 }
 
-void CustomRenderable::draw(Renderer* renderer, uint view, detail::Transform&,
+void CustomRenderable::draw(Renderer* renderer, uint render_queue, detail::Transform&,
                             const Mat4& model_matrix, const Mat4& view_projection_matrix) {
     auto gfx = renderer->gfx();
     usize vertex_count =
@@ -68,7 +68,7 @@ void CustomRenderable::draw(Renderer* renderer, uint view, detail::Transform&,
     // duplication with Mesh.
     // TODO: Support unset material.
     material_->applyRendererState(model_matrix, view_projection_matrix);
-    gfx->submit(view, material_->program()->internalHandle(), vertex_count);
+    gfx->submit(render_queue, material_->program()->internalHandle(), vertex_count);
 }
 
 VertexBuffer* CustomRenderable::vertexBuffer() const {

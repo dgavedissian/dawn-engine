@@ -37,7 +37,7 @@ public:
                          SharedPtr<IndexBuffer> index_buffer);
     ~CustomRenderable() override;
 
-    void draw(Renderer* renderer, uint view, detail::Transform& camera, const Mat4& model_matrix,
+    void draw(Renderer* renderer, uint render_queue, detail::Transform& camera, const Mat4& model_matrix,
               const Mat4& view_projection_matrix) override;
 
     VertexBuffer* vertexBuffer() const;

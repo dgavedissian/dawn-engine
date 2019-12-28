@@ -31,7 +31,8 @@ public:
     void setRenderPipeline(SharedPtr<RenderPipeline> render_pipeline);
     void updateSceneGraph();
     void renderScene(float dt, float interpolation);
-    void renderSceneFromCamera(float dt, float interpolation, u32 camera_id, ViewRange view_range, u32 mask);
+    void renderSceneFromCamera(float dt, float interpolation, u32 camera_id,
+                               RenderQueueGroupMap render_queue_groups, u32 mask);
 
     // Frames.
     Frame* addFrame(SystemNode* frame_node);

@@ -228,7 +228,7 @@ Result<void> Mesh::beginLoad(const String& asset_name, InputStream& is) {
     return Result<void>();
 }
 
-void Mesh::draw(Renderer* renderer, uint view, detail::Transform&, const Mat4& model_matrix,
+void Mesh::draw(Renderer* renderer, uint render_queue, detail::Transform&, const Mat4& model_matrix,
                 const Mat4& view_projection_matrix) {
     // usize vertex_count = index_buffer_->indexCount();
     auto rhi = renderer->gfx();
@@ -238,7 +238,7 @@ void Mesh::draw(Renderer* renderer, uint view, detail::Transform&, const Mat4& m
     // duplication with CustomMeshRenderable.
     // TODO: Support unset material.
 
-    root_node_->draw(renderer, view, model_matrix, view_projection_matrix);
+    root_node_->draw(renderer, render_queue, model_matrix, view_projection_matrix);
 }
 
 Mesh::Node* Mesh::rootNode() {

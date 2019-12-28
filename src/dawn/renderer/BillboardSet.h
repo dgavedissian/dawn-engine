@@ -26,7 +26,7 @@ public:
     void setParticleSize(u32 particle_id, const Vec2& size);
     void setParticleDirection(u32 particle_id, const Vec3& direction);
 
-    void draw(Renderer* renderer, uint view, detail::Transform& camera, const Mat4&,
+    void draw(Renderer* renderer, uint render_queue, detail::Transform& camera, const Mat4&,
               const Mat4& view_projection_matrix) override;
 
 private:

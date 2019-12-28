@@ -109,8 +109,6 @@ public:
     void render(float dt, float interpolation) override {
         GameSession::render(dt, interpolation);
 
-        module<Renderer>()->gfx()->setViewClear(0, {0.0f, 0.0f, 0.1f, 0.2f});
-
         // Calculate average FPS.
         float current_fps = 1.0f / dt;
         static const int FPS_HISTORY_COUNT = 100;

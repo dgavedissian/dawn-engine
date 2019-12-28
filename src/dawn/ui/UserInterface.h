@@ -25,7 +25,7 @@ public:
     void render();
 
 private:
-    gfx::Renderer* rhi_;
+    gfx::Renderer* r_;
     EventSystem* event_system_;
 
     // ImGui.

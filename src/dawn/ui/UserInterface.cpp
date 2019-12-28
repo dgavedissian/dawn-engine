@@ -22,7 +22,7 @@ UserInterface::UserInterface(Context* ctx, EventSystem* event_system)
     ImGui::SetCurrentContext(renderer_context_);
     renderer_io_ = &ImGui::GetIO();
 
-    rhi_ = module<Renderer>()->gfx();
+    r_ = module<Renderer>()->gfx();
 
     // Initialise mouse state.
     for (bool& state : mouse_pressed_) {
@@ -32,20 +32,20 @@ UserInterface::UserInterface(Context* ctx, EventSystem* event_system)
     forAllContexts([this](ImGuiIO& io) {
         // TODO: Resize this on screen size change.
         // TODO: Fill others settings of the io structure later.
-        io.DisplaySize.x = rhi_->backbufferSize().x / rhi_->windowScale().x;
-        io.DisplaySize.y = rhi_->backbufferSize().y / rhi_->windowScale().y;
-        io.DisplayFramebufferScale.x = rhi_->windowScale().x;
-        io.DisplayFramebufferScale.y = rhi_->windowScale().y;
+        io.DisplaySize.x = r_->backbufferSize().x / r_->windowScale().x;
+        io.DisplaySize.y = r_->backbufferSize().y / r_->windowScale().y;
+        io.DisplayFramebufferScale.x = r_->windowScale().x;
+        io.DisplayFramebufferScale.y = r_->windowScale().y;
         io.IniFilename = nullptr;
 
         // Load font texture atlas.
         unsigned char* pixels;
         int width, height;
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-        gfx::TextureHandle handle = rhi_->createTexture2D(
-            static_cast<u16>(width), static_cast<u16>(height), gfx::TextureFormat::RGBA8,
-            gfx::Memory(pixels, width * height * 4));
-        io.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(handle.internal()));
+        gfx::TextureHandle handle =
+            r_->createTexture2D(static_cast<u16>(width), static_cast<u16>(height),
+                                gfx::TextureFormat::RGBA8, gfx::Memory(pixels, width * height * 4));
+        io.Fonts->TexID = reinterpret_cast<void*>(static_cast<uintptr>(u32(handle)));
 
         // Set up key map.
         io.KeyMap[ImGuiKey_Tab] = Key::Tab;
@@ -213,19 +213,19 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) const {
         // Update GPU buffers.
         auto& vtx_buffer = cmd_list->VtxBuffer;
         auto& idx_buffer = cmd_list->IdxBuffer;
-        auto tvb = rhi_->allocTransientVertexBuffer(vtx_buffer.Size, vertex_decl_);
-        if (tvb == gfx::TransientVertexBufferHandle::invalid) {
+        auto tvb = r_->allocTransientVertexBuffer(vtx_buffer.Size, vertex_decl_);
+        if (!tvb) {
             log().warn("Failed to allocate transient vertex buffer for ImGui");
             continue;
         }
-        auto tib = rhi_->allocTransientIndexBuffer(idx_buffer.Size);
-        if (tib == gfx::TransientIndexBufferHandle::invalid) {
+        auto tib = r_->allocTransientIndexBuffer(idx_buffer.Size);
+        if (!tib) {
             log().warn("Failed to allocate transient index buffer for ImGui");
             continue;
         }
-        memcpy(rhi_->getTransientVertexBufferData(tvb), vtx_buffer.Data,
+        memcpy(r_->getTransientVertexBufferData(*tvb), vtx_buffer.Data,
                vtx_buffer.Size * sizeof(ImDrawVert));
-        memcpy(rhi_->getTransientIndexBufferData(tib), idx_buffer.Data,
+        memcpy(r_->getTransientIndexBufferData(*tib), idx_buffer.Data,
                idx_buffer.Size * sizeof(ImDrawIdx));
 
         // Execute draw commands.
@@ -236,29 +236,28 @@ void UserInterface::drawGUI(ImDrawData* draw_data, ImGuiIO& io) const {
                 cmd->UserCallback(cmd_list, cmd);
             } else {
                 // Set render state.
-                rhi_->setStateEnable(gfx::RenderState::Blending);
-                rhi_->setStateBlendEquation(gfx::BlendEquation::Add, gfx::BlendFunc::SrcAlpha,
-                                            gfx::BlendFunc::OneMinusSrcAlpha);
-                rhi_->setStateDisable(gfx::RenderState::CullFace);
-                rhi_->setStateDisable(gfx::RenderState::Depth);
-                rhi_->setScissor(static_cast<u16>(cmd->ClipRect.x * io.DisplayFramebufferScale.x),
-                                 static_cast<u16>(cmd->ClipRect.y * io.DisplayFramebufferScale.y),
-                                 static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) *
-                                                  io.DisplayFramebufferScale.x),
-                                 static_cast<u16>((cmd->ClipRect.w - cmd->ClipRect.y) *
-                                                  io.DisplayFramebufferScale.y));
+                r_->setStateEnable(gfx::RenderState::Blending);
+                r_->setStateBlendEquation(gfx::BlendEquation::Add, gfx::BlendFunc::SrcAlpha,
+                                          gfx::BlendFunc::OneMinusSrcAlpha);
+                r_->setStateDisable(gfx::RenderState::CullFace);
+                r_->setStateDisable(gfx::RenderState::Depth);
+                r_->setScissor(static_cast<u16>(cmd->ClipRect.x * io.DisplayFramebufferScale.x),
+                               static_cast<u16>(cmd->ClipRect.y * io.DisplayFramebufferScale.y),
+                               static_cast<u16>((cmd->ClipRect.z - cmd->ClipRect.x) *
+                                                io.DisplayFramebufferScale.x),
+                               static_cast<u16>((cmd->ClipRect.w - cmd->ClipRect.y) *
+                                                io.DisplayFramebufferScale.y));
 
                 // Set resources.
-                rhi_->setTexture(gfx::TextureHandle{static_cast<gfx::TextureHandle::base_type>(
-                                     reinterpret_cast<uintptr>(cmd->TextureId))},
-                                 0);
-                rhi_->setVertexBuffer(tvb);
-                rhi_->setIndexBuffer(tib);
+                r_->setTexture(gfx::TextureHandle{static_cast<gfx::TextureHandle::base_type>(
+                                   reinterpret_cast<uintptr>(cmd->TextureId))},
+                               0);
+                r_->setVertexBuffer(*tvb);
+                r_->setIndexBuffer(*tib);
 
                 // Draw.
                 program_->applyRendererState();
-                rhi_->submit(rhi_->backbufferView(), program_->internalHandle(), cmd->ElemCount,
-                             offset);
+                r_->submit(program_->internalHandle(), cmd->ElemCount, offset);
             }
             offset += cmd->ElemCount;
         }

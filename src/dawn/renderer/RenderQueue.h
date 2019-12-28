@@ -18,15 +18,12 @@ enum class RenderQueueGroup : uint {
 
 constexpr auto kRenderQueueGroupCount = 8;
 
-struct DW_API ViewRange {
-    uint view_begin;
+struct RenderQueueGroupMap {
+    const std::vector<uint>& render_queues;
 
-    inline uint view(RenderQueueGroup group) const {
-        return view_begin + static_cast<uint>(group);
-    }
-
-    inline uint defaultView() const {
-        return view(RenderQueueGroup::Main);
+    uint renderQueue(RenderQueueGroup group) const {
+        assert(uint(group) < render_queues.size());
+        return render_queues[uint(group)];
     }
 };
-}
+}  // namespace dw

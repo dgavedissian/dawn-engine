@@ -28,8 +28,8 @@ public:
     /// @param render_queue_group Render queue group.
     void setRenderQueueGroup(RenderQueueGroup render_queue_group);
 
-    /// Draws this renderable to the specified view.
-    virtual void draw(Renderer* renderer, uint view, detail::Transform& camera,
+    /// Draws this renderable to the specified render queue.
+    virtual void draw(Renderer* renderer, uint render_queue, detail::Transform& camera,
                       const Mat4& model_matrix, const Mat4& view_projection_matrix) = 0;
 
     /// Returns the render queue group used by this renderable.

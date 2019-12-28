@@ -36,9 +36,7 @@ Texture::Texture(Context* ctx) : Resource(ctx) {
 }
 
 Texture::~Texture() {
-    if (handle_.isValid()) {
-        module<Renderer>()->gfx()->deleteTexture(handle_);
-    }
+    module<Renderer>()->gfx()->deleteTexture(handle_);
 }
 
 SharedPtr<Texture> Texture::createTexture2D(Context* ctx, const Vec2i& size,
