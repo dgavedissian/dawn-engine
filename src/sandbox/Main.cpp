@@ -24,29 +24,32 @@ public:
     SandboxSession(Context* ctx, const GameSessionInfo& gsi) : GameSession(ctx, gsi) {
         module<Input>()->registerEventSystem(event_system_.get());
 
+        scene_manager_->createStarSystem();
+
         // Star system.
         star_system_ = makeUnique<StarSystem>(context(), scene_graph_->root());
-        auto& star = star_system_->addStar(StarDesc{100.0f, SpectralClass::G}, star_system_->root(),
-                                           makeUnique<CircularOrbit>(0.0f, 1.0f));
+        auto& star =
+            star_system_->addStar(StarDesc{695510.0f, SpectralClass::G}, star_system_->root(),
+                                  makeUnique<CircularOrbit>(0.0f, 1.0f));
         PlanetDesc planet_desc;
-        planet_desc.radius = 200.0f;
+        planet_desc.radius = 6371.0f;
         planet_desc.axial_tilt = 0.2f;
         planet_desc.surface_texture = "base:space/planet2.jpg";
         planet_desc.normal_map_texture = "base:space/planet2_normal.jpg";
         planet_desc.has_atmosphere = true;
-        planet_desc.atmosphere.radius = 204.0f;
+        planet_desc.atmosphere.radius = planet_desc.radius + 12.0f;
         planet_desc.has_rings = true;
         planet_desc.rings.texture = "sandbox:rings.png";
-        planet_desc.rings.min_radius = 350.0f;
-        planet_desc.rings.max_radius = 550.0f;
+        planet_desc.rings.min_radius = planet_desc.radius + 700.0f;
+        planet_desc.rings.max_radius = planet_desc.radius + 8000.0f;
         auto& planet = star_system_->addPlanet(planet_desc, star,
-                                               makeUnique<CircularOrbit>(5000.0f, 20000.0f));
+                                               makeUnique<CircularOrbit>(147.11f * 1e6f, 20000.0f));
 
         PlanetDesc moon_desc;
-        moon_desc.radius = 40.0f;
+        moon_desc.radius = 1737.1f;
         moon_desc.surface_texture = "base:space/moon.jpg";
         moon_desc.normal_map_texture = "base:space/moon_normal.jpg";
-        star_system_->addPlanet(moon_desc, planet, makeUnique<CircularOrbit>(1800.0f, 40.0f));
+        star_system_->addPlanet(moon_desc, planet, makeUnique<CircularOrbit>(20000.0f, 40.0f));
 
         // Calculate positions of star system objects.
         star_system_->updatePosition(14000.0);
@@ -60,9 +63,16 @@ public:
 
         // Create a camera.
         auto& camera = scene_manager_->createEntity(0, Vec3::zero, Quat::identity, *frame_);
-        camera.addComponent<CCamera>(0.01f, 10000.0f, 60.0f, 1280.0f / 800.0f);
+        camera.addComponent<CCamera>(0.01f, 100000.0f, 60.0f, 1280.0f / 800.0f);
         camera_controller = makeShared<CameraController>(context(), event_system_.get(), 300.0f);
         camera_controller->possess(&camera);
+
+        scene_graph_->preRenderCameraCallback = [this](float dt,
+                                                       const detail::Transform& camera_transform,
+                                                       const Mat4& view_matrix,
+                                                       const Mat4& proj_matrix) {
+            star_system_->update(dt, *frame_, camera_transform.position, view_matrix, proj_matrix);
+        };
     }
 
     ~SandboxSession() override {
@@ -103,7 +113,6 @@ public:
         }
 
         camera_controller->update(dt);
-        star_system_->update(dt, *frame_, camera_position);
     }
 
     void render(float dt, float interpolation) override {

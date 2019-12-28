@@ -32,3 +32,5 @@
 #include "core/Object.h"
 #include "core/Module.h"
 #include "core/Log.h"
+
+#include <imgui.h>

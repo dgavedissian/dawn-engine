@@ -118,8 +118,8 @@ Planet::Planet(Context* ctx, SystemNode& system_node, StarSystem& star_system,
     }
 }
 
-void Planet::preRender(Frame& frame) {
-    SystemBody::preRender(frame);
+void Planet::preRender(Frame& frame, const Mat4& view_matrix, const Mat4& proj_matrix) {
+    SystemBody::preRender(frame, view_matrix, proj_matrix);
 
     // Update rings parameters.
     if (desc_.has_rings) {

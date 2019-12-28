@@ -2,8 +2,8 @@
  * Dawn Engine
  * Written by David Avedissian (c) 2012-2019 (git@dga.dev)
  */
-#include "Core.h"
-#include "StarSystem.h"
+#include "Base.h"
+#include "scene/space/StarSystem.h"
 #include "resource/ResourceCache.h"
 #include "renderer/SceneGraph.h"
 #include "scene/space/Barycentre.h"
@@ -32,8 +32,9 @@ SystemBody& StarSystem::addStar(const StarDesc& desc, SystemBody& parent, Unique
     return parent.addSatellite(std::move(star), std::move(orbit));
 }
 
-void StarSystem::update(float dt, Frame& frame, const Vec3& camera_position) {
-    root_body_->preRender(frame);
+void StarSystem::update(float dt, Frame& frame, const Vec3& camera_position,
+                        const Mat4& view_matrix, const Mat4& proj_matrix) {
+    root_body_->preRender(frame, view_matrix, proj_matrix);
     root_body_->update(dt, frame, camera_position);
 }
 

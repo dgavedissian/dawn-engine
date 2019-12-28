@@ -34,7 +34,7 @@ public:
 
     CustomRenderable(Context* ctx, gfx::Mesh gfx_mesh);
     CustomRenderable(Context* ctx, SharedPtr<VertexBuffer> vertex_buffer,
-                         SharedPtr<IndexBuffer> index_buffer);
+                         SharedPtr<IndexBuffer> index_buffer = nullptr);
     ~CustomRenderable() override;
 
     void draw(Renderer* renderer, uint render_queue, detail::Transform& camera, const Mat4& model_matrix,

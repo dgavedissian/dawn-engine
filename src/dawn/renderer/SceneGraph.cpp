@@ -138,7 +138,7 @@ void SceneGraph::renderSceneFromCamera(float dt, float, u32 camera_id,
         preRenderCameraCallback(dt, camera_transform, view_matrix, proj_matrix);
     }
     for (auto& op : render_operations_per_camera_[camera_id]) {
-        if (op.renderable->material()->mask() & mask) {
+        if (op.renderable->isVisible() && op.renderable->material()->mask() & mask) {
             op.renderable->draw(module<Renderer>(),
                                 render_queue_groups.renderQueue(op.renderable->renderQueueGroup()),
                                 camera_transform, op.model, view_proj_matrix);

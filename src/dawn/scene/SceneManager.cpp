@@ -16,7 +16,10 @@
 
 namespace dw {
 SceneManager::SceneManager(Context* ctx, EventSystem* event_system, SceneGraph* scene_graph)
-    : Object(ctx), background_scene_node_(nullptr), system_process_order_dirty_(false) {
+    : Object(ctx),
+      background_scene_node_(nullptr),
+      scene_graph_(scene_graph),
+      system_process_order_dirty_(false) {
     background_scene_node_ = scene_graph->backgroundNode().newChild();
 
     physics_scene_ = makeUnique<PhysicsScene>(ctx, this, event_system);
@@ -32,18 +35,36 @@ SceneManager::~SceneManager() {
 }
 
 void SceneManager::createStarSystem() {
-    auto vs = *module<ResourceCache>()->get<VertexShader>("base:space/skybox.vs");
-    auto fs = *module<ResourceCache>()->get<FragmentShader>("base:space/skybox_starfield.fs");
+    auto& rc = *module<ResourceCache>();
+
+    // Set up background.
+    auto vs = *rc.get<VertexShader>("base:space/skybox.vs");
+    auto fs = *rc.get<FragmentShader>("base:space/skybox_starfield.fs");
     auto background_material =
         makeShared<Material>(context(), makeShared<Program>(context(), vs, fs));
-    background_material->setTexture(
-        *module<ResourceCache>()->get<Texture>("base:space/starfield.jpg"));
+    background_material->setTexture(*rc.get<Texture>("base:space/starfield.jpg"));
     background_material->setUniform<int>("starfield_sampler", 0);
     background_material->setDepthWrite(false);
+    background_material->setStateDisable(gfx::RenderState::Depth);
     auto skybox =
         CustomRenderable::Builder(context()).normals(false).texcoords(true).createBox(-100.0f);
     skybox->setMaterial(background_material);
     background_scene_node_->data.renderable = skybox;
+
+    // Set up render pipeline.
+    Vector<RenderPipelineDesc::Step> render_scene_steps{RenderPipelineDesc::ClearStep{},
+                                                        RenderPipelineDesc::RenderQueueStep{}};
+    RenderPipelineDesc::Node render_scene_node{
+        {}, {{"out", gfx::TextureFormat::RGBA8}}, render_scene_steps};
+    Vector<RenderPipelineDesc::NodeInstance> node_instances{
+        {"RenderScene", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}};
+    auto rp_desc = RenderPipelineDesc{{{"RenderScene", render_scene_node}}, {}, node_instances};
+    auto rp_result = RenderPipeline::createFromDesc(context(), rp_desc);
+    if (!rp_result) {
+        log().error("Failed to create render pipeline: {}", rp_result.error());
+        std::terminate();
+    }
+    scene_graph_->setRenderPipeline(*rp_result);
 }
 
 Result<void> SceneManager::recomputeSystemExecutionOrder() {

@@ -44,7 +44,7 @@ public:
     ~Planet() override = default;
 
     // Inherited from SystemBody
-    void preRender(Frame& frame) override;
+    void preRender(Frame& frame, const Mat4& view_matrix, const Mat4& proj_matrix) override;
     void update(float dt, Frame& frame, const Vec3& camera_position) override;
     void updatePosition(double time) override;
 

@@ -94,6 +94,7 @@ private:
     HashMap<EntityId, UniquePtr<Entity>> entity_lookup_table_;
 
     Node* background_scene_node_;
+    SceneGraph* scene_graph_;
 
     UniquePtr<PhysicsScene> physics_scene_;
 

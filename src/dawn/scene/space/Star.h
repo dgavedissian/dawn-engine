@@ -27,8 +27,14 @@ public:
     Star(Context* ctx, SystemNode& system_node, const StarDesc& desc);
     ~Star() override = default;
 
+    // Inherited from SystemBody
+    void preRender(Frame& frame, const Mat4& view_matrix, const Mat4& proj_matrix) override;
+
 private:
     StarDesc desc_;
     SharedPtr<Material> surface_material_;
+
+    SystemNode& flare_system_node_;
+    SharedPtr<Material> flare_material_;
 };
 }

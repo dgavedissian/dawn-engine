@@ -28,6 +28,11 @@ public:
     /// @param render_queue_group Render queue group.
     void setRenderQueueGroup(RenderQueueGroup render_queue_group);
 
+    /// Changes the visibility flag of this renderable.
+    /// Note that this node will still be processed in the scene graph, which is slower than removing it from the scene graph.
+    /// @param visible Visibilty flag.
+    void setVisible(bool visible = true);
+
     /// Draws this renderable to the specified render queue.
     virtual void draw(Renderer* renderer, uint render_queue, detail::Transform& camera,
                       const Mat4& model_matrix, const Mat4& view_projection_matrix) = 0;
@@ -35,8 +40,12 @@ public:
     /// Returns the render queue group used by this renderable.
     RenderQueueGroup renderQueueGroup() const;
 
+    /// Returns true if this renderable is visible.
+    bool isVisible() const;
+
 protected:
     SharedPtr<Material> material_;
     RenderQueueGroup render_queue_group_;
+    bool visible_;
 };
 }  // namespace dw

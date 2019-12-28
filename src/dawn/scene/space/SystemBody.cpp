@@ -24,9 +24,9 @@ SystemBody& SystemBody::addSatellite(UniquePtr<SystemBody> satellite, UniquePtr<
     return satellite_ref;
 }
 
-void SystemBody::preRender(Frame& frame) {
+void SystemBody::preRender(Frame& frame, const Mat4& view_matrix, const Mat4& proj_matrix) {
     for (const auto& satellite : satellites_) {
-        satellite->preRender(frame);
+        satellite->preRender(frame, view_matrix, proj_matrix);
     }
 }
 

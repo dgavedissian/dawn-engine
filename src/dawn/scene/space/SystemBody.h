@@ -21,7 +21,7 @@ public:
     SystemBody& addSatellite(UniquePtr<SystemBody> satellite, UniquePtr<Orbit> orbit);
 
     /// Pre-render this body.
-    virtual void preRender(Frame& frame);
+    virtual void preRender(Frame& frame, const Mat4& view_matrix, const Mat4& proj_matrix);
 
     /// Update this body.
     virtual void update(float dt, Frame& frame, const Vec3& camera_position);
