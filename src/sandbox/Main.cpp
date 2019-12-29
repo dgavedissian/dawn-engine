@@ -37,7 +37,6 @@ public:
         planet_desc.surface_texture = "base:space/planet2.jpg";
         planet_desc.normal_map_texture = "base:space/planet2_normal.jpg";
         planet_desc.has_atmosphere = true;
-        planet_desc.atmosphere.radius = planet_desc.radius + 12.0f;
         planet_desc.has_rings = true;
         planet_desc.rings.texture = "sandbox:rings.png";
         planet_desc.rings.min_radius = planet_desc.radius + 700.0f;

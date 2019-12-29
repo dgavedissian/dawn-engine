@@ -14,16 +14,17 @@ class StarSystem;
 
 struct DW_API PlanetDesc {
     float radius = 0.0f;
-    float rotational_period = 0.0f;    // in seconds
+    float rotational_period = 0.0f;  // in seconds
     float axial_tilt = 0.0f;         // in radians
     String surface_texture = "";
     String night_texture = "";
     String normal_map_texture = "";
 
     bool has_atmosphere = false;
-    struct {
-        float radius = 0.0f;
-    } atmosphere;
+    inline float atmosphere_radius() const {
+        // The existing atmosphere shader assumes that the atmosphere sphere is exactly 2.5% larger.
+        return radius * 1.025f;
+    }
 
     bool has_rings = false;
     struct {
@@ -84,4 +85,4 @@ private:
     SharedPtr<Rings> mRingSystem;
      */
 };
-}
+}  // namespace dw

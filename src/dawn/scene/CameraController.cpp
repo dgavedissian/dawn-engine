@@ -60,6 +60,7 @@ void CameraController::update(float dt) {
 
     possessed_->transform()->orientation =
         possessed_->transform()->orientation * Quat::RotateZ(roll_velocity_ * dt);
+    possessed_->transform()->orientation.Normalize();
     possessed_->transform()->position += velocity_ * dt;
 }
 

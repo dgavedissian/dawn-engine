@@ -70,7 +70,7 @@ Planet::Planet(Context* ctx, SystemNode& system_node, StarSystem& star_system,
 
         // Create atmosphere renderable.
         auto atmosphere_renderable =
-            CustomRenderable::Builder(context()).createSphere(desc.atmosphere.radius, 128, 128);
+            CustomRenderable::Builder(context()).createSphere(desc.atmosphere_radius(), 128, 128);
         atmosphere_renderable->setMaterial(atmosphere_material_);
         atmosphere_node_ = system_node.newChild();
         atmosphere_node_->data.renderable = atmosphere_renderable;
@@ -82,15 +82,15 @@ Planet::Planet(Context* ctx, SystemNode& system_node, StarSystem& star_system,
         float Kr = 0.0025f;
         float Km = 0.0015f;
         float ESun = 15.0f;
-        float scale = 1.0f / (desc.atmosphere.radius - desc.radius);
+        float scale = 1.0f / (desc.atmosphere_radius() - desc.radius);
         float scale_depth = 0.25f;
         float g = -0.95f;
 
         surface_material_->setUniform("inv_wavelength",
                                       Vec3(inv_wavelength.x, inv_wavelength.y, inv_wavelength.z));
         surface_material_->setUniform(
-            "radius", Vec4(desc.radius, desc.radius * desc.radius, desc.atmosphere.radius,
-                           desc.atmosphere.radius * desc.atmosphere.radius));
+            "radius", Vec4(desc.radius, desc.radius * desc.radius, desc.atmosphere_radius(),
+                           desc.atmosphere_radius() * desc.atmosphere_radius()));
         surface_material_->setUniform(
             "kr_km", Vec4(Kr * ESun, Kr * 4.0f * math::pi, Km * ESun, Km * 4.0f * math::pi));
         surface_material_->setUniform("atmos_scale", Vec3(scale, scale_depth, scale / scale_depth));
@@ -98,8 +98,8 @@ Planet::Planet(Context* ctx, SystemNode& system_node, StarSystem& star_system,
         atmosphere_material_->setUniform(
             "inv_wavelength", Vec3(inv_wavelength.x, inv_wavelength.y, inv_wavelength.z));
         atmosphere_material_->setUniform(
-            "radius", Vec4(desc.radius, desc.radius * desc.radius, desc.atmosphere.radius,
-                           desc.atmosphere.radius * desc.atmosphere.radius));
+            "radius", Vec4(desc.radius, desc.radius * desc.radius, desc.atmosphere_radius(),
+                           desc.atmosphere_radius() * desc.atmosphere_radius()));
         atmosphere_material_->setUniform(
             "kr_km", Vec4(Kr * ESun, Kr * 4.0f * math::pi, Km * ESun, Km * 4.0f * math::pi));
         atmosphere_material_->setUniform("atmos_scale",

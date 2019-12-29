@@ -19,7 +19,7 @@ vec3 glow(vec2 uv, vec2 pos) {
     float d = max(distance - r, 0.0);
 
     // Calculate glow.
-	float f0 = 1.0 / pow(d / r + 1.0, 1.0 / 3.0);
+	float f0 = 1.0 / pow(d / r + 1.0, 2.0 / 3.0);
     return vec3(f0);
 }
 
@@ -52,7 +52,7 @@ vec3 lensflare(vec2 uv,vec2 pos) {
 	c.r+=f21+f41+f51+f61;
 	c.g+=f22+f42+f52+f62;
 	c.b+=f23+f43+f53+f63;
-	c = c*0.7 - vec3(length(uvd)*0.0125);
+	c = c*0.5 - vec3(length(uvd)*0.0125);
 
 	return c;
 }
@@ -66,5 +66,5 @@ void main()
 	pos.x *= aspect_ratio; // fix aspect ratio.
 
 	vec3 color =  vec3(1.4, 1.2, 1.0) * (lensflare(uv, pos) + glow(uv, pos));
-	o_colour = vec4(color,(color.x + color.y + color.z) / 3.0f);
+	o_colour = vec4(color, 1.0);
 }

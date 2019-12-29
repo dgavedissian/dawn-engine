@@ -85,9 +85,9 @@ PlanetRings::PlanetRings(Context* ctx, const PlanetDesc& desc, SystemNode& syste
                                Vec3(desc.rings.min_radius, desc.rings.max_radius,
                                     desc.rings.max_radius - desc.rings.min_radius));
     ring_material_->setUniform("planet_radius", desc.radius);
-    if (desc.has_atmosphere || !math::Equal(desc.radius, desc.atmosphere.radius)) {
+    if (desc.has_atmosphere || !math::Equal(desc.radius, desc.atmosphere_radius())) {
         ring_material_->setUniform("planet_penumbra_recip",
-                                   1.0f / (desc.atmosphere.radius - desc.radius));
+                                   1.0f / (desc.atmosphere_radius() - desc.radius));
     } else {
         ring_material_->setUniform("planet_penumbra_recip", 1.0f);
     }

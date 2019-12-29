@@ -93,6 +93,11 @@ void Material::enableAlphaBlending() {
                      gfx::BlendFunc::OneMinusSrcAlpha);
 }
 
+void Material::enableAdditiveBlending() {
+    setStateEnable(gfx::RenderState::Blending);
+    setBlendEquation(gfx::BlendEquation::Add, gfx::BlendFunc::One, gfx::BlendFunc::One);
+}
+
 void Material::applyRendererState(const Mat4& model_matrix, const Mat4& view_projection_matrix) {
     auto* renderer = module<Renderer>()->gfx();
 

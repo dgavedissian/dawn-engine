@@ -42,6 +42,9 @@ public:
     // Helper function to set the blend equations to alpha blending.
     void enableAlphaBlending();
 
+    // Helper function to set the blend equations to additive blending (ghosting).
+    void enableAdditiveBlending();
+
     void applyRendererState(const Mat4& model_matrix, const Mat4& view_projection_matrix);
 
     Program* program();

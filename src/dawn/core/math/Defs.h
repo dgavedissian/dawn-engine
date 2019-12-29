@@ -233,6 +233,38 @@ template <class T> T step(const T& value, const T& step, const T& target) {
     return value;
 }
 
+/// Computes the projected radius of a sphere, given a distance, radius and fovy.
+inline float computeProjectedRadius(float fovy, float d, float r) {
+    return 1.0f / tanf(fovy / 2.0f) * r / sqrt(d * d - r * r);
+}
+
+/// Computes the projected radius of a sphere, given a distance, radius and projection matrix.
+inline float computeProjectedRadius(const Mat4& proj_matrix, float d, float r) {
+    float fovy = 2.0f * atan(1.0f / proj_matrix[1][1]);
+    return 1.0f / tanf(fovy * 0.5f) * r / sqrt(d * d - r * r);
+}
+
+/// Projects a point in 3D space to normalized device coordinates, given a "view-projection" matrix.
+/// If "in_front" is not nullptr, then it will be set to true if the projected point is in front of
+/// the camera, or false otherwise.
+inline Vec3 projectPoint(const Vec3& p, const Mat4& view_proj_matrix, bool* in_front) {
+    Vec4 projected_point = view_proj_matrix.Transform(Vec4{p, 1.0});
+    if (in_front) {
+        *in_front = projected_point.w > 0.0f;
+    }
+    projected_point /= projected_point.w;
+    return projected_point.xyz();
+}
+
+/// Converts a normalized device coordinates to the equivalent position in a viewport given a
+/// viewport origin and size.
+inline Vec3 convertToViewport(Vec3 ndc, const Vec2& viewport_begin, const Vec2& viewport_size) {
+    ndc.x = (ndc.x * 0.5f + 0.5f) * viewport_size.x + viewport_begin.x;
+    ndc.y = (ndc.y * 0.5f + 0.5f) * viewport_size.y + viewport_begin.y;
+    ndc.z = (1.0f + ndc.z) * 0.5f;
+    return ndc;
+}
+
 /// Units
 
 enum DistUnits { UNIT_M, UNIT_KM, UNIT_AU, UNIT_LY, UNIT_PC };
