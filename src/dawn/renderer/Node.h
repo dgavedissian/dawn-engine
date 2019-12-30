@@ -142,6 +142,7 @@ public:
 
     void setFollowed(Node* followed);
 
+    SystemPosition& position();
     const SystemPosition& position() const;
 
 private:

@@ -8,6 +8,7 @@
 #include "renderer/Node.h"
 #include "scene/Entity.h"
 #include "scene/CSceneNode.h"
+#include "scene/space/StarSystem.h"
 
 #include <entt/entt.hpp>
 
@@ -22,11 +23,15 @@ public:
     DW_OBJECT(SceneManager);
 
     SceneManager(Context* context, EventSystem* event_system, SceneGraph* scene_graph);
-    ~SceneManager();
+    ~SceneManager() override;
+
+    // Set up the rendering pipeline for the game. This is not included in the constructor so unit
+    // tests can avoid using the games render pipeline.
+    void setupRenderPipeline();
 
     // TODO: Move this into Universe class.
     /// Set up star system.
-    void createStarSystem();
+    StarSystem& createStarSystem();
 
     /// Constructs a new entity system of the specified type.
     /// @tparam T Entity system type.
@@ -95,6 +100,7 @@ private:
 
     Node* background_scene_node_;
     SceneGraph* scene_graph_;
+    UniquePtr<StarSystem> star_system_;
 
     UniquePtr<PhysicsScene> physics_scene_;
 
@@ -108,8 +114,7 @@ private:
 
     friend class Entity;
 
-    template <typename... T>
-    friend class EntitySystem;
+    template <typename... T> friend class EntitySystem;
 };
 
 class DW_API EntitySystemBase {
@@ -128,8 +133,7 @@ protected:
     friend class SceneManager;
 };
 
-template <typename... T>
-class DW_API EntitySystem : public EntitySystemBase {
+template <typename... T> class DW_API EntitySystem : public EntitySystemBase {
 public:
     /// Specifies a list of systems which this system depends on.
     /// @tparam T List of system types.
@@ -166,21 +170,22 @@ template <typename T> void SceneManager::removeSystem() {
     system_process_order_dirty_ = true;
 }
 
-template<typename... T>
-template<typename... S>
+template <typename... T>
+template <typename... S>
 EntitySystem<T...>& EntitySystem<T...>::dependsOn() {
     for (auto index : {std::type_index(typeid(S))...}) {
         depends_on_.emplace(index);
     }
-    // If the scene manager already exists (if we added this system already), then update it by re-adding the dependencies. Otherwise, the call to addSystem will call addSystemDependencies for us.
+    // If the scene manager already exists (if we added this system already), then update it by
+    // re-adding the dependencies. Otherwise, the call to addSystem will call addSystemDependencies
+    // for us.
     if (scene_mgr_) {
         scene_mgr_->addSystemDependencies(std::type_index(typeid(this)), depends_on_);
     }
     return *this;
 }
 
-template<typename... T>
-entt::basic_view<EntityId, T...> EntitySystem<T...>::entityView() {
+template <typename... T> entt::basic_view<EntityId, T...> EntitySystem<T...>::entityView() {
     return scene_mgr_->registry_.view<T...>();
 }
 }  // namespace dw

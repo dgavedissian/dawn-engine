@@ -24,6 +24,10 @@ public:
     ShooterGameSession(Context* ctx, const GameSessionInfo& gsi) : GameSession(ctx, gsi) {
         auto rc = module<ResourceCache>();
 
+        // Set up rendering.
+        scene_manager_->setupRenderPipeline();
+
+        // Register input.
         if (!net_instance_ || net_instance_->netMode() == NetMode::Client) {
             module<Input>()->registerEventSystem(event_system_.get());
         }
@@ -64,8 +68,6 @@ public:
 
     void update(float dt) override {
         GameSession::update(dt);
-
-        module<Renderer>()->gfx()->setViewClear(0, {0.0f, 0.0f, 0.0f, 1.0f});
 
         // Display FPS information.
         ImGui::SetNextWindowPos({10, 10});

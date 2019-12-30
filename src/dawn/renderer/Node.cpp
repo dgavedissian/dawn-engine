@@ -170,6 +170,10 @@ void Frame::setFollowed(Node* followed) {
     followed_ = followed;
 }
 
+SystemPosition& Frame::position() {
+    return system_node_->position;
+}
+
 const SystemPosition& Frame::position() const {
     return system_node_->position;
 }

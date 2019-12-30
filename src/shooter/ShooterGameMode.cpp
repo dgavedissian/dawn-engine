@@ -62,22 +62,31 @@ void ShooterGameMode::serverOnClientDisconnected() {
 void ShooterGameMode::onStart() {
     NetGameMode::onStart();
 
-    session_->sceneManager()->createStarSystem();
+    // Set up the environment.
+    auto& star_system = session_->sceneManager()->createStarSystem();
 
-    // Random thing.
-    auto rc = module<ResourceCache>();
-    auto material = makeShared<Material>(
-        context(), makeShared<Program>(context(), *rc->get<VertexShader>("base:space/planet.vs"),
-                                       *rc->get<FragmentShader>("base:space/planet.fs")));
-    material->setTexture(*rc->get<Texture>("base:space/planet.jpg"));
-    material->setUniform("light_direction", Vec3{0.0f, 0.0f, 1.0f});
-    material->setUniform("surface_sampler", 0);
-    auto renderable =
-        CustomRenderable::Builder(context()).texcoords(true).normals(true).createSphere(4000.0f);
-    renderable->setMaterial(material);
-    auto planet = session_->sceneGraph()->root().newChild(SystemPosition{12000.0f, 0.0f, -6000.0f},
-                                                          Quat::identity);
-    planet->data.renderable = renderable;
+    auto& star = star_system.addStar(StarDesc{695510.0f, SpectralClass::G}, star_system.root(),
+                                     makeUnique<CircularOrbit>(0.0f, 1.0f));
+
+    PlanetDesc planet_desc;
+    planet_desc.radius = 6371.0f;
+    planet_desc.axial_tilt = 0.2f;
+    planet_desc.surface_texture = "base:space/planet2.jpg";
+    planet_desc.normal_map_texture = "base:space/planet2_normal.jpg";
+    planet_desc.has_atmosphere = true;
+    planet_desc.rings.min_radius = planet_desc.radius + 700.0f;
+    planet_desc.rings.max_radius = planet_desc.radius + 8000.0f;
+    auto& planet = star_system.addPlanet(planet_desc, star,
+                                         makeUnique<CircularOrbit>(147.11f * 1e6f, 20000.0f));
+    star_system.updatePosition(14000.0);
+    // TODO: Move this to the scene manager.
+    session_->sceneGraph()->preRenderCameraCallback =
+        [&star_system, this](float dt, const detail::Transform& camera_transform,
+                             const Mat4& view_matrix, const Mat4& proj_matrix) {
+            star_system.update(dt, *frame_, camera_transform.position, view_matrix, proj_matrix);
+        };
+    frame_->position() =
+        planet.getSystemNode().position + Vec3(0.0f, 0.0f, planet_desc.radius * 2.0f);
 
     // Create a camera.
     auto& camera =

@@ -16,7 +16,7 @@ class SandboxSession : public GameSession {
 public:
     DW_OBJECT(SandboxSession);
 
-    UniquePtr<StarSystem> star_system_;
+    StarSystem* star_system_;
 
     Frame* frame_;
     SharedPtr<CameraController> camera_controller;
@@ -24,10 +24,11 @@ public:
     SandboxSession(Context* ctx, const GameSessionInfo& gsi) : GameSession(ctx, gsi) {
         module<Input>()->registerEventSystem(event_system_.get());
 
-        scene_manager_->createStarSystem();
+        scene_manager_->setupRenderPipeline();
+
+        star_system_ = &scene_manager_->createStarSystem();
 
         // Star system.
-        star_system_ = makeUnique<StarSystem>(context(), scene_graph_->root());
         auto& star =
             star_system_->addStar(StarDesc{695510.0f, SpectralClass::G}, star_system_->root(),
                                   makeUnique<CircularOrbit>(0.0f, 1.0f));
@@ -66,6 +67,7 @@ public:
         camera_controller = makeShared<CameraController>(context(), event_system_.get(), 300.0f);
         camera_controller->possess(&camera);
 
+        // TODO: Move this to the scene manager.
         scene_graph_->preRenderCameraCallback = [this](float dt,
                                                        const detail::Transform& camera_transform,
                                                        const Mat4& view_matrix,

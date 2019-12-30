@@ -34,7 +34,23 @@ SceneManager::~SceneManager() {
     physics_scene_.reset();
 }
 
-void SceneManager::createStarSystem() {
+void SceneManager::setupRenderPipeline() {
+    Vector<RenderPipelineDesc::Step> render_scene_steps{RenderPipelineDesc::ClearStep{},
+                                                        RenderPipelineDesc::RenderQueueStep{}};
+    RenderPipelineDesc::Node render_scene_node{
+        {}, {{"out", gfx::TextureFormat::RGBA8}}, render_scene_steps};
+    Vector<RenderPipelineDesc::NodeInstance> node_instances{
+        {"RenderScene", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}};
+    auto rp_desc = RenderPipelineDesc{{{"RenderScene", render_scene_node}}, {}, node_instances};
+    auto rp_result = RenderPipeline::createFromDesc(context(), rp_desc);
+    if (!rp_result) {
+        log().error("Failed to create render pipeline: {}", rp_result.error());
+        std::terminate();
+    }
+    scene_graph_->setRenderPipeline(*rp_result);
+}
+
+StarSystem& SceneManager::createStarSystem() {
     auto& rc = *module<ResourceCache>();
 
     // Set up background.
@@ -71,20 +87,9 @@ void SceneManager::createStarSystem() {
     skysphere->setMaterial(galactic_plane_material);
     galactic_plane_scene_node.data.renderable = skysphere;
 
-    // Set up render pipeline.
-    Vector<RenderPipelineDesc::Step> render_scene_steps{RenderPipelineDesc::ClearStep{},
-                                                        RenderPipelineDesc::RenderQueueStep{}};
-    RenderPipelineDesc::Node render_scene_node{
-        {}, {{"out", gfx::TextureFormat::RGBA8}}, render_scene_steps};
-    Vector<RenderPipelineDesc::NodeInstance> node_instances{
-        {"RenderScene", {}, {{"out", RenderPipelineDesc::PipelineOutput}}}};
-    auto rp_desc = RenderPipelineDesc{{{"RenderScene", render_scene_node}}, {}, node_instances};
-    auto rp_result = RenderPipeline::createFromDesc(context(), rp_desc);
-    if (!rp_result) {
-        log().error("Failed to create render pipeline: {}", rp_result.error());
-        std::terminate();
-    }
-    scene_graph_->setRenderPipeline(*rp_result);
+    // Set up star system.
+    star_system_ = makeUnique<StarSystem>(context(), scene_graph_->root());
+    return *star_system_;
 }
 
 Result<void> SceneManager::recomputeSystemExecutionOrder() {
